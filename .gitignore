@@ -1,52 +1,34 @@
-# Prerequisites
-*.d
 
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
+node_modules
+.env
 
-# Linker output
-*.ilk
-*.map
-*.exp
+# Hardhat files
+cache
+artifacts
+temp-artifacts
+node_modules
+dist/
+build/
+.vscode
+.idea
+/types
+typechain
+typechain-types
+contracts/hardhat-dependency-compiler
 
-# Precompiled Headers
-*.gch
-*.pch
+deployed-contracts.json
 
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
+coverage
+.coverage_artifacts
+.coverage_cache
+.coverage_contracts
+coverage.json
+deployments/
 
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
-
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
-
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
-
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+#certora
+.certora*
+.certora*.json
+**.last_conf*
+certora-logs
+certora_debug_log.txt
+resource_errors.json
