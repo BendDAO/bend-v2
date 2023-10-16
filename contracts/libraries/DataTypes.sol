@@ -1,19 +1,24 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
-abstract contract Storage {
+library DataTypes {
   struct Pool {
-    uint256 id; // pool id
+    // group data
+    uint256 nextGroupId;
     mapping(uint256 => Group) groupLookup;
     uint256[] groupList;
+    // underlying asset to asset data
     mapping(address => Asset) assetLookup;
     address[] assetList;
+    // nft address -> nft id -> isolate loan
+    mapping(address => mapping(uint256 => IsolateLoan)) loanLookup;
   }
 
   struct Group {
-    uint256 id; // group id
-    uint256 totalBorrowed;
-    mapping(address => uint256) userBorrowed;
+    uint256 totalCrossBorrowed;
+    mapping(address => uint256) userCrossBorrowed;
+    uint256 totalIsolateBorrowed;
+    address rateModel;
     uint256 borrowRate;
     uint256 borrowIndex;
   }
@@ -29,7 +34,6 @@ abstract contract Storage {
     uint32 collateralFactor;
     uint32 liquidationFactor;
     uint32 feeFactor;
-    address rateModel;
     uint256 totalCrossSupplied; // total supplied balance in cross margin mode
     mapping(address => uint256) userCrossSupplied; // user supplied balance in cross margin mode
     uint256 totalIsolateSupplied; // total supplied balance in isolate mode, only for ERC721
@@ -40,5 +44,24 @@ abstract contract Storage {
     uint256 accruedFee;
   }
 
-  mapping(uint256 => Pool) poolLookup;
+  struct IsolateLoan {
+    address reserveAsset;
+    uint256 reserveAmount;
+    uint256 loanStatus; // 0=init, 1=active, 2=repaid, 3=auction, 4=liquidated
+    uint256 debtGroupId;
+  }
+
+  struct PoolLendingStorage {
+    address nativeWrappedToken; // WETH
+    uint256 nextPoolId;
+    mapping(uint256 => Pool) poolLookup;
+  }
+
+  struct PoolYieldStorage {
+    uint256 reserve;
+  }
+
+  struct P2PLendingStorage {
+    uint256 reserve;
+  }
 }
