@@ -5,8 +5,12 @@ library Errors {
   // Common errors, 0~99
   string public constant CE_OK = '0';
   string public constant CE_INVALID_CALLER = '1';
-  string public constant CE_INVALID_TRANSFER_AMOUNT = '2';
-  string public constant CE_INVALID_SUPPLY_MODE = '3';
+  string public constant CE_ACL_ADMIN_CANNOT_BE_ZERO = '2';
+  string public constant CE_ACL_MANAGER_CANNOT_BE_ZERO = '3';
+  string public constant CE_PRICE_ORACLE_CANNOT_BE_ZERO = '3';
+  string public constant CE_OWNER_CANNOT_BE_ZERO = '3';
+  string public constant CE_INVALID_TRANSFER_AMOUNT = '20';
+  string public constant CE_INVALID_SUPPLY_MODE = '21';
 
   // Pool errors, 100~199
   string public constant PE_POOL_ALREADY_EXISTS = '100';

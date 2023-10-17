@@ -2,6 +2,17 @@
 pragma solidity ^0.8.19;
 
 library DataTypes {
+  /****************************************************************************/
+  /* Data Types for Common */
+
+  struct CommonStorage {
+    address nativeWrappedToken; // WETH
+    address aclManager; // ACLManager
+    address priceOracle; // PriceOracle
+  }
+
+  /****************************************************************************/
+  /* Data Types for Pool Lending */
   struct Pool {
     // group data
     uint256 nextGroupId;
@@ -52,14 +63,19 @@ library DataTypes {
   }
 
   struct PoolLendingStorage {
-    address nativeWrappedToken; // WETH
     uint256 nextPoolId;
     mapping(uint256 => Pool) poolLookup;
   }
 
+  /****************************************************************************/
+  /* Data Types for Pool Yield */
+
   struct PoolYieldStorage {
     uint256 reserve;
   }
+
+  /****************************************************************************/
+  /* Data Types for P2P Lending */
 
   struct P2PLendingStorage {
     uint256 reserve;
