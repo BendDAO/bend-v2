@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import {Initializable} from '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import {IACLManager} from './interfaces/IACLManager.sol';
-import {Errors} from './libraries/Errors.sol';
+import {Errors} from './libraries/helpers/Errors.sol';
 
 contract PriceOracle is Initializable {
   IACLManager public aclManager;

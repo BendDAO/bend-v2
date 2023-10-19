@@ -5,10 +5,10 @@ import {IERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20
 import {SafeERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol';
 import {IERC721Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol';
 
-import {Constants} from './Constants.sol';
-import {Errors} from './Errors.sol';
-import {InputTypes} from './InputTypes.sol';
-import {DataTypes} from './DataTypes.sol';
+import {Constants} from '../helpers/Constants.sol';
+import {Errors} from '../helpers/Errors.sol';
+import {InputTypes} from '../types/InputTypes.sol';
+import {DataTypes} from '../types/DataTypes.sol';
 import {StorageSlot} from './StorageSlot.sol';
 
 library VaultLogic {
@@ -18,7 +18,7 @@ library VaultLogic {
     address underlyingAsset,
     address from,
     uint256 amount
-  ) internal returns (uint amountTransferred) {
+  ) public returns (uint amountTransferred) {
     uint256 poolSizeBefore = IERC20Upgradeable(underlyingAsset).balanceOf(address(this));
 
     IERC20Upgradeable(underlyingAsset).safeTransferFrom(from, address(this), amount);
@@ -35,7 +35,7 @@ library VaultLogic {
     address underlyingAsset,
     address to,
     uint amount
-  ) internal returns (uint amountTransferred) {
+  ) public returns (uint amountTransferred) {
     uint256 poolSizeBefore = IERC20Upgradeable(underlyingAsset).balanceOf(address(this));
 
     IERC20Upgradeable(underlyingAsset).safeTransfer(to, amount);
@@ -51,7 +51,7 @@ library VaultLogic {
     address underlyingAsset,
     address from,
     uint256[] memory tokenIds
-  ) internal returns (uint amountTransferred) {
+  ) public returns (uint amountTransferred) {
     uint256 poolSizeBefore = IERC721Upgradeable(underlyingAsset).balanceOf(address(this));
 
     for (uint256 i = 0; i < tokenIds.length; i++) {
@@ -70,7 +70,7 @@ library VaultLogic {
     address underlyingAsset,
     address to,
     uint256[] memory tokenIds
-  ) internal returns (uint amountTransferred) {
+  ) public returns (uint amountTransferred) {
     uint256 poolSizeBefore = IERC721Upgradeable(underlyingAsset).balanceOf(address(this));
 
     for (uint256 i = 0; i < tokenIds.length; i++) {

@@ -2,6 +2,11 @@
 pragma solidity ^0.8.19;
 
 library InputTypes {
+  struct CalculateGroupBorrowRateParams {
+    address assetAddress;
+    uint256 borrowUsageRatio;
+  }
+
   struct ExecuteDepositERC20Params {
     uint256 poolId;
     address asset;

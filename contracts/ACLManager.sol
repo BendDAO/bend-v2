@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import {AccessControlUpgradeable} from '@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol';
 import {IACLManager} from './interfaces/IACLManager.sol';
-import {Errors} from './libraries/Errors.sol';
+import {Errors} from './libraries/helpers/Errors.sol';
 
 /**
  * @title ACLManager

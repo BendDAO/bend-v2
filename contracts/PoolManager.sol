@@ -8,14 +8,14 @@ import {IERC721Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC7
 import {PausableUpgradeable} from '@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol';
 import {ReentrancyGuardUpgradeable} from '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
 
-import './libraries/Constants.sol';
-import './libraries/Errors.sol';
-import './libraries/DataTypes.sol';
-import './libraries/InputTypes.sol';
+import './libraries/helpers/Constants.sol';
+import './libraries/helpers/Errors.sol';
+import './libraries/types/DataTypes.sol';
+import './libraries/types/InputTypes.sol';
 
-import './libraries/StorageSlot.sol';
-import './libraries/VaultLogic.sol';
-import './libraries/SupplyLogic.sol';
+import './libraries/logic/StorageSlot.sol';
+import './libraries/logic/VaultLogic.sol';
+import './libraries/logic/SupplyLogic.sol';
 
 contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
   using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -42,21 +42,21 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
     poolId = ps.nextPoolId;
     ps.nextPoolId += 1;
 
-    DataTypes.Pool storage pool = ps.poolLookup[poolId];
+    DataTypes.PoolData storage pool = ps.poolLookup[poolId];
     pool.nextGroupId = 1;
   }
 
   function createGroup(uint256 poolId, address rateModel_) public returns (uint256 groupId) {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
-    DataTypes.Pool storage pool = ps.poolLookup[poolId];
+    DataTypes.PoolData storage pool = ps.poolLookup[poolId];
     require(pool.nextGroupId != 0, Errors.PE_POOL_NOT_EXISTS);
 
     groupId = pool.nextGroupId;
     pool.nextGroupId += 1;
 
-    DataTypes.Group storage group = pool.groupLookup[groupId];
-    group.rateModel = rateModel_;
+    DataTypes.GroupData storage group = pool.groupLookup[groupId];
+    group.interestRateModelAddress = rateModel_;
 
     pool.groupList.push(groupId);
   }
@@ -64,13 +64,13 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
   function addAssetERC20(uint256 poolId, uint256 groupId, address underlyingAsset) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
-    DataTypes.Pool storage pool = ps.poolLookup[poolId];
+    DataTypes.PoolData storage pool = ps.poolLookup[poolId];
     require(pool.nextGroupId != 0, Errors.PE_POOL_NOT_EXISTS);
 
-    DataTypes.Group storage group = pool.groupLookup[groupId];
-    require(group.rateModel != address(0), Errors.PE_GROUP_NOT_EXISTS);
+    DataTypes.GroupData storage group = pool.groupLookup[groupId];
+    require(group.interestRateModelAddress != address(0), Errors.PE_GROUP_NOT_EXISTS);
 
-    DataTypes.Asset storage asset = pool.assetLookup[underlyingAsset];
+    DataTypes.AssetData storage asset = pool.assetLookup[underlyingAsset];
     require(asset.assetType == 0, Errors.PE_ASSET_ALREADY_EXISTS);
 
     asset.groupId = groupId;
@@ -82,9 +82,9 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
   function addAssetERC721(uint256 poolId, uint256 groupId, address underlyingAsset) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
-    DataTypes.Pool storage pool = ps.poolLookup[poolId];
-    //Group storage group = pool.groupLookup[groupId];
-    DataTypes.Asset storage asset = pool.assetLookup[underlyingAsset];
+    DataTypes.PoolData storage pool = ps.poolLookup[poolId];
+    //Group storage groupData = pool.groupLookup[groupId];
+    DataTypes.AssetData storage asset = pool.assetLookup[underlyingAsset];
     require(asset.assetType == 0, Errors.PE_ASSET_ALREADY_EXISTS);
 
     asset.groupId = groupId;
