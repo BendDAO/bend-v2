@@ -36,7 +36,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
     ps.nextPoolId = 1;
   }
 
-  function createPool() public returns (uint256 poolId) {
+  function createPool() public returns (uint32 poolId) {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     poolId = ps.nextPoolId;
@@ -46,7 +46,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
     pool.nextGroupId = 1;
   }
 
-  function createGroup(uint256 poolId, address rateModel_) public returns (uint256 groupId) {
+  function createGroup(uint32 poolId, address rateModel_) public returns (uint8 groupId) {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage pool = ps.poolLookup[poolId];
@@ -61,7 +61,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
     pool.groupList.push(groupId);
   }
 
-  function addAssetERC20(uint256 poolId, uint256 groupId, address underlyingAsset) public {
+  function addAssetERC20(uint32 poolId, uint8 groupId, address underlyingAsset) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage pool = ps.poolLookup[poolId];
@@ -74,12 +74,12 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
     require(asset.assetType == 0, Errors.PE_ASSET_ALREADY_EXISTS);
 
     asset.groupId = groupId;
-    asset.assetType = Constants.ASSET_TYPE_ERC20;
+    asset.assetType = uint8(Constants.ASSET_TYPE_ERC20);
 
     pool.assetList.push(underlyingAsset);
   }
 
-  function addAssetERC721(uint256 poolId, uint256 groupId, address underlyingAsset) public {
+  function addAssetERC721(uint32 poolId, uint8 groupId, address underlyingAsset) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage pool = ps.poolLookup[poolId];
@@ -88,25 +88,31 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
     require(asset.assetType == 0, Errors.PE_ASSET_ALREADY_EXISTS);
 
     asset.groupId = groupId;
-    asset.assetType = Constants.ASSET_TYPE_ERC721;
+    asset.assetType = uint8(Constants.ASSET_TYPE_ERC721);
 
     pool.assetList.push(underlyingAsset);
   }
 
-  function depositERC20(uint256 poolId, address asset, uint256 amount, address onBehalfOf) public {
+  function depositERC20(uint32 poolId, address asset, uint256 amount, address onBehalfOf) public {
     SupplyLogic.executeDepositERC20(
       InputTypes.ExecuteDepositERC20Params({poolId: poolId, asset: asset, amount: amount, onBehalfOf: onBehalfOf})
     );
   }
 
-  function withdrawERC20(uint256 poolId, address asset, uint256 amount, address to) public {
+  function withdrawERC20(uint32 poolId, address asset, uint256 amount, address to, address onBehalfOf) public {
     SupplyLogic.executeWithdrawERC20(
-      InputTypes.ExecuteWithdrawERC20Params({poolId: poolId, asset: asset, amount: amount, to: to})
+      InputTypes.ExecuteWithdrawERC20Params({
+        poolId: poolId,
+        asset: asset,
+        amount: amount,
+        to: to,
+        onBehalfOf: onBehalfOf
+      })
     );
   }
 
   function depositERC721(
-    uint256 poolId,
+    uint32 poolId,
     address asset,
     uint256[] calldata tokenIds,
     uint256 supplyMode,
@@ -123,9 +129,21 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
     );
   }
 
-  function withdrawERC721(uint256 poolId, address asset, uint256[] calldata tokenIds, address to) public {
+  function withdrawERC721(
+    uint32 poolId,
+    address asset,
+    uint256[] calldata tokenIds,
+    address to,
+    address onBehalfOf
+  ) public {
     SupplyLogic.executeWithdrawERC721(
-      InputTypes.ExecuteWithdrawERC721Params({poolId: poolId, asset: asset, tokenIds: tokenIds, to: to})
+      InputTypes.ExecuteWithdrawERC721Params({
+        poolId: poolId,
+        asset: asset,
+        tokenIds: tokenIds,
+        to: to,
+        onBehalfOf: onBehalfOf
+      })
     );
   }
 

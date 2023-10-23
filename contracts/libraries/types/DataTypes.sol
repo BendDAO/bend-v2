@@ -14,15 +14,21 @@ library DataTypes {
   /****************************************************************************/
   /* Data Types for Pool Lending */
   struct PoolData {
+    uint8 nextGroupId;
     // group data
-    uint256 nextGroupId;
-    mapping(uint256 => GroupData) groupLookup;
-    uint256[] groupList;
+    mapping(uint8 => GroupData) groupLookup;
+    uint8[] groupList;
     // underlying asset to asset data
     mapping(address => AssetData) assetLookup;
     address[] assetList;
     // nft address -> nft id -> isolate loan
     mapping(address => mapping(uint256 => IsolateLoanData)) loanLookup;
+    // Map of approve allowances (delegator => delegatee => erc20Allowance)
+    mapping(address => mapping(address => uint256)) erc20Allowances;
+    // Map of approve allowances (delegator => delegatee => erc721OperatorApproval)
+    mapping(address => mapping(address => bool)) erc721OperatorApprovals;
+    // Map of borrow allowances (delegator => delegatee => borrowAllowanceAmount)
+    mapping(address => mapping(address => uint256)) erc20BorrowAllowances;
   }
 
   struct GroupData {
@@ -40,11 +46,13 @@ library DataTypes {
   }
 
   struct AssetData {
-    uint256 groupId; // group id
-    uint256 assetType; // ERC20=0, ERC721=1
-    uint32 collateralFactor;
-    uint32 liquidationFactor;
-    uint32 feeFactor;
+    // asset configure params
+    uint8 groupId; // group id
+    uint8 assetType; // ERC20=0, ERC721=1
+    uint16 collateralFactor;
+    uint16 liquidationFactor;
+    uint16 feeFactor;
+    // asset state
     uint256 totalCrossSupplied; // total supplied balance in cross margin mode
     mapping(address => uint256) userCrossSupplied; // user supplied balance in cross margin mode
     uint256 totalIsolateSupplied; // total supplied balance in isolate mode, only for ERC721
@@ -64,8 +72,8 @@ library DataTypes {
   }
 
   struct PoolLendingStorage {
-    uint256 nextPoolId;
-    mapping(uint256 => PoolData) poolLookup;
+    uint32 nextPoolId;
+    mapping(uint32 => PoolData) poolLookup;
   }
 
   /****************************************************************************/

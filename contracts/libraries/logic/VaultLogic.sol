@@ -14,7 +14,36 @@ import {StorageSlot} from './StorageSlot.sol';
 library VaultLogic {
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
-  function transferInForERC20Tokens(
+  function erc20Approve(DataTypes.PoolData storage poolData, address owner, address spender, uint256 amount) public {
+    poolData.erc20Allowances[owner][spender] = amount;
+  }
+
+  function erc20Allowance(
+    DataTypes.PoolData storage poolData,
+    address owner,
+    address spender
+  ) public view returns (uint256) {
+    return poolData.erc20Allowances[owner][spender];
+  }
+
+  function erc721SetApprovalForAll(
+    DataTypes.PoolData storage poolData,
+    address owner,
+    address operator,
+    bool approved
+  ) public {
+    poolData.erc721OperatorApprovals[owner][operator] = approved;
+  }
+
+  function erc721IsApprovedForAll(
+    DataTypes.PoolData storage poolData,
+    address owner,
+    address operator
+  ) public view returns (bool) {
+    return poolData.erc721OperatorApprovals[owner][operator];
+  }
+
+  function erc20TransferIn(
     address underlyingAsset,
     address from,
     uint256 amount
@@ -31,11 +60,7 @@ library VaultLogic {
     }
   }
 
-  function transferOutForERC20Tokens(
-    address underlyingAsset,
-    address to,
-    uint amount
-  ) public returns (uint amountTransferred) {
+  function erc20TransferOut(address underlyingAsset, address to, uint amount) public returns (uint amountTransferred) {
     uint256 poolSizeBefore = IERC20Upgradeable(underlyingAsset).balanceOf(address(this));
 
     IERC20Upgradeable(underlyingAsset).safeTransfer(to, amount);
@@ -47,7 +72,7 @@ library VaultLogic {
     }
   }
 
-  function transferInForERC721Tokens(
+  function erc721TransferIn(
     address underlyingAsset,
     address from,
     uint256[] memory tokenIds
@@ -66,7 +91,7 @@ library VaultLogic {
     }
   }
 
-  function transferOutForERC721Tokens(
+  function erc721TransferOut(
     address underlyingAsset,
     address to,
     uint256[] memory tokenIds

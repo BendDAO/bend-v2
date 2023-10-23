@@ -77,7 +77,7 @@ library InterestLogic {
    * @notice Updates the cumulative supply index and the borrow index.
    * @param assetData The asset data object
    */
-  function updateState(DataTypes.AssetData storage assetData, DataTypes.GroupData storage groupData) internal {
+  function updateInterestIndexs(DataTypes.AssetData storage assetData, DataTypes.GroupData storage groupData) internal {
     // If time didn't pass since last stored timestamp, skip state update
     //solium-disable-next-line
     if (assetData.lastUpdateTimestamp == uint40(block.timestamp)) {
