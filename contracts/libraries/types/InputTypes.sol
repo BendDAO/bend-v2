@@ -37,4 +37,19 @@ library InputTypes {
     address to;
     address onBehalfOf;
   }
+
+  struct ExecuteBorrowERC20Params {
+    uint32 poolId;
+    address asset;
+    uint256 amount;
+    address to;
+    address onBehalfOf;
+  }
+
+  struct ExecuteRepayERC20Params {
+    uint32 poolId;
+    address asset;
+    uint256 amount;
+    address onBehalfOf;
+  }
 }

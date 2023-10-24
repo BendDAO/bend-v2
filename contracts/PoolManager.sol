@@ -16,6 +16,7 @@ import './libraries/types/InputTypes.sol';
 import './libraries/logic/StorageSlot.sol';
 import './libraries/logic/VaultLogic.sol';
 import './libraries/logic/SupplyLogic.sol';
+import './libraries/logic/BorrowLogic.sol';
 
 contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
   using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -147,9 +148,23 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
     );
   }
 
-  function borrowERC20(uint256 poolId, address asset, uint256 amount, address onBehalfOf) public {}
+  function borrowERC20(uint32 poolId, address asset, uint256 amount, address to, address onBehalfOf) public {
+    BorrowLogic.executeBorrowERC20(
+      InputTypes.ExecuteBorrowERC20Params({
+        poolId: poolId,
+        asset: asset,
+        amount: amount,
+        to: to,
+        onBehalfOf: onBehalfOf
+      })
+    );
+  }
 
-  function repayERC20(uint256 poolId, address asset, uint256 amount, address onBehalfOf) public {}
+  function repayERC20(uint32 poolId, address asset, uint256 amount, address onBehalfOf) public {
+    BorrowLogic.executeRepayERC20(
+      InputTypes.ExecuteRepayERC20Params({poolId: poolId, asset: asset, amount: amount, onBehalfOf: onBehalfOf})
+    );
+  }
 
   function borrowERC20WithIsolateMode(
     address nftAsset,
