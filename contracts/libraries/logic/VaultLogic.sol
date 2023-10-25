@@ -14,35 +14,6 @@ import {StorageSlot} from './StorageSlot.sol';
 library VaultLogic {
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
-  function erc20Approve(DataTypes.PoolData storage poolData, address owner, address spender, uint256 amount) public {
-    poolData.erc20Allowances[owner][spender] = amount;
-  }
-
-  function erc20Allowance(
-    DataTypes.PoolData storage poolData,
-    address owner,
-    address spender
-  ) public view returns (uint256) {
-    return poolData.erc20Allowances[owner][spender];
-  }
-
-  function erc721SetApprovalForAll(
-    DataTypes.PoolData storage poolData,
-    address owner,
-    address operator,
-    bool approved
-  ) public {
-    poolData.erc721OperatorApprovals[owner][operator] = approved;
-  }
-
-  function erc721IsApprovedForAll(
-    DataTypes.PoolData storage poolData,
-    address owner,
-    address operator
-  ) public view returns (bool) {
-    return poolData.erc721OperatorApprovals[owner][operator];
-  }
-
   function erc20TransferIn(
     address underlyingAsset,
     address from,

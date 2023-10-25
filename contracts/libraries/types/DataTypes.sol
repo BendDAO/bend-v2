@@ -23,12 +23,6 @@ library DataTypes {
     address[] assetList;
     // nft address -> nft id -> isolate loan
     mapping(address => mapping(uint256 => IsolateLoanData)) loanLookup;
-    // Map of approve allowances (delegator => delegatee => erc20Allowance)
-    mapping(address => mapping(address => uint256)) erc20Allowances;
-    // Map of approve allowances (delegator => delegatee => erc721OperatorApproval)
-    mapping(address => mapping(address => bool)) erc721OperatorApprovals;
-    // Map of borrow allowances (delegator => delegatee => borrowAllowanceAmount)
-    mapping(address => mapping(address => uint256)) erc20BorrowAllowances;
   }
 
   struct GroupData {

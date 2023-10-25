@@ -11,35 +11,11 @@ import {VaultLogic} from './VaultLogic.sol';
 import {InterestLogic} from './InterestLogic.sol';
 
 library SupplyLogic {
-  event DepositERC20(
-    address indexed sender,
-    address account,
-    uint256 indexed poolId,
-    address indexed asset,
-    uint256 amount
-  );
-  event WithdrawERC20(
-    address indexed sender,
-    address account,
-    uint256 indexed poolId,
-    address indexed asset,
-    uint256 amount
-  );
+  event DepositERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
+  event WithdrawERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
 
-  event DepositERC721(
-    address indexed sender,
-    address account,
-    uint256 indexed poolId,
-    address indexed asset,
-    uint256[] tokenIds
-  );
-  event WithdrawERC721(
-    address indexed sender,
-    address account,
-    uint256 indexed poolId,
-    address indexed asset,
-    uint256[] tokenIds
-  );
+  event DepositERC721(address indexed sender, uint256 indexed poolId, address indexed asset, uint256[] tokenIds);
+  event WithdrawERC721(address indexed sender, uint256 indexed poolId, address indexed asset, uint256[] tokenIds);
 
   function executeDepositERC20(InputTypes.ExecuteDepositERC20Params memory params) external {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
@@ -55,7 +31,7 @@ library SupplyLogic {
     VaultLogic.erc20TransferIn(params.asset, msg.sender, params.amount);
 
     assetData.totalCrossSupplied += params.amount;
-    assetData.userCrossSupplied[params.onBehalfOf] += params.amount;
+    assetData.userCrossSupplied[msg.sender] += params.amount;
 
     InterestLogic.updateInterestRates(
       poolData,
@@ -67,7 +43,7 @@ library SupplyLogic {
       0
     );
 
-    emit DepositERC20(msg.sender, params.onBehalfOf, params.poolId, params.asset, params.amount);
+    emit DepositERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
 
   function executeWithdrawERC20(InputTypes.ExecuteWithdrawERC20Params memory params) public {
@@ -98,7 +74,7 @@ library SupplyLogic {
       params.amount
     );
 
-    emit WithdrawERC20(msg.sender, params.onBehalfOf, params.poolId, params.asset, params.amount);
+    emit WithdrawERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
 
   function executeDepositERC721(InputTypes.ExecuteDepositERC721Params memory params) public {
@@ -112,21 +88,21 @@ library SupplyLogic {
 
     for (uint256 i = 0; i < params.tokenIds.length; i++) {
       DataTypes.ERC721TokenData storage tokenData = assetStorage.erc721TokenData[params.tokenIds[i]];
-      tokenData.owner = params.onBehalfOf;
+      tokenData.owner = msg.sender;
       tokenData.supplyMode = uint8(params.supplyMode);
     }
 
     if (params.supplyMode == Constants.SUPPLY_MODE_CROSS) {
       assetStorage.totalCrossSupplied += params.tokenIds.length;
-      assetStorage.userCrossSupplied[params.onBehalfOf] += params.tokenIds.length;
+      assetStorage.userCrossSupplied[msg.sender] += params.tokenIds.length;
     } else if (params.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
       assetStorage.totalIsolateSupplied += params.tokenIds.length;
-      assetStorage.userIsolateSupplied[params.onBehalfOf] += params.tokenIds.length;
+      assetStorage.userIsolateSupplied[msg.sender] += params.tokenIds.length;
     } else {
       revert(Errors.CE_INVALID_SUPPLY_MODE);
     }
 
-    emit DepositERC721(msg.sender, params.onBehalfOf, params.poolId, params.asset, params.tokenIds);
+    emit DepositERC721(msg.sender, params.poolId, params.asset, params.tokenIds);
   }
 
   function executeWithdrawERC721(InputTypes.ExecuteWithdrawERC721Params memory params) public {
@@ -147,6 +123,6 @@ library SupplyLogic {
 
     // TODO: check if the user has enough collateral to cover debt
 
-    emit WithdrawERC721(msg.sender, params.onBehalfOf, params.poolId, params.asset, params.tokenIds);
+    emit WithdrawERC721(msg.sender, params.poolId, params.asset, params.tokenIds);
   }
 }

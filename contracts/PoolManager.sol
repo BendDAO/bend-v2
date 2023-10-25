@@ -94,91 +94,41 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
     pool.assetList.push(underlyingAsset);
   }
 
-  function depositERC20(uint32 poolId, address asset, uint256 amount, address onBehalfOf) public {
+  function depositERC20(uint32 poolId, address asset, uint256 amount) public {
     SupplyLogic.executeDepositERC20(
-      InputTypes.ExecuteDepositERC20Params({poolId: poolId, asset: asset, amount: amount, onBehalfOf: onBehalfOf})
+      InputTypes.ExecuteDepositERC20Params({poolId: poolId, asset: asset, amount: amount})
     );
   }
 
-  function withdrawERC20(uint32 poolId, address asset, uint256 amount, address to, address onBehalfOf) public {
+  function withdrawERC20(uint32 poolId, address asset, uint256 amount, address to) public {
     SupplyLogic.executeWithdrawERC20(
-      InputTypes.ExecuteWithdrawERC20Params({
-        poolId: poolId,
-        asset: asset,
-        amount: amount,
-        to: to,
-        onBehalfOf: onBehalfOf
-      })
+      InputTypes.ExecuteWithdrawERC20Params({poolId: poolId, asset: asset, amount: amount, to: to})
     );
   }
 
-  function depositERC721(
-    uint32 poolId,
-    address asset,
-    uint256[] calldata tokenIds,
-    uint256 supplyMode,
-    address onBehalfOf
-  ) public {
+  function depositERC721(uint32 poolId, address asset, uint256[] calldata tokenIds, uint256 supplyMode) public {
     SupplyLogic.executeDepositERC721(
-      InputTypes.ExecuteDepositERC721Params({
-        poolId: poolId,
-        asset: asset,
-        tokenIds: tokenIds,
-        supplyMode: supplyMode,
-        onBehalfOf: onBehalfOf
-      })
+      InputTypes.ExecuteDepositERC721Params({poolId: poolId, asset: asset, tokenIds: tokenIds, supplyMode: supplyMode})
     );
   }
 
-  function withdrawERC721(
-    uint32 poolId,
-    address asset,
-    uint256[] calldata tokenIds,
-    address to,
-    address onBehalfOf
-  ) public {
+  function withdrawERC721(uint32 poolId, address asset, uint256[] calldata tokenIds, address to) public {
     SupplyLogic.executeWithdrawERC721(
-      InputTypes.ExecuteWithdrawERC721Params({
-        poolId: poolId,
-        asset: asset,
-        tokenIds: tokenIds,
-        to: to,
-        onBehalfOf: onBehalfOf
-      })
+      InputTypes.ExecuteWithdrawERC721Params({poolId: poolId, asset: asset, tokenIds: tokenIds, to: to})
     );
   }
 
-  function borrowERC20(uint32 poolId, address asset, uint256 amount, address to, address onBehalfOf) public {
+  function borrowERC20(uint32 poolId, address asset, uint256 amount, address to) public {
     BorrowLogic.executeBorrowERC20(
-      InputTypes.ExecuteBorrowERC20Params({
-        poolId: poolId,
-        asset: asset,
-        amount: amount,
-        to: to,
-        onBehalfOf: onBehalfOf
-      })
+      InputTypes.ExecuteBorrowERC20Params({poolId: poolId, asset: asset, amount: amount, to: to})
     );
   }
 
-  function repayERC20(uint32 poolId, address asset, uint256 amount, address onBehalfOf) public {
-    BorrowLogic.executeRepayERC20(
-      InputTypes.ExecuteRepayERC20Params({poolId: poolId, asset: asset, amount: amount, onBehalfOf: onBehalfOf})
-    );
+  function repayERC20(uint32 poolId, address asset, uint256 amount) public {
+    BorrowLogic.executeRepayERC20(InputTypes.ExecuteRepayERC20Params({poolId: poolId, asset: asset, amount: amount}));
   }
 
-  function borrowERC20WithIsolateMode(
-    address nftAsset,
-    uint256 nftTokenid,
-    address asset,
-    uint256 amount,
-    address onBehalfOf
-  ) public {}
+  function borrowERC20WithIsolateMode(address nftAsset, uint256 nftTokenid, address asset, uint256 amount) public {}
 
-  function repayERC20WithIsolateMode(
-    address nftAsset,
-    uint256 nftTokenid,
-    address asset,
-    uint256 amount,
-    address onBehalfOf
-  ) public {}
+  function repayERC20WithIsolateMode(address nftAsset, uint256 nftTokenid, address asset, uint256 amount) public {}
 }

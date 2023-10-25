@@ -11,7 +11,6 @@ library InputTypes {
     uint32 poolId;
     address asset;
     uint256 amount;
-    address onBehalfOf;
   }
 
   struct ExecuteWithdrawERC20Params {
@@ -19,7 +18,6 @@ library InputTypes {
     address asset;
     uint256 amount;
     address to;
-    address onBehalfOf;
   }
 
   struct ExecuteDepositERC721Params {
@@ -27,7 +25,6 @@ library InputTypes {
     address asset;
     uint256[] tokenIds;
     uint256 supplyMode;
-    address onBehalfOf;
   }
 
   struct ExecuteWithdrawERC721Params {
@@ -35,7 +32,6 @@ library InputTypes {
     address asset;
     uint256[] tokenIds;
     address to;
-    address onBehalfOf;
   }
 
   struct ExecuteBorrowERC20Params {
@@ -43,13 +39,11 @@ library InputTypes {
     address asset;
     uint256 amount;
     address to;
-    address onBehalfOf;
   }
 
   struct ExecuteRepayERC20Params {
     uint32 poolId;
     address asset;
     uint256 amount;
-    address onBehalfOf;
   }
 }

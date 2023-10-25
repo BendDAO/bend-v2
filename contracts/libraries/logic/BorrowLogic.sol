@@ -11,20 +11,8 @@ import {VaultLogic} from './VaultLogic.sol';
 import {InterestLogic} from './InterestLogic.sol';
 
 library BorrowLogic {
-  event BorrowERC20(
-    address indexed sender,
-    address account,
-    uint256 indexed poolId,
-    address indexed asset,
-    uint256 amount
-  );
-  event RepayERC20(
-    address indexed sender,
-    address account,
-    uint256 indexed poolId,
-    address indexed asset,
-    uint256 amount
-  );
+  event BorrowERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
+  event RepayERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
 
   function executeBorrowERC20(InputTypes.ExecuteBorrowERC20Params memory params) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
@@ -40,7 +28,7 @@ library BorrowLogic {
     // TODO: check if the user has enough collateral to cover debt
 
     groupData.totalCrossBorrowed += params.amount;
-    groupData.userCrossBorrowed[params.onBehalfOf] += params.amount;
+    groupData.userCrossBorrowed[msg.sender] += params.amount;
 
     VaultLogic.erc20TransferOut(params.asset, params.to, params.amount);
 
@@ -54,7 +42,7 @@ library BorrowLogic {
       params.amount
     );
 
-    emit BorrowERC20(msg.sender, params.onBehalfOf, params.poolId, params.asset, params.amount);
+    emit BorrowERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
 
   function executeRepayERC20(InputTypes.ExecuteRepayERC20Params memory params) public {
@@ -71,7 +59,7 @@ library BorrowLogic {
     // TODO: check if the user has enough collateral to cover debt
 
     groupData.totalCrossBorrowed -= params.amount;
-    groupData.userCrossBorrowed[params.onBehalfOf] -= params.amount;
+    groupData.userCrossBorrowed[msg.sender] -= params.amount;
 
     VaultLogic.erc20TransferIn(params.asset, msg.sender, params.amount);
 
@@ -85,6 +73,6 @@ library BorrowLogic {
       params.amount
     );
 
-    emit RepayERC20(msg.sender, params.onBehalfOf, params.poolId, params.asset, params.amount);
+    emit RepayERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
 }
