@@ -10,9 +10,117 @@ import {Errors} from '../helpers/Errors.sol';
 import {InputTypes} from '../types/InputTypes.sol';
 import {DataTypes} from '../types/DataTypes.sol';
 import {StorageSlot} from './StorageSlot.sol';
+import {WadRayMath} from '../math/WadRayMath.sol';
 
 library VaultLogic {
   using SafeERC20Upgradeable for IERC20Upgradeable;
+  using WadRayMath for uint256;
+
+  // Account methods
+  function accountAddAsset(DataTypes.AccountData storage accountData, address asset, bool isForSupplied) public {
+    address[] storage assetsInStorage;
+
+    if (isForSupplied) {
+      assetsInStorage = accountData.suppliedAssets;
+    } else {
+      assetsInStorage = accountData.borrowedAssets;
+    }
+
+    if (assetsInStorage.length == 0) {
+      assetsInStorage.push(asset);
+    } else {
+      bool isExist = false;
+      for (uint256 i = 0; i < assetsInStorage.length; i++) {
+        if (assetsInStorage[i] == asset) {
+          isExist = true;
+          break;
+        }
+      }
+      if (!isExist) {
+        assetsInStorage.push(asset);
+      }
+    }
+  }
+
+  function accountRemoveAsset(DataTypes.AccountData storage accountData, address asset, bool isForSupplied) public {
+    address[] storage assetsInStorage;
+
+    if (isForSupplied) {
+      assetsInStorage = accountData.suppliedAssets;
+    } else {
+      assetsInStorage = accountData.borrowedAssets;
+    }
+
+    if (assetsInStorage.length == 0) {
+      return;
+    }
+
+    for (uint256 i = 0; i < assetsInStorage.length; i++) {
+      if (assetsInStorage[i] == asset) {
+        assetsInStorage[i] = assetsInStorage[assetsInStorage.length - 1];
+        assetsInStorage.pop();
+        break;
+      }
+    }
+  }
+
+  // ERC20 methods
+
+  function erc20IncreaseSupply(
+    DataTypes.AssetData storage assetData,
+    address account,
+    uint256 amount
+  ) public returns (bool) {
+    uint256 amountScaled = amount.rayDiv(assetData.supplyIndex);
+    require(amountScaled != 0, Errors.CE_INVALID_SCALED_AMOUNT);
+
+    assetData.totalCrossSupplied += amountScaled;
+    assetData.userCrossSupplied[account] += amountScaled;
+
+    return (assetData.userCrossSupplied[account] == amountScaled); // first supply
+  }
+
+  function erc20DecreaseSupply(
+    DataTypes.AssetData storage assetData,
+    address account,
+    uint256 amount
+  ) public returns (bool) {
+    uint256 amountScaled = amount.rayDiv(assetData.supplyIndex);
+    require(amountScaled != 0, Errors.CE_INVALID_SCALED_AMOUNT);
+
+    assetData.totalCrossSupplied -= amountScaled;
+    assetData.userCrossSupplied[account] -= amountScaled;
+
+    return (assetData.userCrossSupplied[account] == 0); // full withdraw
+  }
+
+  function erc20IncreaseBorrow(
+    DataTypes.GroupData storage groupData,
+    address account,
+    uint256 amount
+  ) public returns (bool) {
+    uint256 amountScaled = amount.rayDiv(groupData.borrowIndex);
+    require(amountScaled != 0, Errors.CE_INVALID_SCALED_AMOUNT);
+
+    groupData.totalCrossBorrowed += amountScaled;
+    groupData.userCrossBorrowed[account] += amountScaled;
+
+    return (groupData.userCrossBorrowed[account] == amountScaled); // first borrow
+  }
+
+  function erc20DecreaseBorrow(
+    DataTypes.GroupData storage groupData,
+    address account,
+    uint256 amount
+  ) public returns (bool) {
+    uint256 amountScaled = amount.rayDiv(groupData.borrowIndex);
+    require(amountScaled != 0, Errors.CE_INVALID_SCALED_AMOUNT);
+
+    groupData.totalCrossBorrowed -= amountScaled;
+    groupData.userCrossBorrowed[account] -= amountScaled;
+
+    return (groupData.userCrossBorrowed[account] == 0); // full repay
+  }
 
   function erc20TransferIn(
     address underlyingAsset,
@@ -42,6 +150,8 @@ library VaultLogic {
       amountTransferred = poolSizeBefore - poolSizeAfter;
     }
   }
+
+  // ERC721 methods
 
   function erc721TransferIn(
     address underlyingAsset,

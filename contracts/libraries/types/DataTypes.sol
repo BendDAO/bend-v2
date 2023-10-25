@@ -23,6 +23,13 @@ library DataTypes {
     address[] assetList;
     // nft address -> nft id -> isolate loan
     mapping(address => mapping(uint256 => IsolateLoanData)) loanLookup;
+    // account data
+    mapping(address => AccountData) accountLookup;
+  }
+
+  struct AccountData {
+    address[] suppliedAssets;
+    address[] borrowedAssets;
   }
 
   struct GroupData {
@@ -43,8 +50,9 @@ library DataTypes {
     // asset configure params
     uint8 groupId; // group id
     uint8 assetType; // ERC20=0, ERC721=1
+    uint8 underlyingDecimals; // only for ERC20
     uint16 collateralFactor;
-    uint16 liquidationFactor;
+    uint16 liquidationThreshold;
     uint16 feeFactor;
     // asset state
     uint256 totalCrossSupplied; // total supplied balance in cross margin mode

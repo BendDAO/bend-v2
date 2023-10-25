@@ -9,6 +9,7 @@ import {StorageSlot} from './StorageSlot.sol';
 
 import {VaultLogic} from './VaultLogic.sol';
 import {InterestLogic} from './InterestLogic.sol';
+import {RiskManagerLogic} from './RiskManagerLogic.sol';
 
 library BorrowLogic {
   event BorrowERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
@@ -25,10 +26,10 @@ library BorrowLogic {
 
     InterestLogic.updateInterestIndexs(assetData, groupData);
 
-    // TODO: check if the user has enough collateral to cover debt
-
-    groupData.totalCrossBorrowed += params.amount;
-    groupData.userCrossBorrowed[msg.sender] += params.amount;
+    bool isFirstBorrow = VaultLogic.erc20IncreaseBorrow(groupData, msg.sender, params.amount);
+    if (isFirstBorrow) {
+      VaultLogic.accountAddAsset(poolData.accountLookup[msg.sender], params.asset, false);
+    }
 
     VaultLogic.erc20TransferOut(params.asset, params.to, params.amount);
 
@@ -41,6 +42,10 @@ library BorrowLogic {
       0,
       params.amount
     );
+
+    // TODO: check if the user has enough collateral to cover debt
+    DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
+    RiskManagerLogic.checkHealthFactor(poolData, msg.sender, cs.priceOracle);
 
     emit BorrowERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
@@ -56,10 +61,10 @@ library BorrowLogic {
 
     InterestLogic.updateInterestIndexs(assetData, groupData);
 
-    // TODO: check if the user has enough collateral to cover debt
-
-    groupData.totalCrossBorrowed -= params.amount;
-    groupData.userCrossBorrowed[msg.sender] -= params.amount;
+    bool isFullRepay = VaultLogic.erc20DecreaseBorrow(groupData, msg.sender, params.amount);
+    if (isFullRepay) {
+      VaultLogic.accountRemoveAsset(poolData.accountLookup[msg.sender], params.asset, false);
+    }
 
     VaultLogic.erc20TransferIn(params.asset, msg.sender, params.amount);
 
