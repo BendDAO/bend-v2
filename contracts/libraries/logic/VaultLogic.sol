@@ -65,6 +65,10 @@ library VaultLogic {
   }
 
   // ERC20 methods
+  function erc20GetUserSupply(DataTypes.AssetData storage assetData, address account) public view returns (uint256) {
+    uint256 amountScaled = assetData.userCrossSupplied[account];
+    return amountScaled.rayMul(assetData.supplyIndex);
+  }
 
   function erc20IncreaseSupply(
     DataTypes.AssetData storage assetData,
@@ -92,6 +96,19 @@ library VaultLogic {
     assetData.userCrossSupplied[account] -= amountScaled;
 
     return (assetData.userCrossSupplied[account] == 0); // full withdraw
+  }
+
+  function erc20TransferSupply(DataTypes.AssetData storage assetData, address from, address to, uint256 amount) public {
+    uint256 amountScaled = amount.rayDiv(assetData.supplyIndex);
+    require(amountScaled != 0, Errors.CE_INVALID_SCALED_AMOUNT);
+
+    assetData.userCrossSupplied[from] -= amountScaled;
+    assetData.userCrossSupplied[to] += amountScaled;
+  }
+
+  function erc20GetUserBorrow(DataTypes.GroupData storage groupData, address account) public view returns (uint256) {
+    uint256 amountScaled = groupData.userCrossBorrowed[account];
+    return amountScaled.rayMul(groupData.borrowIndex);
   }
 
   function erc20IncreaseBorrow(
@@ -152,6 +169,27 @@ library VaultLogic {
   }
 
   // ERC721 methods
+
+  function erc721TransferSupply(
+    DataTypes.AssetData storage assetData,
+    address from,
+    address to,
+    uint256[] memory tokenIds
+  ) public {
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
+      tokenData.owner = to;
+      if (tokenData.supplyMode == Constants.SUPPLY_MODE_CROSS) {
+        assetData.userCrossSupplied[from] -= 1;
+        assetData.userCrossSupplied[to] += 1;
+      } else if (tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
+        assetData.userIsolateSupplied[from] -= 1;
+        assetData.userIsolateSupplied[to] += 1;
+      } else {
+        revert(Errors.CE_INVALID_SUPPLY_MODE);
+      }
+    }
+  }
 
   function erc721TransferIn(
     address underlyingAsset,

@@ -13,7 +13,7 @@ library Errors {
   string public constant CE_INVALID_SUPPLY_MODE = '21';
   string public constant CE_INVALID_SCALED_AMOUNT = '22';
 
-  // Pool errors, 100~199
+  // Lending errors, 100~199
   string public constant PE_POOL_ALREADY_EXISTS = '100';
   string public constant PE_POOL_NOT_EXISTS = '101';
   string public constant PE_GROUP_ALREADY_EXISTS = '102';
@@ -21,4 +21,5 @@ library Errors {
   string public constant PE_ASSET_ALREADY_EXISTS = '104';
   string public constant PE_ASSET_NOT_EXISTS = '105';
   string public constant PE_HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD = '106';
+  string public constant LE_HEALTH_FACTOR_NOT_BELOW_THRESHOLD = '107';
 }

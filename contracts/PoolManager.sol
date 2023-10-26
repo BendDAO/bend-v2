@@ -17,6 +17,7 @@ import './libraries/logic/StorageSlot.sol';
 import './libraries/logic/VaultLogic.sol';
 import './libraries/logic/SupplyLogic.sol';
 import './libraries/logic/BorrowLogic.sol';
+import './libraries/logic/LiquidationLogic.sol';
 
 contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
   using SafeERC20Upgradeable for IERC20Upgradeable;
@@ -126,6 +127,26 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
 
   function repayERC20(uint32 poolId, address asset, uint256 amount) public {
     BorrowLogic.executeRepayERC20(InputTypes.ExecuteRepayERC20Params({poolId: poolId, asset: asset, amount: amount}));
+  }
+
+  function liquidateERC20(
+    uint32 poolId,
+    address user,
+    address collateralAsset,
+    address debtAsset,
+    uint256 debtToCover,
+    bool supplyAsCollateral
+  ) public virtual {
+    LiquidationLogic.executeLiquidateERC20(
+      InputTypes.ExecuteLiquidateERC20Params({
+        poolId: poolId,
+        user: user,
+        collateralAsset: collateralAsset,
+        debtAsset: debtAsset,
+        debtToCover: debtToCover,
+        supplyAsCollateral: supplyAsCollateral
+      })
+    );
   }
 
   function borrowERC20WithIsolateMode(address nftAsset, uint256 nftTokenid, address asset, uint256 amount) public {}

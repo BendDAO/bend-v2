@@ -51,9 +51,10 @@ library DataTypes {
     uint8 groupId; // group id
     uint8 assetType; // ERC20=0, ERC721=1
     uint8 underlyingDecimals; // only for ERC20
+    uint16 feeFactor;
     uint16 collateralFactor;
     uint16 liquidationThreshold;
-    uint16 feeFactor;
+    uint16 liquidationBonus;
     // asset state
     uint256 totalCrossSupplied; // total supplied balance in cross margin mode
     mapping(address => uint256) userCrossSupplied; // user supplied balance in cross margin mode

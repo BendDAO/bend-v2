@@ -46,4 +46,13 @@ library InputTypes {
     address asset;
     uint256 amount;
   }
+
+  struct ExecuteLiquidateERC20Params {
+    uint32 poolId;
+    address user;
+    address collateralAsset;
+    address debtAsset;
+    uint256 debtToCover;
+    bool supplyAsCollateral;
+  }
 }
