@@ -22,23 +22,16 @@ library InterestLogic {
   using WadRayMath for uint256;
   using PercentageMath for uint256;
 
-  event AssetInterestDataUpdated(
-    address indexed asset,
-    uint256 supplyRate,
-    uint256 supplyIndex,
-    uint256 groupId,
-    uint256 borrowRate,
-    uint256 borrowIndex
-  );
+  event AssetInterestSupplyDataUpdated(address indexed asset, uint256 supplyRate, uint256 supplyIndex);
+
+  event AssetInterestBorrowDataUpdated(address indexed asset, uint256 groupId, uint256 borrowRate, uint256 borrowIndex);
 
   /**
-   * @notice Returns the ongoing normalized supply index for the asset.
-   * @dev A value of 1e27 means there is no index. As time passes, the index is accrued
-   * @dev A value of 2*1e27 means for each unit of asset one unit of index has been accrued
-   * @param assetData The asset data object
-   * @return The normalized supply index, expressed in ray
+   * @notice Returns the ongoing normalized supply income for the asset.
+   * @dev A value of 1e27 means there is no income. As time passes, the income is accrued
+   * @dev A value of 2*1e27 means for each unit of asset one unit of income has been accrued
    */
-  function getNormalizedSupplyIndex(DataTypes.AssetData storage assetData) internal view returns (uint256) {
+  function getNormalizedSupplyIncome(DataTypes.AssetData storage assetData) internal view returns (uint256) {
     uint40 timestamp = assetData.lastUpdateTimestamp;
 
     //solium-disable-next-line
@@ -51,14 +44,11 @@ library InterestLogic {
   }
 
   /**
-   * @notice Returns the ongoing normalized borrow index for the reserve.
-   * @dev A value of 1e27 means there is no index. As time passes, the index is accrued
-   * @dev A value of 2*1e27 means that for each unit of index, one unit worth of interest has been accumulated
-   * @param assetData The asset data object
-   * @param groupData The group data object
-   * @return The normalized borrow index, expressed in ray
+   * @notice Returns the ongoing normalized borrow debt for the reserve.
+   * @dev A value of 1e27 means there is no debt. As time passes, the debt is accrued
+   * @dev A value of 2*1e27 means that for each unit of debt, one unit worth of interest has been accumulated
    */
-  function getNormalizedBorrowIndex(
+  function getNormalizedBorrowDebt(
     DataTypes.AssetData storage assetData,
     DataTypes.GroupData storage groupData
   ) internal view returns (uint256) {
@@ -73,33 +63,63 @@ library InterestLogic {
     }
   }
 
+  function updateInterestSupplyIndex(DataTypes.AssetData storage assetData) internal {
+    // If time didn't pass since last stored timestamp, skip state update
+
+    //solium-disable-next-line
+    if (assetData.lastUpdateTimestamp != uint40(block.timestamp)) {
+      _updateSupplyIndex(assetData);
+      assetData.lastUpdateTimestamp = uint40(block.timestamp);
+    }
+  }
+
+  function updateInterestBorrowIndex(
+    DataTypes.AssetData storage assetData,
+    DataTypes.GroupData storage groupData
+  ) internal {
+    // If time didn't pass since last stored timestamp, skip state update
+
+    //solium-disable-next-line
+    if (groupData.lastUpdateTimestamp != uint40(block.timestamp)) {
+      uint256 prevGroupBorrowIndex = groupData.borrowIndex;
+
+      _updateBorrowIndex(groupData);
+
+      _accrueToTreasury(assetData, groupData, prevGroupBorrowIndex);
+
+      //solium-disable-next-line
+      groupData.lastUpdateTimestamp = uint40(block.timestamp);
+    }
+  }
+
   /**
    * @notice Updates the cumulative supply index and the borrow index.
-   * @param assetData The asset data object
    */
   function updateInterestIndexs(DataTypes.AssetData storage assetData, DataTypes.GroupData storage groupData) internal {
     // If time didn't pass since last stored timestamp, skip state update
+
     //solium-disable-next-line
-    if (assetData.lastUpdateTimestamp == uint40(block.timestamp)) {
-      return;
+    if (assetData.lastUpdateTimestamp != uint40(block.timestamp)) {
+      _updateSupplyIndex(assetData);
+      assetData.lastUpdateTimestamp = uint40(block.timestamp);
     }
 
-    uint256 prevGroupBorrowIndex = groupData.borrowIndex;
-
-    _updateIndexes(assetData, groupData);
-    _accrueToTreasury(assetData, groupData, prevGroupBorrowIndex);
-
     //solium-disable-next-line
-    assetData.lastUpdateTimestamp = uint40(block.timestamp);
+    if (groupData.lastUpdateTimestamp != uint40(block.timestamp)) {
+      uint256 prevGroupBorrowIndex = groupData.borrowIndex;
+
+      _updateBorrowIndex(groupData);
+
+      _accrueToTreasury(assetData, groupData, prevGroupBorrowIndex);
+
+      //solium-disable-next-line
+      groupData.lastUpdateTimestamp = uint40(block.timestamp);
+    }
   }
 
   /**
    * @notice Accumulates a predefined amount of asset to the asset as a fixed, instantaneous income. Used for example
    * to accumulate the flashloan fee to the asset, and spread it between all the suppliers.
-   * @param assetData The asset data object
-   * @param totalSupply The total supply available in the asset
-   * @param amount The amount to accumulate
-   * @return The next supply index of the asset
    */
   function cumulateToSupplyIndex(
     DataTypes.AssetData storage assetData,
@@ -115,7 +135,6 @@ library InterestLogic {
 
   /**
    * @notice Initializes a asset.
-   * @param assetData The asset data object
    */
   function initAssetData(DataTypes.AssetData storage assetData) internal {
     require(assetData.supplyIndex == 0, Errors.PE_ASSET_ALREADY_EXISTS);
@@ -131,12 +150,12 @@ library InterestLogic {
   }
 
   struct UpdateInterestRatesLocalVars {
+    uint8 loopGroupId;
     uint256 loopGroupScaledDebt;
     uint256 loopGroupDebt;
     uint256[] allGroupDebtList;
     uint256 totalAssetScaledDebt;
     uint256 totalAssetDebt;
-    uint256 totalGroupDebt;
     uint256 availableLiquidity;
     uint256 availableLiquidityPlusDebt;
     uint256 assetBorrowUsageRatio;
@@ -148,18 +167,11 @@ library InterestLogic {
 
   /**
    * @notice Updates the asset current borrow rate and current supply rate.
-   * @param assetData The asset data to be updated
-   * * @param groupData The group data to be updated
-   * @param assetAddress The address of the reserve to be updated
-   * @param liquidityAdded The amount of liquidity added to the protocol (supply or repay) in the previous action
-   * @param liquidityTaken The amount of liquidity taken from the protocol (redeem or borrow)
    */
   function updateInterestRates(
     DataTypes.PoolData storage poolData,
     address assetAddress,
     DataTypes.AssetData storage assetData,
-    uint256 groupId,
-    DataTypes.GroupData storage groupData,
     uint256 liquidityAdded,
     uint256 liquidityTaken
   ) internal {
@@ -168,17 +180,15 @@ library InterestLogic {
     // calculate the total asset debt
     vars.allGroupDebtList = new uint256[](poolData.groupList.length);
     for (uint256 i = 0; i < poolData.groupList.length; i++) {
-      DataTypes.GroupData storage scanGroupData = poolData.groupLookup[poolData.groupList[i]];
-      vars.loopGroupScaledDebt = groupData.totalCrossBorrowed + groupData.totalIsolateBorrowed;
-      vars.loopGroupDebt = vars.loopGroupScaledDebt.rayMul(scanGroupData.borrowIndex);
+      DataTypes.GroupData storage loopGroupData = poolData.groupLookup[poolData.groupList[i]];
+      vars.loopGroupScaledDebt = loopGroupData.totalCrossBorrowed + loopGroupData.totalIsolateBorrowed;
+      vars.loopGroupDebt = vars.loopGroupScaledDebt.rayMul(loopGroupData.borrowIndex);
       vars.allGroupDebtList[i] = vars.loopGroupDebt;
 
       vars.totalAssetDebt += vars.loopGroupDebt;
-      if (groupId == i) {
-        vars.totalGroupDebt = vars.loopGroupDebt;
-      }
     }
 
+    // calculate the total asset supply
     vars.availableLiquidity =
       IERC20Upgradeable(assetAddress).balanceOf(address(this)) +
       liquidityAdded -
@@ -187,22 +197,34 @@ library InterestLogic {
     vars.assetBorrowUsageRatio = vars.totalAssetDebt.rayDiv(vars.availableLiquidityPlusDebt);
 
     // calculate the group borrow rate
-    (vars.nextGroupBorrowRate) = IInterestRateModel(groupData.interestRateModelAddress).calculateGroupBorrowRate(
-      InputTypes.CalculateGroupBorrowRateParams({
-        assetAddress: assetAddress,
-        borrowUsageRatio: vars.assetBorrowUsageRatio
-      })
-    );
+    for (uint256 i = 0; i < poolData.groupList.length; i++) {
+      vars.loopGroupId = poolData.groupList[i];
+      DataTypes.GroupData storage loopGroupData = poolData.groupLookup[vars.loopGroupId];
+      (vars.nextGroupBorrowRate) = IInterestRateModel(loopGroupData.interestRateModelAddress).calculateGroupBorrowRate(
+        InputTypes.CalculateGroupBorrowRateParams({
+          assetAddress: assetAddress,
+          borrowUsageRatio: vars.assetBorrowUsageRatio
+        })
+      );
 
-    groupData.borrowRate = vars.nextGroupBorrowRate.toUint128();
+      loopGroupData.borrowRate = vars.nextGroupBorrowRate.toUint128();
+
+      emit AssetInterestBorrowDataUpdated(
+        assetAddress,
+        vars.loopGroupId,
+        vars.nextGroupBorrowRate,
+        loopGroupData.borrowIndex
+      );
+    }
 
     // calculate the asset supply rate
     vars.avgAssetBorrowRate = 0;
     for (uint256 i = 0; i < poolData.groupList.length; i++) {
-      DataTypes.GroupData storage scanGroupData = poolData.groupLookup[poolData.groupList[i]];
+      vars.loopGroupId = poolData.groupList[i];
+      DataTypes.GroupData storage loopGroupData = poolData.groupLookup[vars.loopGroupId];
 
       vars.groupBorrowUsageRatio = vars.allGroupDebtList[i].rayDiv(vars.totalAssetDebt);
-      vars.avgAssetBorrowRate += uint256(scanGroupData.borrowRate).rayMul(vars.groupBorrowUsageRatio);
+      vars.avgAssetBorrowRate += uint256(loopGroupData.borrowRate).rayMul(vars.groupBorrowUsageRatio);
     }
 
     vars.nextAssetSupplyRate = vars.avgAssetBorrowRate.rayMul(vars.assetBorrowUsageRatio);
@@ -211,14 +233,7 @@ library InterestLogic {
     );
     assetData.supplyRate = vars.nextAssetSupplyRate.toUint128();
 
-    emit AssetInterestDataUpdated(
-      assetAddress,
-      vars.nextAssetSupplyRate,
-      assetData.supplyIndex,
-      groupId,
-      vars.nextGroupBorrowRate,
-      groupData.borrowIndex
-    );
+    emit AssetInterestSupplyDataUpdated(assetAddress, vars.nextAssetSupplyRate, assetData.supplyIndex);
   }
 
   struct AccrueToTreasuryLocalVars {
@@ -232,7 +247,6 @@ library InterestLogic {
   /**
    * @notice Mints part of the repaid interest to the reserve treasury as a function of the reserve factor for the
    * specific asset.
-   * @param assetData The asset data to be updated
    */
   function _accrueToTreasury(
     DataTypes.AssetData storage assetData,
@@ -264,10 +278,9 @@ library InterestLogic {
   }
 
   /**
-   * @notice Updates the asset indexes and the timestamp of the update.
-   * @param assetData The asset data to be updated
+   * @notice Updates the asset supply index and the timestamp of the update.
    */
-  function _updateIndexes(DataTypes.AssetData storage assetData, DataTypes.GroupData storage groupData) internal {
+  function _updateSupplyIndex(DataTypes.AssetData storage assetData) internal {
     // Only cumulating on the supply side if there is any income being produced
     // The case of Reserve Factor 100% is not a problem (currentLiquidityRate == 0),
     // as liquidity index should not be updated
@@ -279,15 +292,20 @@ library InterestLogic {
       uint256 nextSupplyIndex = cumulatedSupplyInterest.rayMul(assetData.supplyIndex);
       assetData.supplyIndex = nextSupplyIndex.toUint128();
     }
+  }
 
+  /**
+   * @notice Updates the group borrow index and the timestamp of the update.
+   */
+  function _updateBorrowIndex(DataTypes.GroupData storage groupData) internal {
     // borrow index only gets updated if there is any variable debt.
     // groupData.borrowRate != 0 is not a correct validation,
     // because a positive base variable rate can be stored on
     // groupData.borrowRate, but the index should not increase
-    if (groupData.totalCrossBorrowed != 0) {
+    if ((groupData.totalCrossBorrowed != 0) || (groupData.totalIsolateBorrowed != 0)) {
       uint256 cumulatedBorrowInterest = MathUtils.calculateCompoundedInterest(
         groupData.borrowRate,
-        assetData.lastUpdateTimestamp
+        groupData.lastUpdateTimestamp
       );
       uint256 nextBorrowIndex = cumulatedBorrowInterest.rayMul(groupData.borrowIndex);
       groupData.borrowIndex = nextBorrowIndex.toUint128();

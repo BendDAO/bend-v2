@@ -39,6 +39,7 @@ library DataTypes {
     address interestRateModelAddress;
     uint128 borrowRate;
     uint128 borrowIndex;
+    uint40 lastUpdateTimestamp;
   }
 
   struct ERC721TokenData {

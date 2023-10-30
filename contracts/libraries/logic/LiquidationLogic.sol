@@ -119,15 +119,7 @@ library LiquidationLogic {
 
     _repayUserDebt(debtAssetData, debtGroupData, params, vars);
 
-    InterestLogic.updateInterestRates(
-      poolData,
-      params.debtAsset,
-      debtAssetData,
-      debtAssetData.groupId,
-      debtGroupData,
-      vars.actualDebtToLiquidate,
-      0
-    );
+    InterestLogic.updateInterestRates(poolData, params.debtAsset, debtAssetData, vars.actualDebtToLiquidate, 0);
 
     if (params.supplyAsCollateral) {
       _supplyUserCollateralToLiquidator(collateralAssetData, params, vars);
@@ -160,7 +152,7 @@ library LiquidationLogic {
     InputTypes.ExecuteLiquidateERC20Params memory params,
     LiquidateERC20LocalVars memory vars
   ) internal {
-    InterestLogic.updateInterestIndexs(collateralAssetData, collateralGroupData);
+    InterestLogic.updateInterestSupplyIndex(collateralAssetData);
 
     // Burn the equivalent amount of collateral, sending the underlying to the liquidator
     VaultLogic.erc20DecreaseSupply(collateralAssetData, params.user, vars.actualCollateralToLiquidate);
@@ -171,8 +163,6 @@ library LiquidationLogic {
       poolData,
       params.collateralAsset,
       collateralAssetData,
-      0,
-      collateralGroupData,
       0,
       vars.actualCollateralToLiquidate
     );
