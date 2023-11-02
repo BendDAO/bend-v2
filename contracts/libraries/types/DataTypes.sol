@@ -14,10 +14,8 @@ library DataTypes {
   /****************************************************************************/
   /* Data Types for Pool Lending */
   struct PoolData {
-    uint8 nextGroupId;
-    // group data
-    mapping(uint8 => GroupData) groupLookup;
-    uint8[] groupList;
+    uint256 poolId;
+
     // underlying asset to asset data
     mapping(address => AssetData) assetLookup;
     address[] assetList;
@@ -57,13 +55,18 @@ library DataTypes {
     uint16 liquidationThreshold;
     uint16 liquidationBonus;
     // asset state
+    // asset user state
     uint256 totalCrossSupplied; // total supplied balance in cross margin mode
     mapping(address => uint256) userCrossSupplied; // user supplied balance in cross margin mode
     uint256 totalIsolateSupplied; // total supplied balance in isolate mode, only for ERC721
     mapping(address => uint256) userIsolateSupplied; // user supplied balance in isolate mode, only for ERC721
     mapping(uint256 => ERC721TokenData) erc721TokenData; // token -> data, only for ERC721
+    // asset interest state
     uint128 supplyRate;
     uint128 supplyIndex;
+    uint8 nextGroupId;
+    mapping(uint8 => GroupData) groupLookup;
+    uint8[] groupList;
     uint256 accruedFee;
     uint40 lastUpdateTimestamp;
   }

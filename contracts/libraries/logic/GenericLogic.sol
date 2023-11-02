@@ -103,9 +103,9 @@ library GenericLogic {
       vars.assetUnit = 10 ** currentAssetData.underlyingDecimals;
       vars.assetPrice = IPriceOracleGetter(oracle).getAssetPrice(vars.currentAssetAddress);
 
-      for (vars.groupIndex = 0; vars.groupIndex < poolData.groupList.length; vars.groupIndex++) {
-        vars.currentGroupId = poolData.groupList[vars.groupIndex];
-        DataTypes.GroupData storage currentGroupData = poolData.groupLookup[vars.currentGroupId];
+      for (vars.groupIndex = 0; vars.groupIndex < currentAssetData.groupList.length; vars.groupIndex++) {
+        vars.currentGroupId = currentAssetData.groupList[vars.groupIndex];
+        DataTypes.GroupData storage currentGroupData = currentAssetData.groupLookup[vars.currentGroupId];
 
         vars.totalDebtInBaseCurrency += _getUserDebtInBaseCurrency(
           userAccount,

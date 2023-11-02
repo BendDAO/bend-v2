@@ -41,58 +41,59 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
   function createPool() public returns (uint32 poolId) {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
+    require(poolId > 0, Errors.CE_INVALID_POOL_ID);
+
     poolId = ps.nextPoolId;
     ps.nextPoolId += 1;
 
     DataTypes.PoolData storage pool = ps.poolLookup[poolId];
-    pool.nextGroupId = 1;
+    pool.poolId = poolId;
   }
 
-  function createGroup(uint32 poolId, address rateModel_) public returns (uint8 groupId) {
+  function addAssetERC20(uint32 poolId, address underlyingAsset, uint8 groupId) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage pool = ps.poolLookup[poolId];
-    require(pool.nextGroupId != 0, Errors.PE_POOL_NOT_EXISTS);
+    require(pool.poolId != 0, Errors.PE_POOL_NOT_EXISTS);
 
-    groupId = pool.nextGroupId;
-    pool.nextGroupId += 1;
+    DataTypes.AssetData storage asset = pool.assetLookup[underlyingAsset];
+    require(asset.assetType == 0, Errors.PE_ASSET_ALREADY_EXISTS);
 
-    DataTypes.GroupData storage group = pool.groupLookup[groupId];
+    asset.assetType = uint8(Constants.ASSET_TYPE_ERC20);
+    asset.groupId = groupId;
+
+    pool.assetList.push(underlyingAsset);
+  }
+
+  function addAssetERC721(uint32 poolId, address underlyingAsset, uint8 groupId) public {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    DataTypes.PoolData storage pool = ps.poolLookup[poolId];
+    DataTypes.AssetData storage asset = pool.assetLookup[underlyingAsset];
+    require(asset.assetType == 0, Errors.PE_ASSET_ALREADY_EXISTS);
+
+    asset.assetType = uint8(Constants.ASSET_TYPE_ERC721);
+    asset.groupId = groupId;
+
+    pool.assetList.push(underlyingAsset);
+  }
+
+  function addGroup(uint32 poolId, address underlyingAsset, address rateModel_) public returns (uint8 groupId) {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    DataTypes.PoolData storage pool = ps.poolLookup[poolId];
+    require(pool.poolId != 0, Errors.PE_POOL_NOT_EXISTS);
+
+    DataTypes.AssetData storage assetData = pool.assetLookup[underlyingAsset];
+    require(assetData.assetType != 0, Errors.PE_ASSET_NOT_EXISTS);
+
+    groupId = assetData.nextGroupId;
+    assetData.nextGroupId += 1;
+
+    DataTypes.GroupData storage group = assetData.groupLookup[groupId];
     group.interestRateModelAddress = rateModel_;
 
-    pool.groupList.push(groupId);
-  }
-
-  function addAssetERC20(uint32 poolId, uint8 groupId, address underlyingAsset) public {
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
-
-    DataTypes.PoolData storage pool = ps.poolLookup[poolId];
-    require(pool.nextGroupId != 0, Errors.PE_POOL_NOT_EXISTS);
-
-    DataTypes.GroupData storage group = pool.groupLookup[groupId];
-    require(group.interestRateModelAddress != address(0), Errors.PE_GROUP_NOT_EXISTS);
-
-    DataTypes.AssetData storage asset = pool.assetLookup[underlyingAsset];
-    require(asset.assetType == 0, Errors.PE_ASSET_ALREADY_EXISTS);
-
-    asset.groupId = groupId;
-    asset.assetType = uint8(Constants.ASSET_TYPE_ERC20);
-
-    pool.assetList.push(underlyingAsset);
-  }
-
-  function addAssetERC721(uint32 poolId, uint8 groupId, address underlyingAsset) public {
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
-
-    DataTypes.PoolData storage pool = ps.poolLookup[poolId];
-    //Group storage groupData = pool.groupLookup[groupId];
-    DataTypes.AssetData storage asset = pool.assetLookup[underlyingAsset];
-    require(asset.assetType == 0, Errors.PE_ASSET_ALREADY_EXISTS);
-
-    asset.groupId = groupId;
-    asset.assetType = uint8(Constants.ASSET_TYPE_ERC721);
-
-    pool.assetList.push(underlyingAsset);
+    assetData.groupList.push(groupId);
   }
 
   function depositERC20(uint32 poolId, address asset, uint256 amount) public {

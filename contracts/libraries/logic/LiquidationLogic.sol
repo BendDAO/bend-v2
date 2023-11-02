@@ -82,7 +82,7 @@ library LiquidationLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage collateralAssetData = poolData.assetLookup[params.collateralAsset];
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.debtAsset];
-    DataTypes.GroupData storage debtGroupData = poolData.groupLookup[debtAssetData.groupId];
+    DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[debtAssetData.groupId];
 
     InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
 
@@ -169,7 +169,7 @@ library LiquidationLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage collateralAssetData = poolData.assetLookup[params.collateralAsset];
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.debtAsset];
-    DataTypes.GroupData storage debtGroupData = poolData.groupLookup[debtAssetData.groupId];
+    DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[debtAssetData.groupId];
 
     InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
 
@@ -279,10 +279,10 @@ library LiquidationLogic {
     bool checkRemainDebtZero
   ) internal {
     // sort group debt from highest interest rate to lowest
-    KVSortUtils.KeyValue[] memory groupRateList = new KVSortUtils.KeyValue[](poolData.groupList.length);
+    KVSortUtils.KeyValue[] memory groupRateList = new KVSortUtils.KeyValue[](debtAssetData.groupList.length);
     for (uint256 i = 0; i < groupRateList.length; i++) {
-      groupRateList[i].key = poolData.groupList[i];
-      DataTypes.GroupData storage loopGroupData = poolData.groupLookup[uint8(groupRateList[i].key)];
+      groupRateList[i].key = debtAssetData.groupList[i];
+      DataTypes.GroupData storage loopGroupData = debtAssetData.groupLookup[uint8(groupRateList[i].key)];
       groupRateList[i].val = loopGroupData.borrowRate;
     }
     KVSortUtils.sort(groupRateList);
@@ -290,7 +290,7 @@ library LiquidationLogic {
     // repay group debt one by one
     uint256 remainDebtToLiquidate = actualDebtToLiquidate;
     for (uint256 i = 0; i < groupRateList.length; i++) {
-      DataTypes.GroupData storage loopGroupData = poolData.groupLookup[uint8(groupRateList[i].key)];
+      DataTypes.GroupData storage loopGroupData = debtAssetData.groupLookup[uint8(groupRateList[i].key)];
       uint256 curDebtRepayAmount = VaultLogic.erc20GetUserBorrow(loopGroupData, user);
       if (curDebtRepayAmount > remainDebtToLiquidate) {
         curDebtRepayAmount = remainDebtToLiquidate;
