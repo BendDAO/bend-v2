@@ -55,4 +55,13 @@ library InputTypes {
     uint256 debtToCover;
     bool supplyAsCollateral;
   }
+
+  struct ExecuteLiquidateERC721Params {
+    uint32 poolId;
+    address user;
+    address collateralAsset;
+    uint256[] collateralTokenIds;
+    address debtAsset;
+    bool supplyAsCollateral;
+  }
 }

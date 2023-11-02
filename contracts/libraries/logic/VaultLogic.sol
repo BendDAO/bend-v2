@@ -169,6 +169,24 @@ library VaultLogic {
   }
 
   // ERC721 methods
+  function erc721DecreaseSupply(DataTypes.AssetData storage assetData, address user, uint256[] memory tokenIds) public {
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
+      if (tokenData.supplyMode == Constants.SUPPLY_MODE_CROSS) {
+        assetData.userCrossSupplied[user] -= 1;
+      } else if (tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
+        assetData.userIsolateSupplied[user] -= 1;
+      } else {
+        revert(Errors.CE_INVALID_SUPPLY_MODE);
+      }
+      tokenData.owner = address(0);
+      tokenData.supplyMode = 0;
+    }
+  }
+
+  function erc721GetUserCrossSupply(DataTypes.AssetData storage assetData, address user) public view returns (uint256) {
+    return assetData.userCrossSupplied[user];
+  }
 
   function erc721TransferSupply(
     DataTypes.AssetData storage assetData,

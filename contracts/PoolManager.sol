@@ -149,6 +149,26 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
     );
   }
 
+  function liquidateERC721(
+    uint32 poolId,
+    address user,
+    address collateralAsset,
+    uint256[] calldata collateralTokenIds,
+    address debtAsset,
+    bool supplyAsCollateral
+  ) public virtual {
+    LiquidationLogic.executeLiquidateERC721(
+      InputTypes.ExecuteLiquidateERC721Params({
+        poolId: poolId,
+        user: user,
+        collateralAsset: collateralAsset,
+        collateralTokenIds: collateralTokenIds,
+        debtAsset: debtAsset,
+        supplyAsCollateral: supplyAsCollateral
+      })
+    );
+  }
+
   function borrowERC20WithIsolateMode(address nftAsset, uint256 nftTokenid, address asset, uint256 amount) public {}
 
   function repayERC20WithIsolateMode(address nftAsset, uint256 nftTokenid, address asset, uint256 amount) public {}

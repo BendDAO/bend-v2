@@ -12,6 +12,7 @@ library Errors {
   string public constant CE_INVALID_TRANSFER_AMOUNT = '20';
   string public constant CE_INVALID_SUPPLY_MODE = '21';
   string public constant CE_INVALID_SCALED_AMOUNT = '22';
+  string public constant CE_INVALID_ASSET_TYPE = '23';
 
   // Lending errors, 100~199
   string public constant PE_POOL_ALREADY_EXISTS = '100';
