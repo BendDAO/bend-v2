@@ -25,4 +25,10 @@ library Errors {
   string public constant PE_ASSET_NOT_EXISTS = '105';
   string public constant PE_HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD = '106';
   string public constant LE_HEALTH_FACTOR_NOT_BELOW_THRESHOLD = '107';
+  string public constant LE_CROSS_SUPPLY_NOT_EMPTY = '108';
+  string public constant LE_ISOLATE_SUPPLY_NOT_EMPTY = '109';
+  string public constant LE_CROSS_DEBT_NOT_EMPTY = '110';
+  string public constant LE_ISOLATE_DEBT_NOT_EMPTY = '111';
+  string public constant LE_ASSET_LIST_NOT_EMPTY = '112';
+  string public constant LE_GROUP_LIST_NOT_EMPTY = '113';
 }

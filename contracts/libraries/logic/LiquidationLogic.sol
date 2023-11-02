@@ -82,7 +82,7 @@ library LiquidationLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage collateralAssetData = poolData.assetLookup[params.collateralAsset];
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.debtAsset];
-    DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[debtAssetData.groupId];
+    DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[debtAssetData.riskGroupId];
 
     InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
 
@@ -169,7 +169,7 @@ library LiquidationLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage collateralAssetData = poolData.assetLookup[params.collateralAsset];
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.debtAsset];
-    DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[debtAssetData.groupId];
+    DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[debtAssetData.riskGroupId];
 
     InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
 

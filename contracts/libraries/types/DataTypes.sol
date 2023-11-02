@@ -31,10 +31,13 @@ library DataTypes {
   }
 
   struct GroupData {
+    // config parameters
+    address interestRateModelAddress;
+    // user debt state
     uint256 totalCrossBorrowed;
     mapping(address => uint256) userCrossBorrowed;
     uint256 totalIsolateBorrowed;
-    address interestRateModelAddress;
+    // group debt state
     uint128 borrowRate;
     uint128 borrowIndex;
     uint40 lastUpdateTimestamp;
@@ -46,16 +49,19 @@ library DataTypes {
   }
 
   struct AssetData {
-    // asset configure params
-    uint8 groupId; // group id
+    // config params
     uint8 assetType; // ERC20=0, ERC721=1
     uint8 underlyingDecimals; // only for ERC20
+    uint8 riskGroupId; //risk group id
     uint16 feeFactor;
     uint16 collateralFactor;
     uint16 liquidationThreshold;
     uint16 liquidationBonus;
-    // asset state
-    // asset user state
+    // group state
+    uint8 nextGroupId;
+    mapping(uint8 => GroupData) groupLookup;
+    uint8[] groupList;
+    // user state
     uint256 totalCrossSupplied; // total supplied balance in cross margin mode
     mapping(address => uint256) userCrossSupplied; // user supplied balance in cross margin mode
     uint256 totalIsolateSupplied; // total supplied balance in isolate mode, only for ERC721
@@ -64,9 +70,6 @@ library DataTypes {
     // asset interest state
     uint128 supplyRate;
     uint128 supplyIndex;
-    uint8 nextGroupId;
-    mapping(uint8 => GroupData) groupLookup;
-    uint8[] groupList;
     uint256 accruedFee;
     uint40 lastUpdateTimestamp;
   }

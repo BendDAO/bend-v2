@@ -20,7 +20,7 @@ library BorrowLogic {
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
-    DataTypes.GroupData storage groupData = assetData.groupLookup[assetData.groupId];
+    DataTypes.GroupData storage groupData = assetData.groupLookup[assetData.riskGroupId];
 
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.PE_ASSET_NOT_EXISTS);
 
@@ -47,7 +47,7 @@ library BorrowLogic {
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
-    DataTypes.GroupData storage groupData = assetData.groupLookup[assetData.groupId];
+    DataTypes.GroupData storage groupData = assetData.groupLookup[assetData.riskGroupId];
 
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.PE_ASSET_NOT_EXISTS);
 

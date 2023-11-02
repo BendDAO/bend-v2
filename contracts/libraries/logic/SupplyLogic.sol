@@ -23,11 +23,10 @@ library SupplyLogic {
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
-    DataTypes.GroupData storage groupData = assetData.groupLookup[assetData.groupId];
 
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.PE_ASSET_NOT_EXISTS);
 
-    InterestLogic.updateInterestIndexs(assetData, groupData);
+    InterestLogic.updateInterestSupplyIndex(assetData);
 
     VaultLogic.erc20TransferIn(params.asset, msg.sender, params.amount);
 
@@ -48,11 +47,10 @@ library SupplyLogic {
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
-    DataTypes.GroupData storage groupData = assetData.groupLookup[assetData.groupId];
 
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.PE_ASSET_NOT_EXISTS);
 
-    InterestLogic.updateInterestIndexs(assetData, groupData);
+    InterestLogic.updateInterestSupplyIndex(assetData);
 
     // TODO: check if the user has enough collateral to cover debt
 
