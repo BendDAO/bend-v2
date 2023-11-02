@@ -48,11 +48,8 @@ library InterestLogic {
    * @dev A value of 1e27 means there is no debt. As time passes, the debt is accrued
    * @dev A value of 2*1e27 means that for each unit of debt, one unit worth of interest has been accumulated
    */
-  function getNormalizedBorrowDebt(
-    DataTypes.AssetData storage assetData,
-    DataTypes.GroupData storage groupData
-  ) internal view returns (uint256) {
-    uint40 timestamp = assetData.lastUpdateTimestamp;
+  function getNormalizedBorrowDebt(DataTypes.GroupData storage groupData) internal view returns (uint256) {
+    uint40 timestamp = groupData.lastUpdateTimestamp;
 
     //solium-disable-next-line
     if (timestamp == block.timestamp) {
@@ -169,7 +166,6 @@ library InterestLogic {
    * @notice Updates the asset current borrow rate and current supply rate.
    */
   function updateInterestRates(
-    DataTypes.PoolData storage poolData,
     address assetAddress,
     DataTypes.AssetData storage assetData,
     uint256 liquidityAdded,

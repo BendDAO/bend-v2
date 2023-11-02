@@ -121,9 +121,9 @@ library LiquidationLogic {
       // TODO: accountRemoveAsset
     }
 
-    _repayUserERC20Debt(poolData, debtAssetData, params.user, vars.actualDebtToLiquidate, true);
+    _repayUserERC20Debt(debtAssetData, params.user, vars.actualDebtToLiquidate, true);
 
-    InterestLogic.updateInterestRates(poolData, params.debtAsset, debtAssetData, vars.actualDebtToLiquidate, 0);
+    InterestLogic.updateInterestRates(params.debtAsset, debtAssetData, vars.actualDebtToLiquidate, 0);
 
     // If the collateral being liquidated is equal to the user supply,
     // we set the asset as not being used as collateral anymore
@@ -134,7 +134,7 @@ library LiquidationLogic {
     if (params.supplyAsCollateral) {
       _supplyUserERC20CollateralToLiquidator(collateralAssetData, params, vars);
     } else {
-      _transferUserERC20CollateralToLiquidator(poolData, collateralAssetData, params, vars);
+      _transferUserERC20CollateralToLiquidator(collateralAssetData, params, vars);
     }
 
     emit LiquidateERC20(
@@ -201,9 +201,9 @@ library LiquidationLogic {
       // TODO: accountRemoveAsset
     }
 
-    _repayUserERC20Debt(poolData, debtAssetData, params.user, vars.actualDebtToLiquidate, false);
+    _repayUserERC20Debt(debtAssetData, params.user, vars.actualDebtToLiquidate, false);
 
-    InterestLogic.updateInterestRates(poolData, params.debtAsset, debtAssetData, vars.actualDebtToLiquidate, 0);
+    InterestLogic.updateInterestRates(params.debtAsset, debtAssetData, vars.actualDebtToLiquidate, 0);
 
     if (params.supplyAsCollateral) {
       _supplyUserERC721CollateralToLiquidator(collateralAssetData, params);
@@ -230,7 +230,6 @@ library LiquidationLogic {
    * @notice Transfers the underlying ERC20 to the liquidator.
    */
   function _transferUserERC20CollateralToLiquidator(
-    DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage collateralAssetData,
     InputTypes.ExecuteLiquidateERC20Params memory params,
     LiquidateERC20LocalVars memory vars
@@ -242,13 +241,7 @@ library LiquidationLogic {
 
     VaultLogic.erc20TransferOut(params.collateralAsset, msg.sender, vars.actualCollateralToLiquidate);
 
-    InterestLogic.updateInterestRates(
-      poolData,
-      params.collateralAsset,
-      collateralAssetData,
-      0,
-      vars.actualCollateralToLiquidate
-    );
+    InterestLogic.updateInterestRates(params.collateralAsset, collateralAssetData, 0, vars.actualCollateralToLiquidate);
   }
 
   /**
@@ -272,7 +265,6 @@ library LiquidationLogic {
    * @notice Burns the debt of the user up to the amount being repaid by the liquidator.
    */
   function _repayUserERC20Debt(
-    DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage debtAssetData,
     address user,
     uint256 actualDebtToLiquidate,

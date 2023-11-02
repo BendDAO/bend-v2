@@ -38,7 +38,6 @@ library GenericLogic {
    * @notice Calculates the user data across the reserves.
    * @dev It includes the total liquidity/collateral/borrow balances in the base currency used by the price feed,
    * the average Loan To Value, the average Liquidation Ratio, and the Health factor.
-   * @param poolData The state of the pool
    * @return The total collateral of the user in the base currency used by the price feed
    * @return The total debt of the user in the base currency used by the price feed
    * @return The average ltv of the user
@@ -109,7 +108,6 @@ library GenericLogic {
 
         vars.totalDebtInBaseCurrency += _getUserDebtInBaseCurrency(
           userAccount,
-          currentAssetData,
           currentGroupData,
           vars.assetPrice,
           vars.assetUnit
@@ -143,8 +141,6 @@ library GenericLogic {
   /**
    * @notice Calculates the maximum amount that can be borrowed depending on the available collateral, the total debt
    * and the average Loan To Value
-   * @param totalCollateralInBaseCurrency The total collateral in the base currency used by the price feed
-   * @param totalDebtInBaseCurrency The total borrow balance in the base currency used by the price feed
    * @param ltv The average loan to value
    * @return The amount available to borrow in the base currency of the used by the price feed
    */
@@ -165,15 +161,9 @@ library GenericLogic {
 
   /**
    * @notice Calculates total debt of the user in the based currency used to normalize the values of the assets
-   * @param userAccount The address of the user
-   * @param assetData The data of the asset for which the total debt of the user is being calculated
-   * @param assetPrice The price of the asset for which the total debt of the user is being calculated
-   * @param assetUnit The value representing one full unit of the asset (10^decimals)
-   * @return The total debt of the user normalized to the base currency
    */
   function _getUserDebtInBaseCurrency(
     address userAccount,
-    DataTypes.AssetData storage assetData,
     DataTypes.GroupData storage groupData,
     uint256 assetPrice,
     uint256 assetUnit
@@ -181,7 +171,7 @@ library GenericLogic {
     // fetching variable debt
     uint256 userTotalDebt = groupData.userCrossBorrowed[userAccount];
     if (userTotalDebt != 0) {
-      uint256 normalizedIndex = InterestLogic.getNormalizedBorrowDebt(assetData, groupData);
+      uint256 normalizedIndex = InterestLogic.getNormalizedBorrowDebt(groupData);
       userTotalDebt = userTotalDebt.rayMul(normalizedIndex);
       userTotalDebt = assetPrice * userTotalDebt;
     }
@@ -191,10 +181,6 @@ library GenericLogic {
 
   /**
    * @notice Calculates total aToken balance of the user in the based currency used by the price oracle
-   * @param userAccount The address of the user
-   * @param assetData The data of the reserve for which the total aToken balance of the user is being calculated
-   * @param assetPrice The price of the asset for which the total aToken balance of the user is being calculated
-   * @param assetUnit The value representing one full unit of the asset (10^decimals)
    * @return The total aToken balance of the user normalized to the base currency of the price oracle
    */
   function _getUserBalanceInBaseCurrency(

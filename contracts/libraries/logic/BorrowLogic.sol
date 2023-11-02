@@ -33,7 +33,7 @@ library BorrowLogic {
 
     VaultLogic.erc20TransferOut(params.asset, params.to, params.amount);
 
-    InterestLogic.updateInterestRates(poolData, params.asset, assetData, 0, params.amount);
+    InterestLogic.updateInterestRates(params.asset, assetData, 0, params.amount);
 
     // TODO: check if the user has enough collateral to cover debt
     DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
@@ -60,7 +60,7 @@ library BorrowLogic {
 
     VaultLogic.erc20TransferIn(params.asset, msg.sender, params.amount);
 
-    InterestLogic.updateInterestRates(poolData, params.asset, assetData, 0, params.amount);
+    InterestLogic.updateInterestRates(params.asset, assetData, 0, params.amount);
 
     emit RepayERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
