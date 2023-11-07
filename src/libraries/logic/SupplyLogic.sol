@@ -22,8 +22,9 @@ library SupplyLogic {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
-    DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
+    require(poolData.poolId != 0, Errors.PE_POOL_NOT_EXISTS);
 
+    DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.PE_ASSET_NOT_EXISTS);
 
     InterestLogic.updateInterestSupplyIndex(assetData);
