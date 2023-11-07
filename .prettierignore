@@ -11,3 +11,7 @@ Certora
 CHANGELOG.md
 .prettierignore
 .solcover.js
+forge-cache
+coverage
+out
+lib

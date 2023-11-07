@@ -1,6 +1,14 @@
 
 node_modules
-.env
+
+# misc
+.DS_Store
+.env*
+!.env.example
+
+# Foundry files
+forge-cache
+out
 
 # Hardhat files
 cache
@@ -25,7 +33,7 @@ coverage
 coverage.json
 deployments/
 
-#certora
+# Certora
 .certora*
 .certora*.json
 **.last_conf*
