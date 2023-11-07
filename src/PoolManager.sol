@@ -14,6 +14,7 @@ import './libraries/types/DataTypes.sol';
 import './libraries/types/InputTypes.sol';
 
 import './libraries/logic/StorageSlot.sol';
+import './libraries/logic/ConfigureLogic.sol';
 import './libraries/logic/VaultLogic.sol';
 import './libraries/logic/SupplyLogic.sol';
 import './libraries/logic/BorrowLogic.sol';
@@ -39,139 +40,31 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
   }
 
   function createPool() public returns (uint32 poolId) {
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
-
-    require(poolId > 0, Errors.CE_INVALID_POOL_ID);
-
-    poolId = ps.nextPoolId;
-    ps.nextPoolId += 1;
-
-    DataTypes.PoolData storage pool = ps.poolLookup[poolId];
-    pool.poolId = poolId;
+    return ConfigureLogic.executeCreatePool();
   }
 
   function addAssetERC20(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public {
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
-
-    DataTypes.PoolData storage pool = ps.poolLookup[poolId];
-    require(pool.poolId != 0, Errors.PE_POOL_NOT_EXISTS);
-
-    DataTypes.AssetData storage asset = pool.assetLookup[underlyingAsset];
-    require(asset.assetType == 0, Errors.PE_ASSET_ALREADY_EXISTS);
-
-    asset.assetType = uint8(Constants.ASSET_TYPE_ERC20);
-    asset.riskGroupId = riskGroupId;
-
-    pool.assetList.push(underlyingAsset);
+    return ConfigureLogic.executeAddAssetERC20(poolId, underlyingAsset, riskGroupId);
   }
 
   function removeAssetERC20(uint32 poolId, address underlyingAsset) public {
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
-
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    require(poolData.poolId != 0, Errors.PE_POOL_NOT_EXISTS);
-
-    DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
-
-    _removeAsset(poolData, assetData, underlyingAsset);
+    return ConfigureLogic.executeRemoveAssetERC20(poolId, underlyingAsset);
   }
 
   function addAssetERC721(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public {
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
-
-    DataTypes.PoolData storage pool = ps.poolLookup[poolId];
-    DataTypes.AssetData storage asset = pool.assetLookup[underlyingAsset];
-    require(asset.assetType == 0, Errors.PE_ASSET_ALREADY_EXISTS);
-
-    asset.assetType = uint8(Constants.ASSET_TYPE_ERC721);
-    asset.riskGroupId = riskGroupId;
-
-    pool.assetList.push(underlyingAsset);
+    return ConfigureLogic.executeAddAssetERC721(poolId, underlyingAsset, riskGroupId);
   }
 
   function removeAssetERC721(uint32 poolId, address underlyingAsset) public {
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
-
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    require(poolData.poolId != 0, Errors.PE_POOL_NOT_EXISTS);
-
-    DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
-
-    _removeAsset(poolData, assetData, underlyingAsset);
-  }
-
-  function _removeAsset(
-    DataTypes.PoolData storage poolData,
-    DataTypes.AssetData storage assetData,
-    address underlyingAsset
-  ) private {
-    require(assetData.assetType != 0, Errors.PE_ASSET_NOT_EXISTS);
-    require(assetData.totalCrossSupplied == 0, Errors.LE_CROSS_SUPPLY_NOT_EMPTY);
-    require(assetData.totalIsolateSupplied == 0, Errors.LE_ISOLATE_SUPPLY_NOT_EMPTY);
-    require(assetData.groupList.length == 0, Errors.LE_GROUP_LIST_NOT_EMPTY);
-
-    uint assetLength = poolData.assetList.length;
-    uint searchIndex = type(uint).max;
-    for (uint i = 0; i < assetLength; i++) {
-      if (poolData.assetList[i] == underlyingAsset) {
-        searchIndex = i;
-        break;
-      }
-    }
-    require(searchIndex <= (assetLength - 1), Errors.PE_ASSET_NOT_EXISTS);
-    if (searchIndex < (assetLength - 1)) {
-      poolData.assetList[searchIndex] = poolData.assetList[assetLength - 1];
-    }
-    poolData.assetList[assetLength - 1] = address(0);
-    poolData.assetList.pop();
+    return ConfigureLogic.executeRemoveAssetERC721(poolId, underlyingAsset);
   }
 
   function addGroup(uint32 poolId, address underlyingAsset, address rateModel_) public returns (uint8 groupId) {
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
-
-    DataTypes.PoolData storage pool = ps.poolLookup[poolId];
-    require(pool.poolId != 0, Errors.PE_POOL_NOT_EXISTS);
-
-    DataTypes.AssetData storage assetData = pool.assetLookup[underlyingAsset];
-    // only erc20 asset can be borrowed
-    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.CE_INVALID_ASSET_TYPE);
-
-    groupId = assetData.nextGroupId;
-    assetData.nextGroupId += 1;
-
-    DataTypes.GroupData storage group = assetData.groupLookup[groupId];
-    group.interestRateModelAddress = rateModel_;
-
-    assetData.groupList.push(groupId);
+    return ConfigureLogic.executeAddGroup(poolId, underlyingAsset, rateModel_);
   }
 
   function removeGroup(uint32 poolId, address underlyingAsset, uint8 groupId) public {
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
-
-    DataTypes.PoolData storage pool = ps.poolLookup[poolId];
-    require(pool.poolId != 0, Errors.PE_POOL_NOT_EXISTS);
-
-    DataTypes.AssetData storage assetData = pool.assetLookup[underlyingAsset];
-    DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
-    require(groupData.interestRateModelAddress != address(0), Errors.PE_GROUP_NOT_EXISTS);
-
-    require(groupData.totalCrossBorrowed == 0, Errors.LE_CROSS_DEBT_NOT_EMPTY);
-    require(groupData.totalIsolateBorrowed == 0, Errors.LE_ISOLATE_DEBT_NOT_EMPTY);
-
-    uint groupLength = assetData.groupList.length;
-    uint searchIndex = type(uint).max;
-    for (uint i = 0; i < groupLength; i++) {
-      if (assetData.groupList[i] == groupId) {
-        searchIndex = i;
-        break;
-      }
-    }
-    require(searchIndex <= (groupLength - 1), Errors.PE_GROUP_NOT_EXISTS);
-    if (searchIndex < (groupLength - 1)) {
-      assetData.groupList[searchIndex] = assetData.groupList[groupLength - 1];
-    }
-    assetData.groupList[groupLength - 1] = 0;
-    assetData.groupList.pop();
+    return ConfigureLogic.executeRemoveGroup(poolId, underlyingAsset, groupId);
   }
 
   function depositERC20(uint32 poolId, address asset, uint256 amount) public {
@@ -247,8 +140,4 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
       })
     );
   }
-
-  function borrowERC20WithIsolateMode(address nftAsset, uint256 nftTokenid, address asset, uint256 amount) public {}
-
-  function repayERC20WithIsolateMode(address nftAsset, uint256 nftTokenid, address asset, uint256 amount) public {}
 }
