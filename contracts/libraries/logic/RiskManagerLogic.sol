@@ -5,8 +5,9 @@ import {Constants} from '../helpers/Constants.sol';
 import {Errors} from '../helpers/Errors.sol';
 import {InputTypes} from '../types/InputTypes.sol';
 import {DataTypes} from '../types/DataTypes.sol';
-import {StorageSlot} from './StorageSlot.sol';
+import {ResultTypes} from '../types/ResultTypes.sol';
 
+import {StorageSlot} from './StorageSlot.sol';
 import {GenericLogic} from './GenericLogic.sol';
 
 library RiskManagerLogic {
@@ -18,17 +19,18 @@ library RiskManagerLogic {
     address userAccount,
     address oracle
   ) internal view returns (uint256, bool) {
-    (, , , , uint256 healthFactor, bool hasZeroLtvCollateral) = GenericLogic.calculateUserAccountData(
+    ResultTypes.UserAccountResult memory userAccountResult = GenericLogic.calculateUserAccountData(
       poolData,
       userAccount,
+      address(0),
       oracle
     );
 
     require(
-      healthFactor >= Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
+      userAccountResult.healthFactor >= Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
       Errors.PE_HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD
     );
 
-    return (healthFactor, hasZeroLtvCollateral);
+    return (userAccountResult.healthFactor, userAccountResult.hasZeroLtvCollateral);
   }
 }

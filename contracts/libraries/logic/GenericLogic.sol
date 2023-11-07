@@ -6,6 +6,7 @@ import {IPriceOracleGetter} from '../../interfaces/IPriceOracleGetter.sol';
 import {PercentageMath} from '../math/PercentageMath.sol';
 import {WadRayMath} from '../math/WadRayMath.sol';
 import {DataTypes} from '../types/DataTypes.sol';
+import {ResultTypes} from '../types/ResultTypes.sol';
 
 import {InterestLogic} from './InterestLogic.sol';
 
@@ -25,38 +26,23 @@ library GenericLogic {
     uint256 assetPrice;
     uint256 assetUnit;
     uint256 userBalanceInBaseCurrency;
-    // used for return variables
-    uint256 totalCollateralInBaseCurrency;
-    uint256 totalDebtInBaseCurrency;
-    uint256 avgLtv;
-    uint256 avgLiquidationThreshold;
-    uint256 healthFactor;
-    bool hasZeroLtvCollateral;
+    uint256 userDebtInBaseCurrency;
   }
 
   /**
    * @notice Calculates the user data across the reserves.
    * @dev It includes the total liquidity/collateral/borrow balances in the base currency used by the price feed,
    * the average Loan To Value, the average Liquidation Ratio, and the Health factor.
-   * @return The total collateral of the user in the base currency used by the price feed
-   * @return The total debt of the user in the base currency used by the price feed
-   * @return The average ltv of the user
-   * @return The average liquidation threshold of the user
-   * @return The health factor of the user
-   * @return True if the ltv is zero, false otherwise
    */
   function calculateUserAccountData(
     DataTypes.PoolData storage poolData,
     address userAccount,
+    address collateralAsset,
     address oracle
-  ) internal view returns (uint256, uint256, uint256, uint256, uint256, bool) {
-    DataTypes.AccountData storage accountData = poolData.accountLookup[userAccount];
-
-    if (accountData.suppliedAssets.length == 0 && accountData.borrowedAssets.length == 0) {
-      return (0, 0, 0, 0, type(uint256).max, false);
-    }
-
+  ) internal view returns (ResultTypes.UserAccountResult memory result) {
     CalculateUserAccountDataVars memory vars;
+
+    DataTypes.AccountData storage accountData = poolData.accountLookup[userAccount];
 
     // calculate the sum of all the collateral balance denominated in the base currency
     for (vars.assetIndex = 0; vars.assetIndex < accountData.suppliedAssets.length; vars.assetIndex++) {
@@ -78,15 +64,19 @@ library GenericLogic {
           vars.assetUnit
         );
 
-        vars.totalCollateralInBaseCurrency += vars.userBalanceInBaseCurrency;
+        result.totalCollateralInBaseCurrency += vars.userBalanceInBaseCurrency;
 
-        if (currentAssetData.collateralFactor != 0) {
-          vars.avgLtv += vars.userBalanceInBaseCurrency * currentAssetData.collateralFactor;
-        } else {
-          vars.hasZeroLtvCollateral = true;
+        if (collateralAsset == vars.currentAssetAddress) {
+          result.inputCollateralInBaseCurrency += vars.userBalanceInBaseCurrency;
         }
 
-        vars.avgLiquidationThreshold += vars.userBalanceInBaseCurrency * currentAssetData.liquidationThreshold;
+        if (currentAssetData.collateralFactor != 0) {
+          result.avgLtv += vars.userBalanceInBaseCurrency * currentAssetData.collateralFactor;
+        } else {
+          result.hasZeroLtvCollateral = true;
+        }
+
+        result.avgLiquidationThreshold += vars.userBalanceInBaseCurrency * currentAssetData.liquidationThreshold;
       }
     }
 
@@ -102,40 +92,42 @@ library GenericLogic {
       vars.assetUnit = 10 ** currentAssetData.underlyingDecimals;
       vars.assetPrice = IPriceOracleGetter(oracle).getAssetPrice(vars.currentAssetAddress);
 
+      // same debt can be borrowed in different groups by different collaterals
+      // e.g. BAYC borrow ETH in group 1, MAYC borrow ETH in group 2
+      vars.userDebtInBaseCurrency = 0;
       for (vars.groupIndex = 0; vars.groupIndex < currentAssetData.groupList.length; vars.groupIndex++) {
         vars.currentGroupId = currentAssetData.groupList[vars.groupIndex];
         DataTypes.GroupData storage currentGroupData = currentAssetData.groupLookup[vars.currentGroupId];
 
-        vars.totalDebtInBaseCurrency += _getUserDebtInBaseCurrency(
+        vars.userDebtInBaseCurrency += _getUserDebtInBaseCurrency(
           userAccount,
           currentGroupData,
           vars.assetPrice,
           vars.assetUnit
         );
       }
+
+      result.totalDebtInBaseCurrency += vars.userDebtInBaseCurrency;
+      if (vars.userDebtInBaseCurrency > result.highestDebtInBaseCurrency) {
+        result.highestDebtInBaseCurrency = vars.userDebtInBaseCurrency;
+        result.highestDebtAsset = vars.currentAssetAddress;
+      }
     }
 
     // calculate the average LTV and Liquidation threshold
-    vars.avgLtv = vars.totalCollateralInBaseCurrency != 0 ? vars.avgLtv / vars.totalCollateralInBaseCurrency : 0;
-    vars.avgLiquidationThreshold = vars.totalCollateralInBaseCurrency != 0
-      ? vars.avgLiquidationThreshold / vars.totalCollateralInBaseCurrency
+    result.avgLtv = result.totalCollateralInBaseCurrency != 0
+      ? result.avgLtv / result.totalCollateralInBaseCurrency
+      : 0;
+    result.avgLiquidationThreshold = result.totalCollateralInBaseCurrency != 0
+      ? result.avgLiquidationThreshold / result.totalCollateralInBaseCurrency
       : 0;
 
     // calculate the health factor
-    vars.healthFactor = (vars.totalDebtInBaseCurrency == 0)
+    result.healthFactor = (result.totalDebtInBaseCurrency == 0)
       ? type(uint256).max
-      : (vars.totalCollateralInBaseCurrency.percentMul(vars.avgLiquidationThreshold)).wadDiv(
-        vars.totalDebtInBaseCurrency
+      : (result.totalCollateralInBaseCurrency.percentMul(result.avgLiquidationThreshold)).wadDiv(
+        result.totalDebtInBaseCurrency
       );
-
-    return (
-      vars.totalCollateralInBaseCurrency,
-      vars.totalDebtInBaseCurrency,
-      vars.avgLtv,
-      vars.avgLiquidationThreshold,
-      vars.healthFactor,
-      vars.hasZeroLtvCollateral
-    );
   }
 
   /**

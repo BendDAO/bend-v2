@@ -7,11 +7,13 @@ import {Constants} from '../helpers/Constants.sol';
 import {Errors} from '../helpers/Errors.sol';
 import {InputTypes} from '../types/InputTypes.sol';
 import {DataTypes} from '../types/DataTypes.sol';
-import {StorageSlot} from './StorageSlot.sol';
+import {ResultTypes} from '../types/ResultTypes.sol';
+
 import {WadRayMath} from '../math/WadRayMath.sol';
 import {PercentageMath} from '../math/PercentageMath.sol';
 import {KVSortUtils} from '../helpers/KVSortUtils.sol';
 
+import {StorageSlot} from './StorageSlot.sol';
 import {VaultLogic} from './VaultLogic.sol';
 import {InterestLogic} from './InterestLogic.sol';
 import {GenericLogic} from './GenericLogic.sol';
@@ -65,7 +67,6 @@ library LiquidationLogic {
     uint256 userTotalDebt;
     uint256 actualDebtToLiquidate;
     uint256 actualCollateralToLiquidate;
-    uint256 healthFactor;
   }
 
   /**
@@ -86,10 +87,15 @@ library LiquidationLogic {
 
     InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
 
-    (, , , , vars.healthFactor, ) = GenericLogic.calculateUserAccountData(poolData, params.user, cs.priceOracle);
+    ResultTypes.UserAccountResult memory userAccountResult = GenericLogic.calculateUserAccountData(
+      poolData,
+      address(0),
+      params.user,
+      cs.priceOracle
+    );
 
     require(
-      vars.healthFactor < Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
+      userAccountResult.healthFactor < Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
       Errors.LE_HEALTH_FACTOR_NOT_BELOW_THRESHOLD
     );
     require(collateralAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.CE_INVALID_ASSET_TYPE);
@@ -97,7 +103,7 @@ library LiquidationLogic {
     (vars.userTotalDebt, vars.actualDebtToLiquidate) = _calculateUserERC20Debt(
       debtGroupData,
       params,
-      vars.healthFactor
+      userAccountResult.healthFactor
     );
 
     vars.userCollateralBalance = VaultLogic.erc20GetUserSupply(collateralAssetData, params.user);
@@ -152,7 +158,7 @@ library LiquidationLogic {
     uint256 userCollateralBalance;
     uint256 userTotalDebt;
     uint256 actualDebtToLiquidate;
-    uint256 healthFactor;
+    ResultTypes.UserAccountResult userAccountResult;
   }
 
   /**
@@ -173,10 +179,15 @@ library LiquidationLogic {
 
     InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
 
-    (, , , , vars.healthFactor, ) = GenericLogic.calculateUserAccountData(poolData, params.user, cs.priceOracle);
+    vars.userAccountResult = GenericLogic.calculateUserAccountData(
+      poolData,
+      params.collateralAsset,
+      params.user,
+      cs.priceOracle
+    );
 
     require(
-      vars.healthFactor < Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
+      vars.userAccountResult.healthFactor < Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
       Errors.LE_HEALTH_FACTOR_NOT_BELOW_THRESHOLD
     );
     require(collateralAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.CE_INVALID_ASSET_TYPE);
@@ -189,6 +200,7 @@ library LiquidationLogic {
       collateralAssetData,
       debtAssetData,
       params,
+      vars,
       IPriceOracleGetter(cs.priceOracle)
     );
 
@@ -415,6 +427,9 @@ library LiquidationLogic {
   struct CalculateDebtAmountFromERC721CollateralLocalVars {
     uint256 collateralPrice;
     uint256 collateralBonusPrice;
+    uint256 collateralLiquidatePrice;
+    uint256 collateralTotalDebtToCover;
+    uint256 collateralItemDebtToCover;
     uint256 debtAssetPrice;
     uint256 collateralAssetUnit;
     uint256 debtAssetDecimals;
@@ -429,21 +444,35 @@ library LiquidationLogic {
     DataTypes.AssetData storage collateralAssetData,
     DataTypes.AssetData storage debtAssetData,
     InputTypes.ExecuteLiquidateERC721Params memory params,
+    LiquidateERC721LocalVars memory liqVars,
     IPriceOracleGetter oracle
   ) internal view returns (uint256) {
     CalculateDebtAmountFromERC721CollateralLocalVars memory vars;
 
+    vars.collateralAssetUnit = oracle.BASE_CURRENCY_UNIT();
     vars.collateralPrice = oracle.getAssetPrice(params.collateralAsset);
     vars.collateralBonusPrice = vars.collateralPrice.percentMul(
       PercentageMath.PERCENTAGE_FACTOR - collateralAssetData.liquidationBonus
     );
-    vars.collateralAssetUnit = oracle.BASE_CURRENCY_UNIT();
 
-    vars.debtAssetPrice = oracle.getAssetPrice(params.debtAsset);
     vars.debtAssetDecimals = debtAssetData.underlyingDecimals;
     vars.debtAssetUnit = 10 ** vars.debtAssetDecimals;
+    vars.debtAssetPrice = oracle.getAssetPrice(params.debtAsset);
 
-    vars.debtAmountNeeded = ((vars.collateralBonusPrice * params.collateralTokenIds.length * vars.debtAssetUnit) /
+    // calculate the debt should be covered by the liquidated collateral of user
+    vars.collateralTotalDebtToCover =
+      (liqVars.userAccountResult.inputCollateralInBaseCurrency * liqVars.userAccountResult.totalDebtInBaseCurrency) /
+      liqVars.userAccountResult.totalCollateralInBaseCurrency;
+    vars.collateralItemDebtToCover = vars.collateralTotalDebtToCover / liqVars.userCollateralBalance;
+
+    // using highest price as final liquidate price, all price and debt are based on base currency
+    if (vars.collateralBonusPrice > vars.collateralItemDebtToCover) {
+      vars.collateralLiquidatePrice = vars.collateralBonusPrice;
+    } else {
+      vars.collateralLiquidatePrice = vars.collateralItemDebtToCover;
+    }
+
+    vars.debtAmountNeeded = ((vars.collateralLiquidatePrice * params.collateralTokenIds.length * vars.debtAssetUnit) /
       (vars.debtAssetPrice * vars.collateralAssetUnit));
 
     return (vars.debtAmountNeeded);
