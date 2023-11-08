@@ -30,7 +30,7 @@ library SupplyLogic {
     bool isFirstSupply = VaultLogic.erc20IncreaseSupply(assetData, msg.sender, params.amount);
     if (isFirstSupply) {
       DataTypes.AccountData storage accountData = poolData.accountLookup[msg.sender];
-      VaultLogic.accountAddAsset(accountData, params.asset, true);
+      VaultLogic.accountSetSuppliedAsset(accountData, params.asset, true);
     }
 
     InterestLogic.updateInterestRates(params.asset, assetData, params.amount, 0);
@@ -54,7 +54,7 @@ library SupplyLogic {
     bool isFullWithdraw = VaultLogic.erc20DecreaseSupply(assetData, msg.sender, params.amount);
     if (isFullWithdraw) {
       DataTypes.AccountData storage accountData = poolData.accountLookup[msg.sender];
-      VaultLogic.accountRemoveAsset(accountData, params.asset, true);
+      VaultLogic.accountSetSuppliedAsset(accountData, params.asset, false);
     }
 
     VaultLogic.erc20TransferOut(params.asset, params.to, params.amount);
@@ -89,7 +89,7 @@ library SupplyLogic {
 
       if (isFirstSupply) {
         DataTypes.AccountData storage accountData = pool.accountLookup[msg.sender];
-        VaultLogic.accountAddAsset(accountData, params.asset, true);
+        VaultLogic.accountSetSuppliedAsset(accountData, params.asset, true);
       }
     } else if (params.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
       assetStorage.totalIsolateSupplied += params.tokenIds.length;
@@ -134,7 +134,7 @@ library SupplyLogic {
       bool isFullWithdraw = (assetStorage.userCrossSupplied[msg.sender] == 0);
       if (isFullWithdraw) {
         DataTypes.AccountData storage accountData = poolData.accountLookup[msg.sender];
-        VaultLogic.accountRemoveAsset(accountData, params.asset, true);
+        VaultLogic.accountSetSuppliedAsset(accountData, params.asset, false);
       }
 
       // TODO: check if the user has enough collateral to cover debt

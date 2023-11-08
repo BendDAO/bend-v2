@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
+import {EnumerableSetUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol';
+
 library DataTypes {
   /****************************************************************************/
   /* Data Types for Common */
@@ -26,8 +28,8 @@ library DataTypes {
   }
 
   struct AccountData {
-    address[] suppliedAssets;
-    address[] borrowedAssets;
+    EnumerableSetUpgradeable.AddressSet suppliedAssets;
+    EnumerableSetUpgradeable.AddressSet borrowedAssets;
   }
 
   struct GroupData {
@@ -53,6 +55,12 @@ library DataTypes {
     uint8 assetType; // ERC20=0, ERC721=1
     uint8 underlyingDecimals; // only for ERC20
     uint8 riskGroupId; //risk group id
+    bool isActive;
+    bool isFrozen;
+    bool isPaused;
+    bool isBorrowingEnabled;
+    uint32 supplyCap;
+    uint32 borrowCap;
     uint16 feeFactor;
     uint16 collateralFactor;
     uint16 liquidationThreshold;

@@ -42,6 +42,8 @@ library ConfigureLogic {
     DataTypes.AssetData storage asset = pool.assetLookup[underlyingAsset];
     require(asset.assetType == 0, Errors.PE_ASSET_ALREADY_EXISTS);
 
+    require(pool.assetList.length <= Constants.MAX_NUMBER_OF_ASSET, Errors.ASSET_NUMBER_EXCEED_MAX_LIMIT);
+
     asset.assetType = uint8(Constants.ASSET_TYPE_ERC20);
     asset.riskGroupId = riskGroupId;
 

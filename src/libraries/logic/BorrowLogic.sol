@@ -27,7 +27,7 @@ library BorrowLogic {
 
     bool isFirstBorrow = VaultLogic.erc20IncreaseBorrow(groupData, msg.sender, params.amount);
     if (isFirstBorrow) {
-      VaultLogic.accountAddAsset(poolData.accountLookup[msg.sender], params.asset, false);
+      VaultLogic.accountSetBorrowedAsset(poolData.accountLookup[msg.sender], params.asset, true);
     }
 
     VaultLogic.erc20TransferOut(params.asset, params.to, params.amount);
@@ -54,7 +54,7 @@ library BorrowLogic {
 
     bool isFullRepay = VaultLogic.erc20DecreaseBorrow(groupData, msg.sender, params.amount);
     if (isFullRepay) {
-      VaultLogic.accountRemoveAsset(poolData.accountLookup[msg.sender], params.asset, false);
+      VaultLogic.accountSetBorrowedAsset(poolData.accountLookup[msg.sender], params.asset, false);
     }
 
     VaultLogic.erc20TransferIn(params.asset, msg.sender, params.amount);

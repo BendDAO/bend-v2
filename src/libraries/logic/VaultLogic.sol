@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
+import {EnumerableSetUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol';
 import {IERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
 import {SafeERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol';
 import {IERC721Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol';
@@ -15,53 +16,53 @@ import {WadRayMath} from '../math/WadRayMath.sol';
 library VaultLogic {
   using SafeERC20Upgradeable for IERC20Upgradeable;
   using WadRayMath for uint256;
+  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
   // Account methods
-  function accountAddAsset(DataTypes.AccountData storage accountData, address asset, bool isForSupplied) public {
-    address[] storage assetsInStorage;
-
-    if (isForSupplied) {
-      assetsInStorage = accountData.suppliedAssets;
+  function accountSetBorrowedAsset(DataTypes.AccountData storage accountData, address asset, bool borrowing) public {
+    if (borrowing) {
+      accountData.borrowedAssets.add(asset);
     } else {
-      assetsInStorage = accountData.borrowedAssets;
-    }
-
-    if (assetsInStorage.length == 0) {
-      assetsInStorage.push(asset);
-    } else {
-      bool isExist = false;
-      for (uint256 i = 0; i < assetsInStorage.length; i++) {
-        if (assetsInStorage[i] == asset) {
-          isExist = true;
-          break;
-        }
-      }
-      if (!isExist) {
-        assetsInStorage.push(asset);
-      }
+      accountData.borrowedAssets.remove(asset);
     }
   }
 
-  function accountRemoveAsset(DataTypes.AccountData storage accountData, address asset, bool isForSupplied) public {
-    address[] storage assetsInStorage;
+  function accoutHasBorrowedAsset(
+    DataTypes.AccountData storage accountData,
+    address asset
+  ) internal view returns (bool) {
+    return accountData.borrowedAssets.contains(asset);
+  }
 
-    if (isForSupplied) {
-      assetsInStorage = accountData.suppliedAssets;
+  function accountGetBorrowedAssets(
+    DataTypes.AccountData storage accountData
+  ) internal view returns (address[] memory) {
+    return accountData.borrowedAssets.values();
+  }
+
+  function accountSetSuppliedAsset(
+    DataTypes.AccountData storage accountData,
+    address asset,
+    bool usingAsCollateral
+  ) public {
+    if (usingAsCollateral) {
+      accountData.suppliedAssets.add(asset);
     } else {
-      assetsInStorage = accountData.borrowedAssets;
+      accountData.suppliedAssets.remove(asset);
     }
+  }
 
-    if (assetsInStorage.length == 0) {
-      return;
-    }
+  function accoutHasSuppliedAsset(
+    DataTypes.AccountData storage accountData,
+    address asset
+  ) internal view returns (bool) {
+    return accountData.suppliedAssets.contains(asset);
+  }
 
-    for (uint256 i = 0; i < assetsInStorage.length; i++) {
-      if (assetsInStorage[i] == asset) {
-        assetsInStorage[i] = assetsInStorage[assetsInStorage.length - 1];
-        assetsInStorage.pop();
-        break;
-      }
-    }
+  function accountGetSuppliedAssets(
+    DataTypes.AccountData storage accountData
+  ) internal view returns (address[] memory) {
+    return accountData.suppliedAssets.values();
   }
 
   // ERC20 methods

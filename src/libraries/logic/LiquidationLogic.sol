@@ -107,7 +107,7 @@ library LiquidationLogic {
     // If the debt being repaid is equal to the user borrow,
     // we set the asset as not being used as collateral anymore
     if (vars.userTotalDebt == vars.actualDebtToLiquidate) {
-      // TODO: accountRemoveAsset
+      // TODO: accountSetBorrowedAsset(false)
     }
 
     _repayUserERC20Debt(debtAssetData, params.user, vars.actualDebtToLiquidate, true);
@@ -117,7 +117,7 @@ library LiquidationLogic {
     // If the collateral being liquidated is equal to the user supply,
     // we set the asset as not being used as collateral anymore
     if (vars.actualCollateralToLiquidate == vars.userCollateralBalance) {
-      // TODO: accountRemoveAsset
+      // TODO: accountSetSuppliedAsset(false)
     }
 
     if (params.supplyAsCollateral) {
@@ -193,7 +193,7 @@ library LiquidationLogic {
     // If the debt being repaid is equal to the user borrow,
     // we set the asset as not being used as collateral anymore
     if (vars.userTotalDebt == vars.actualDebtToLiquidate) {
-      // TODO: accountRemoveAsset
+      // TODO: accountSetBorrowedAsset(false)
     }
 
     _repayUserERC20Debt(debtAssetData, params.user, vars.actualDebtToLiquidate, false);
@@ -209,7 +209,7 @@ library LiquidationLogic {
     // If the collateral being liquidated is equal to the user supply,
     // we set the asset as not being used as collateral anymore
     if (params.collateralTokenIds.length == vars.userCollateralBalance) {
-      // TODO: accountRemoveAsset
+      // TODO: accountSetSuppliedAsset(false)
     }
 
     emit Events.LiquidateERC721(
@@ -252,7 +252,7 @@ library LiquidationLogic {
     VaultLogic.erc20TransferSupply(collateralAssetData, params.user, msg.sender, vars.actualCollateralToLiquidate);
 
     if (liquidatorPreviousBalance == 0) {
-      // TODO: VaultLogic.accountAddAsset();
+      // TODO: VaultLogic.accountSetSuppliedAsset();
     }
   }
 
@@ -403,7 +403,7 @@ library LiquidationLogic {
     VaultLogic.erc721TransferSupply(collateralAssetData, params.user, msg.sender, params.collateralTokenIds);
 
     if (liquidatorPreviousBalance == 0) {
-      // TODO: VaultLogic.accountAddAsset();
+      // TODO: VaultLogic.accountSetSuppliedAsset();
     }
   }
 

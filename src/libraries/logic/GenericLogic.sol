@@ -8,6 +8,7 @@ import {WadRayMath} from '../math/WadRayMath.sol';
 import {DataTypes} from '../types/DataTypes.sol';
 import {ResultTypes} from '../types/ResultTypes.sol';
 
+import {VaultLogic} from './VaultLogic.sol';
 import {InterestLogic} from './InterestLogic.sol';
 
 /**
@@ -19,6 +20,8 @@ library GenericLogic {
   using PercentageMath for uint256;
 
   struct CalculateUserAccountDataVars {
+    address[] userSuppliedAssets;
+    address[] userBorrowedAssets;
     uint256 assetIndex;
     address currentAssetAddress;
     uint256 groupIndex;
@@ -45,8 +48,9 @@ library GenericLogic {
     DataTypes.AccountData storage accountData = poolData.accountLookup[userAccount];
 
     // calculate the sum of all the collateral balance denominated in the base currency
-    for (vars.assetIndex = 0; vars.assetIndex < accountData.suppliedAssets.length; vars.assetIndex++) {
-      vars.currentAssetAddress = accountData.suppliedAssets[vars.assetIndex];
+    vars.userSuppliedAssets = VaultLogic.accountGetSuppliedAssets(accountData);
+    for (vars.assetIndex = 0; vars.assetIndex < vars.userSuppliedAssets.length; vars.assetIndex++) {
+      vars.currentAssetAddress = vars.userSuppliedAssets[vars.assetIndex];
       if (vars.currentAssetAddress == address(0)) {
         continue;
       }
@@ -81,8 +85,9 @@ library GenericLogic {
     }
 
     // calculate the sum of all the debt balance denominated in the base currency
-    for (vars.assetIndex = 0; vars.assetIndex < accountData.borrowedAssets.length; vars.assetIndex++) {
-      vars.currentAssetAddress = accountData.borrowedAssets[vars.assetIndex];
+    vars.userBorrowedAssets = VaultLogic.accountGetBorrowedAssets(accountData);
+    for (vars.assetIndex = 0; vars.assetIndex < vars.userBorrowedAssets.length; vars.assetIndex++) {
+      vars.currentAssetAddress = vars.userBorrowedAssets[vars.assetIndex];
       if (vars.currentAssetAddress == address(0)) {
         continue;
       }
