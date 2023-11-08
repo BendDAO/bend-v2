@@ -28,7 +28,7 @@ library RiskManagerLogic {
 
     require(
       userAccountResult.healthFactor >= Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
-      Errors.PE_HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD
+      Errors.HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD
     );
 
     return (userAccountResult.healthFactor, userAccountResult.hasZeroLtvCollateral);

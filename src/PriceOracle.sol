@@ -21,7 +21,7 @@ contract PriceOracle is Initializable {
    * @param aclManager_ The address of the ACL Manager
    */
   function initialize(address aclManager_, address baseCurrency_, uint256 baseCurrencyUnit_) public initializer {
-    require(aclManager_ != address(0), Errors.CE_ACL_MANAGER_CANNOT_BE_ZERO);
+    require(aclManager_ != address(0), Errors.ACL_MANAGER_CANNOT_BE_ZERO);
     aclManager = IACLManager(aclManager_);
 
     // if use US Dollars, baseCurrency will be 0 and unit is 1e8

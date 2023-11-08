@@ -18,10 +18,10 @@ library SupplyLogic {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
-    require(poolData.poolId != 0, Errors.PE_POOL_NOT_EXISTS);
+    require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
-    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.PE_ASSET_NOT_EXISTS);
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_NOT_EXISTS);
 
     InterestLogic.updateInterestSupplyIndex(assetData);
 
@@ -45,7 +45,7 @@ library SupplyLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
 
-    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.PE_ASSET_NOT_EXISTS);
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_NOT_EXISTS);
 
     InterestLogic.updateInterestSupplyIndex(assetData);
 
@@ -71,7 +71,7 @@ library SupplyLogic {
 
     DataTypes.PoolData storage pool = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetStorage = pool.assetLookup[params.asset];
-    require(assetStorage.assetType == Constants.ASSET_TYPE_ERC721, Errors.PE_ASSET_NOT_EXISTS);
+    require(assetStorage.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_NOT_EXISTS);
 
     VaultLogic.erc721TransferIn(params.asset, msg.sender, params.tokenIds);
 
@@ -95,7 +95,7 @@ library SupplyLogic {
       assetStorage.totalIsolateSupplied += params.tokenIds.length;
       assetStorage.userIsolateSupplied[msg.sender] += params.tokenIds.length;
     } else {
-      revert(Errors.CE_INVALID_SUPPLY_MODE);
+      revert(Errors.INVALID_SUPPLY_MODE);
     }
 
     emit Events.DepositERC721(msg.sender, params.poolId, params.asset, params.tokenIds);
@@ -106,13 +106,13 @@ library SupplyLogic {
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetStorage = poolData.assetLookup[params.asset];
-    require(assetStorage.assetType == Constants.ASSET_TYPE_ERC721, Errors.PE_ASSET_NOT_EXISTS);
+    require(assetStorage.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_NOT_EXISTS);
 
     bool isCrossWithdraw = false;
 
     for (uint256 i = 0; i < params.tokenIds.length; i++) {
       DataTypes.ERC721TokenData storage tokenData = assetStorage.erc721TokenData[params.tokenIds[i]];
-      require(tokenData.owner == msg.sender, Errors.CE_INVALID_CALLER);
+      require(tokenData.owner == msg.sender, Errors.INVALID_CALLER);
 
       if (tokenData.supplyMode == Constants.SUPPLY_MODE_CROSS) {
         isCrossWithdraw = true;

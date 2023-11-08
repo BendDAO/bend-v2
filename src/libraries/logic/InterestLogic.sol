@@ -132,13 +132,13 @@ library InterestLogic {
    * @notice Initializes a asset.
    */
   function initAssetData(DataTypes.AssetData storage assetData) internal {
-    require(assetData.supplyIndex == 0, Errors.PE_ASSET_ALREADY_EXISTS);
+    require(assetData.supplyIndex == 0, Errors.ASSET_ALREADY_EXISTS);
 
     assetData.supplyIndex = uint128(WadRayMath.RAY);
   }
 
   function initGroupData(DataTypes.GroupData storage groupData, address interestRateModelAddress) internal {
-    require(groupData.borrowIndex == 0, Errors.PE_GROUP_ALREADY_EXISTS);
+    require(groupData.borrowIndex == 0, Errors.GROUP_ALREADY_EXISTS);
 
     groupData.borrowIndex = uint128(WadRayMath.RAY);
     groupData.interestRateModelAddress = interestRateModelAddress;

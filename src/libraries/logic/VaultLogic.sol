@@ -77,7 +77,7 @@ library VaultLogic {
     uint256 amount
   ) public returns (bool) {
     uint256 amountScaled = amount.rayDiv(assetData.supplyIndex);
-    require(amountScaled != 0, Errors.CE_INVALID_SCALED_AMOUNT);
+    require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
     assetData.totalCrossSupplied += amountScaled;
     assetData.userCrossSupplied[account] += amountScaled;
@@ -91,7 +91,7 @@ library VaultLogic {
     uint256 amount
   ) public returns (bool) {
     uint256 amountScaled = amount.rayDiv(assetData.supplyIndex);
-    require(amountScaled != 0, Errors.CE_INVALID_SCALED_AMOUNT);
+    require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
     assetData.totalCrossSupplied -= amountScaled;
     assetData.userCrossSupplied[account] -= amountScaled;
@@ -101,7 +101,7 @@ library VaultLogic {
 
   function erc20TransferSupply(DataTypes.AssetData storage assetData, address from, address to, uint256 amount) public {
     uint256 amountScaled = amount.rayDiv(assetData.supplyIndex);
-    require(amountScaled != 0, Errors.CE_INVALID_SCALED_AMOUNT);
+    require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
     assetData.userCrossSupplied[from] -= amountScaled;
     assetData.userCrossSupplied[to] += amountScaled;
@@ -118,7 +118,7 @@ library VaultLogic {
     uint256 amount
   ) public returns (bool) {
     uint256 amountScaled = amount.rayDiv(groupData.borrowIndex);
-    require(amountScaled != 0, Errors.CE_INVALID_SCALED_AMOUNT);
+    require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
     groupData.totalCrossBorrowed += amountScaled;
     groupData.userCrossBorrowed[account] += amountScaled;
@@ -132,7 +132,7 @@ library VaultLogic {
     uint256 amount
   ) public returns (bool) {
     uint256 amountScaled = amount.rayDiv(groupData.borrowIndex);
-    require(amountScaled != 0, Errors.CE_INVALID_SCALED_AMOUNT);
+    require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
     groupData.totalCrossBorrowed -= amountScaled;
     groupData.userCrossBorrowed[account] -= amountScaled;
@@ -151,7 +151,7 @@ library VaultLogic {
 
     uint256 poolSizeAfter = IERC20Upgradeable(underlyingAsset).balanceOf(address(this));
 
-    require(poolSizeAfter >= poolSizeBefore, Errors.CE_INVALID_TRANSFER_AMOUNT);
+    require(poolSizeAfter >= poolSizeBefore, Errors.INVALID_TRANSFER_AMOUNT);
     unchecked {
       amountTransferred = poolSizeAfter - poolSizeBefore;
     }
@@ -163,7 +163,7 @@ library VaultLogic {
     IERC20Upgradeable(underlyingAsset).safeTransfer(to, amount);
     uint poolSizeAfter = IERC20Upgradeable(underlyingAsset).balanceOf(address(this));
 
-    require(poolSizeBefore >= poolSizeAfter, Errors.CE_INVALID_TRANSFER_AMOUNT);
+    require(poolSizeBefore >= poolSizeAfter, Errors.INVALID_TRANSFER_AMOUNT);
     unchecked {
       amountTransferred = poolSizeBefore - poolSizeAfter;
     }
@@ -178,7 +178,7 @@ library VaultLogic {
       } else if (tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
         assetData.userIsolateSupplied[user] -= 1;
       } else {
-        revert(Errors.CE_INVALID_SUPPLY_MODE);
+        revert(Errors.INVALID_SUPPLY_MODE);
       }
       tokenData.owner = address(0);
       tokenData.supplyMode = 0;
@@ -205,7 +205,7 @@ library VaultLogic {
         assetData.userIsolateSupplied[from] -= 1;
         assetData.userIsolateSupplied[to] += 1;
       } else {
-        revert(Errors.CE_INVALID_SUPPLY_MODE);
+        revert(Errors.INVALID_SUPPLY_MODE);
       }
     }
   }
@@ -223,7 +223,7 @@ library VaultLogic {
 
     uint256 poolSizeAfter = IERC721Upgradeable(underlyingAsset).balanceOf(address(this));
 
-    require(poolSizeAfter >= poolSizeBefore, Errors.CE_INVALID_TRANSFER_AMOUNT);
+    require(poolSizeAfter >= poolSizeBefore, Errors.INVALID_TRANSFER_AMOUNT);
     unchecked {
       amountTransferred = poolSizeAfter - poolSizeBefore;
     }
@@ -242,7 +242,7 @@ library VaultLogic {
 
     uint poolSizeAfter = IERC721Upgradeable(underlyingAsset).balanceOf(address(this));
 
-    require(poolSizeBefore >= poolSizeAfter, Errors.CE_INVALID_TRANSFER_AMOUNT);
+    require(poolSizeBefore >= poolSizeAfter, Errors.INVALID_TRANSFER_AMOUNT);
     unchecked {
       amountTransferred = poolSizeBefore - poolSizeAfter;
     }

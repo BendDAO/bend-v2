@@ -79,9 +79,9 @@ library LiquidationLogic {
 
     require(
       userAccountResult.healthFactor < Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
-      Errors.LE_HEALTH_FACTOR_NOT_BELOW_THRESHOLD
+      Errors.HEALTH_FACTOR_NOT_BELOW_THRESHOLD
     );
-    require(collateralAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.CE_INVALID_ASSET_TYPE);
+    require(collateralAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.INVALID_ASSET_TYPE);
 
     (vars.userTotalDebt, vars.actualDebtToLiquidate) = _calculateUserERC20Debt(
       debtGroupData,
@@ -171,9 +171,9 @@ library LiquidationLogic {
 
     require(
       vars.userAccountResult.healthFactor < Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
-      Errors.LE_HEALTH_FACTOR_NOT_BELOW_THRESHOLD
+      Errors.HEALTH_FACTOR_NOT_BELOW_THRESHOLD
     );
-    require(collateralAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.CE_INVALID_ASSET_TYPE);
+    require(collateralAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.INVALID_ASSET_TYPE);
 
     vars.userTotalDebt = VaultLogic.erc20GetUserBorrow(debtGroupData, params.user);
 

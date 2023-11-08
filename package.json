@@ -19,7 +19,7 @@
     "coverage:forge": "forge coverage --report lcov && lcov --remove lcov.info -o lcov.info 'test/*'",
     "coverage:html": "npm run coverage:forge && genhtml lcov.info -o coverage",
     "test:hardhat": ". ./setup-test-env.sh && TS_NODE_TRANSPILE_ONLY=1 hardhat test test-ts/*.spec.ts",
-    "test:forge": "forge test",
+    "test:forge": "forge test -vvv",
     "test": "npm run test:forge && npm run test:hardhat",
     "ci:test": ". ./setup-test-env.sh && npm run test",
     "ci:clean": "rm -rf ./artifacts ./out ./cache ./forge-cache ./types ./typechain-types ./temp-artifacts",

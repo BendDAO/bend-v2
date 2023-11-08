@@ -24,7 +24,7 @@ library ConfigureLogic {
   function executeCreatePool() public returns (uint32 poolId) {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
-    require(poolId > 0, Errors.CE_INVALID_POOL_ID);
+    require(poolId > 0, Errors.INVALID_POOL_ID);
 
     poolId = ps.nextPoolId;
     ps.nextPoolId += 1;
@@ -37,10 +37,10 @@ library ConfigureLogic {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage pool = ps.poolLookup[poolId];
-    require(pool.poolId != 0, Errors.PE_POOL_NOT_EXISTS);
+    require(pool.poolId != 0, Errors.POOL_NOT_EXISTS);
 
     DataTypes.AssetData storage asset = pool.assetLookup[underlyingAsset];
-    require(asset.assetType == 0, Errors.PE_ASSET_ALREADY_EXISTS);
+    require(asset.assetType == 0, Errors.ASSET_ALREADY_EXISTS);
 
     require(pool.assetList.length <= Constants.MAX_NUMBER_OF_ASSET, Errors.ASSET_NUMBER_EXCEED_MAX_LIMIT);
 
@@ -54,7 +54,7 @@ library ConfigureLogic {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    require(poolData.poolId != 0, Errors.PE_POOL_NOT_EXISTS);
+    require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
 
@@ -66,7 +66,7 @@ library ConfigureLogic {
 
     DataTypes.PoolData storage pool = ps.poolLookup[poolId];
     DataTypes.AssetData storage asset = pool.assetLookup[underlyingAsset];
-    require(asset.assetType == 0, Errors.PE_ASSET_ALREADY_EXISTS);
+    require(asset.assetType == 0, Errors.ASSET_ALREADY_EXISTS);
 
     asset.assetType = uint8(Constants.ASSET_TYPE_ERC721);
     asset.riskGroupId = riskGroupId;
@@ -78,7 +78,7 @@ library ConfigureLogic {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    require(poolData.poolId != 0, Errors.PE_POOL_NOT_EXISTS);
+    require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
 
@@ -90,10 +90,10 @@ library ConfigureLogic {
     DataTypes.AssetData storage assetData,
     address underlyingAsset
   ) private {
-    require(assetData.assetType != 0, Errors.PE_ASSET_NOT_EXISTS);
-    require(assetData.totalCrossSupplied == 0, Errors.LE_CROSS_SUPPLY_NOT_EMPTY);
-    require(assetData.totalIsolateSupplied == 0, Errors.LE_ISOLATE_SUPPLY_NOT_EMPTY);
-    require(assetData.groupList.length == 0, Errors.LE_GROUP_LIST_NOT_EMPTY);
+    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+    require(assetData.totalCrossSupplied == 0, Errors.CROSS_SUPPLY_NOT_EMPTY);
+    require(assetData.totalIsolateSupplied == 0, Errors.ISOLATE_SUPPLY_NOT_EMPTY);
+    require(assetData.groupList.length == 0, Errors.GROUP_LIST_NOT_EMPTY);
 
     uint assetLength = poolData.assetList.length;
     uint searchIndex = type(uint).max;
@@ -103,7 +103,7 @@ library ConfigureLogic {
         break;
       }
     }
-    require(searchIndex <= (assetLength - 1), Errors.PE_ASSET_NOT_EXISTS);
+    require(searchIndex <= (assetLength - 1), Errors.ASSET_NOT_EXISTS);
     if (searchIndex < (assetLength - 1)) {
       poolData.assetList[searchIndex] = poolData.assetList[assetLength - 1];
     }
@@ -115,11 +115,11 @@ library ConfigureLogic {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage pool = ps.poolLookup[poolId];
-    require(pool.poolId != 0, Errors.PE_POOL_NOT_EXISTS);
+    require(pool.poolId != 0, Errors.POOL_NOT_EXISTS);
 
     DataTypes.AssetData storage assetData = pool.assetLookup[underlyingAsset];
     // only erc20 asset can be borrowed
-    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.CE_INVALID_ASSET_TYPE);
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.INVALID_ASSET_TYPE);
 
     groupId = assetData.nextGroupId;
     assetData.nextGroupId += 1;
@@ -134,14 +134,14 @@ library ConfigureLogic {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage pool = ps.poolLookup[poolId];
-    require(pool.poolId != 0, Errors.PE_POOL_NOT_EXISTS);
+    require(pool.poolId != 0, Errors.POOL_NOT_EXISTS);
 
     DataTypes.AssetData storage assetData = pool.assetLookup[underlyingAsset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
-    require(groupData.interestRateModelAddress != address(0), Errors.PE_GROUP_NOT_EXISTS);
+    require(groupData.interestRateModelAddress != address(0), Errors.GROUP_NOT_EXISTS);
 
-    require(groupData.totalCrossBorrowed == 0, Errors.LE_CROSS_DEBT_NOT_EMPTY);
-    require(groupData.totalIsolateBorrowed == 0, Errors.LE_ISOLATE_DEBT_NOT_EMPTY);
+    require(groupData.totalCrossBorrowed == 0, Errors.CROSS_DEBT_NOT_EMPTY);
+    require(groupData.totalIsolateBorrowed == 0, Errors.ISOLATE_DEBT_NOT_EMPTY);
 
     uint groupLength = assetData.groupList.length;
     uint searchIndex = type(uint).max;
@@ -151,7 +151,7 @@ library ConfigureLogic {
         break;
       }
     }
-    require(searchIndex <= (groupLength - 1), Errors.PE_GROUP_NOT_EXISTS);
+    require(searchIndex <= (groupLength - 1), Errors.GROUP_NOT_EXISTS);
     if (searchIndex < (groupLength - 1)) {
       assetData.groupList[searchIndex] = assetData.groupList[groupLength - 1];
     }

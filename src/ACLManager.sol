@@ -25,7 +25,7 @@ contract ACLManager is AccessControlUpgradeable, IACLManager {
    * @param aclAdmin The address of the ACL admin
    */
   function initialize(address aclAdmin) public initializer {
-    require(aclAdmin != address(0), Errors.CE_ACL_ADMIN_CANNOT_BE_ZERO);
+    require(aclAdmin != address(0), Errors.ACL_ADMIN_CANNOT_BE_ZERO);
     _setupRole(DEFAULT_ADMIN_ROLE, aclAdmin);
   }
 
