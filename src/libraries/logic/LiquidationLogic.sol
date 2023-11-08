@@ -5,6 +5,8 @@ import {IPriceOracleGetter} from '../../interfaces/IPriceOracleGetter.sol';
 
 import {Constants} from '../helpers/Constants.sol';
 import {Errors} from '../helpers/Errors.sol';
+import {Events} from '../helpers/Events.sol';
+
 import {InputTypes} from '../types/InputTypes.sol';
 import {DataTypes} from '../types/DataTypes.sol';
 import {ResultTypes} from '../types/ResultTypes.sol';
@@ -21,25 +23,6 @@ import {GenericLogic} from './GenericLogic.sol';
 library LiquidationLogic {
   using WadRayMath for uint256;
   using PercentageMath for uint256;
-
-  // See `IPool` for descriptions
-  event LiquidateERC20(
-    address liquidator,
-    address indexed user,
-    address indexed collateralAsset,
-    address indexed debtAsset,
-    uint256 debtToCover,
-    uint256 liquidatedCollateralAmount,
-    bool supplyAsCollateral
-  );
-
-  event LiquidateERC721(
-    address liquidator,
-    address indexed user,
-    address indexed collateralAsset,
-    uint256[] liquidatedCollateralTokenIds,
-    bool supplyAsCollateral
-  );
 
   /**
    * @dev Default percentage of borrower's debt to be repaid in a liquidation.
@@ -143,7 +126,7 @@ library LiquidationLogic {
       _transferUserERC20CollateralToLiquidator(collateralAssetData, params, vars);
     }
 
-    emit LiquidateERC20(
+    emit Events.LiquidateERC20(
       msg.sender,
       params.user,
       params.collateralAsset,
@@ -229,7 +212,7 @@ library LiquidationLogic {
       // TODO: accountRemoveAsset
     }
 
-    emit LiquidateERC721(
+    emit Events.LiquidateERC721(
       msg.sender,
       params.user,
       params.collateralAsset,

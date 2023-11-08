@@ -3,6 +3,8 @@ pragma solidity ^0.8.19;
 
 import {Constants} from '../helpers/Constants.sol';
 import {Errors} from '../helpers/Errors.sol';
+import {Events} from '../helpers/Events.sol';
+
 import {InputTypes} from '../types/InputTypes.sol';
 import {DataTypes} from '../types/DataTypes.sol';
 import {StorageSlot} from './StorageSlot.sol';
@@ -12,12 +14,6 @@ import {InterestLogic} from './InterestLogic.sol';
 import {RiskManagerLogic} from './RiskManagerLogic.sol';
 
 library SupplyLogic {
-  event DepositERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
-  event WithdrawERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
-
-  event DepositERC721(address indexed sender, uint256 indexed poolId, address indexed asset, uint256[] tokenIds);
-  event WithdrawERC721(address indexed sender, uint256 indexed poolId, address indexed asset, uint256[] tokenIds);
-
   function executeDepositERC20(InputTypes.ExecuteDepositERC20Params memory params) external {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
@@ -39,7 +35,7 @@ library SupplyLogic {
 
     InterestLogic.updateInterestRates(params.asset, assetData, params.amount, 0);
 
-    emit DepositERC20(msg.sender, params.poolId, params.asset, params.amount);
+    emit Events.DepositERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
 
   function executeWithdrawERC20(InputTypes.ExecuteWithdrawERC20Params memory params) public {
@@ -67,7 +63,7 @@ library SupplyLogic {
 
     RiskManagerLogic.checkHealthFactor(poolData, msg.sender, cs.priceOracle);
 
-    emit WithdrawERC20(msg.sender, params.poolId, params.asset, params.amount);
+    emit Events.WithdrawERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
 
   function executeDepositERC721(InputTypes.ExecuteDepositERC721Params memory params) public {
@@ -102,7 +98,7 @@ library SupplyLogic {
       revert(Errors.CE_INVALID_SUPPLY_MODE);
     }
 
-    emit DepositERC721(msg.sender, params.poolId, params.asset, params.tokenIds);
+    emit Events.DepositERC721(msg.sender, params.poolId, params.asset, params.tokenIds);
   }
 
   function executeWithdrawERC721(InputTypes.ExecuteWithdrawERC721Params memory params) public {
@@ -148,6 +144,6 @@ library SupplyLogic {
 
     VaultLogic.erc721TransferOut(params.asset, params.to, params.tokenIds);
 
-    emit WithdrawERC721(msg.sender, params.poolId, params.asset, params.tokenIds);
+    emit Events.WithdrawERC721(msg.sender, params.poolId, params.asset, params.tokenIds);
   }
 }

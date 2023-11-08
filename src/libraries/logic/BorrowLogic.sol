@@ -3,6 +3,8 @@ pragma solidity ^0.8.19;
 
 import {Constants} from '../helpers/Constants.sol';
 import {Errors} from '../helpers/Errors.sol';
+import {Events} from '../helpers/Events.sol';
+
 import {InputTypes} from '../types/InputTypes.sol';
 import {DataTypes} from '../types/DataTypes.sol';
 import {StorageSlot} from './StorageSlot.sol';
@@ -12,9 +14,6 @@ import {InterestLogic} from './InterestLogic.sol';
 import {RiskManagerLogic} from './RiskManagerLogic.sol';
 
 library BorrowLogic {
-  event BorrowERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
-  event RepayERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
-
   function executeBorrowERC20(InputTypes.ExecuteBorrowERC20Params memory params) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
@@ -39,7 +38,7 @@ library BorrowLogic {
     DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
     RiskManagerLogic.checkHealthFactor(poolData, msg.sender, cs.priceOracle);
 
-    emit BorrowERC20(msg.sender, params.poolId, params.asset, params.amount);
+    emit Events.BorrowERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
 
   function executeRepayERC20(InputTypes.ExecuteRepayERC20Params memory params) public {
@@ -62,6 +61,6 @@ library BorrowLogic {
 
     InterestLogic.updateInterestRates(params.asset, assetData, 0, params.amount);
 
-    emit RepayERC20(msg.sender, params.poolId, params.asset, params.amount);
+    emit Events.RepayERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
 }

@@ -9,7 +9,9 @@ import {IInterestRateModel} from '../../interfaces/IInterestRateModel.sol';
 import {MathUtils} from '..//math/MathUtils.sol';
 import {WadRayMath} from '../math/WadRayMath.sol';
 import {PercentageMath} from '../math/PercentageMath.sol';
+
 import {Errors} from '../helpers/Errors.sol';
+import {Events} from '../helpers/Events.sol';
 import {DataTypes} from '../types/DataTypes.sol';
 import {InputTypes} from '../types/InputTypes.sol';
 
@@ -21,10 +23,6 @@ library InterestLogic {
   using SafeCastUpgradeable for uint256;
   using WadRayMath for uint256;
   using PercentageMath for uint256;
-
-  event AssetInterestSupplyDataUpdated(address indexed asset, uint256 supplyRate, uint256 supplyIndex);
-
-  event AssetInterestBorrowDataUpdated(address indexed asset, uint256 groupId, uint256 borrowRate, uint256 borrowIndex);
 
   /**
    * @notice Returns the ongoing normalized supply income for the asset.
@@ -205,7 +203,7 @@ library InterestLogic {
 
       loopGroupData.borrowRate = vars.nextGroupBorrowRate.toUint128();
 
-      emit AssetInterestBorrowDataUpdated(
+      emit Events.AssetInterestBorrowDataUpdated(
         assetAddress,
         vars.loopGroupId,
         vars.nextGroupBorrowRate,
@@ -229,7 +227,7 @@ library InterestLogic {
     );
     assetData.supplyRate = vars.nextAssetSupplyRate.toUint128();
 
-    emit AssetInterestSupplyDataUpdated(assetAddress, vars.nextAssetSupplyRate, assetData.supplyIndex);
+    emit Events.AssetInterestSupplyDataUpdated(assetAddress, vars.nextAssetSupplyRate, assetData.supplyIndex);
   }
 
   struct AccrueToTreasuryLocalVars {
