@@ -21,6 +21,10 @@ import {StorageSlot} from './StorageSlot.sol';
  * @notice Implements the logic to configure the protocol parameters
  */
 library ConfigureLogic {
+  function _onlyPoolGovernanceAdmin(DataTypes.PoolData storage poolData) private view {
+    require(poolData.governanceAdmin == msg.sender, Errors.INVALID_CALLER);
+  }
+
   function executeCreatePool() public returns (uint32 poolId) {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
@@ -29,25 +33,28 @@ library ConfigureLogic {
     poolId = ps.nextPoolId;
     ps.nextPoolId += 1;
 
-    DataTypes.PoolData storage pool = ps.poolLookup[poolId];
-    pool.poolId = poolId;
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    poolData.poolId = poolId;
+    poolData.governanceAdmin = msg.sender;
   }
 
   function executeAddAssetERC20(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
-    DataTypes.PoolData storage pool = ps.poolLookup[poolId];
-    require(pool.poolId != 0, Errors.POOL_NOT_EXISTS);
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
 
-    DataTypes.AssetData storage asset = pool.assetLookup[underlyingAsset];
+    _onlyPoolGovernanceAdmin(poolData);
+
+    DataTypes.AssetData storage asset = poolData.assetLookup[underlyingAsset];
     require(asset.assetType == 0, Errors.ASSET_ALREADY_EXISTS);
 
-    require(pool.assetList.length <= Constants.MAX_NUMBER_OF_ASSET, Errors.ASSET_NUMBER_EXCEED_MAX_LIMIT);
+    require(poolData.assetList.length <= Constants.MAX_NUMBER_OF_ASSET, Errors.ASSET_NUMBER_EXCEED_MAX_LIMIT);
 
     asset.assetType = uint8(Constants.ASSET_TYPE_ERC20);
     asset.riskGroupId = riskGroupId;
 
-    pool.assetList.push(underlyingAsset);
+    poolData.assetList.push(underlyingAsset);
   }
 
   function executeRemoveAssetERC20(uint32 poolId, address underlyingAsset) public {
@@ -55,6 +62,8 @@ library ConfigureLogic {
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
+
+    _onlyPoolGovernanceAdmin(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
 
@@ -64,14 +73,18 @@ library ConfigureLogic {
   function executeAddAssetERC721(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
-    DataTypes.PoolData storage pool = ps.poolLookup[poolId];
-    DataTypes.AssetData storage asset = pool.assetLookup[underlyingAsset];
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
+
+    _onlyPoolGovernanceAdmin(poolData);
+
+    DataTypes.AssetData storage asset = poolData.assetLookup[underlyingAsset];
     require(asset.assetType == 0, Errors.ASSET_ALREADY_EXISTS);
 
     asset.assetType = uint8(Constants.ASSET_TYPE_ERC721);
     asset.riskGroupId = riskGroupId;
 
-    pool.assetList.push(underlyingAsset);
+    poolData.assetList.push(underlyingAsset);
   }
 
   function executeRemoveAssetERC721(uint32 poolId, address underlyingAsset) public {
@@ -79,6 +92,8 @@ library ConfigureLogic {
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
+
+    _onlyPoolGovernanceAdmin(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
 
@@ -114,10 +129,12 @@ library ConfigureLogic {
   function executeAddGroup(uint32 poolId, address underlyingAsset, address rateModel_) public returns (uint8 groupId) {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
-    DataTypes.PoolData storage pool = ps.poolLookup[poolId];
-    require(pool.poolId != 0, Errors.POOL_NOT_EXISTS);
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
 
-    DataTypes.AssetData storage assetData = pool.assetLookup[underlyingAsset];
+    _onlyPoolGovernanceAdmin(poolData);
+
+    DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
     // only erc20 asset can be borrowed
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.INVALID_ASSET_TYPE);
 
@@ -133,10 +150,12 @@ library ConfigureLogic {
   function executeRemoveGroup(uint32 poolId, address underlyingAsset, uint8 groupId) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
-    DataTypes.PoolData storage pool = ps.poolLookup[poolId];
-    require(pool.poolId != 0, Errors.POOL_NOT_EXISTS);
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
 
-    DataTypes.AssetData storage assetData = pool.assetLookup[underlyingAsset];
+    _onlyPoolGovernanceAdmin(poolData);
+
+    DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
     require(groupData.interestRateModelAddress != address(0), Errors.GROUP_NOT_EXISTS);
 

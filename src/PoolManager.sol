@@ -39,65 +39,74 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
     ps.nextPoolId = 1;
   }
 
-  function createPool() public returns (uint32 poolId) {
+  function createPool() public nonReentrant returns (uint32 poolId) {
     return ConfigureLogic.executeCreatePool();
   }
 
-  function addAssetERC20(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public {
+  function addAssetERC20(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public nonReentrant {
     return ConfigureLogic.executeAddAssetERC20(poolId, underlyingAsset, riskGroupId);
   }
 
-  function removeAssetERC20(uint32 poolId, address underlyingAsset) public {
+  function removeAssetERC20(uint32 poolId, address underlyingAsset) public nonReentrant {
     return ConfigureLogic.executeRemoveAssetERC20(poolId, underlyingAsset);
   }
 
-  function addAssetERC721(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public {
+  function addAssetERC721(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public nonReentrant {
     return ConfigureLogic.executeAddAssetERC721(poolId, underlyingAsset, riskGroupId);
   }
 
-  function removeAssetERC721(uint32 poolId, address underlyingAsset) public {
+  function removeAssetERC721(uint32 poolId, address underlyingAsset) public nonReentrant {
     return ConfigureLogic.executeRemoveAssetERC721(poolId, underlyingAsset);
   }
 
-  function addGroup(uint32 poolId, address underlyingAsset, address rateModel_) public returns (uint8 groupId) {
+  function addGroup(
+    uint32 poolId,
+    address underlyingAsset,
+    address rateModel_
+  ) public nonReentrant returns (uint8 groupId) {
     return ConfigureLogic.executeAddGroup(poolId, underlyingAsset, rateModel_);
   }
 
-  function removeGroup(uint32 poolId, address underlyingAsset, uint8 groupId) public {
+  function removeGroup(uint32 poolId, address underlyingAsset, uint8 groupId) public nonReentrant {
     return ConfigureLogic.executeRemoveGroup(poolId, underlyingAsset, groupId);
   }
 
-  function depositERC20(uint32 poolId, address asset, uint256 amount) public {
+  function depositERC20(uint32 poolId, address asset, uint256 amount) public nonReentrant {
     SupplyLogic.executeDepositERC20(
       InputTypes.ExecuteDepositERC20Params({poolId: poolId, asset: asset, amount: amount})
     );
   }
 
-  function withdrawERC20(uint32 poolId, address asset, uint256 amount, address to) public {
+  function withdrawERC20(uint32 poolId, address asset, uint256 amount, address to) public nonReentrant {
     SupplyLogic.executeWithdrawERC20(
       InputTypes.ExecuteWithdrawERC20Params({poolId: poolId, asset: asset, amount: amount, to: to})
     );
   }
 
-  function depositERC721(uint32 poolId, address asset, uint256[] calldata tokenIds, uint256 supplyMode) public {
+  function depositERC721(
+    uint32 poolId,
+    address asset,
+    uint256[] calldata tokenIds,
+    uint256 supplyMode
+  ) public nonReentrant {
     SupplyLogic.executeDepositERC721(
       InputTypes.ExecuteDepositERC721Params({poolId: poolId, asset: asset, tokenIds: tokenIds, supplyMode: supplyMode})
     );
   }
 
-  function withdrawERC721(uint32 poolId, address asset, uint256[] calldata tokenIds, address to) public {
+  function withdrawERC721(uint32 poolId, address asset, uint256[] calldata tokenIds, address to) public nonReentrant {
     SupplyLogic.executeWithdrawERC721(
       InputTypes.ExecuteWithdrawERC721Params({poolId: poolId, asset: asset, tokenIds: tokenIds, to: to})
     );
   }
 
-  function borrowERC20(uint32 poolId, address asset, uint256 amount, address to) public {
+  function borrowERC20(uint32 poolId, address asset, uint256 amount, address to) public nonReentrant {
     BorrowLogic.executeBorrowERC20(
       InputTypes.ExecuteBorrowERC20Params({poolId: poolId, asset: asset, amount: amount, to: to})
     );
   }
 
-  function repayERC20(uint32 poolId, address asset, uint256 amount) public {
+  function repayERC20(uint32 poolId, address asset, uint256 amount) public nonReentrant {
     BorrowLogic.executeRepayERC20(InputTypes.ExecuteRepayERC20Params({poolId: poolId, asset: asset, amount: amount}));
   }
 
@@ -108,7 +117,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
     address debtAsset,
     uint256 debtToCover,
     bool supplyAsCollateral
-  ) public virtual {
+  ) public nonReentrant {
     LiquidationLogic.executeLiquidateERC20(
       InputTypes.ExecuteLiquidateERC20Params({
         poolId: poolId,
@@ -128,7 +137,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
     uint256[] calldata collateralTokenIds,
     address debtAsset,
     bool supplyAsCollateral
-  ) public virtual {
+  ) public nonReentrant {
     LiquidationLogic.executeLiquidateERC721(
       InputTypes.ExecuteLiquidateERC721Params({
         poolId: poolId,

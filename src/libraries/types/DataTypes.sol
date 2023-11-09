@@ -17,6 +17,7 @@ library DataTypes {
   /* Data Types for Pool Lending */
   struct PoolData {
     uint256 poolId;
+    address governanceAdmin;
 
     // underlying asset to asset data
     mapping(address => AssetData) assetLookup;
