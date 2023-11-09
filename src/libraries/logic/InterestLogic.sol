@@ -133,15 +133,12 @@ library InterestLogic {
    */
   function initAssetData(DataTypes.AssetData storage assetData) internal {
     require(assetData.supplyIndex == 0, Errors.ASSET_ALREADY_EXISTS);
-
     assetData.supplyIndex = uint128(WadRayMath.RAY);
   }
 
-  function initGroupData(DataTypes.GroupData storage groupData, address interestRateModelAddress) internal {
+  function initGroupData(DataTypes.GroupData storage groupData) internal {
     require(groupData.borrowIndex == 0, Errors.GROUP_ALREADY_EXISTS);
-
     groupData.borrowIndex = uint128(WadRayMath.RAY);
-    groupData.interestRateModelAddress = interestRateModelAddress;
   }
 
   struct UpdateInterestRatesLocalVars {
@@ -217,8 +214,10 @@ library InterestLogic {
       vars.loopGroupId = assetData.groupList[i];
       DataTypes.GroupData storage loopGroupData = assetData.groupLookup[vars.loopGroupId];
 
-      vars.groupBorrowUsageRatio = vars.allGroupDebtList[i].rayDiv(vars.totalAssetDebt);
-      vars.avgAssetBorrowRate += uint256(loopGroupData.borrowRate).rayMul(vars.groupBorrowUsageRatio);
+      if ((vars.totalAssetDebt != 0) && (vars.allGroupDebtList[i] != 0)) {
+        vars.groupBorrowUsageRatio = vars.allGroupDebtList[i].rayDiv(vars.totalAssetDebt);
+        vars.avgAssetBorrowRate += uint256(loopGroupData.borrowRate).rayMul(vars.groupBorrowUsageRatio);
+      }
     }
 
     vars.nextAssetSupplyRate = vars.avgAssetBorrowRate.rayMul(vars.assetBorrowUsageRatio);

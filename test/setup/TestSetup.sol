@@ -6,12 +6,16 @@ import {TransparentUpgradeableProxy} from '@openzeppelin/contracts/proxy/transpa
 import {ProxyAdmin} from '@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
+import {WadRayMath} from 'src/libraries/math/WadRayMath.sol';
+
 import {ACLManager} from 'src/ACLManager.sol';
 import {PriceOracle} from 'src/PriceOracle.sol';
 import {DefaultInterestRateModel} from 'src/DefaultInterestRateModel.sol';
 import {PoolManager} from 'src/PoolManager.sol';
 
 import {MockERC20} from 'src/mocks/MockERC20.sol';
+import {MockERC721} from 'src/mocks/MockERC721.sol';
+import {MockFaucet} from 'src/mocks/MockFaucet.sol';
 
 import {User} from '../helpers/User.sol';
 import {Utils} from './Utils.sol';
@@ -20,35 +24,42 @@ import 'forge-std/Test.sol';
 import 'forge-std/console.sol';
 
 contract TestSetup is Utils {
-  Vm public hevm = Vm(HEVM_ADDRESS);
+  Vm public tsHEVM = Vm(HEVM_ADDRESS);
 
   uint256 public constant INITIAL_BALANCE = 1_000_000;
 
-  address public deployer;
-  address public aclAdmin;
+  address public tsDeployer;
+  address public tsAclAdmin;
 
-  MockERC20 public weth;
-  MockERC20 public dai;
-  MockERC20 public usdt;
+  MockFaucet public tsFaucet;
+  MockERC20 public tsWETH;
+  MockERC20 public tsDAI;
+  MockERC20 public tsUSDT;
+  MockERC721 public tsBAYC;
+  MockERC721 public tsMAYC;
 
-  ProxyAdmin public proxyAdmin;
-  ACLManager public aclManager;
-  PriceOracle public priceOracle;
-  PoolManager public poolManager;
+  ProxyAdmin public tsProxyAdmin;
+  ACLManager public tsAclManager;
+  PriceOracle public tsPriceOracle;
+  PoolManager public tsPoolManager;
 
-  User public depositor1;
-  User public depositor2;
-  User public depositor3;
-  User[] public depositors;
+  uint32 public tsCommonPoolId;
+  DefaultInterestRateModel public tsLowRiskIRM;
+  DefaultInterestRateModel public tsHighRiskIRM;
 
-  User public borrower1;
-  User public borrower2;
-  User public borrower3;
-  User[] public borrowers;
+  User public tsDepositor1;
+  User public tsDepositor2;
+  User public tsDepositor3;
+  User[] public tsDepositors;
+
+  User public tsBorrower1;
+  User public tsBorrower2;
+  User public tsBorrower3;
+  User[] public tsBorrowers;
 
   function setUp() public {
-    deployer = address(this);
-    aclAdmin = address(this);
+    tsDeployer = address(this);
+    tsAclAdmin = address(this);
 
     initContracts();
 
@@ -65,79 +76,120 @@ contract TestSetup is Utils {
 
   function initContracts() internal {
     /// Deploy proxies ///
-    proxyAdmin = new ProxyAdmin();
+    tsProxyAdmin = new ProxyAdmin();
 
     /// ACL Manager
     ACLManager aclManagerImpl = new ACLManager();
     TransparentUpgradeableProxy aclManagerProxy = new TransparentUpgradeableProxy(
       address(aclManagerImpl),
-      address(proxyAdmin),
-      abi.encodeWithSelector(aclManagerImpl.initialize.selector, aclAdmin)
+      address(tsProxyAdmin),
+      abi.encodeWithSelector(aclManagerImpl.initialize.selector, tsAclAdmin)
     );
-    aclManager = ACLManager(payable(address(aclManagerProxy)));
-    //aclManager.initialize(aclAdmin);
+    tsAclManager = ACLManager(payable(address(aclManagerProxy)));
+    //tsAclManager.initialize(aclAdmin);
 
     /// Price Oracle
     PriceOracle priceOracleImpl = new PriceOracle();
     TransparentUpgradeableProxy priceOracleProxy = new TransparentUpgradeableProxy(
       address(priceOracleImpl),
-      address(proxyAdmin),
-      abi.encodeWithSelector(priceOracleImpl.initialize.selector, address(aclManager), address(0), 1e8)
+      address(tsProxyAdmin),
+      abi.encodeWithSelector(priceOracleImpl.initialize.selector, address(tsAclManager), address(0), 1e8)
     );
-    priceOracle = PriceOracle(payable(address(priceOracleProxy)));
-    //priceOracle.initialize(address(aclManager), address(0), 1e8);
+    tsPriceOracle = PriceOracle(payable(address(priceOracleProxy)));
+    //tsPriceOracle.initialize(address(aclManager), address(0), 1e8);
 
     // Pool Manager
     PoolManager poolManagerImpl = new PoolManager();
     TransparentUpgradeableProxy poolManagerProxy = new TransparentUpgradeableProxy(
       address(poolManagerImpl),
-      address(proxyAdmin),
-      abi.encodeWithSelector(poolManagerImpl.initialize.selector, address(aclManager), address(priceOracle))
+      address(tsProxyAdmin),
+      abi.encodeWithSelector(poolManagerImpl.initialize.selector, address(tsAclManager), address(tsPriceOracle))
     );
-    poolManager = PoolManager(payable(address(poolManagerProxy)));
-    //poolManager.initialize(address(aclManager), address(priceOracle));
+    tsPoolManager = PoolManager(payable(address(poolManagerProxy)));
+    //tsPoolManager.initialize(address(aclManager), address(tsPriceOracle));
+
+    // Interest Rate Model
+    tsLowRiskIRM = new DefaultInterestRateModel(
+      (65 * WadRayMath.RAY) / 100,
+      (10 * WadRayMath.RAY) / 100,
+      (5 * WadRayMath.RAY) / 100,
+      (100 * WadRayMath.RAY) / 100
+    );
+    tsHighRiskIRM = new DefaultInterestRateModel(
+      (65 * WadRayMath.RAY) / 100,
+      (15 * WadRayMath.RAY) / 100,
+      (8 * WadRayMath.RAY) / 100,
+      (200 * WadRayMath.RAY) / 100
+    );
   }
 
   function initTokens() internal {
-    weth = new MockERC20('MockWETH', 'WETH', 18);
-    dai = new MockERC20('MockDAI', 'DAI', 18);
-    usdt = new MockERC20('MockUSDT', 'USDT', 6);
+    tsFaucet = new MockFaucet();
+
+    tsWETH = MockERC20(tsFaucet.createMockERC20('MockWETH', 'WETH', 18));
+    tsDAI = MockERC20(tsFaucet.createMockERC20('MockDAI', 'DAI', 18));
+    tsUSDT = MockERC20(tsFaucet.createMockERC20('MockUSDT', 'USDT', 6));
+
+    tsBAYC = MockERC721(tsFaucet.createMockERC721('MockBAYC', 'BAYC'));
+    tsMAYC = MockERC721(tsFaucet.createMockERC721('MockMAYC', 'MAYC'));
   }
 
   function initUsers() internal {
     for (uint256 i = 0; i < 3; i++) {
-      depositors.push(new User(poolManager));
-      hevm.label(address(depositors[i]), string(abi.encodePacked('Depositor', Strings.toString(i + 1))));
-      fillUserBalances(depositors[i]);
+      tsDepositors.push(new User(tsPoolManager));
+      tsHEVM.label(address(tsDepositors[i]), string(abi.encodePacked('Depositor', Strings.toString(i + 1))));
+      fillUserBalances(tsDepositors[i]);
     }
-    depositor1 = depositors[0];
-    depositor2 = depositors[1];
-    depositor3 = depositors[2];
+    tsDepositor1 = tsDepositors[0];
+    tsDepositor2 = tsDepositors[1];
+    tsDepositor3 = tsDepositors[2];
 
     for (uint256 i = 0; i < 3; i++) {
-      borrowers.push(new User(poolManager));
-      hevm.label(address(borrowers[i]), string(abi.encodePacked('Borrower', Strings.toString(i + 1))));
-      fillUserBalances(borrowers[i]);
+      tsBorrowers.push(new User(tsPoolManager));
+      tsHEVM.label(address(tsBorrowers[i]), string(abi.encodePacked('Borrower', Strings.toString(i + 1))));
+      fillUserBalances(tsBorrowers[i]);
     }
 
-    borrower1 = borrowers[0];
-    borrower2 = borrowers[1];
-    borrower3 = borrowers[2];
+    tsBorrower1 = tsBorrowers[0];
+    tsBorrower2 = tsBorrowers[1];
+    tsBorrower3 = tsBorrowers[2];
   }
 
   function fillUserBalances(User _user) internal {
-    weth.mintTo(address(_user), INITIAL_BALANCE * 1e18);
-    dai.mintTo(address(_user), INITIAL_BALANCE * 1e18);
-    usdt.mintTo(address(_user), INITIAL_BALANCE * 1e6);
+    tsFaucet.privateMintERC20(address(tsWETH), address(_user), INITIAL_BALANCE * 1e18);
+    tsFaucet.privateMintERC20(address(tsDAI), address(_user), INITIAL_BALANCE * 1e18);
+    tsFaucet.privateMintERC20(address(tsUSDT), address(_user), INITIAL_BALANCE * 1e6);
   }
 
   function setContractsLabels() internal {
-    hevm.label(address(weth), 'WETH');
-    hevm.label(address(dai), 'DAI');
-    hevm.label(address(usdt), 'USDT');
+    tsHEVM.label(address(tsWETH), 'WETH');
+    tsHEVM.label(address(tsDAI), 'DAI');
+    tsHEVM.label(address(tsUSDT), 'USDT');
 
-    hevm.label(address(aclManager), 'AclManager');
-    hevm.label(address(priceOracle), 'PriceOracle');
-    hevm.label(address(poolManager), 'PoolManager');
+    tsHEVM.label(address(tsAclManager), 'AclManager');
+    tsHEVM.label(address(tsPriceOracle), 'PriceOracle');
+    tsHEVM.label(address(tsPoolManager), 'PoolManager');
+
+    tsHEVM.label(address(tsLowRiskIRM), 'LowRiskIRM');
+    tsHEVM.label(address(tsHighRiskIRM), 'HighRiskIRM');
+  }
+
+  function initCommonPools() internal {
+    tsCommonPoolId = tsPoolManager.createPool();
+    tsPoolManager.addAssetERC20(tsCommonPoolId, address(tsWETH), 1);
+    tsPoolManager.addAssetERC20(tsCommonPoolId, address(tsDAI), 1);
+    tsPoolManager.addAssetERC20(tsCommonPoolId, address(tsUSDT), 1);
+
+    tsPoolManager.addGroup(tsCommonPoolId, address(tsWETH), address(tsLowRiskIRM));
+    tsPoolManager.addGroup(tsCommonPoolId, address(tsWETH), address(tsHighRiskIRM));
+
+    tsPoolManager.addGroup(tsCommonPoolId, address(tsDAI), address(tsLowRiskIRM));
+    tsPoolManager.addGroup(tsCommonPoolId, address(tsDAI), address(tsHighRiskIRM));
+
+    tsPoolManager.addGroup(tsCommonPoolId, address(tsUSDT), address(tsLowRiskIRM));
+    tsPoolManager.addGroup(tsCommonPoolId, address(tsUSDT), address(tsHighRiskIRM));
+
+    tsPoolManager.addAssetERC721(tsCommonPoolId, address(tsBAYC), 1);
+    tsPoolManager.addAssetERC721(tsCommonPoolId, address(tsMAYC), 2);
   }
 }

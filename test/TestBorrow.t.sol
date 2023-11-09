@@ -4,5 +4,5 @@ pragma solidity ^0.8.19;
 import './setup/TestSetup.sol';
 
 contract TestBorrow is TestSetup {
-  function testBorrow1() public {}
+  function xtestBorrow1() public {}
 }

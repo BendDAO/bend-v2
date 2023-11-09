@@ -15,7 +15,6 @@ library Errors {
   string public constant INVALID_POOL_ID = '24';
   string public constant INVALID_GROUP_ID = '25';
   string public constant INVALID_ASSET_ID = '26';
-  string public constant ASSET_NUMBER_EXCEED_MAX_LIMIT = '27';
 
   // Lending errors, 100~199
   string public constant POOL_ALREADY_EXISTS = '100';
@@ -23,9 +22,11 @@ library Errors {
   string public constant GROUP_ALREADY_EXISTS = '110';
   string public constant GROUP_NOT_EXISTS = '111';
   string public constant GROUP_LIST_NOT_EMPTY = '112';
+  string public constant GROUP_NUMBER_EXCEED_MAX_LIMIT = '113';
   string public constant ASSET_ALREADY_EXISTS = '120';
   string public constant ASSET_NOT_EXISTS = '121';
   string public constant ASSET_LIST_NOT_EMPTY = '122';
+  string public constant ASSET_NUMBER_EXCEED_MAX_LIMIT = '123';
 
   string public constant HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD = '106';
   string public constant HEALTH_FACTOR_NOT_BELOW_THRESHOLD = '107';

@@ -15,6 +15,7 @@ import {DataTypes} from '../types/DataTypes.sol';
 import {InputTypes} from '../types/InputTypes.sol';
 
 import {StorageSlot} from './StorageSlot.sol';
+import {InterestLogic} from './InterestLogic.sol';
 
 /**
  * @title ConfigureLogic library
@@ -28,7 +29,7 @@ library ConfigureLogic {
   function executeCreatePool() public returns (uint32 poolId) {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
-    require(poolId > 0, Errors.INVALID_POOL_ID);
+    require(ps.nextPoolId > 0, Errors.INVALID_POOL_ID);
 
     poolId = ps.nextPoolId;
     ps.nextPoolId += 1;
@@ -42,17 +43,18 @@ library ConfigureLogic {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
+    _validateOwnerAndPool(poolData);
 
-    _onlyPoolGovernanceAdmin(poolData);
-
-    DataTypes.AssetData storage asset = poolData.assetLookup[underlyingAsset];
-    require(asset.assetType == 0, Errors.ASSET_ALREADY_EXISTS);
+    DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
+    require(assetData.assetType == 0, Errors.ASSET_ALREADY_EXISTS);
 
     require(poolData.assetList.length <= Constants.MAX_NUMBER_OF_ASSET, Errors.ASSET_NUMBER_EXCEED_MAX_LIMIT);
 
-    asset.assetType = uint8(Constants.ASSET_TYPE_ERC20);
-    asset.riskGroupId = riskGroupId;
+    assetData.assetType = uint8(Constants.ASSET_TYPE_ERC20);
+    assetData.riskGroupId = riskGroupId;
+    assetData.nextGroupId = 1;
+
+    InterestLogic.initAssetData(assetData);
 
     poolData.assetList.push(underlyingAsset);
   }
@@ -61,9 +63,7 @@ library ConfigureLogic {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
-
-    _onlyPoolGovernanceAdmin(poolData);
+    _validateOwnerAndPool(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
 
@@ -74,15 +74,16 @@ library ConfigureLogic {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
+    _validateOwnerAndPool(poolData);
 
-    _onlyPoolGovernanceAdmin(poolData);
+    require(poolData.assetList.length <= Constants.MAX_NUMBER_OF_ASSET, Errors.ASSET_NUMBER_EXCEED_MAX_LIMIT);
 
-    DataTypes.AssetData storage asset = poolData.assetLookup[underlyingAsset];
-    require(asset.assetType == 0, Errors.ASSET_ALREADY_EXISTS);
+    DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
+    require(assetData.assetType == 0, Errors.ASSET_ALREADY_EXISTS);
 
-    asset.assetType = uint8(Constants.ASSET_TYPE_ERC721);
-    asset.riskGroupId = riskGroupId;
+    assetData.assetType = uint8(Constants.ASSET_TYPE_ERC721);
+    assetData.riskGroupId = riskGroupId;
+    assetData.nextGroupId = 1;
 
     poolData.assetList.push(underlyingAsset);
   }
@@ -91,9 +92,7 @@ library ConfigureLogic {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
-
-    _onlyPoolGovernanceAdmin(poolData);
+    _validateOwnerAndPool(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
 
@@ -130,19 +129,20 @@ library ConfigureLogic {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
-
-    _onlyPoolGovernanceAdmin(poolData);
+    _validateOwnerAndPool(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
     // only erc20 asset can be borrowed
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.INVALID_ASSET_TYPE);
+    require(assetData.groupList.length <= Constants.MAX_NUMBER_OF_GROUP, Errors.GROUP_NUMBER_EXCEED_MAX_LIMIT);
 
     groupId = assetData.nextGroupId;
     assetData.nextGroupId += 1;
 
     DataTypes.GroupData storage group = assetData.groupLookup[groupId];
     group.interestRateModelAddress = rateModel_;
+
+    InterestLogic.initGroupData(group);
 
     assetData.groupList.push(groupId);
   }
@@ -151,9 +151,7 @@ library ConfigureLogic {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
-
-    _onlyPoolGovernanceAdmin(poolData);
+    _validateOwnerAndPool(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
@@ -176,5 +174,40 @@ library ConfigureLogic {
     }
     assetData.groupList[groupLength - 1] = 0;
     assetData.groupList.pop();
+  }
+
+  function executeSetAssetRiskGroup(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    _validateOwnerAndPool(poolData);
+
+    DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
+    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+
+    assetData.riskGroupId = riskGroupId;
+  }
+
+  function executeSetGroupInterestRateModel(
+    uint32 poolId,
+    address underlyingAsset,
+    uint8 groupId,
+    address rateModel_
+  ) public {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    _validateOwnerAndPool(poolData);
+
+    DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
+    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+
+    DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
+    groupData.interestRateModelAddress = rateModel_;
+  }
+
+  function _validateOwnerAndPool(DataTypes.PoolData storage poolData) private view {
+    require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
+    _onlyPoolGovernanceAdmin(poolData);
   }
 }

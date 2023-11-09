@@ -4,11 +4,15 @@ pragma solidity ^0.8.19;
 import './setup/TestSetup.sol';
 
 contract TestDeposit is TestSetup {
+  function onSetUp() public virtual override {
+    initCommonPools();
+  }
+
   function testDeposit1() public {
     uint256 amount = 100 ether;
 
-    depositor1.approve(address(weth), amount);
+    tsDepositor1.approve(address(tsWETH), amount);
 
-    depositor1.depositERC20(1, address(weth), amount);
+    tsDepositor1.depositERC20(tsCommonPoolId, address(tsWETH), amount);
   }
 }

@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 
 library Constants {
   uint16 public constant MAX_NUMBER_OF_ASSET = 256;
+  uint8 public constant MAX_NUMBER_OF_GROUP = 10;
 
   // Asset type
   uint256 public constant ASSET_TYPE_ERC20 = 1;

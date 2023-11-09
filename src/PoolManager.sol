@@ -71,6 +71,19 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
     return ConfigureLogic.executeRemoveGroup(poolId, underlyingAsset, groupId);
   }
 
+  function setAssetRiskGroup(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public nonReentrant {
+    return ConfigureLogic.executeSetAssetRiskGroup(poolId, underlyingAsset, riskGroupId);
+  }
+
+  function setGroupInterestRateModel(
+    uint32 poolId,
+    address underlyingAsset,
+    uint8 groupId,
+    address rateModel_
+  ) public nonReentrant {
+    return ConfigureLogic.executeSetGroupInterestRateModel(poolId, underlyingAsset, groupId, rateModel_);
+  }
+
   function depositERC20(uint32 poolId, address asset, uint256 amount) public nonReentrant {
     SupplyLogic.executeDepositERC20(
       InputTypes.ExecuteDepositERC20Params({poolId: poolId, asset: asset, amount: amount})

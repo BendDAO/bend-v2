@@ -13,6 +13,8 @@ import {DataTypes} from '../types/DataTypes.sol';
 import {StorageSlot} from './StorageSlot.sol';
 import {WadRayMath} from '../math/WadRayMath.sol';
 
+import 'forge-std/console.sol';
+
 library VaultLogic {
   using SafeERC20Upgradeable for IERC20Upgradeable;
   using WadRayMath for uint256;
@@ -140,33 +142,22 @@ library VaultLogic {
     return (groupData.userCrossBorrowed[account] == 0); // full repay
   }
 
-  function erc20TransferIn(
-    address underlyingAsset,
-    address from,
-    uint256 amount
-  ) public returns (uint amountTransferred) {
+  function erc20TransferIn(address underlyingAsset, address from, uint256 amount) public {
     uint256 poolSizeBefore = IERC20Upgradeable(underlyingAsset).balanceOf(address(this));
 
     IERC20Upgradeable(underlyingAsset).safeTransferFrom(from, address(this), amount);
 
     uint256 poolSizeAfter = IERC20Upgradeable(underlyingAsset).balanceOf(address(this));
-
-    require(poolSizeAfter >= poolSizeBefore, Errors.INVALID_TRANSFER_AMOUNT);
-    unchecked {
-      amountTransferred = poolSizeAfter - poolSizeBefore;
-    }
+    require(poolSizeAfter == (poolSizeBefore + amount), Errors.INVALID_TRANSFER_AMOUNT);
   }
 
-  function erc20TransferOut(address underlyingAsset, address to, uint amount) public returns (uint amountTransferred) {
+  function erc20TransferOut(address underlyingAsset, address to, uint amount) public {
     uint256 poolSizeBefore = IERC20Upgradeable(underlyingAsset).balanceOf(address(this));
 
     IERC20Upgradeable(underlyingAsset).safeTransfer(to, amount);
-    uint poolSizeAfter = IERC20Upgradeable(underlyingAsset).balanceOf(address(this));
 
-    require(poolSizeBefore >= poolSizeAfter, Errors.INVALID_TRANSFER_AMOUNT);
-    unchecked {
-      amountTransferred = poolSizeBefore - poolSizeAfter;
-    }
+    uint poolSizeAfter = IERC20Upgradeable(underlyingAsset).balanceOf(address(this));
+    require(poolSizeBefore == (poolSizeAfter + amount), Errors.INVALID_TRANSFER_AMOUNT);
   }
 
   // ERC721 methods
