@@ -11,6 +11,8 @@ import {WadRayMath} from '../math/WadRayMath.sol';
 import {PercentageMath} from '../math/PercentageMath.sol';
 import {Errors} from '../helpers/Errors.sol';
 import {Constants} from '../helpers/Constants.sol';
+import {Events} from '../helpers/Events.sol';
+
 import {DataTypes} from '../types/DataTypes.sol';
 import {InputTypes} from '../types/InputTypes.sol';
 
@@ -37,6 +39,21 @@ library ConfigureLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     poolData.poolId = poolId;
     poolData.governanceAdmin = msg.sender;
+
+    emit Events.CreatePool(poolId);
+  }
+
+  function executeDeletePool(uint32 poolId) public {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    _validateOwnerAndPool(poolData);
+
+    require(poolData.assetList.length == 0, Errors.ASSET_LIST_NOT_EMPTY);
+
+    delete ps.poolLookup[poolId];
+
+    emit Events.DeletePool(poolId);
   }
 
   function executeAddAssetERC20(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public {
@@ -57,6 +74,8 @@ library ConfigureLogic {
     InterestLogic.initAssetData(assetData);
 
     poolData.assetList.push(underlyingAsset);
+
+    emit Events.AddAsset(poolId, underlyingAsset, uint8(Constants.ASSET_TYPE_ERC20));
   }
 
   function executeRemoveAssetERC20(uint32 poolId, address underlyingAsset) public {
@@ -68,6 +87,8 @@ library ConfigureLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
 
     _removeAsset(poolData, assetData, underlyingAsset);
+
+    emit Events.RemoveAsset(poolId, underlyingAsset, uint8(Constants.ASSET_TYPE_ERC20));
   }
 
   function executeAddAssetERC721(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public {
@@ -86,6 +107,8 @@ library ConfigureLogic {
     assetData.nextGroupId = 1;
 
     poolData.assetList.push(underlyingAsset);
+
+    emit Events.AddAsset(poolId, underlyingAsset, uint8(Constants.ASSET_TYPE_ERC721));
   }
 
   function executeRemoveAssetERC721(uint32 poolId, address underlyingAsset) public {
@@ -97,6 +120,8 @@ library ConfigureLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
 
     _removeAsset(poolData, assetData, underlyingAsset);
+
+    emit Events.RemoveAsset(poolId, underlyingAsset, uint8(Constants.ASSET_TYPE_ERC721));
   }
 
   function _removeAsset(
@@ -145,6 +170,8 @@ library ConfigureLogic {
     InterestLogic.initGroupData(group);
 
     assetData.groupList.push(groupId);
+
+    emit Events.AddGroup(poolId, underlyingAsset, groupId);
   }
 
   function executeRemoveGroup(uint32 poolId, address underlyingAsset, uint8 groupId) public {
@@ -174,6 +201,8 @@ library ConfigureLogic {
     }
     assetData.groupList[groupLength - 1] = 0;
     assetData.groupList.pop();
+
+    emit Events.RemoveGroup(poolId, underlyingAsset, groupId);
   }
 
   function executeSetAssetRiskGroup(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public {

@@ -43,6 +43,10 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
     return ConfigureLogic.executeCreatePool();
   }
 
+  function deletePool(uint32 poolId) public nonReentrant {
+    return ConfigureLogic.executeDeletePool(poolId);
+  }
+
   function addAssetERC20(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public nonReentrant {
     return ConfigureLogic.executeAddAssetERC20(poolId, underlyingAsset, riskGroupId);
   }

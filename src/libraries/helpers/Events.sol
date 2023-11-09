@@ -2,6 +2,22 @@
 pragma solidity ^0.8.19;
 
 library Events {
+  event CreatePool(uint32 indexed poolId);
+  event DeletePool(uint32 indexed poolId);
+
+  event AddAsset(uint32 indexed poolId, address indexed underlyingAsset, uint8 assetType);
+  event RemoveAsset(uint32 indexed poolId, address indexed underlyingAsset, uint8 assetType);
+  event SetAssetGroup(uint32 indexed poolId, address indexed underlyingAsset, uint8 groupId);
+
+  event AddGroup(uint32 indexed poolId, address indexed underlyingAsset, uint8 groupId);
+  event RemoveGroup(uint32 indexed poolId, address indexed underlyingAsset, uint8 groupId);
+  event SetGroupInterestRateModel(
+    uint32 indexed poolId,
+    address indexed underlyingAsset,
+    uint8 groupId,
+    address rateModel
+  );
+
   event AssetInterestSupplyDataUpdated(address indexed asset, uint256 supplyRate, uint256 supplyIndex);
   event AssetInterestBorrowDataUpdated(address indexed asset, uint256 groupId, uint256 borrowRate, uint256 borrowIndex);
 
