@@ -17,16 +17,16 @@ import {MockERC20} from 'src/mocks/MockERC20.sol';
 import {MockERC721} from 'src/mocks/MockERC721.sol';
 import {MockFaucet} from 'src/mocks/MockFaucet.sol';
 
-import {User} from '../helpers/User.sol';
-import {Utils} from './Utils.sol';
+import {TestUser} from '../helpers/TestUser.sol';
+import {TestUtils} from './TestUtils.sol';
 
 import 'forge-std/Test.sol';
 import 'forge-std/console.sol';
 
-contract TestSetup is Utils {
+contract TestSetup is TestUtils {
   Vm public tsHEVM = Vm(HEVM_ADDRESS);
 
-  uint256 public constant INITIAL_BALANCE = 1_000_000;
+  uint256 public constant TS_INITIAL_BALANCE = 1_000_000;
 
   address public tsDeployer;
   address public tsAclAdmin;
@@ -47,15 +47,22 @@ contract TestSetup is Utils {
   DefaultInterestRateModel public tsLowRiskIRM;
   DefaultInterestRateModel public tsHighRiskIRM;
 
-  User public tsDepositor1;
-  User public tsDepositor2;
-  User public tsDepositor3;
-  User[] public tsDepositors;
+  TestUser public tsDepositor1;
+  TestUser public tsDepositor2;
+  TestUser public tsDepositor3;
+  TestUser[] public tsDepositors;
 
-  User public tsBorrower1;
-  User public tsBorrower2;
-  User public tsBorrower3;
-  User[] public tsBorrowers;
+  TestUser public tsBorrower1;
+  TestUser public tsBorrower2;
+  TestUser public tsBorrower3;
+  TestUser[] public tsBorrowers;
+
+  uint256[] public tsD1TokenIds;
+  uint256[] public tsD2TokenIds;
+  uint256[] public tsD3TokenIds;
+  uint256[] public tsB1TokenIds;
+  uint256[] public tsB2TokenIds;
+  uint256[] public tsB3TokenIds;
 
   function setUp() public {
     tsDeployer = address(this);
@@ -136,7 +143,8 @@ contract TestSetup is Utils {
 
   function initUsers() internal {
     for (uint256 i = 0; i < 3; i++) {
-      tsDepositors.push(new User(tsPoolManager));
+      uint256 uid = ((i + 1) * 100);
+      tsDepositors.push(new TestUser(tsPoolManager, uid));
       tsHEVM.label(address(tsDepositors[i]), string(abi.encodePacked('Depositor', Strings.toString(i + 1))));
       fillUserBalances(tsDepositors[i]);
     }
@@ -145,8 +153,9 @@ contract TestSetup is Utils {
     tsDepositor3 = tsDepositors[2];
 
     for (uint256 i = 0; i < 3; i++) {
-      tsBorrowers.push(new User(tsPoolManager));
-      tsHEVM.label(address(tsBorrowers[i]), string(abi.encodePacked('Borrower', Strings.toString(i + 1))));
+      uint256 uid = ((i + 4) * 100);
+      tsBorrowers.push(new TestUser(tsPoolManager, uid));
+      tsHEVM.label(address(tsBorrowers[i]), string(abi.encodePacked('Borrower', Strings.toString(i + 4))));
       fillUserBalances(tsBorrowers[i]);
     }
 
@@ -155,16 +164,22 @@ contract TestSetup is Utils {
     tsBorrower3 = tsBorrowers[2];
   }
 
-  function fillUserBalances(User _user) internal {
-    tsFaucet.privateMintERC20(address(tsWETH), address(_user), INITIAL_BALANCE * 1e18);
-    tsFaucet.privateMintERC20(address(tsDAI), address(_user), INITIAL_BALANCE * 1e18);
-    tsFaucet.privateMintERC20(address(tsUSDT), address(_user), INITIAL_BALANCE * 1e6);
+  function fillUserBalances(TestUser user) internal {
+    tsFaucet.privateMintERC20(address(tsWETH), address(user), TS_INITIAL_BALANCE * 1e18);
+    tsFaucet.privateMintERC20(address(tsDAI), address(user), TS_INITIAL_BALANCE * 1e18);
+    tsFaucet.privateMintERC20(address(tsUSDT), address(user), TS_INITIAL_BALANCE * 1e6);
+
+    uint256[] memory tokenIds = user.getTokenIds();
+    tsFaucet.privateMintERC721(address(tsBAYC), address(user), tokenIds);
+    tsFaucet.privateMintERC721(address(tsMAYC), address(user), tokenIds);
   }
 
   function setContractsLabels() internal {
     tsHEVM.label(address(tsWETH), 'WETH');
     tsHEVM.label(address(tsDAI), 'DAI');
     tsHEVM.label(address(tsUSDT), 'USDT');
+    tsHEVM.label(address(tsBAYC), 'BAYC');
+    tsHEVM.label(address(tsMAYC), 'MAYC');
 
     tsHEVM.label(address(tsAclManager), 'AclManager');
     tsHEVM.label(address(tsPriceOracle), 'PriceOracle');

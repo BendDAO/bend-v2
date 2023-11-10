@@ -21,33 +21,30 @@ contract MockFaucet is Ownable2Step {
 
   mapping(address => uint256) public erc721NextTokenIds;
 
-  mapping(address => bool) public erc20MintedUsers;
-  mapping(address => bool) public erc721MintedUsers;
+  mapping(address => bool) public mintedUsers;
 
   function publicMintAllTokens(address to) public {
+    require(!mintedUsers[to], 'MockFaucet: user already minted');
+
     address[] memory mockERC20Addrs = mockERC20Set.values();
     for (uint i = 0; i < mockERC20Addrs.length; i++) {
-      publicMintERC20(mockERC20Addrs[i], to);
+      _publicMintERC20(mockERC20Addrs[i], to);
     }
 
     address[] memory mockERC721Addrs = mockERC721Set.values();
     for (uint i = 0; i < mockERC721Addrs.length; i++) {
-      publicMintERC721(mockERC721Addrs[i], to);
+      _publicMintERC721(mockERC721Addrs[i], to);
     }
   }
 
-  function publicMintERC20(address token, address to) private {
-    require(!erc20MintedUsers[to], 'MockFaucet: user already minted');
-
+  function _publicMintERC20(address token, address to) private {
     uint8 decimals = MockERC20(token).decimals();
     uint256 amount = MAX_ERC20_BALANCE_PER_USER * (10 ** decimals);
 
     MockERC20(token).mint(to, amount);
   }
 
-  function publicMintERC721(address token, address to) private {
-    require(!erc721MintedUsers[to], 'MockFaucet: user already minted');
-
+  function _publicMintERC721(address token, address to) private {
     uint256[] memory tokenIds = new uint256[](MAX_ERC721_BALANCE_PER_USER);
     for (uint256 i = 0; i < MAX_ERC721_BALANCE_PER_USER; i++) {
       tokenIds[i] = erc721NextTokenIds[token];

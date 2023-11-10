@@ -3,7 +3,7 @@ pragma solidity ^0.8.19;
 
 import 'forge-std/Test.sol';
 
-contract Utils is Test {
+contract TestUtils is Test {
   function to6Decimals(uint256 value) internal pure returns (uint256) {
     return value / 1e12;
   }

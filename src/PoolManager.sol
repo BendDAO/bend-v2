@@ -4,6 +4,7 @@ pragma solidity ^0.8.19;
 import {IERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
 import {SafeERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol';
 import {IERC721Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol';
+import {ERC721HolderUpgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol';
 
 import {PausableUpgradeable} from '@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol';
 import {ReentrancyGuardUpgradeable} from '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
@@ -20,7 +21,7 @@ import './libraries/logic/SupplyLogic.sol';
 import './libraries/logic/BorrowLogic.sol';
 import './libraries/logic/LiquidationLogic.sol';
 
-contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable {
+contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721HolderUpgradeable {
   using SafeERC20Upgradeable for IERC20Upgradeable;
 
   constructor() {
