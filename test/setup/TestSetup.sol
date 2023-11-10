@@ -13,9 +13,9 @@ import {PriceOracle} from 'src/PriceOracle.sol';
 import {DefaultInterestRateModel} from 'src/DefaultInterestRateModel.sol';
 import {PoolManager} from 'src/PoolManager.sol';
 
-import {MockERC20} from 'src/mocks/MockERC20.sol';
-import {MockERC721} from 'src/mocks/MockERC721.sol';
-import {MockFaucet} from 'src/mocks/MockFaucet.sol';
+import {MockERC20} from 'test/mocks/MockERC20.sol';
+import {MockERC721} from 'test/mocks/MockERC721.sol';
+import {MockFaucet} from 'test/mocks/MockFaucet.sol';
 
 import {TestUser} from '../helpers/TestUser.sol';
 import {TestUtils} from './TestUtils.sol';
