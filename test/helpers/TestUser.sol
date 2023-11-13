@@ -68,4 +68,12 @@ contract TestUser {
   function depositERC721(uint32 poolId, address asset, uint256[] calldata tokenIds, uint256 supplyMode) public {
     _poolManager.depositERC721(poolId, asset, tokenIds, supplyMode);
   }
+
+  function borrowERC20(uint32 poolId, address asset, uint256 amount, address to) public {
+    _poolManager.borrowERC20(poolId, asset, amount, to);
+  }
+
+  function repayERC20(uint32 poolId, address asset, uint256 amount) public {
+    _poolManager.repayERC20(poolId, asset, amount);
+  }
 }

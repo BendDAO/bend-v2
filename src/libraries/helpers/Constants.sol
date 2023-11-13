@@ -6,13 +6,13 @@ library Constants {
   uint8 public constant MAX_NUMBER_OF_GROUP = 10;
 
   // Asset type
-  uint256 public constant ASSET_TYPE_ERC20 = 1;
-  uint256 public constant ASSET_TYPE_ERC721 = 2;
+  uint8 public constant ASSET_TYPE_ERC20 = 1;
+  uint8 public constant ASSET_TYPE_ERC721 = 2;
 
   // Supply Mode
-  uint256 public constant SUPPLY_MODE_CROSS = 1;
-  uint256 public constant SUPPLY_MODE_ISOLATE = 2;
-  uint256 public constant SUPPLY_MODE_YIELD = 3;
+  uint8 public constant SUPPLY_MODE_CROSS = 1;
+  uint8 public constant SUPPLY_MODE_ISOLATE = 2;
+  uint8 public constant SUPPLY_MODE_YIELD = 3;
 
   // Minimum health factor allowed under any circumstance
   // A value of 0.95e18 results in 0.95

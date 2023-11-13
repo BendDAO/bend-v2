@@ -17,6 +17,9 @@ import {MockERC20} from 'test/mocks/MockERC20.sol';
 import {MockERC721} from 'test/mocks/MockERC721.sol';
 import {MockFaucet} from 'test/mocks/MockFaucet.sol';
 
+import {MockBendNFTOracle} from 'test/mocks/MockBendNFTOracle.sol';
+import {MockChainlinkAggregator} from 'test/mocks/MockChainlinkAggregator.sol';
+
 import {TestUser} from '../helpers/TestUser.sol';
 import {TestUtils} from './TestUtils.sol';
 
@@ -37,6 +40,11 @@ contract TestSetup is TestUtils {
   MockERC20 public tsUSDT;
   MockERC721 public tsBAYC;
   MockERC721 public tsMAYC;
+
+  MockBendNFTOracle public tsBendNFTOracle;
+  MockChainlinkAggregator tsCLAggregatorWETH;
+  MockChainlinkAggregator tsCLAggregatorDAI;
+  MockChainlinkAggregator tsCLAggregatorUSDT;
 
   ProxyAdmin public tsProxyAdmin;
   ACLManager public tsAclManager;
@@ -68,9 +76,11 @@ contract TestSetup is TestUtils {
     tsDeployer = address(this);
     tsAclAdmin = address(this);
 
-    initContracts();
-
     initTokens();
+
+    initOracles();
+
+    initContracts();
 
     initUsers();
 
@@ -100,10 +110,17 @@ contract TestSetup is TestUtils {
     TransparentUpgradeableProxy priceOracleProxy = new TransparentUpgradeableProxy(
       address(priceOracleImpl),
       address(tsProxyAdmin),
-      abi.encodeWithSelector(priceOracleImpl.initialize.selector, address(tsAclManager), address(0), 1e8)
+      abi.encodeWithSelector(
+        priceOracleImpl.initialize.selector,
+        address(tsAclManager),
+        address(0),
+        1e8,
+        address(tsWETH),
+        1e18
+      )
     );
     tsPriceOracle = PriceOracle(payable(address(priceOracleProxy)));
-    //tsPriceOracle.initialize(address(aclManager), address(0), 1e8);
+    //tsPriceOracle.initialize(address(aclManager), address(0), 1e8, address(tsWETH), 1e18);
 
     // Pool Manager
     PoolManager poolManagerImpl = new PoolManager();
@@ -128,6 +145,21 @@ contract TestSetup is TestUtils {
       (8 * WadRayMath.RAY) / 100,
       (200 * WadRayMath.RAY) / 100
     );
+
+    // do some common init
+    tsAclManager.addOracleAdmin(tsAclAdmin);
+
+    tsPriceOracle.setBendNFTOracle(address(tsBendNFTOracle));
+
+    address[] memory oracleAssets = new address[](3);
+    oracleAssets[0] = address(tsWETH);
+    oracleAssets[1] = address(tsDAI);
+    oracleAssets[2] = address(tsUSDT);
+    address[] memory oracleAggs = new address[](3);
+    oracleAggs[0] = address(tsCLAggregatorWETH);
+    oracleAggs[1] = address(tsCLAggregatorDAI);
+    oracleAggs[2] = address(tsCLAggregatorUSDT);
+    tsPriceOracle.setAssetChainlinkAggregators(oracleAssets, oracleAggs);
   }
 
   function initTokens() internal {
@@ -172,6 +204,25 @@ contract TestSetup is TestUtils {
     uint256[] memory tokenIds = user.getTokenIds();
     tsFaucet.privateMintERC721(address(tsBAYC), address(user), tokenIds);
     tsFaucet.privateMintERC721(address(tsMAYC), address(user), tokenIds);
+  }
+
+  function initOracles() internal {
+    tsCLAggregatorWETH = new MockChainlinkAggregator(8, 'ETH / USD');
+    tsHEVM.label(address(tsCLAggregatorWETH), 'MockCLAggregator(ETH/USD)');
+    tsCLAggregatorWETH.updateAnswer(206066569863);
+
+    tsCLAggregatorDAI = new MockChainlinkAggregator(8, 'DAI / USD');
+    tsHEVM.label(address(tsCLAggregatorDAI), 'MockCLAggregator(DAI/USD)');
+    tsCLAggregatorDAI.updateAnswer(99984627);
+
+    tsCLAggregatorUSDT = new MockChainlinkAggregator(8, 'USDT / USD');
+    tsHEVM.label(address(tsCLAggregatorUSDT), 'MockCLAggregator(USDT/USD)');
+    tsCLAggregatorUSDT.updateAnswer(100053000);
+
+    tsBendNFTOracle = new MockBendNFTOracle();
+    tsHEVM.label(address(tsBendNFTOracle), 'MockBendNFTOracle');
+    tsBendNFTOracle.setAssetPrice(address(tsBAYC), 30919141261229331011);
+    tsBendNFTOracle.setAssetPrice(address(tsMAYC), 5950381013403414953);
   }
 
   function setContractsLabels() internal {

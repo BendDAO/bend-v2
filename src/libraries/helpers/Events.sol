@@ -2,6 +2,9 @@
 pragma solidity ^0.8.19;
 
 library Events {
+  event AssetAggregatorUpdated(address asset, address aggregator);
+  event BendNFTOracleUpdated(address bendNFTOracle);
+
   event CreatePool(uint32 indexed poolId);
   event DeletePool(uint32 indexed poolId);
 

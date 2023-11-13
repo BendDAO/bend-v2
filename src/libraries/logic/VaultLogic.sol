@@ -68,6 +68,13 @@ library VaultLogic {
   }
 
   // ERC20 methods
+  function erc20GetUserScaledSupply(
+    DataTypes.AssetData storage assetData,
+    address account
+  ) public view returns (uint256) {
+    return assetData.userCrossSupplied[account];
+  }
+
   function erc20GetUserSupply(DataTypes.AssetData storage assetData, address account) public view returns (uint256) {
     uint256 amountScaled = assetData.userCrossSupplied[account];
     return amountScaled.rayMul(assetData.supplyIndex);
@@ -107,6 +114,13 @@ library VaultLogic {
 
     assetData.userCrossSupplied[from] -= amountScaled;
     assetData.userCrossSupplied[to] += amountScaled;
+  }
+
+  function erc20GetUserScaledBorrow(
+    DataTypes.GroupData storage groupData,
+    address account
+  ) public view returns (uint256) {
+    return groupData.userCrossBorrowed[account];
   }
 
   function erc20GetUserBorrow(DataTypes.GroupData storage groupData, address account) public view returns (uint256) {

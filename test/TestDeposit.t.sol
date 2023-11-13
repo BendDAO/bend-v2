@@ -21,6 +21,11 @@ contract TestDeposit is TestSetup {
   function testDeposit2() public {
     tsDepositor1.setApprovalForAllERC721(address(tsBAYC));
 
-    tsDepositor1.depositERC721(tsCommonPoolId, address(tsBAYC), tsDepositor1.getTokenIds(), Constants.SUPPLY_MODE_CROSS);
+    tsDepositor1.depositERC721(
+      tsCommonPoolId,
+      address(tsBAYC),
+      tsDepositor1.getTokenIds(),
+      Constants.SUPPLY_MODE_CROSS
+    );
   }
 }
