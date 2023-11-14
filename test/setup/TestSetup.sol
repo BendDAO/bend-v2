@@ -248,6 +248,7 @@ contract TestSetup is TestUtils {
     tsLowRiskGroupId = tsPoolManager.addPoolGroup(tsCommonPoolId);
     tsHighRiskGroupId = tsPoolManager.addPoolGroup(tsCommonPoolId);
 
+    // asset some erc20 assets
     tsPoolManager.addAssetERC20(tsCommonPoolId, address(tsWETH));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsWETH), 8050, 8300, 500);
     tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsWETH), 3000);
@@ -263,6 +264,7 @@ contract TestSetup is TestUtils {
     tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsUSDT), 3000);
     tsPoolManager.setAssetRiskGroup(tsCommonPoolId, address(tsUSDT), tsLowRiskGroupId);
 
+    // add interest group to assets
     tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsWETH), tsLowRiskGroupId, address(tsLowRiskIRM));
     tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsWETH), tsHighRiskGroupId, address(tsHighRiskIRM));
 
@@ -272,6 +274,7 @@ contract TestSetup is TestUtils {
     tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsUSDT), tsLowRiskGroupId, address(tsLowRiskIRM));
     tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsUSDT), tsHighRiskGroupId, address(tsHighRiskIRM));
 
+    // add some nft assets
     tsPoolManager.addAssetERC721(tsCommonPoolId, address(tsBAYC));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsBAYC), 6000, 8000, 1000);
     tsPoolManager.setAssetRiskGroup(tsCommonPoolId, address(tsBAYC), tsLowRiskGroupId);

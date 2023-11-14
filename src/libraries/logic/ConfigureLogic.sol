@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
+import {EnumerableSetUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol';
 import {IERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
 import {IERC20MetadataUpgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol';
 import {SafeCastUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol';
@@ -25,6 +26,9 @@ import {InterestLogic} from './InterestLogic.sol';
  * @notice Implements the logic to configure the protocol parameters
  */
 library ConfigureLogic {
+  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
+  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
+
   function _onlyPoolGovernanceAdmin(DataTypes.PoolData storage poolData) private view {
     require(poolData.governanceAdmin == msg.sender, Errors.INVALID_CALLER);
   }
@@ -51,7 +55,7 @@ library ConfigureLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
 
-    require(poolData.assetList.length == 0, Errors.ASSET_LIST_NOT_EMPTY);
+    require(poolData.assetList.length() == 0, Errors.ASSET_LIST_NOT_EMPTY);
 
     delete ps.poolLookup[poolId];
 
@@ -64,13 +68,14 @@ library ConfigureLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
 
-    require(poolData.groupList.length <= Constants.MAX_NUMBER_OF_GROUP, Errors.GROUP_NUMBER_EXCEED_MAX_LIMIT);
+    require(poolData.groupList.length() <= Constants.MAX_NUMBER_OF_GROUP, Errors.GROUP_NUMBER_EXCEED_MAX_LIMIT);
 
     groupId = poolData.nextGroupId;
     poolData.nextGroupId++;
 
     poolData.enabledGroups[groupId] = true;
-    poolData.groupList.push(groupId);
+    bool isAddOk = poolData.groupList.add(groupId);
+    require(isAddOk, Errors.ENUM_SET_ADD_FAILED);
 
     emit Events.AddPoolGroup(poolId, groupId);
   }
@@ -84,11 +89,15 @@ library ConfigureLogic {
     require(poolData.enabledGroups[groupId] == true, Errors.GROUP_NOT_EXISTS);
 
     // check all assets not belong to this group
-    for (uint256 i = 0; i < poolData.assetList.length; i++) {
-      require(poolData.assetLookup[poolData.assetList[i]].riskGroupId != groupId, Errors.GROUP_HAS_ASSET);
+    address[] memory allAssets = poolData.assetList.values();
+    for (uint256 i = 0; i < allAssets.length; i++) {
+      require(poolData.assetLookup[allAssets[i]].riskGroupId != groupId, Errors.GROUP_HAS_ASSET);
     }
 
     poolData.enabledGroups[groupId] = false;
+
+    bool isDelOk = poolData.groupList.remove(groupId);
+    require(isDelOk, Errors.ENUM_SET_REMOVE_FAILED);
 
     emit Events.RemovePoolGroup(poolId, groupId);
   }
@@ -102,14 +111,15 @@ library ConfigureLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
     require(assetData.assetType == 0, Errors.ASSET_ALREADY_EXISTS);
 
-    require(poolData.assetList.length <= Constants.MAX_NUMBER_OF_ASSET, Errors.ASSET_NUMBER_EXCEED_MAX_LIMIT);
+    require(poolData.assetList.length() <= Constants.MAX_NUMBER_OF_ASSET, Errors.ASSET_NUMBER_EXCEED_MAX_LIMIT);
 
     assetData.assetType = uint8(Constants.ASSET_TYPE_ERC20);
     assetData.underlyingDecimals = IERC20MetadataUpgradeable(underlyingAsset).decimals();
 
     InterestLogic.initAssetData(assetData);
 
-    poolData.assetList.push(underlyingAsset);
+    bool isAddOk = poolData.assetList.add(underlyingAsset);
+    require(isAddOk, Errors.ENUM_SET_ADD_FAILED);
 
     emit Events.AddAsset(poolId, underlyingAsset, uint8(Constants.ASSET_TYPE_ERC20));
   }
@@ -133,14 +143,15 @@ library ConfigureLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
 
-    require(poolData.assetList.length <= Constants.MAX_NUMBER_OF_ASSET, Errors.ASSET_NUMBER_EXCEED_MAX_LIMIT);
+    require(poolData.assetList.length() <= Constants.MAX_NUMBER_OF_ASSET, Errors.ASSET_NUMBER_EXCEED_MAX_LIMIT);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
     require(assetData.assetType == 0, Errors.ASSET_ALREADY_EXISTS);
 
     assetData.assetType = uint8(Constants.ASSET_TYPE_ERC721);
 
-    poolData.assetList.push(underlyingAsset);
+    bool isAddOk = poolData.assetList.add(underlyingAsset);
+    require(isAddOk, Errors.ENUM_SET_ADD_FAILED);
 
     emit Events.AddAsset(poolId, underlyingAsset, uint8(Constants.ASSET_TYPE_ERC721));
   }
@@ -152,7 +163,6 @@ library ConfigureLogic {
     _validateOwnerAndPool(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
-
     _removeAsset(poolData, assetData, underlyingAsset);
 
     emit Events.RemoveAsset(poolId, underlyingAsset, uint8(Constants.ASSET_TYPE_ERC721));
@@ -166,22 +176,10 @@ library ConfigureLogic {
     require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
     require(assetData.totalCrossSupplied == 0, Errors.CROSS_SUPPLY_NOT_EMPTY);
     require(assetData.totalIsolateSupplied == 0, Errors.ISOLATE_SUPPLY_NOT_EMPTY);
-    require(assetData.groupList.length == 0, Errors.GROUP_LIST_NOT_EMPTY);
+    require(assetData.groupList.length() == 0, Errors.GROUP_LIST_NOT_EMPTY);
 
-    uint assetLength = poolData.assetList.length;
-    uint searchIndex = type(uint).max;
-    for (uint i = 0; i < assetLength; i++) {
-      if (poolData.assetList[i] == underlyingAsset) {
-        searchIndex = i;
-        break;
-      }
-    }
-    require(searchIndex <= (assetLength - 1), Errors.ASSET_NOT_EXISTS);
-    if (searchIndex < (assetLength - 1)) {
-      poolData.assetList[searchIndex] = poolData.assetList[assetLength - 1];
-    }
-    poolData.assetList[assetLength - 1] = address(0);
-    poolData.assetList.pop();
+    bool isDelOk = poolData.assetList.remove(underlyingAsset);
+    require(isDelOk, Errors.ENUM_SET_REMOVE_FAILED);
   }
 
   function executeAddAssetGroup(uint32 poolId, address underlyingAsset, uint8 groupId, address rateModel_) public {
@@ -195,14 +193,15 @@ library ConfigureLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
     // only erc20 asset can be borrowed
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.INVALID_ASSET_TYPE);
-    require(assetData.groupList.length <= Constants.MAX_NUMBER_OF_GROUP, Errors.GROUP_NUMBER_EXCEED_MAX_LIMIT);
+    require(assetData.groupList.length() <= Constants.MAX_NUMBER_OF_GROUP, Errors.GROUP_NUMBER_EXCEED_MAX_LIMIT);
 
     DataTypes.GroupData storage group = assetData.groupLookup[groupId];
     group.interestRateModelAddress = rateModel_;
 
     InterestLogic.initGroupData(group);
 
-    assetData.groupList.push(groupId);
+    bool isAddOk = assetData.groupList.add(groupId);
+    require(isAddOk, Errors.ENUM_SET_ADD_FAILED);
 
     emit Events.AddAssetGroup(poolId, underlyingAsset, groupId);
   }
@@ -220,20 +219,8 @@ library ConfigureLogic {
     require(groupData.totalCrossBorrowed == 0, Errors.CROSS_DEBT_NOT_EMPTY);
     require(groupData.totalIsolateBorrowed == 0, Errors.ISOLATE_DEBT_NOT_EMPTY);
 
-    uint groupLength = assetData.groupList.length;
-    uint searchIndex = type(uint).max;
-    for (uint i = 0; i < groupLength; i++) {
-      if (assetData.groupList[i] == groupId) {
-        searchIndex = i;
-        break;
-      }
-    }
-    require(searchIndex <= (groupLength - 1), Errors.GROUP_NOT_EXISTS);
-    if (searchIndex < (groupLength - 1)) {
-      assetData.groupList[searchIndex] = assetData.groupList[groupLength - 1];
-    }
-    assetData.groupList[groupLength - 1] = 0;
-    assetData.groupList.pop();
+    bool isDelOk = assetData.groupList.remove(groupId);
+    require(isDelOk, Errors.ENUM_SET_REMOVE_FAILED);
 
     emit Events.RemoveAssetGroup(poolId, underlyingAsset, groupId);
   }

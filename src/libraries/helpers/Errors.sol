@@ -18,6 +18,9 @@ library Errors {
   string public constant INVALID_IRM_ADDRESS = '112';
   string public constant INVALID_CALLER = '113';
 
+  string public constant ENUM_SET_ADD_FAILED = '150';
+  string public constant ENUM_SET_REMOVE_FAILED = '151';
+
   string public constant ACL_ADMIN_CANNOT_BE_ZERO = '200';
   string public constant ACL_MANAGER_CANNOT_BE_ZERO = '201';
   string public constant OWNER_CANNOT_BE_ZERO = '202';

@@ -22,11 +22,11 @@ library DataTypes {
     // group
     uint8 nextGroupId;
     mapping(uint8 => bool) enabledGroups;
-    uint8[] groupList;
+    EnumerableSetUpgradeable.UintSet groupList;
 
     // underlying asset to asset data
     mapping(address => AssetData) assetLookup;
-    address[] assetList;
+    EnumerableSetUpgradeable.AddressSet assetList;
 
     // nft address -> nft id -> isolate loan
     mapping(address => mapping(uint256 => IsolateLoanData)) loanLookup;
@@ -74,7 +74,7 @@ library DataTypes {
     uint16 liquidationBonus;
     // group state
     mapping(uint8 => GroupData) groupLookup;
-    uint8[] groupList;
+    EnumerableSetUpgradeable.UintSet groupList;
     // user state
     uint256 totalCrossSupplied; // total supplied balance in cross margin mode
     mapping(address => uint256) userCrossSupplied; // user supplied balance in cross margin mode

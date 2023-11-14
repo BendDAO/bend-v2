@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
+import {EnumerableSetUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol';
+
 import {IPriceOracleGetter} from '../../interfaces/IPriceOracleGetter.sol';
 
 import {Constants} from '../helpers/Constants.sol';
@@ -21,6 +23,8 @@ import {InterestLogic} from './InterestLogic.sol';
 import {GenericLogic} from './GenericLogic.sol';
 
 library LiquidationLogic {
+  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
+  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
   using WadRayMath for uint256;
   using PercentageMath for uint256;
 
@@ -266,9 +270,10 @@ library LiquidationLogic {
     bool checkRemainDebtZero
   ) internal {
     // sort group debt from highest interest rate to lowest
-    KVSortUtils.KeyValue[] memory groupRateList = new KVSortUtils.KeyValue[](debtAssetData.groupList.length);
+    uint256[] memory assetGroupIds = debtAssetData.groupList.values();
+    KVSortUtils.KeyValue[] memory groupRateList = new KVSortUtils.KeyValue[](assetGroupIds.length);
     for (uint256 i = 0; i < groupRateList.length; i++) {
-      groupRateList[i].key = debtAssetData.groupList[i];
+      groupRateList[i].key = assetGroupIds[i];
       DataTypes.GroupData storage loopGroupData = debtAssetData.groupLookup[uint8(groupRateList[i].key)];
       groupRateList[i].val = loopGroupData.borrowRate;
     }

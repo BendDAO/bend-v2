@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
+import {EnumerableSetUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol';
+
 import {IPriceOracleGetter} from '../../interfaces/IPriceOracleGetter.sol';
 
 import {PercentageMath} from '../math/PercentageMath.sol';
@@ -20,6 +22,8 @@ import 'forge-std/console.sol';
  * @notice Implements protocol-level logic to calculate and validate the state of a user
  */
 library GenericLogic {
+  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
+  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
   using WadRayMath for uint256;
   using PercentageMath for uint256;
 
@@ -28,6 +32,7 @@ library GenericLogic {
     address[] userBorrowedAssets;
     uint256 assetIndex;
     address currentAssetAddress;
+    uint256[] assetGroupIds;
     uint256 groupIndex;
     uint8 currentGroupId;
     uint256 assetPrice;
@@ -114,11 +119,12 @@ library GenericLogic {
       // same debt can be borrowed in different groups by different collaterals
       // e.g. BAYC borrow ETH in group 1, MAYC borrow ETH in group 2
       vars.userDebtInBaseCurrency = 0;
-      for (vars.groupIndex = 0; vars.groupIndex < currentAssetData.groupList.length; vars.groupIndex++) {
-        vars.currentGroupId = currentAssetData.groupList[vars.groupIndex];
+      vars.assetGroupIds = currentAssetData.groupList.values();
+      for (vars.groupIndex = 0; vars.groupIndex < vars.assetGroupIds.length; vars.groupIndex++) {
+        vars.currentGroupId = uint8(vars.assetGroupIds[vars.groupIndex]);
         DataTypes.GroupData storage currentGroupData = currentAssetData.groupLookup[vars.currentGroupId];
 
-        vars.userDebtInBaseCurrency = _getUserERC20DebtInBaseCurrency(
+        vars.userDebtInBaseCurrency += _getUserERC20DebtInBaseCurrency(
           userAccount,
           currentAssetData,
           currentGroupData,

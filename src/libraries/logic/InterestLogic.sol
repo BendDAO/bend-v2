@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
+import {EnumerableSetUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol';
 import {IERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
 import {SafeCastUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol';
 
@@ -20,6 +21,8 @@ import {InputTypes} from '../types/InputTypes.sol';
  * @notice Implements the logic to update the interest state
  */
 library InterestLogic {
+  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
+  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
   using SafeCastUpgradeable for uint256;
   using WadRayMath for uint256;
   using PercentageMath for uint256;
@@ -142,6 +145,7 @@ library InterestLogic {
   }
 
   struct UpdateInterestRatesLocalVars {
+    uint256[] assetGroupIds;
     uint8 loopGroupId;
     uint256 loopGroupScaledDebt;
     uint256 loopGroupDebt;
@@ -168,10 +172,13 @@ library InterestLogic {
   ) internal {
     UpdateInterestRatesLocalVars memory vars;
 
+    vars.assetGroupIds = assetData.groupList.values();
+
     // calculate the total asset debt
-    vars.allGroupDebtList = new uint256[](assetData.groupList.length);
-    for (uint256 i = 0; i < assetData.groupList.length; i++) {
-      DataTypes.GroupData storage loopGroupData = assetData.groupLookup[assetData.groupList[i]];
+    vars.allGroupDebtList = new uint256[](vars.assetGroupIds.length);
+    for (uint256 i = 0; i < vars.assetGroupIds.length; i++) {
+      vars.loopGroupId = uint8(vars.assetGroupIds[i]);
+      DataTypes.GroupData storage loopGroupData = assetData.groupLookup[vars.loopGroupId];
       vars.loopGroupScaledDebt = loopGroupData.totalCrossBorrowed + loopGroupData.totalIsolateBorrowed;
       vars.loopGroupDebt = vars.loopGroupScaledDebt.rayMul(loopGroupData.borrowIndex);
       vars.allGroupDebtList[i] = vars.loopGroupDebt;
@@ -188,8 +195,8 @@ library InterestLogic {
     vars.assetBorrowUsageRatio = vars.totalAssetDebt.rayDiv(vars.availableLiquidityPlusDebt);
 
     // calculate the group borrow rate
-    for (uint256 i = 0; i < assetData.groupList.length; i++) {
-      vars.loopGroupId = assetData.groupList[i];
+    for (uint256 i = 0; i < vars.assetGroupIds.length; i++) {
+      vars.loopGroupId = uint8(vars.assetGroupIds[i]);
       DataTypes.GroupData storage loopGroupData = assetData.groupLookup[vars.loopGroupId];
       (vars.nextGroupBorrowRate) = IInterestRateModel(loopGroupData.interestRateModelAddress).calculateGroupBorrowRate(
         InputTypes.CalculateGroupBorrowRateParams({
@@ -210,8 +217,8 @@ library InterestLogic {
 
     // calculate the asset supply rate
     vars.avgAssetBorrowRate = 0;
-    for (uint256 i = 0; i < assetData.groupList.length; i++) {
-      vars.loopGroupId = assetData.groupList[i];
+    for (uint256 i = 0; i < vars.assetGroupIds.length; i++) {
+      vars.loopGroupId = uint8(vars.assetGroupIds[i]);
       DataTypes.GroupData storage loopGroupData = assetData.groupLookup[vars.loopGroupId];
 
       if ((vars.totalAssetDebt != 0) && (vars.allGroupDebtList[i] != 0)) {
