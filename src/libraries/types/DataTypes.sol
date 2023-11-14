@@ -19,9 +19,15 @@ library DataTypes {
     uint256 poolId;
     address governanceAdmin;
 
+    // group
+    uint8 nextGroupId;
+    mapping(uint8 => bool) enabledGroups;
+    uint8[] groupList;
+
     // underlying asset to asset data
     mapping(address => AssetData) assetLookup;
     address[] assetList;
+
     // nft address -> nft id -> isolate loan
     mapping(address => mapping(uint256 => IsolateLoanData)) loanLookup;
     // account data
@@ -67,7 +73,6 @@ library DataTypes {
     uint16 liquidationThreshold;
     uint16 liquidationBonus;
     // group state
-    uint8 nextGroupId;
     mapping(uint8 => GroupData) groupLookup;
     uint8[] groupList;
     // user state

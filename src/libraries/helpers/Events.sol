@@ -8,13 +8,24 @@ library Events {
   event CreatePool(uint32 indexed poolId);
   event DeletePool(uint32 indexed poolId);
 
+  event AddPoolGroup(uint32 indexed poolId, uint8 groupId);
+  event RemovePoolGroup(uint32 indexed poolId, uint8 groupId);
+
   event AddAsset(uint32 indexed poolId, address indexed underlyingAsset, uint8 assetType);
   event RemoveAsset(uint32 indexed poolId, address indexed underlyingAsset, uint8 assetType);
   event SetAssetGroup(uint32 indexed poolId, address indexed underlyingAsset, uint8 groupId);
+  event SetAssetCollateralParams(
+    uint32 poolId,
+    address underlyingAsset,
+    uint16 collateralFactor,
+    uint16 liquidationThreshold,
+    uint16 liquidationBonus
+  );
+  event SetAssetProtocolFee(uint32 poolId, address underlyingAsset, uint16 feeFactor);
 
-  event AddGroup(uint32 indexed poolId, address indexed underlyingAsset, uint8 groupId);
-  event RemoveGroup(uint32 indexed poolId, address indexed underlyingAsset, uint8 groupId);
-  event SetGroupInterestRateModel(
+  event AddAssetGroup(uint32 indexed poolId, address indexed underlyingAsset, uint8 groupId);
+  event RemoveAssetGroup(uint32 indexed poolId, address indexed underlyingAsset, uint8 groupId);
+  event SetAssetInterestRateModel(
     uint32 indexed poolId,
     address indexed underlyingAsset,
     uint8 groupId,

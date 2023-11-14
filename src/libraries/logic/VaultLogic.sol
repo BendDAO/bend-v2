@@ -215,11 +215,7 @@ library VaultLogic {
     }
   }
 
-  function erc721TransferIn(
-    address underlyingAsset,
-    address from,
-    uint256[] memory tokenIds
-  ) public returns (uint amountTransferred) {
+  function erc721TransferIn(address underlyingAsset, address from, uint256[] memory tokenIds) public {
     uint256 poolSizeBefore = IERC721Upgradeable(underlyingAsset).balanceOf(address(this));
 
     for (uint256 i = 0; i < tokenIds.length; i++) {
@@ -228,17 +224,10 @@ library VaultLogic {
 
     uint256 poolSizeAfter = IERC721Upgradeable(underlyingAsset).balanceOf(address(this));
 
-    require(poolSizeAfter >= poolSizeBefore, Errors.INVALID_TRANSFER_AMOUNT);
-    unchecked {
-      amountTransferred = poolSizeAfter - poolSizeBefore;
-    }
+    require(poolSizeAfter == (poolSizeBefore + tokenIds.length), Errors.INVALID_TRANSFER_AMOUNT);
   }
 
-  function erc721TransferOut(
-    address underlyingAsset,
-    address to,
-    uint256[] memory tokenIds
-  ) public returns (uint amountTransferred) {
+  function erc721TransferOut(address underlyingAsset, address to, uint256[] memory tokenIds) public {
     uint256 poolSizeBefore = IERC721Upgradeable(underlyingAsset).balanceOf(address(this));
 
     for (uint256 i = 0; i < tokenIds.length; i++) {
@@ -247,9 +236,6 @@ library VaultLogic {
 
     uint poolSizeAfter = IERC721Upgradeable(underlyingAsset).balanceOf(address(this));
 
-    require(poolSizeBefore >= poolSizeAfter, Errors.INVALID_TRANSFER_AMOUNT);
-    unchecked {
-      amountTransferred = poolSizeBefore - poolSizeAfter;
-    }
+    require(poolSizeBefore == (poolSizeAfter + tokenIds.length), Errors.INVALID_TRANSFER_AMOUNT);
   }
 }

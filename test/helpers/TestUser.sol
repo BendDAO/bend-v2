@@ -69,11 +69,11 @@ contract TestUser {
     _poolManager.depositERC721(poolId, asset, tokenIds, supplyMode);
   }
 
-  function borrowERC20(uint32 poolId, address asset, uint256 amount, address to) public {
-    _poolManager.borrowERC20(poolId, asset, amount, to);
+  function borrowERC20(uint32 poolId, address asset, uint8 group, uint256 amount, address to) public {
+    _poolManager.borrowERC20(poolId, asset, group, amount, to);
   }
 
-  function repayERC20(uint32 poolId, address asset, uint256 amount) public {
-    _poolManager.repayERC20(poolId, asset, amount);
+  function repayERC20(uint32 poolId, address asset, uint8 group, uint256 amount) public {
+    _poolManager.repayERC20(poolId, asset, group, amount);
   }
 }

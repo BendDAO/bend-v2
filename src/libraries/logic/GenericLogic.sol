@@ -7,9 +7,13 @@ import {PercentageMath} from '../math/PercentageMath.sol';
 import {WadRayMath} from '../math/WadRayMath.sol';
 import {DataTypes} from '../types/DataTypes.sol';
 import {ResultTypes} from '../types/ResultTypes.sol';
+import {Constants} from '../helpers/Constants.sol';
+import {Errors} from '../helpers/Errors.sol';
 
 import {VaultLogic} from './VaultLogic.sol';
 import {InterestLogic} from './InterestLogic.sol';
+
+import 'forge-std/console.sol';
 
 /**
  * @title GenericLogic library
@@ -27,7 +31,6 @@ library GenericLogic {
     uint256 groupIndex;
     uint8 currentGroupId;
     uint256 assetPrice;
-    uint256 assetUnit;
     uint256 userBalanceInBaseCurrency;
     uint256 userDebtInBaseCurrency;
   }
@@ -49,6 +52,7 @@ library GenericLogic {
 
     // calculate the sum of all the collateral balance denominated in the base currency
     vars.userSuppliedAssets = VaultLogic.accountGetSuppliedAssets(accountData);
+    console.log('userSuppliedAssets', vars.userSuppliedAssets.length);
     for (vars.assetIndex = 0; vars.assetIndex < vars.userSuppliedAssets.length; vars.assetIndex++) {
       vars.currentAssetAddress = vars.userSuppliedAssets[vars.assetIndex];
       if (vars.currentAssetAddress == address(0)) {
@@ -57,16 +61,25 @@ library GenericLogic {
 
       DataTypes.AssetData storage currentAssetData = poolData.assetLookup[vars.currentAssetAddress];
 
-      vars.assetUnit = 10 ** currentAssetData.underlyingDecimals;
       vars.assetPrice = IPriceOracleGetter(oracle).getAssetPrice(vars.currentAssetAddress);
 
       if (currentAssetData.liquidationThreshold != 0) {
-        vars.userBalanceInBaseCurrency = _getUserBalanceInBaseCurrency(
-          userAccount,
-          currentAssetData,
-          vars.assetPrice,
-          vars.assetUnit
-        );
+        if (currentAssetData.assetType == Constants.ASSET_TYPE_ERC20) {
+          vars.userBalanceInBaseCurrency = _getUserERC20BalanceInBaseCurrency(
+            userAccount,
+            currentAssetData,
+            vars.assetPrice
+          );
+        } else if (currentAssetData.assetType == Constants.ASSET_TYPE_ERC721) {
+          vars.userBalanceInBaseCurrency = _getUserERC721BalanceInBaseCurrency(
+            userAccount,
+            currentAssetData,
+            vars.assetPrice
+          );
+        } else {
+          revert(Errors.INVALID_ASSET_TYPE);
+        }
+        console.log('userBalanceInBaseCurrency', vars.userBalanceInBaseCurrency);
 
         result.totalCollateralInBaseCurrency += vars.userBalanceInBaseCurrency;
 
@@ -86,6 +99,7 @@ library GenericLogic {
 
     // calculate the sum of all the debt balance denominated in the base currency
     vars.userBorrowedAssets = VaultLogic.accountGetBorrowedAssets(accountData);
+    console.log('userBorrowedAssets', vars.userBorrowedAssets.length);
     for (vars.assetIndex = 0; vars.assetIndex < vars.userBorrowedAssets.length; vars.assetIndex++) {
       vars.currentAssetAddress = vars.userBorrowedAssets[vars.assetIndex];
       if (vars.currentAssetAddress == address(0)) {
@@ -93,8 +107,8 @@ library GenericLogic {
       }
 
       DataTypes.AssetData storage currentAssetData = poolData.assetLookup[vars.currentAssetAddress];
+      require(currentAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
-      vars.assetUnit = 10 ** currentAssetData.underlyingDecimals;
       vars.assetPrice = IPriceOracleGetter(oracle).getAssetPrice(vars.currentAssetAddress);
 
       // same debt can be borrowed in different groups by different collaterals
@@ -104,13 +118,15 @@ library GenericLogic {
         vars.currentGroupId = currentAssetData.groupList[vars.groupIndex];
         DataTypes.GroupData storage currentGroupData = currentAssetData.groupLookup[vars.currentGroupId];
 
-        vars.userDebtInBaseCurrency += _getUserDebtInBaseCurrency(
+        vars.userDebtInBaseCurrency = _getUserERC20DebtInBaseCurrency(
           userAccount,
+          currentAssetData,
           currentGroupData,
-          vars.assetPrice,
-          vars.assetUnit
+          vars.assetPrice
         );
       }
+
+      console.log('userDebtInBaseCurrency', vars.userDebtInBaseCurrency);
 
       result.totalDebtInBaseCurrency += vars.userDebtInBaseCurrency;
       if (vars.userDebtInBaseCurrency > result.highestDebtInBaseCurrency) {
@@ -133,6 +149,12 @@ library GenericLogic {
       : (result.totalCollateralInBaseCurrency.percentMul(result.avgLiquidationThreshold)).wadDiv(
         result.totalDebtInBaseCurrency
       );
+
+    console.log('totalCollateralInBaseCurrency', result.totalCollateralInBaseCurrency);
+    console.log('totalDebtInBaseCurrency', result.totalDebtInBaseCurrency);
+    console.log('avgLtv', result.avgLtv);
+    console.log('avgLiquidationThreshold', result.avgLiquidationThreshold);
+    console.log('healthFactor', result.healthFactor);
   }
 
   /**
@@ -159,11 +181,11 @@ library GenericLogic {
   /**
    * @notice Calculates total debt of the user in the based currency used to normalize the values of the assets
    */
-  function _getUserDebtInBaseCurrency(
+  function _getUserERC20DebtInBaseCurrency(
     address userAccount,
+    DataTypes.AssetData storage assetData,
     DataTypes.GroupData storage groupData,
-    uint256 assetPrice,
-    uint256 assetUnit
+    uint256 assetPrice
   ) private view returns (uint256) {
     // fetching variable debt
     uint256 userTotalDebt = groupData.userCrossBorrowed[userAccount];
@@ -173,18 +195,17 @@ library GenericLogic {
       userTotalDebt = assetPrice * userTotalDebt;
     }
 
-    return userTotalDebt / assetUnit;
+    return userTotalDebt / (10 ** assetData.underlyingDecimals);
   }
 
   /**
    * @notice Calculates total aToken balance of the user in the based currency used by the price oracle
    * @return The total aToken balance of the user normalized to the base currency of the price oracle
    */
-  function _getUserBalanceInBaseCurrency(
+  function _getUserERC20BalanceInBaseCurrency(
     address userAccount,
     DataTypes.AssetData storage assetData,
-    uint256 assetPrice,
-    uint256 assetUnit
+    uint256 assetPrice
   ) private view returns (uint256) {
     uint256 userTotalBalance = assetData.userCrossSupplied[userAccount];
     if (userTotalBalance != 0) {
@@ -193,6 +214,19 @@ library GenericLogic {
       userTotalBalance = assetPrice * userTotalBalance;
     }
 
-    return userTotalBalance / assetUnit;
+    return userTotalBalance / (10 ** assetData.underlyingDecimals);
+  }
+
+  function _getUserERC721BalanceInBaseCurrency(
+    address userAccount,
+    DataTypes.AssetData storage assetData,
+    uint256 assetPrice
+  ) private view returns (uint256) {
+    uint256 userTotalBalance = assetData.userCrossSupplied[userAccount];
+    if (userTotalBalance != 0) {
+      userTotalBalance = assetPrice * userTotalBalance;
+    }
+
+    return userTotalBalance;
   }
 }

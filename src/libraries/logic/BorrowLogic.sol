@@ -12,6 +12,7 @@ import {StorageSlot} from './StorageSlot.sol';
 import {VaultLogic} from './VaultLogic.sol';
 import {InterestLogic} from './InterestLogic.sol';
 import {RiskManagerLogic} from './RiskManagerLogic.sol';
+import {ValidateLogic} from './ValidateLogic.sol';
 
 library BorrowLogic {
   function executeBorrowERC20(InputTypes.ExecuteBorrowERC20Params memory params) public {
@@ -19,9 +20,9 @@ library BorrowLogic {
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
-    DataTypes.GroupData storage groupData = assetData.groupLookup[assetData.riskGroupId];
+    DataTypes.GroupData storage groupData = assetData.groupLookup[params.group];
 
-    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_NOT_EXISTS);
+    ValidateLogic.validateBorrowERC20(params, poolData, assetData, groupData);
 
     InterestLogic.updateInterestIndexs(assetData, groupData);
 
@@ -46,7 +47,7 @@ library BorrowLogic {
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
-    DataTypes.GroupData storage groupData = assetData.groupLookup[assetData.riskGroupId];
+    DataTypes.GroupData storage groupData = assetData.groupLookup[params.group];
 
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_NOT_EXISTS);
 

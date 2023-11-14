@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {IERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
+import {IERC20MetadataUpgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/extensions/IERC20MetadataUpgradeable.sol';
 import {SafeCastUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol';
 
 import {IInterestRateModel} from '../../interfaces/IInterestRateModel.sol';
@@ -39,6 +40,7 @@ library ConfigureLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     poolData.poolId = poolId;
     poolData.governanceAdmin = msg.sender;
+    poolData.nextGroupId = 1;
 
     emit Events.CreatePool(poolId);
   }
@@ -56,7 +58,42 @@ library ConfigureLogic {
     emit Events.DeletePool(poolId);
   }
 
-  function executeAddAssetERC20(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public {
+  function executeAddPoolGroup(uint32 poolId) public returns (uint8 groupId) {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    _validateOwnerAndPool(poolData);
+
+    require(poolData.groupList.length <= Constants.MAX_NUMBER_OF_GROUP, Errors.GROUP_NUMBER_EXCEED_MAX_LIMIT);
+
+    groupId = poolData.nextGroupId;
+    poolData.nextGroupId++;
+
+    poolData.enabledGroups[groupId] = true;
+    poolData.groupList.push(groupId);
+
+    emit Events.AddPoolGroup(poolId, groupId);
+  }
+
+  function executeRemovePoolGroup(uint32 poolId, uint8 groupId) public {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    _validateOwnerAndPool(poolData);
+
+    require(poolData.enabledGroups[groupId] == true, Errors.GROUP_NOT_EXISTS);
+
+    // check all assets not belong to this group
+    for (uint256 i = 0; i < poolData.assetList.length; i++) {
+      require(poolData.assetLookup[poolData.assetList[i]].riskGroupId != groupId, Errors.GROUP_HAS_ASSET);
+    }
+
+    poolData.enabledGroups[groupId] = false;
+
+    emit Events.RemovePoolGroup(poolId, groupId);
+  }
+
+  function executeAddAssetERC20(uint32 poolId, address underlyingAsset) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
@@ -68,8 +105,7 @@ library ConfigureLogic {
     require(poolData.assetList.length <= Constants.MAX_NUMBER_OF_ASSET, Errors.ASSET_NUMBER_EXCEED_MAX_LIMIT);
 
     assetData.assetType = uint8(Constants.ASSET_TYPE_ERC20);
-    assetData.riskGroupId = riskGroupId;
-    assetData.nextGroupId = 1;
+    assetData.underlyingDecimals = IERC20MetadataUpgradeable(underlyingAsset).decimals();
 
     InterestLogic.initAssetData(assetData);
 
@@ -91,7 +127,7 @@ library ConfigureLogic {
     emit Events.RemoveAsset(poolId, underlyingAsset, uint8(Constants.ASSET_TYPE_ERC20));
   }
 
-  function executeAddAssetERC721(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public {
+  function executeAddAssetERC721(uint32 poolId, address underlyingAsset) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
@@ -103,8 +139,6 @@ library ConfigureLogic {
     require(assetData.assetType == 0, Errors.ASSET_ALREADY_EXISTS);
 
     assetData.assetType = uint8(Constants.ASSET_TYPE_ERC721);
-    assetData.riskGroupId = riskGroupId;
-    assetData.nextGroupId = 1;
 
     poolData.assetList.push(underlyingAsset);
 
@@ -150,19 +184,18 @@ library ConfigureLogic {
     poolData.assetList.pop();
   }
 
-  function executeAddGroup(uint32 poolId, address underlyingAsset, address rateModel_) public returns (uint8 groupId) {
+  function executeAddAssetGroup(uint32 poolId, address underlyingAsset, uint8 groupId, address rateModel_) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
 
+    require(poolData.enabledGroups[groupId] == true, Errors.GROUP_NOT_EXISTS);
+
     DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
     // only erc20 asset can be borrowed
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.INVALID_ASSET_TYPE);
     require(assetData.groupList.length <= Constants.MAX_NUMBER_OF_GROUP, Errors.GROUP_NUMBER_EXCEED_MAX_LIMIT);
-
-    groupId = assetData.nextGroupId;
-    assetData.nextGroupId += 1;
 
     DataTypes.GroupData storage group = assetData.groupLookup[groupId];
     group.interestRateModelAddress = rateModel_;
@@ -171,10 +204,10 @@ library ConfigureLogic {
 
     assetData.groupList.push(groupId);
 
-    emit Events.AddGroup(poolId, underlyingAsset, groupId);
+    emit Events.AddAssetGroup(poolId, underlyingAsset, groupId);
   }
 
-  function executeRemoveGroup(uint32 poolId, address underlyingAsset, uint8 groupId) public {
+  function executeRemoveAssetGroup(uint32 poolId, address underlyingAsset, uint8 groupId) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
@@ -202,7 +235,7 @@ library ConfigureLogic {
     assetData.groupList[groupLength - 1] = 0;
     assetData.groupList.pop();
 
-    emit Events.RemoveGroup(poolId, underlyingAsset, groupId);
+    emit Events.RemoveAssetGroup(poolId, underlyingAsset, groupId);
   }
 
   function executeSetAssetRiskGroup(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public {
@@ -217,7 +250,57 @@ library ConfigureLogic {
     assetData.riskGroupId = riskGroupId;
   }
 
-  function executeSetGroupInterestRateModel(
+  function executeSetAssetCollateralParams(
+    uint32 poolId,
+    address underlyingAsset,
+    uint16 collateralFactor,
+    uint16 liquidationThreshold,
+    uint16 liquidationBonus
+  ) public {
+    require(collateralFactor <= Constants.MAX_COLLATERAL_FACTOR, Errors.INVALID_ASSET_PARAMS);
+    require(liquidationThreshold <= Constants.MAX_LIQUIDATION_THRESHOLD, Errors.INVALID_ASSET_PARAMS);
+    require(liquidationBonus <= Constants.MAX_LIQUIDATION_BONUS, Errors.INVALID_ASSET_PARAMS);
+
+    require(collateralFactor <= liquidationThreshold, Errors.INVALID_ASSET_PARAMS);
+
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    _validateOwnerAndPool(poolData);
+
+    DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
+    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+
+    assetData.collateralFactor = collateralFactor;
+    assetData.liquidationThreshold = liquidationThreshold;
+    assetData.liquidationBonus = liquidationBonus;
+
+    emit Events.SetAssetCollateralParams(
+      poolId,
+      underlyingAsset,
+      collateralFactor,
+      liquidationThreshold,
+      liquidationBonus
+    );
+  }
+
+  function executeSetAssetProtocolFee(uint32 poolId, address underlyingAsset, uint16 feeFactor) public {
+    require(feeFactor <= Constants.MAX_FEE_FACTOR, Errors.INVALID_ASSET_PARAMS);
+
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    _validateOwnerAndPool(poolData);
+
+    DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
+    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+
+    assetData.feeFactor = feeFactor;
+
+    emit Events.SetAssetProtocolFee(poolId, underlyingAsset, feeFactor);
+  }
+
+  function executeSetAssetInterestRateModel(
     uint32 poolId,
     address underlyingAsset,
     uint8 groupId,

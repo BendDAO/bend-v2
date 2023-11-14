@@ -37,6 +37,7 @@ library InputTypes {
   struct ExecuteBorrowERC20Params {
     uint32 poolId;
     address asset;
+    uint8 group;
     uint256 amount;
     address to;
   }
@@ -44,6 +45,7 @@ library InputTypes {
   struct ExecuteRepayERC20Params {
     uint32 poolId;
     address asset;
+    uint8 group;
     uint256 amount;
   }
 
