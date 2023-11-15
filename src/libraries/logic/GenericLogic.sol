@@ -27,6 +27,32 @@ library GenericLogic {
   using WadRayMath for uint256;
   using PercentageMath for uint256;
 
+  function calculateUserAccountDataForHeathFactor(
+    DataTypes.PoolData storage poolData,
+    address userAccount,
+    address oracle
+  ) internal view returns (ResultTypes.UserAccountResult memory result) {
+    result = calculateUserAccountData(poolData, userAccount, address(0), 0, oracle);
+  }
+
+  function calculateUserAccountDataForBorrow(
+    DataTypes.PoolData storage poolData,
+    address userAccount,
+    uint8 debtGroup,
+    address oracle
+  ) internal view returns (ResultTypes.UserAccountResult memory result) {
+    result = calculateUserAccountData(poolData, userAccount, address(0), debtGroup, oracle);
+  }
+
+  function calculateUserAccountDataForLiquidate(
+    DataTypes.PoolData storage poolData,
+    address userAccount,
+    address liquidateCollateral,
+    address oracle
+  ) internal view returns (ResultTypes.UserAccountResult memory result) {
+    result = calculateUserAccountData(poolData, userAccount, liquidateCollateral, 0, oracle);
+  }
+
   struct CalculateUserAccountDataVars {
     address[] userSuppliedAssets;
     address[] userBorrowedAssets;
@@ -37,7 +63,8 @@ library GenericLogic {
     uint8 currentGroupId;
     uint256 assetPrice;
     uint256 userBalanceInBaseCurrency;
-    uint256 userDebtInBaseCurrency;
+    uint256 userAssetDebtInBaseCurrency;
+    uint256 userGroupDebtInBaseCurrency;
   }
 
   /**
@@ -49,6 +76,7 @@ library GenericLogic {
     DataTypes.PoolData storage poolData,
     address userAccount,
     address collateralAsset,
+    uint8 group,
     address oracle
   ) internal view returns (ResultTypes.UserAccountResult memory result) {
     CalculateUserAccountDataVars memory vars;
@@ -92,13 +120,25 @@ library GenericLogic {
           result.inputCollateralInBaseCurrency += vars.userBalanceInBaseCurrency;
         }
 
+        if (currentAssetData.riskGroupId == group) {
+          result.groupCollateralInBaseCurrency += vars.userBalanceInBaseCurrency;
+        }
+
         if (currentAssetData.collateralFactor != 0) {
           result.avgLtv += vars.userBalanceInBaseCurrency * currentAssetData.collateralFactor;
+
+          if (currentAssetData.riskGroupId == group) {
+            result.groupAvgLtv += vars.userBalanceInBaseCurrency * currentAssetData.collateralFactor;
+          }
         } else {
           result.hasZeroLtvCollateral = true;
         }
 
         result.avgLiquidationThreshold += vars.userBalanceInBaseCurrency * currentAssetData.liquidationThreshold;
+
+        if (currentAssetData.riskGroupId == group) {
+          result.groupAvgLiquidationThreshold += vars.userBalanceInBaseCurrency * currentAssetData.liquidationThreshold;
+        }
       }
     }
 
@@ -118,35 +158,49 @@ library GenericLogic {
 
       // same debt can be borrowed in different groups by different collaterals
       // e.g. BAYC borrow ETH in group 1, MAYC borrow ETH in group 2
-      vars.userDebtInBaseCurrency = 0;
+      vars.userAssetDebtInBaseCurrency = 0;
       vars.assetGroupIds = currentAssetData.groupList.values();
       for (vars.groupIndex = 0; vars.groupIndex < vars.assetGroupIds.length; vars.groupIndex++) {
         vars.currentGroupId = uint8(vars.assetGroupIds[vars.groupIndex]);
         DataTypes.GroupData storage currentGroupData = currentAssetData.groupLookup[vars.currentGroupId];
 
-        vars.userDebtInBaseCurrency += _getUserERC20DebtInBaseCurrency(
+        vars.userGroupDebtInBaseCurrency = _getUserERC20DebtInBaseCurrency(
           userAccount,
           currentAssetData,
           currentGroupData,
           vars.assetPrice
         );
+
+        vars.userAssetDebtInBaseCurrency += vars.userGroupDebtInBaseCurrency;
+
+        if (currentAssetData.riskGroupId == group) {
+          result.groupDebtInBaseCurrency += vars.userGroupDebtInBaseCurrency;
+        }
       }
 
-      console.log('userDebtInBaseCurrency', vars.userDebtInBaseCurrency);
+      console.log('userAssetDebtInBaseCurrency', vars.userAssetDebtInBaseCurrency);
 
-      result.totalDebtInBaseCurrency += vars.userDebtInBaseCurrency;
-      if (vars.userDebtInBaseCurrency > result.highestDebtInBaseCurrency) {
-        result.highestDebtInBaseCurrency = vars.userDebtInBaseCurrency;
+      result.totalDebtInBaseCurrency += vars.userAssetDebtInBaseCurrency;
+      if (vars.userAssetDebtInBaseCurrency > result.highestDebtInBaseCurrency) {
+        result.highestDebtInBaseCurrency = vars.userAssetDebtInBaseCurrency;
         result.highestDebtAsset = vars.currentAssetAddress;
       }
     }
 
-    // calculate the average LTV and Liquidation threshold
+    // calculate the average LTV and Liquidation threshold based on the account
     result.avgLtv = result.totalCollateralInBaseCurrency != 0
       ? result.avgLtv / result.totalCollateralInBaseCurrency
       : 0;
     result.avgLiquidationThreshold = result.totalCollateralInBaseCurrency != 0
       ? result.avgLiquidationThreshold / result.totalCollateralInBaseCurrency
+      : 0;
+
+    // calculate the average LTV and Liquidation threshold based on the group
+    result.groupAvgLtv = result.groupCollateralInBaseCurrency != 0
+      ? result.groupAvgLtv / result.groupCollateralInBaseCurrency
+      : 0;
+    result.groupAvgLiquidationThreshold = result.groupCollateralInBaseCurrency != 0
+      ? result.groupAvgLiquidationThreshold / result.groupCollateralInBaseCurrency
       : 0;
 
     // calculate the health factor
@@ -158,8 +212,12 @@ library GenericLogic {
 
     console.log('totalCollateralInBaseCurrency', result.totalCollateralInBaseCurrency);
     console.log('totalDebtInBaseCurrency', result.totalDebtInBaseCurrency);
+    console.log('groupCollateralInBaseCurrency', result.groupCollateralInBaseCurrency);
+    console.log('groupDebtInBaseCurrency', result.groupDebtInBaseCurrency);
     console.log('avgLtv', result.avgLtv);
     console.log('avgLiquidationThreshold', result.avgLiquidationThreshold);
+    console.log('groupAvgLtv', result.groupAvgLtv);
+    console.log('groupAvgLiquidationThreshold', result.groupAvgLiquidationThreshold);
     console.log('healthFactor', result.healthFactor);
   }
 

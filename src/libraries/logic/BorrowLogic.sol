@@ -11,18 +11,18 @@ import {StorageSlot} from './StorageSlot.sol';
 
 import {VaultLogic} from './VaultLogic.sol';
 import {InterestLogic} from './InterestLogic.sol';
-import {RiskManagerLogic} from './RiskManagerLogic.sol';
 import {ValidateLogic} from './ValidateLogic.sol';
 
 library BorrowLogic {
   function executeBorrowERC20(InputTypes.ExecuteBorrowERC20Params memory params) public {
+    DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[params.group];
 
-    ValidateLogic.validateBorrowERC20(params, poolData, assetData, groupData);
+    ValidateLogic.validateBorrowERC20(params, poolData, assetData, groupData, msg.sender, cs.priceOracle);
 
     InterestLogic.updateInterestIndexs(assetData, groupData);
 
@@ -34,10 +34,6 @@ library BorrowLogic {
     VaultLogic.erc20TransferOut(params.asset, params.to, params.amount);
 
     InterestLogic.updateInterestRates(params.asset, assetData, 0, params.amount);
-
-    // TODO: check if the user has enough collateral to cover debt
-    DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
-    RiskManagerLogic.checkHealthFactor(poolData, msg.sender, cs.priceOracle);
 
     emit Events.BorrowERC20(msg.sender, params.poolId, params.asset, params.amount);
   }

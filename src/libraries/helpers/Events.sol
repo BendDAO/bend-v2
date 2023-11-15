@@ -13,15 +13,6 @@ library Events {
 
   event AddAsset(uint32 indexed poolId, address indexed underlyingAsset, uint8 assetType);
   event RemoveAsset(uint32 indexed poolId, address indexed underlyingAsset, uint8 assetType);
-  event SetAssetGroup(uint32 indexed poolId, address indexed underlyingAsset, uint8 groupId);
-  event SetAssetCollateralParams(
-    uint32 poolId,
-    address underlyingAsset,
-    uint16 collateralFactor,
-    uint16 liquidationThreshold,
-    uint16 liquidationBonus
-  );
-  event SetAssetProtocolFee(uint32 poolId, address underlyingAsset, uint16 feeFactor);
 
   event AddAssetGroup(uint32 indexed poolId, address indexed underlyingAsset, uint8 groupId);
   event RemoveAssetGroup(uint32 indexed poolId, address indexed underlyingAsset, uint8 groupId);
@@ -31,6 +22,20 @@ library Events {
     uint8 groupId,
     address rateModel
   );
+
+  event SetAssetActive(uint32 poolId, address underlyingAsset, bool isActive);
+  event SetAssetFrozen(uint32 poolId, address underlyingAsset, bool isFrozen);
+  event SetAssetPause(uint32 poolId, address underlyingAsset, bool isPause);
+  event SetAssetBorrowing(uint32 poolId, address underlyingAsset, bool isEnable);
+  event SetAssetGroup(uint32 indexed poolId, address indexed underlyingAsset, uint8 groupId);
+  event SetAssetCollateralParams(
+    uint32 poolId,
+    address underlyingAsset,
+    uint16 collateralFactor,
+    uint16 liquidationThreshold,
+    uint16 liquidationBonus
+  );
+  event SetAssetProtocolFee(uint32 poolId, address underlyingAsset, uint16 feeFactor);
 
   event AssetInterestSupplyDataUpdated(address indexed asset, uint256 supplyRate, uint256 supplyIndex);
   event AssetInterestBorrowDataUpdated(address indexed asset, uint256 groupId, uint256 borrowRate, uint256 borrowIndex);

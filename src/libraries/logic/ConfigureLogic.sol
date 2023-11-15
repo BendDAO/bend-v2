@@ -225,6 +225,67 @@ library ConfigureLogic {
     emit Events.RemoveAssetGroup(poolId, underlyingAsset, groupId);
   }
 
+  /****************************************************************************/
+  /* Asset Parameters Configuration */
+  /****************************************************************************/
+
+  function executeSetAssetActive(uint32 poolId, address underlyingAsset, bool isActive) public {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    _validateOwnerAndPool(poolData);
+
+    DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
+    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+
+    assetData.isActive = isActive;
+
+    emit Events.SetAssetActive(poolId, underlyingAsset, isActive);
+  }
+
+  function executeSetAssetFrozen(uint32 poolId, address underlyingAsset, bool isFrozen) public {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    _validateOwnerAndPool(poolData);
+
+    DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
+    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+
+    assetData.isFrozen = isFrozen;
+
+    emit Events.SetAssetFrozen(poolId, underlyingAsset, isFrozen);
+  }
+
+  function executeSetAssetPause(uint32 poolId, address underlyingAsset, bool isPause) public {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    _validateOwnerAndPool(poolData);
+
+    DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
+    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+
+    assetData.isPaused = isPause;
+
+    emit Events.SetAssetPause(poolId, underlyingAsset, isPause);
+  }
+
+  function executeSetAssetBorrowing(uint32 poolId, address underlyingAsset, bool isEnable) public {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    _validateOwnerAndPool(poolData);
+
+    DataTypes.AssetData storage assetData = poolData.assetLookup[underlyingAsset];
+    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+
+    assetData.isBorrowingEnabled = isEnable;
+
+    emit Events.SetAssetBorrowing(poolId, underlyingAsset, isEnable);
+  }
+
   function executeSetAssetRiskGroup(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 

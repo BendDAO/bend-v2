@@ -92,6 +92,22 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     return ConfigureLogic.executeRemoveAssetGroup(poolId, underlyingAsset, groupId);
   }
 
+  function setAssetActive(uint32 poolId, address underlyingAsset, bool isActive) public nonReentrant {
+    return ConfigureLogic.executeSetAssetActive(poolId, underlyingAsset, isActive);
+  }
+
+  function setAssetFrozen(uint32 poolId, address underlyingAsset, bool isFrozen) public nonReentrant {
+    return ConfigureLogic.executeSetAssetFrozen(poolId, underlyingAsset, isFrozen);
+  }
+
+  function setAssetPause(uint32 poolId, address underlyingAsset, bool isPause) public nonReentrant {
+    return ConfigureLogic.executeSetAssetPause(poolId, underlyingAsset, isPause);
+  }
+
+  function setAssetBorrowing(uint32 poolId, address underlyingAsset, bool isEnable) public nonReentrant {
+    return ConfigureLogic.executeSetAssetBorrowing(poolId, underlyingAsset, isEnable);
+  }
+
   function setAssetRiskGroup(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public nonReentrant {
     return ConfigureLogic.executeSetAssetRiskGroup(poolId, underlyingAsset, riskGroupId);
   }
@@ -282,10 +298,9 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
 
-    ResultTypes.UserAccountResult memory result = GenericLogic.calculateUserAccountData(
+    ResultTypes.UserAccountResult memory result = GenericLogic.calculateUserAccountDataForHeathFactor(
       poolData,
       user,
-      address(0),
       cs.priceOracle
     );
 

@@ -11,7 +11,7 @@ import {StorageSlot} from './StorageSlot.sol';
 
 import {VaultLogic} from './VaultLogic.sol';
 import {InterestLogic} from './InterestLogic.sol';
-import {RiskManagerLogic} from './RiskManagerLogic.sol';
+import {ValidateLogic} from './ValidateLogic.sol';
 
 library SupplyLogic {
   function executeDepositERC20(InputTypes.ExecuteDepositERC20Params memory params) external {
@@ -21,7 +21,8 @@ library SupplyLogic {
     require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
-    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_NOT_EXISTS);
+
+    ValidateLogic.validateDepositERC20(params, poolData, assetData, msg.sender);
 
     InterestLogic.updateInterestSupplyIndex(assetData);
 
@@ -45,7 +46,7 @@ library SupplyLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
 
-    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_NOT_EXISTS);
+    ValidateLogic.validateWithdrawERC20(params, poolData, assetData, msg.sender);
 
     InterestLogic.updateInterestSupplyIndex(assetData);
 
@@ -61,7 +62,7 @@ library SupplyLogic {
 
     InterestLogic.updateInterestRates(params.asset, assetData, 0, params.amount);
 
-    RiskManagerLogic.checkHealthFactor(poolData, msg.sender, cs.priceOracle);
+    ValidateLogic.validateHealthFactor(poolData, msg.sender, cs.priceOracle);
 
     emit Events.WithdrawERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
@@ -69,31 +70,32 @@ library SupplyLogic {
   function executeDepositERC721(InputTypes.ExecuteDepositERC721Params memory params) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
-    DataTypes.PoolData storage pool = ps.poolLookup[params.poolId];
-    DataTypes.AssetData storage assetStorage = pool.assetLookup[params.asset];
-    require(assetStorage.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_NOT_EXISTS);
+    DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
+    DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
+
+    ValidateLogic.validateDepositERC721(params, poolData, assetData, msg.sender);
 
     VaultLogic.erc721TransferIn(params.asset, msg.sender, params.tokenIds);
 
     for (uint256 i = 0; i < params.tokenIds.length; i++) {
-      DataTypes.ERC721TokenData storage tokenData = assetStorage.erc721TokenData[params.tokenIds[i]];
+      DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[params.tokenIds[i]];
       tokenData.owner = msg.sender;
       tokenData.supplyMode = uint8(params.supplyMode);
     }
 
     if (params.supplyMode == Constants.SUPPLY_MODE_CROSS) {
-      bool isFirstSupply = (assetStorage.userCrossSupplied[msg.sender] == 0);
+      bool isFirstSupply = (assetData.userCrossSupplied[msg.sender] == 0);
 
-      assetStorage.totalCrossSupplied += params.tokenIds.length;
-      assetStorage.userCrossSupplied[msg.sender] += params.tokenIds.length;
+      assetData.totalCrossSupplied += params.tokenIds.length;
+      assetData.userCrossSupplied[msg.sender] += params.tokenIds.length;
 
       if (isFirstSupply) {
-        DataTypes.AccountData storage accountData = pool.accountLookup[msg.sender];
+        DataTypes.AccountData storage accountData = poolData.accountLookup[msg.sender];
         VaultLogic.accountSetSuppliedAsset(accountData, params.asset, true);
       }
     } else if (params.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
-      assetStorage.totalIsolateSupplied += params.tokenIds.length;
-      assetStorage.userIsolateSupplied[msg.sender] += params.tokenIds.length;
+      assetData.totalIsolateSupplied += params.tokenIds.length;
+      assetData.userIsolateSupplied[msg.sender] += params.tokenIds.length;
     } else {
       revert(Errors.INVALID_SUPPLY_MODE);
     }
@@ -102,26 +104,28 @@ library SupplyLogic {
   }
 
   function executeWithdrawERC721(InputTypes.ExecuteWithdrawERC721Params memory params) public {
+    DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
-    DataTypes.AssetData storage assetStorage = poolData.assetLookup[params.asset];
-    require(assetStorage.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_NOT_EXISTS);
+    DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
+
+    ValidateLogic.validateWithdrawERC721(params, poolData, assetData, msg.sender);
 
     bool isCrossWithdraw = false;
 
     for (uint256 i = 0; i < params.tokenIds.length; i++) {
-      DataTypes.ERC721TokenData storage tokenData = assetStorage.erc721TokenData[params.tokenIds[i]];
+      DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[params.tokenIds[i]];
       require(tokenData.owner == msg.sender, Errors.INVALID_CALLER);
 
       if (tokenData.supplyMode == Constants.SUPPLY_MODE_CROSS) {
         isCrossWithdraw = true;
 
-        assetStorage.totalCrossSupplied -= params.tokenIds.length;
-        assetStorage.userCrossSupplied[msg.sender] -= params.tokenIds.length;
+        assetData.totalCrossSupplied -= params.tokenIds.length;
+        assetData.userCrossSupplied[msg.sender] -= params.tokenIds.length;
       } else if (tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
-        assetStorage.totalIsolateSupplied -= params.tokenIds.length;
-        assetStorage.userIsolateSupplied[msg.sender] -= params.tokenIds.length;
+        assetData.totalIsolateSupplied -= params.tokenIds.length;
+        assetData.userIsolateSupplied[msg.sender] -= params.tokenIds.length;
 
         // TODO: check if the nft has debt in isolate mode
       }
@@ -131,15 +135,14 @@ library SupplyLogic {
     }
 
     if (isCrossWithdraw) {
-      bool isFullWithdraw = (assetStorage.userCrossSupplied[msg.sender] == 0);
+      bool isFullWithdraw = (assetData.userCrossSupplied[msg.sender] == 0);
       if (isFullWithdraw) {
         DataTypes.AccountData storage accountData = poolData.accountLookup[msg.sender];
         VaultLogic.accountSetSuppliedAsset(accountData, params.asset, false);
       }
 
       // TODO: check if the user has enough collateral to cover debt
-      DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
-      RiskManagerLogic.checkHealthFactor(poolData, msg.sender, cs.priceOracle);
+      ValidateLogic.validateHealthFactor(poolData, msg.sender, cs.priceOracle);
     }
 
     VaultLogic.erc721TransferOut(params.asset, params.to, params.tokenIds);

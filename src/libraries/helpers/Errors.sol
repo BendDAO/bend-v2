@@ -17,6 +17,7 @@ library Errors {
   string public constant INVALID_ASSET_DECIMALS = '111';
   string public constant INVALID_IRM_ADDRESS = '112';
   string public constant INVALID_CALLER = '113';
+  string public constant INVALID_ID_LIST = '114';
 
   string public constant ENUM_SET_ADD_FAILED = '150';
   string public constant ENUM_SET_REMOVE_FAILED = '151';
@@ -45,6 +46,10 @@ library Errors {
   string public constant ASSET_PRICE_IS_ZERO = '345';
   string public constant ASSET_TYPE_NOT_ERC20 = '346';
   string public constant ASSET_TYPE_NOT_ERC721 = '347';
+  string public constant ASSET_NOT_ACTIVE = '348';
+  string public constant ASSET_IS_PAUSED = '349';
+  string public constant ASSET_IS_FROZEN = '350';
+  string public constant ASSET_IS_BORROW_DISABLED = '351';
 
   string public constant HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD = '400';
   string public constant HEALTH_FACTOR_NOT_BELOW_THRESHOLD = '401';
@@ -52,4 +57,7 @@ library Errors {
   string public constant ISOLATE_SUPPLY_NOT_EMPTY = '403';
   string public constant CROSS_DEBT_NOT_EMPTY = '404';
   string public constant ISOLATE_DEBT_NOT_EMPTY = '405';
+  string public constant COLLATERAL_BALANCE_IS_ZERO = '406';
+  string public constant LTV_VALIDATION_FAILED = '407';
+  string public constant COLLATERAL_CANNOT_COVER_NEW_BORROW = '408';
 }

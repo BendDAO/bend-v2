@@ -74,7 +74,7 @@ library LiquidationLogic {
 
     InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
 
-    ResultTypes.UserAccountResult memory userAccountResult = GenericLogic.calculateUserAccountData(
+    ResultTypes.UserAccountResult memory userAccountResult = GenericLogic.calculateUserAccountDataForLiquidate(
       poolData,
       address(0),
       params.user,
@@ -166,7 +166,7 @@ library LiquidationLogic {
 
     InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
 
-    vars.userAccountResult = GenericLogic.calculateUserAccountData(
+    vars.userAccountResult = GenericLogic.calculateUserAccountDataForLiquidate(
       poolData,
       params.collateralAsset,
       params.user,

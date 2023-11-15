@@ -258,16 +258,22 @@ contract TestSetup is TestUtils {
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsWETH), 8050, 8300, 500);
     tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsWETH), 3000);
     tsPoolManager.setAssetRiskGroup(tsCommonPoolId, address(tsWETH), tsLowRiskGroupId);
+    tsPoolManager.setAssetActive(tsCommonPoolId, address(tsWETH), true);
+    tsPoolManager.setAssetBorrowing(tsCommonPoolId, address(tsWETH), true);
 
     tsPoolManager.addAssetERC20(tsCommonPoolId, address(tsDAI));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsDAI), 7700, 8000, 500);
     tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsDAI), 3000);
     tsPoolManager.setAssetRiskGroup(tsCommonPoolId, address(tsDAI), tsLowRiskGroupId);
+    tsPoolManager.setAssetActive(tsCommonPoolId, address(tsDAI), true);
+    tsPoolManager.setAssetBorrowing(tsCommonPoolId, address(tsDAI), true);
 
     tsPoolManager.addAssetERC20(tsCommonPoolId, address(tsUSDT));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsUSDT), 7400, 7600, 450);
     tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsUSDT), 3000);
     tsPoolManager.setAssetRiskGroup(tsCommonPoolId, address(tsUSDT), tsLowRiskGroupId);
+    tsPoolManager.setAssetActive(tsCommonPoolId, address(tsUSDT), true);
+    tsPoolManager.setAssetBorrowing(tsCommonPoolId, address(tsUSDT), true);
 
     // add interest group to assets
     tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsWETH), tsLowRiskGroupId, address(tsLowRiskIRM));
@@ -283,9 +289,11 @@ contract TestSetup is TestUtils {
     tsPoolManager.addAssetERC721(tsCommonPoolId, address(tsBAYC));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsBAYC), 6000, 8000, 1000);
     tsPoolManager.setAssetRiskGroup(tsCommonPoolId, address(tsBAYC), tsLowRiskGroupId);
+    tsPoolManager.setAssetActive(tsCommonPoolId, address(tsBAYC), true);
 
     tsPoolManager.addAssetERC721(tsCommonPoolId, address(tsMAYC));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsMAYC), 5000, 8000, 1000);
     tsPoolManager.setAssetRiskGroup(tsCommonPoolId, address(tsMAYC), tsHighRiskGroupId);
+    tsPoolManager.setAssetActive(tsCommonPoolId, address(tsMAYC), true);
   }
 }
