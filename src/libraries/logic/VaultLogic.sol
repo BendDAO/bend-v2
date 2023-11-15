@@ -194,6 +194,13 @@ library VaultLogic {
     return assetData.userCrossSupplied[user];
   }
 
+  function erc721GetUserIsolateSupply(
+    DataTypes.AssetData storage assetData,
+    address user
+  ) public view returns (uint256) {
+    return assetData.userIsolateSupplied[user];
+  }
+
   function erc721TransferSupply(
     DataTypes.AssetData storage assetData,
     address from,

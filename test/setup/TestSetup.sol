@@ -21,6 +21,7 @@ import {MockBendNFTOracle} from 'test/mocks/MockBendNFTOracle.sol';
 import {MockChainlinkAggregator} from 'test/mocks/MockChainlinkAggregator.sol';
 
 import {TestUser} from '../helpers/TestUser.sol';
+import {TestData} from '../helpers/TestData.sol';
 import {TestUtils} from './TestUtils.sol';
 
 import 'forge-std/Test.sol';
@@ -56,6 +57,8 @@ contract TestSetup is TestUtils {
   uint8 public tsHighRiskGroupId;
   DefaultInterestRateModel public tsLowRiskIRM;
   DefaultInterestRateModel public tsHighRiskIRM;
+
+  TestData public tsDataHelper;
 
   TestUser public tsDepositor1;
   TestUser public tsDepositor2;
@@ -162,6 +165,8 @@ contract TestSetup is TestUtils {
     oracleAggs[1] = address(tsCLAggregatorDAI);
     oracleAggs[2] = address(tsCLAggregatorUSDT);
     tsPriceOracle.setAssetChainlinkAggregators(oracleAssets, oracleAggs);
+
+    tsDataHelper = new TestData(tsPoolManager);
   }
 
   function initTokens() internal {
