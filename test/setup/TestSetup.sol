@@ -10,7 +10,7 @@ import {WadRayMath} from 'src/libraries/math/WadRayMath.sol';
 
 import {ACLManager} from 'src/ACLManager.sol';
 import {PriceOracle} from 'src/PriceOracle.sol';
-import {DefaultInterestRateModel} from 'src/DefaultInterestRateModel.sol';
+import {DefaultInterestRateModel} from 'src/irm/DefaultInterestRateModel.sol';
 import {PoolManager} from 'src/PoolManager.sol';
 
 import {MockERC20} from 'test/mocks/MockERC20.sol';

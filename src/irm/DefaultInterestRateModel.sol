@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {WadRayMath} from './libraries/math/WadRayMath.sol';
-import {PercentageMath} from './libraries/math/PercentageMath.sol';
-import {InputTypes} from './libraries/types/InputTypes.sol';
-import {Errors} from './libraries/helpers/Errors.sol';
+import {WadRayMath} from '../libraries/math/WadRayMath.sol';
+import {PercentageMath} from '../libraries/math/PercentageMath.sol';
+import {InputTypes} from '../libraries/types/InputTypes.sol';
+import {Errors} from '../libraries/helpers/Errors.sol';
 
-import {IInterestRateModel} from './interfaces/IInterestRateModel.sol';
-import {IDefaultInterestRateModel} from './interfaces/IDefaultInterestRateModel.sol';
+import {IInterestRateModel} from '../interfaces/IInterestRateModel.sol';
+import {IDefaultInterestRateModel} from '../interfaces/IDefaultInterestRateModel.sol';
 
 /**
  * @title DefaultInterestRateModel contract

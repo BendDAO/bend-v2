@@ -20,9 +20,11 @@ contract PriceOracle is IPriceOracle, Initializable {
 
   address public NFT_BASE_CURRENCY;
   uint256 public NFT_BASE_CURRENCY_UNIT;
+
+  // BendDAO Protocol NFT Oracle which used by both v1 and v2
   IBendNFTOracle public bendNFTOracle;
 
-  // Map of asset price sources (asset => chainlink aggregator)
+  // Chainlink Aggregators for ERC20 tokens
   mapping(address => AggregatorV2V3Interface) public assetChainlinkAggregators;
 
   modifier onlyOracleAdmin() {
@@ -39,9 +41,7 @@ contract PriceOracle is IPriceOracle, Initializable {
   }
 
   /**
-   * @dev initialize
    * @dev The ACL admin should be initialized at the addressesProvider beforehand
-   * @param aclManager_ The address of the ACL Manager
    */
   function initialize(
     address aclManager_,
@@ -61,6 +61,7 @@ contract PriceOracle is IPriceOracle, Initializable {
     NFT_BASE_CURRENCY_UNIT = nftBaseCurrencyUnit_;
   }
 
+  /// @notice Set Chainlink aggregators for sssets
   function setAssetChainlinkAggregators(
     address[] calldata assets,
     address[] calldata aggregators
@@ -72,11 +73,13 @@ contract PriceOracle is IPriceOracle, Initializable {
     }
   }
 
+  /// @notice Set the global BendDAO NFT Oracle
   function setBendNFTOracle(address bendNFTOracle_) public onlyOracleAdmin {
     bendNFTOracle = IBendNFTOracle(bendNFTOracle_);
     emit Events.BendNFTOracleUpdated(bendNFTOracle_);
   }
 
+  /// @notice Query the price of asset
   function getAssetPrice(address asset) external view returns (uint256) {
     if (assetChainlinkAggregators[asset] != AggregatorV2V3Interface(address(0))) {
       return getAssetPriceFromChainlink(asset);
@@ -110,7 +113,7 @@ contract PriceOracle is IPriceOracle, Initializable {
       return nftPriceInNftBase;
     }
 
-    // convert nft price to base currency
+    // convert nft price to base currency, e.g. from ETH to USD
     uint256 nftBaseCurrencyPriceInBase = getAssetPriceFromChainlink(NFT_BASE_CURRENCY);
     uint256 nftPriceInBase = (nftPriceInNftBase * nftBaseCurrencyPriceInBase) / NFT_BASE_CURRENCY_UNIT;
     return nftPriceInBase;
