@@ -49,7 +49,7 @@ library BorrowLogic {
 
     ValidateLogic.validateRepayERC20(params, poolData, assetData, groupData);
 
-    uint256 debtAmount = VaultLogic.erc20GetUserBorrow(groupData, msg.sender);
+    uint256 debtAmount = VaultLogic.erc20GetUserBorrowInGroup(groupData, msg.sender);
     if (debtAmount < params.amount) {
       params.amount = debtAmount;
     }

@@ -62,4 +62,5 @@ library Errors {
   string public constant COLLATERAL_BALANCE_IS_ZERO = '406';
   string public constant LTV_VALIDATION_FAILED = '407';
   string public constant COLLATERAL_CANNOT_COVER_NEW_BORROW = '408';
+  string public constant LIQUIDATE_REPAY_DEBT_FAILED = '409';
 }

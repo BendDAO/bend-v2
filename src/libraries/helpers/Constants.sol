@@ -29,4 +29,25 @@ library Constants {
    * A value of 1e18 results in 1
    */
   uint256 public constant HEALTH_FACTOR_LIQUIDATION_THRESHOLD = 1e18;
+
+  /**
+   * @dev Default percentage of borrower's debt to be repaid in a liquidation.
+   * @dev Percentage applied when the users health factor is above `CLOSE_FACTOR_HF_THRESHOLD`
+   * Expressed in bps, a value of 0.5e4 results in 50.00%
+   */
+  uint256 internal constant DEFAULT_LIQUIDATION_CLOSE_FACTOR = 0.5e4;
+
+  /**
+   * @dev Maximum percentage of borrower's debt to be repaid in a liquidation
+   * @dev Percentage applied when the users health factor is below `CLOSE_FACTOR_HF_THRESHOLD`
+   * Expressed in bps, a value of 1e4 results in 100.00%
+   */
+  uint256 public constant MAX_LIQUIDATION_CLOSE_FACTOR = 1e4;
+
+  /**
+   * @dev This constant represents below which health factor value it is possible to liquidate
+   * an amount of debt corresponding to `MAX_LIQUIDATION_CLOSE_FACTOR`.
+   * A value of 0.95e18 results in 0.95
+   */
+  uint256 public constant CLOSE_FACTOR_HF_THRESHOLD = 0.95e18;
 }

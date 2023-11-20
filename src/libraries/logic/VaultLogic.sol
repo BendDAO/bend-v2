@@ -19,6 +19,7 @@ library VaultLogic {
   using SafeERC20Upgradeable for IERC20Upgradeable;
   using WadRayMath for uint256;
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
+  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
 
   // Account methods
   function accountSetBorrowedAsset(DataTypes.AccountData storage accountData, address asset, bool borrowing) internal {
@@ -40,6 +41,21 @@ library VaultLogic {
     DataTypes.AccountData storage accountData
   ) internal view returns (address[] memory) {
     return accountData.borrowedAssets.values();
+  }
+
+  function accountCheckAndSetBorrowedAsset(
+    DataTypes.PoolData storage poolData,
+    DataTypes.AssetData storage assetData,
+    address asset,
+    address account
+  ) internal {
+    DataTypes.AccountData storage accountData = poolData.accountLookup[account];
+    uint256 totalBorrow = erc20GetUserBorrowInAsset(assetData, account);
+    if (totalBorrow == 0) {
+      accountSetBorrowedAsset(accountData, asset, false);
+    } else {
+      accountSetBorrowedAsset(accountData, asset, true);
+    }
   }
 
   function accountSetSuppliedAsset(
@@ -65,6 +81,21 @@ library VaultLogic {
     DataTypes.AccountData storage accountData
   ) internal view returns (address[] memory) {
     return accountData.suppliedAssets.values();
+  }
+
+  function accountCheckAndSetSuppliedAsset(
+    DataTypes.PoolData storage poolData,
+    DataTypes.AssetData storage assetData,
+    address asset,
+    address account
+  ) internal {
+    DataTypes.AccountData storage accountData = poolData.accountLookup[account];
+    uint256 totalSupply = erc20GetUserSupply(assetData, account);
+    if (totalSupply == 0) {
+      accountSetSuppliedAsset(accountData, asset, false);
+    } else {
+      accountSetSuppliedAsset(accountData, asset, true);
+    }
   }
 
   // ERC20 methods
@@ -128,9 +159,29 @@ library VaultLogic {
     return groupData.userCrossBorrowed[account];
   }
 
-  function erc20GetUserBorrow(DataTypes.GroupData storage groupData, address account) internal view returns (uint256) {
+  function erc20GetUserBorrowInGroup(
+    DataTypes.GroupData storage groupData,
+    address account
+  ) internal view returns (uint256) {
     uint256 amountScaled = groupData.userCrossBorrowed[account];
     return amountScaled.rayMul(groupData.borrowIndex);
+  }
+
+  function erc20GetUserBorrowInAsset(
+    DataTypes.AssetData storage assetData,
+    address account
+  ) internal view returns (uint256) {
+    uint256 totalBorrow;
+
+    uint256[] memory groupIds = assetData.groupList.values();
+    for (uint256 i = 0; i < groupIds.length; i++) {
+      DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(groupIds[i])];
+
+      uint256 amountScaled = groupData.userCrossBorrowed[account];
+      totalBorrow += amountScaled.rayMul(groupData.borrowIndex);
+    }
+
+    return totalBorrow;
   }
 
   function erc20IncreaseBorrow(
