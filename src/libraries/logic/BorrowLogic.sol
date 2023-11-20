@@ -22,9 +22,9 @@ library BorrowLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[params.group];
 
-    ValidateLogic.validateBorrowERC20(params, poolData, assetData, groupData, msg.sender, cs.priceOracle);
-
     InterestLogic.updateInterestIndexs(assetData, groupData);
+
+    ValidateLogic.validateBorrowERC20(params, poolData, assetData, groupData, msg.sender, cs.priceOracle);
 
     bool isFirstBorrow = VaultLogic.erc20IncreaseBorrow(groupData, msg.sender, params.amount);
     if (isFirstBorrow) {
@@ -45,9 +45,14 @@ library BorrowLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[params.group];
 
-    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_NOT_EXISTS);
-
     InterestLogic.updateInterestIndexs(assetData, groupData);
+
+    ValidateLogic.validateRepayERC20(params, poolData, assetData, groupData);
+
+    uint256 debtAmount = VaultLogic.erc20GetUserBorrow(groupData, msg.sender);
+    if (debtAmount < params.amount) {
+      params.amount = debtAmount;
+    }
 
     bool isFullRepay = VaultLogic.erc20DecreaseBorrow(groupData, msg.sender, params.amount);
     if (isFullRepay) {

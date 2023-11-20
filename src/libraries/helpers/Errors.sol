@@ -18,6 +18,8 @@ library Errors {
   string public constant INVALID_IRM_ADDRESS = '112';
   string public constant INVALID_CALLER = '113';
   string public constant INVALID_ID_LIST = '114';
+  string public constant INVALID_COLLATERAL_AMOUNT = '115';
+  string public constant INVALID_DEBT_AMOUNT = '116';
 
   string public constant ENUM_SET_ADD_FAILED = '150';
   string public constant ENUM_SET_REMOVE_FAILED = '151';

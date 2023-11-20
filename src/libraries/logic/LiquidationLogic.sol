@@ -21,6 +21,7 @@ import {StorageSlot} from './StorageSlot.sol';
 import {VaultLogic} from './VaultLogic.sol';
 import {InterestLogic} from './InterestLogic.sol';
 import {GenericLogic} from './GenericLogic.sol';
+import {ValidateLogic} from './ValidateLogic.sol';
 
 library LiquidationLogic {
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
@@ -74,6 +75,8 @@ library LiquidationLogic {
 
     InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
 
+    ValidateLogic.validateLiquidateERC20(params, poolData, collateralAssetData, debtAssetData, debtGroupData);
+
     ResultTypes.UserAccountResult memory userAccountResult = GenericLogic.calculateUserAccountDataForLiquidate(
       poolData,
       address(0),
@@ -85,7 +88,6 @@ library LiquidationLogic {
       userAccountResult.healthFactor < Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
       Errors.HEALTH_FACTOR_NOT_BELOW_THRESHOLD
     );
-    require(collateralAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.INVALID_ASSET_TYPE);
 
     (vars.userTotalDebt, vars.actualDebtToLiquidate) = _calculateUserERC20Debt(
       debtGroupData,
@@ -165,6 +167,8 @@ library LiquidationLogic {
     DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[debtAssetData.riskGroupId];
 
     InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
+
+    ValidateLogic.validateLiquidateERC721(params, poolData, collateralAssetData, debtAssetData, debtGroupData);
 
     vars.userAccountResult = GenericLogic.calculateUserAccountDataForLiquidate(
       poolData,

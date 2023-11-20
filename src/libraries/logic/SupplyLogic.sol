@@ -46,11 +46,14 @@ library SupplyLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
 
-    ValidateLogic.validateWithdrawERC20(params, poolData, assetData, msg.sender);
-
     InterestLogic.updateInterestSupplyIndex(assetData);
 
-    // TODO: check if the user has enough collateral to cover debt
+    ValidateLogic.validateWithdrawERC20(params, poolData, assetData, msg.sender);
+
+    uint256 userBalance = VaultLogic.erc20GetUserSupply(assetData, msg.sender);
+    if (userBalance < params.amount) {
+      params.amount = userBalance;
+    }
 
     bool isFullWithdraw = VaultLogic.erc20DecreaseSupply(assetData, msg.sender, params.amount);
     if (isFullWithdraw) {
@@ -110,6 +113,8 @@ library SupplyLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
 
+    InterestLogic.updateInterestSupplyIndex(assetData);
+
     ValidateLogic.validateWithdrawERC721(params, poolData, assetData, msg.sender);
 
     bool isCrossWithdraw = false;
@@ -141,8 +146,9 @@ library SupplyLogic {
         VaultLogic.accountSetSuppliedAsset(accountData, params.asset, false);
       }
 
-      // TODO: check if the user has enough collateral to cover debt
       ValidateLogic.validateHealthFactor(poolData, msg.sender, cs.priceOracle);
+    } else {
+      // TODO: check isolate debt hf
     }
 
     VaultLogic.erc721TransferOut(params.asset, params.to, params.tokenIds);

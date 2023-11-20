@@ -151,6 +151,56 @@ library ValidateLogic {
     );
   }
 
+  function validateRepayERC20(
+    InputTypes.ExecuteRepayERC20Params memory inputParams,
+    DataTypes.PoolData storage poolData,
+    DataTypes.AssetData storage assetData,
+    DataTypes.GroupData storage groupData
+  ) internal view {
+    validatePoolBasic(poolData);
+    validateAssetBasic(assetData);
+    validateGroupBasic(groupData);
+
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+    require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
+  }
+
+  function validateLiquidateERC20(
+    InputTypes.ExecuteLiquidateERC20Params memory inputParams,
+    DataTypes.PoolData storage poolData,
+    DataTypes.AssetData storage collateralAssetData,
+    DataTypes.AssetData storage debtAssetData,
+    DataTypes.GroupData storage debtGroupData
+  ) internal view {
+    validatePoolBasic(poolData);
+    validateAssetBasic(collateralAssetData);
+    validateAssetBasic(debtAssetData);
+    validateGroupBasic(debtGroupData);
+
+    require(collateralAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+    require(debtAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+
+    require(inputParams.debtToCover > 0, Errors.INVALID_DEBT_AMOUNT);
+  }
+
+  function validateLiquidateERC721(
+    InputTypes.ExecuteLiquidateERC721Params memory inputParams,
+    DataTypes.PoolData storage poolData,
+    DataTypes.AssetData storage collateralAssetData,
+    DataTypes.AssetData storage debtAssetData,
+    DataTypes.GroupData storage debtGroupData
+  ) internal view {
+    validatePoolBasic(poolData);
+    validateAssetBasic(collateralAssetData);
+    validateAssetBasic(debtAssetData);
+    validateGroupBasic(debtGroupData);
+
+    require(collateralAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
+    require(debtAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+
+    require(inputParams.collateralTokenIds.length > 0, Errors.INVALID_ID_LIST);
+  }
+
   function validateHealthFactor(
     DataTypes.PoolData storage poolData,
     address userAccount,
