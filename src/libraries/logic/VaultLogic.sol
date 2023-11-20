@@ -21,7 +21,7 @@ library VaultLogic {
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
 
   // Account methods
-  function accountSetBorrowedAsset(DataTypes.AccountData storage accountData, address asset, bool borrowing) public {
+  function accountSetBorrowedAsset(DataTypes.AccountData storage accountData, address asset, bool borrowing) internal {
     if (borrowing) {
       accountData.borrowedAssets.add(asset);
     } else {
@@ -46,7 +46,7 @@ library VaultLogic {
     DataTypes.AccountData storage accountData,
     address asset,
     bool usingAsCollateral
-  ) public {
+  ) internal {
     if (usingAsCollateral) {
       accountData.suppliedAssets.add(asset);
     } else {
@@ -71,11 +71,11 @@ library VaultLogic {
   function erc20GetUserScaledSupply(
     DataTypes.AssetData storage assetData,
     address account
-  ) public view returns (uint256) {
+  ) internal view returns (uint256) {
     return assetData.userCrossSupplied[account];
   }
 
-  function erc20GetUserSupply(DataTypes.AssetData storage assetData, address account) public view returns (uint256) {
+  function erc20GetUserSupply(DataTypes.AssetData storage assetData, address account) internal view returns (uint256) {
     uint256 amountScaled = assetData.userCrossSupplied[account];
     return amountScaled.rayMul(assetData.supplyIndex);
   }
@@ -84,7 +84,7 @@ library VaultLogic {
     DataTypes.AssetData storage assetData,
     address account,
     uint256 amount
-  ) public returns (bool) {
+  ) internal returns (bool) {
     uint256 amountScaled = amount.rayDiv(assetData.supplyIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
@@ -98,7 +98,7 @@ library VaultLogic {
     DataTypes.AssetData storage assetData,
     address account,
     uint256 amount
-  ) public returns (bool) {
+  ) internal returns (bool) {
     uint256 amountScaled = amount.rayDiv(assetData.supplyIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
@@ -108,7 +108,12 @@ library VaultLogic {
     return (assetData.userCrossSupplied[account] == 0); // full withdraw
   }
 
-  function erc20TransferSupply(DataTypes.AssetData storage assetData, address from, address to, uint256 amount) public {
+  function erc20TransferSupply(
+    DataTypes.AssetData storage assetData,
+    address from,
+    address to,
+    uint256 amount
+  ) internal {
     uint256 amountScaled = amount.rayDiv(assetData.supplyIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
@@ -119,11 +124,11 @@ library VaultLogic {
   function erc20GetUserScaledBorrow(
     DataTypes.GroupData storage groupData,
     address account
-  ) public view returns (uint256) {
+  ) internal view returns (uint256) {
     return groupData.userCrossBorrowed[account];
   }
 
-  function erc20GetUserBorrow(DataTypes.GroupData storage groupData, address account) public view returns (uint256) {
+  function erc20GetUserBorrow(DataTypes.GroupData storage groupData, address account) internal view returns (uint256) {
     uint256 amountScaled = groupData.userCrossBorrowed[account];
     return amountScaled.rayMul(groupData.borrowIndex);
   }
@@ -132,7 +137,7 @@ library VaultLogic {
     DataTypes.GroupData storage groupData,
     address account,
     uint256 amount
-  ) public returns (bool) {
+  ) internal returns (bool) {
     uint256 amountScaled = amount.rayDiv(groupData.borrowIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
@@ -146,7 +151,7 @@ library VaultLogic {
     DataTypes.GroupData storage groupData,
     address account,
     uint256 amount
-  ) public returns (bool) {
+  ) internal returns (bool) {
     uint256 amountScaled = amount.rayDiv(groupData.borrowIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
@@ -156,7 +161,7 @@ library VaultLogic {
     return (groupData.userCrossBorrowed[account] == 0); // full repay
   }
 
-  function erc20TransferIn(address underlyingAsset, address from, uint256 amount) public {
+  function erc20TransferIn(address underlyingAsset, address from, uint256 amount) internal {
     uint256 poolSizeBefore = IERC20Upgradeable(underlyingAsset).balanceOf(address(this));
 
     IERC20Upgradeable(underlyingAsset).safeTransferFrom(from, address(this), amount);
@@ -165,7 +170,7 @@ library VaultLogic {
     require(poolSizeAfter == (poolSizeBefore + amount), Errors.INVALID_TRANSFER_AMOUNT);
   }
 
-  function erc20TransferOut(address underlyingAsset, address to, uint amount) public {
+  function erc20TransferOut(address underlyingAsset, address to, uint amount) internal {
     uint256 poolSizeBefore = IERC20Upgradeable(underlyingAsset).balanceOf(address(this));
 
     IERC20Upgradeable(underlyingAsset).safeTransfer(to, amount);
@@ -175,7 +180,19 @@ library VaultLogic {
   }
 
   // ERC721 methods
-  function erc721DecreaseSupply(DataTypes.AssetData storage assetData, address user, uint256[] memory tokenIds) public {
+  function erc721GetTokenOwnerAndMode(
+    DataTypes.AssetData storage assetData,
+    uint256 tokenid
+  ) internal view returns (address, uint8) {
+    DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenid];
+    return (tokenData.owner, tokenData.supplyMode);
+  }
+
+  function erc721DecreaseSupply(
+    DataTypes.AssetData storage assetData,
+    address user,
+    uint256[] memory tokenIds
+  ) internal {
     for (uint256 i = 0; i < tokenIds.length; i++) {
       DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
       if (tokenData.supplyMode == Constants.SUPPLY_MODE_CROSS) {
@@ -190,14 +207,17 @@ library VaultLogic {
     }
   }
 
-  function erc721GetUserCrossSupply(DataTypes.AssetData storage assetData, address user) public view returns (uint256) {
+  function erc721GetUserCrossSupply(
+    DataTypes.AssetData storage assetData,
+    address user
+  ) internal view returns (uint256) {
     return assetData.userCrossSupplied[user];
   }
 
   function erc721GetUserIsolateSupply(
     DataTypes.AssetData storage assetData,
     address user
-  ) public view returns (uint256) {
+  ) internal view returns (uint256) {
     return assetData.userIsolateSupplied[user];
   }
 
@@ -206,7 +226,7 @@ library VaultLogic {
     address from,
     address to,
     uint256[] memory tokenIds
-  ) public {
+  ) internal {
     for (uint256 i = 0; i < tokenIds.length; i++) {
       DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
       tokenData.owner = to;
@@ -222,7 +242,7 @@ library VaultLogic {
     }
   }
 
-  function erc721TransferIn(address underlyingAsset, address from, uint256[] memory tokenIds) public {
+  function erc721TransferIn(address underlyingAsset, address from, uint256[] memory tokenIds) internal {
     uint256 poolSizeBefore = IERC721Upgradeable(underlyingAsset).balanceOf(address(this));
 
     for (uint256 i = 0; i < tokenIds.length; i++) {
@@ -234,7 +254,7 @@ library VaultLogic {
     require(poolSizeAfter == (poolSizeBefore + tokenIds.length), Errors.INVALID_TRANSFER_AMOUNT);
   }
 
-  function erc721TransferOut(address underlyingAsset, address to, uint256[] memory tokenIds) public {
+  function erc721TransferOut(address underlyingAsset, address to, uint256[] memory tokenIds) internal {
     uint256 poolSizeBefore = IERC721Upgradeable(underlyingAsset).balanceOf(address(this));
 
     for (uint256 i = 0; i < tokenIds.length; i++) {
