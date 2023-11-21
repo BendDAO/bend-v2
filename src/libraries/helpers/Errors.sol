@@ -21,6 +21,7 @@ library Errors {
   string public constant INVALID_COLLATERAL_AMOUNT = '115';
   string public constant INVALID_DEBT_AMOUNT = '116';
   string public constant INVALID_TOKEN_OWNER = '117';
+  string public constant INVALID_YIELD_STAKER = '118';
 
   string public constant ENUM_SET_ADD_FAILED = '150';
   string public constant ENUM_SET_REMOVE_FAILED = '151';
@@ -35,6 +36,7 @@ library Errors {
 
   string public constant POOL_ALREADY_EXISTS = '300';
   string public constant POOL_NOT_EXISTS = '301';
+  string public constant POOL_YIELD_NOT_ENABLE = '302';
 
   string public constant GROUP_ALREADY_EXISTS = '320';
   string public constant GROUP_NOT_EXISTS = '321';
@@ -56,6 +58,7 @@ library Errors {
   string public constant ASSET_IS_BORROW_DISABLED = '351';
   string public constant ASSET_NOT_CROSS_MODE = '352';
   string public constant ASSET_NOT_ISOLATE_MODE = '353';
+  string public constant ASSET_IS_YIELD_DISABLED = '354';
 
   string public constant HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD = '400';
   string public constant HEALTH_FACTOR_NOT_BELOW_THRESHOLD = '401';
@@ -67,4 +70,6 @@ library Errors {
   string public constant LTV_VALIDATION_FAILED = '407';
   string public constant COLLATERAL_CANNOT_COVER_NEW_BORROW = '408';
   string public constant LIQUIDATE_REPAY_DEBT_FAILED = '409';
+
+  string public constant YIELD_EXCEED_CAP_LIMIT = '501';
 }

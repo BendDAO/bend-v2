@@ -32,6 +32,9 @@ library DataTypes {
     mapping(address => mapping(uint256 => IsolateLoanData)) loanLookup;
     // account data
     mapping(address => AccountData) accountLookup;
+
+    // yield
+    uint8 yieldGroupId;
   }
 
   struct AccountData {
@@ -66,8 +69,10 @@ library DataTypes {
     bool isFrozen;
     bool isPaused;
     bool isBorrowingEnabled;
+    bool isYieldEnabled;
     uint32 supplyCap;
     uint32 borrowCap;
+    uint32 yieldCap;
     uint16 feeFactor;
     uint16 collateralFactor;
     uint16 liquidationThreshold;
@@ -95,9 +100,16 @@ library DataTypes {
     uint256 debtGroupId;
   }
 
+  struct YieldStakerData {
+    uint256 yieldCap;
+  }
+
   struct PoolLendingStorage {
     uint32 nextPoolId;
     mapping(uint32 => PoolData) poolLookup;
+
+    // yield
+    mapping(address => YieldStakerData) stakerLookup;
   }
 
   /****************************************************************************/

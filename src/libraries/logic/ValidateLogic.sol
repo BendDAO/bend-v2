@@ -229,4 +229,39 @@ library ValidateLogic {
 
     return (userAccountResult.healthFactor, userAccountResult.hasZeroLtvCollateral);
   }
+
+  function validateBorrowERC20ForYield(
+    InputTypes.ExecuteBorrowERC20ForYieldParams memory inputParams,
+    DataTypes.PoolData storage poolData,
+    DataTypes.AssetData storage assetData,
+    DataTypes.GroupData storage groupData
+  ) internal view {
+    validatePoolBasic(poolData);
+    require(poolData.yieldGroupId != 0, Errors.POOL_YIELD_NOT_ENABLE);
+
+    validateAssetBasic(assetData);
+    validateGroupBasic(groupData);
+
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+    require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
+
+    require(!assetData.isFrozen, Errors.ASSET_IS_FROZEN);
+    require(assetData.isYieldEnabled, Errors.ASSET_IS_YIELD_DISABLED);
+  }
+
+  function validateRepayERC20ForYield(
+    InputTypes.ExecuteRepayERC20ForYieldParams memory inputParams,
+    DataTypes.PoolData storage poolData,
+    DataTypes.AssetData storage assetData,
+    DataTypes.GroupData storage groupData
+  ) internal view {
+    validatePoolBasic(poolData);
+    require(poolData.yieldGroupId != 0, Errors.POOL_YIELD_NOT_ENABLE);
+
+    validateAssetBasic(assetData);
+    validateGroupBasic(groupData);
+
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+    require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
+  }
 }

@@ -66,4 +66,7 @@ library Events {
     uint256[] liquidatedCollateralTokenIds,
     bool supplyAsCollateral
   );
+
+  event BorrowERC20ForYield(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
+  event RepayERC20ForYield(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
 }

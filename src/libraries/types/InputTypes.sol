@@ -66,4 +66,18 @@ library InputTypes {
     address debtAsset;
     bool supplyAsCollateral;
   }
+
+  struct ExecuteBorrowERC20ForYieldParams {
+    uint32 poolId;
+    address asset;
+    uint256 amount;
+    address staker;
+  }
+
+  struct ExecuteRepayERC20ForYieldParams {
+    uint32 poolId;
+    address asset;
+    uint256 amount;
+    address staker;
+  }
 }
