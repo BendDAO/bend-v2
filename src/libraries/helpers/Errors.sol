@@ -30,6 +30,7 @@ library Errors {
   string public constant CALLER_NOT_ORACLE_ADMIN = '203';
   string public constant INCONSISTENT_PARAMS_LENGTH = '204';
   string public constant INVALID_ASSET_PARAMS = '205';
+  string public constant CALLER_NOT_EMERGENCY_ADMIN = '206';
 
   string public constant POOL_ALREADY_EXISTS = '300';
   string public constant POOL_NOT_EXISTS = '301';

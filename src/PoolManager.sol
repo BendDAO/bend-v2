@@ -8,6 +8,8 @@ import {ERC721HolderUpgradeable} from '@openzeppelin/contracts-upgradeable/token
 import {IERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
 import {IERC721Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol';
 
+import {IACLManager} from './interfaces/IACLManager.sol';
+
 import './libraries/helpers/Constants.sol';
 import './libraries/helpers/Errors.sol';
 import './libraries/types/DataTypes.sol';
@@ -26,6 +28,17 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
   using WadRayMath for uint256;
+
+  modifier onlyEmergencyAdmin() {
+    _onlyEmergencyAdmin();
+    _;
+  }
+
+  function _onlyEmergencyAdmin() internal view {
+    DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
+    IACLManager aclManager = IACLManager(cs.aclManager);
+    require(aclManager.isEmergencyAdmin(msg.sender), Errors.CALLER_NOT_EMERGENCY_ADMIN);
+  }
 
   constructor() {
     _disableInitializers();
@@ -146,13 +159,13 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   /* Pool Lending */
   /****************************************************************************/
 
-  function depositERC20(uint32 poolId, address asset, uint256 amount) public nonReentrant {
+  function depositERC20(uint32 poolId, address asset, uint256 amount) public whenNotPaused nonReentrant {
     SupplyLogic.executeDepositERC20(
       InputTypes.ExecuteDepositERC20Params({poolId: poolId, asset: asset, amount: amount})
     );
   }
 
-  function withdrawERC20(uint32 poolId, address asset, uint256 amount, address to) public nonReentrant {
+  function withdrawERC20(uint32 poolId, address asset, uint256 amount, address to) public whenNotPaused nonReentrant {
     SupplyLogic.executeWithdrawERC20(
       InputTypes.ExecuteWithdrawERC20Params({poolId: poolId, asset: asset, amount: amount, to: to})
     );
@@ -163,25 +176,36 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     address asset,
     uint256[] calldata tokenIds,
     uint256 supplyMode
-  ) public nonReentrant {
+  ) public whenNotPaused nonReentrant {
     SupplyLogic.executeDepositERC721(
       InputTypes.ExecuteDepositERC721Params({poolId: poolId, asset: asset, tokenIds: tokenIds, supplyMode: supplyMode})
     );
   }
 
-  function withdrawERC721(uint32 poolId, address asset, uint256[] calldata tokenIds, address to) public nonReentrant {
+  function withdrawERC721(
+    uint32 poolId,
+    address asset,
+    uint256[] calldata tokenIds,
+    address to
+  ) public whenNotPaused nonReentrant {
     SupplyLogic.executeWithdrawERC721(
       InputTypes.ExecuteWithdrawERC721Params({poolId: poolId, asset: asset, tokenIds: tokenIds, to: to})
     );
   }
 
-  function borrowERC20(uint32 poolId, address asset, uint8 group, uint256 amount, address to) public nonReentrant {
+  function borrowERC20(
+    uint32 poolId,
+    address asset,
+    uint8 group,
+    uint256 amount,
+    address to
+  ) public whenNotPaused nonReentrant {
     BorrowLogic.executeBorrowERC20(
       InputTypes.ExecuteBorrowERC20Params({poolId: poolId, asset: asset, group: group, amount: amount, to: to})
     );
   }
 
-  function repayERC20(uint32 poolId, address asset, uint8 group, uint256 amount) public nonReentrant {
+  function repayERC20(uint32 poolId, address asset, uint8 group, uint256 amount) public whenNotPaused nonReentrant {
     BorrowLogic.executeRepayERC20(
       InputTypes.ExecuteRepayERC20Params({poolId: poolId, asset: asset, group: group, amount: amount})
     );
@@ -194,7 +218,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     address debtAsset,
     uint256 debtToCover,
     bool supplyAsCollateral
-  ) public nonReentrant {
+  ) public whenNotPaused nonReentrant {
     LiquidationLogic.executeLiquidateERC20(
       InputTypes.ExecuteLiquidateERC20Params({
         poolId: poolId,
@@ -214,7 +238,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     uint256[] calldata collateralTokenIds,
     address debtAsset,
     bool supplyAsCollateral
-  ) public nonReentrant {
+  ) public whenNotPaused nonReentrant {
     LiquidationLogic.executeLiquidateERC721(
       InputTypes.ExecuteLiquidateERC721Params({
         poolId: poolId,
@@ -417,5 +441,33 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
     return VaultLogic.erc721GetUserIsolateSupply(assetData, user);
+  }
+
+  // Pool Admin
+  /**
+   * @dev Pauses or unpauses the whole protocol.
+   */
+  function setGlobalPause(bool paused) public onlyEmergencyAdmin {
+    if (paused) {
+      _pause();
+    } else {
+      _unpause();
+    }
+  }
+
+  /**
+   * @dev Pauses or unpauses all the assets in the pool.
+   */
+  function setPoolPause(uint32 poolId, bool paused) public onlyEmergencyAdmin {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+
+    address[] memory assets = poolData.assetList.values();
+
+    for (uint256 i = 0; i < assets.length; i++) {
+      if (assets[i] != address(0)) {
+        setAssetPause(poolId, assets[i], paused);
+      }
+    }
   }
 }

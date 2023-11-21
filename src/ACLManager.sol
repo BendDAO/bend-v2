@@ -30,67 +30,67 @@ contract ACLManager is AccessControlUpgradeable, IACLManager {
   }
 
   /// @inheritdoc IACLManager
-  function setRoleAdmin(bytes32 role, bytes32 adminRole) external override onlyRole(DEFAULT_ADMIN_ROLE) {
+  function setRoleAdmin(bytes32 role, bytes32 adminRole) public override onlyRole(DEFAULT_ADMIN_ROLE) {
     _setRoleAdmin(role, adminRole);
   }
 
   /// @inheritdoc IACLManager
-  function addPoolAdmin(address admin) external override {
+  function addPoolAdmin(address admin) public override {
     grantRole(POOL_ADMIN_ROLE, admin);
   }
 
   /// @inheritdoc IACLManager
-  function removePoolAdmin(address admin) external override {
+  function removePoolAdmin(address admin) public override {
     revokeRole(POOL_ADMIN_ROLE, admin);
   }
 
   /// @inheritdoc IACLManager
-  function isPoolAdmin(address admin) external view override returns (bool) {
+  function isPoolAdmin(address admin) public view override returns (bool) {
     return hasRole(POOL_ADMIN_ROLE, admin);
   }
 
   /// @inheritdoc IACLManager
-  function addEmergencyAdmin(address admin) external override {
+  function addEmergencyAdmin(address admin) public override {
     grantRole(EMERGENCY_ADMIN_ROLE, admin);
   }
 
   /// @inheritdoc IACLManager
-  function removeEmergencyAdmin(address admin) external override {
+  function removeEmergencyAdmin(address admin) public override {
     revokeRole(EMERGENCY_ADMIN_ROLE, admin);
   }
 
   /// @inheritdoc IACLManager
-  function isEmergencyAdmin(address admin) external view override returns (bool) {
+  function isEmergencyAdmin(address admin) public view override returns (bool) {
     return hasRole(EMERGENCY_ADMIN_ROLE, admin);
   }
 
   /// @inheritdoc IACLManager
-  function addRiskAdmin(address admin) external override {
+  function addRiskAdmin(address admin) public override {
     grantRole(RISK_ADMIN_ROLE, admin);
   }
 
   /// @inheritdoc IACLManager
-  function removeRiskAdmin(address admin) external override {
+  function removeRiskAdmin(address admin) public override {
     revokeRole(RISK_ADMIN_ROLE, admin);
   }
 
   /// @inheritdoc IACLManager
-  function isRiskAdmin(address admin) external view override returns (bool) {
+  function isRiskAdmin(address admin) public view override returns (bool) {
     return hasRole(RISK_ADMIN_ROLE, admin);
   }
 
   /// @inheritdoc IACLManager
-  function addOracleAdmin(address admin) external override {
+  function addOracleAdmin(address admin) public override {
     grantRole(ORACLE_ADMIN_ROLE, admin);
   }
 
   /// @inheritdoc IACLManager
-  function removeOracleAdmin(address admin) external override {
+  function removeOracleAdmin(address admin) public override {
     revokeRole(ORACLE_ADMIN_ROLE, admin);
   }
 
   /// @inheritdoc IACLManager
-  function isOracleAdmin(address admin) external view override returns (bool) {
+  function isOracleAdmin(address admin) public view override returns (bool) {
     return hasRole(ORACLE_ADMIN_ROLE, admin);
   }
 }
