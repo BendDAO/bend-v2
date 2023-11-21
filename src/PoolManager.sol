@@ -369,7 +369,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[group];
 
-    return VaultLogic.erc20GetUserScaledBorrow(groupData, user);
+    return VaultLogic.erc20GetUserScaledBorrowInGroup(groupData, user);
   }
 
   function getUserERC20ScaledBorrowBalance(uint32 poolId, address asset, address user) public view returns (uint256) {
@@ -381,7 +381,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     uint256[] memory assetGroupIds = assetData.groupList.values();
     for (uint256 i = 0; i < assetGroupIds.length; i++) {
       DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(assetGroupIds[i])];
-      totalScaledBalance += VaultLogic.erc20GetUserScaledBorrow(groupData, user);
+      totalScaledBalance += VaultLogic.erc20GetUserScaledBorrowInGroup(groupData, user);
     }
 
     return totalScaledBalance;
@@ -398,7 +398,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[group];
 
-    uint256 scaledBalance = VaultLogic.erc20GetUserScaledBorrow(groupData, user);
+    uint256 scaledBalance = VaultLogic.erc20GetUserScaledBorrowInGroup(groupData, user);
     return scaledBalance.rayMul(InterestLogic.getNormalizedBorrowDebt(groupData));
   }
 
@@ -411,7 +411,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     uint256[] memory assetGroupIds = assetData.groupList.values();
     for (uint256 i = 0; i < assetGroupIds.length; i++) {
       DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(assetGroupIds[i])];
-      uint256 scaledBalance = VaultLogic.erc20GetUserScaledBorrow(groupData, user);
+      uint256 scaledBalance = VaultLogic.erc20GetUserScaledBorrowInGroup(groupData, user);
       totalBalance += scaledBalance.rayMul(InterestLogic.getNormalizedBorrowDebt(groupData));
     }
 

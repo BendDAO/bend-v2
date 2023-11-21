@@ -18,21 +18,17 @@ library SupplyLogic {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
-    require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
-
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
-
-    ValidateLogic.validateDepositERC20(params, poolData, assetData, msg.sender);
 
     InterestLogic.updateInterestSupplyIndex(assetData);
 
+    ValidateLogic.validateDepositERC20(params, poolData, assetData, msg.sender);
+
     VaultLogic.erc20TransferIn(params.asset, msg.sender, params.amount);
 
-    bool isFirstSupply = VaultLogic.erc20IncreaseSupply(assetData, msg.sender, params.amount);
-    if (isFirstSupply) {
-      DataTypes.AccountData storage accountData = poolData.accountLookup[msg.sender];
-      VaultLogic.accountSetSuppliedAsset(accountData, params.asset, true);
-    }
+    VaultLogic.erc20IncreaseSupply(assetData, msg.sender, params.amount);
+
+    VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, params.asset, msg.sender);
 
     InterestLogic.updateInterestRates(params.asset, assetData, params.amount, 0);
 
@@ -55,11 +51,7 @@ library SupplyLogic {
       params.amount = userBalance;
     }
 
-    bool isFullWithdraw = VaultLogic.erc20DecreaseSupply(assetData, msg.sender, params.amount);
-    if (isFullWithdraw) {
-      DataTypes.AccountData storage accountData = poolData.accountLookup[msg.sender];
-      VaultLogic.accountSetSuppliedAsset(accountData, params.asset, false);
-    }
+    VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, params.asset, msg.sender);
 
     VaultLogic.erc20TransferOut(params.asset, params.to, params.amount);
 
@@ -87,15 +79,10 @@ library SupplyLogic {
     }
 
     if (params.supplyMode == Constants.SUPPLY_MODE_CROSS) {
-      bool isFirstSupply = (assetData.userCrossSupplied[msg.sender] == 0);
-
       assetData.totalCrossSupplied += params.tokenIds.length;
       assetData.userCrossSupplied[msg.sender] += params.tokenIds.length;
 
-      if (isFirstSupply) {
-        DataTypes.AccountData storage accountData = poolData.accountLookup[msg.sender];
-        VaultLogic.accountSetSuppliedAsset(accountData, params.asset, true);
-      }
+      VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, params.asset, msg.sender);
     } else if (params.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
       assetData.totalIsolateSupplied += params.tokenIds.length;
       assetData.userIsolateSupplied[msg.sender] += params.tokenIds.length;
@@ -140,11 +127,7 @@ library SupplyLogic {
     }
 
     if (isCrossWithdraw) {
-      bool isFullWithdraw = (assetData.userCrossSupplied[msg.sender] == 0);
-      if (isFullWithdraw) {
-        DataTypes.AccountData storage accountData = poolData.accountLookup[msg.sender];
-        VaultLogic.accountSetSuppliedAsset(accountData, params.asset, false);
-      }
+      VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, params.asset, msg.sender);
 
       ValidateLogic.validateHealthFactor(poolData, msg.sender, cs.priceOracle);
     } else {

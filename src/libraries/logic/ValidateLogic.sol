@@ -12,6 +12,7 @@ import {ResultTypes} from '../types/ResultTypes.sol';
 import {InputTypes} from '../types/InputTypes.sol';
 
 import {GenericLogic} from './GenericLogic.sol';
+import {VaultLogic} from './VaultLogic.sol';
 
 library ValidateLogic {
   using PercentageMath for uint256;
@@ -199,6 +200,15 @@ library ValidateLogic {
     require(debtAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
     require(inputParams.collateralTokenIds.length > 0, Errors.INVALID_ID_LIST);
+
+    for (uint256 i = 0; i < inputParams.collateralTokenIds.length; i++) {
+      (address owner, uint8 supplyMode) = VaultLogic.erc721GetTokenOwnerAndMode(
+        collateralAssetData,
+        inputParams.collateralTokenIds[i]
+      );
+      require(owner == inputParams.user, Errors.INVALID_TOKEN_OWNER);
+      require(supplyMode == Constants.SUPPLY_MODE_CROSS, Errors.ASSET_NOT_CROSS_MODE);
+    }
   }
 
   function validateHealthFactor(

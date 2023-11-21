@@ -20,6 +20,7 @@ library Errors {
   string public constant INVALID_ID_LIST = '114';
   string public constant INVALID_COLLATERAL_AMOUNT = '115';
   string public constant INVALID_DEBT_AMOUNT = '116';
+  string public constant INVALID_TOKEN_OWNER = '117';
 
   string public constant ENUM_SET_ADD_FAILED = '150';
   string public constant ENUM_SET_REMOVE_FAILED = '151';
@@ -53,6 +54,8 @@ library Errors {
   string public constant ASSET_IS_PAUSED = '349';
   string public constant ASSET_IS_FROZEN = '350';
   string public constant ASSET_IS_BORROW_DISABLED = '351';
+  string public constant ASSET_NOT_CROSS_MODE = '352';
+  string public constant ASSET_NOT_ISOLATE_MODE = '353';
 
   string public constant HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD = '400';
   string public constant HEALTH_FACTOR_NOT_BELOW_THRESHOLD = '401';

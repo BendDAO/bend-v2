@@ -26,10 +26,9 @@ library BorrowLogic {
 
     ValidateLogic.validateBorrowERC20(params, poolData, assetData, groupData, msg.sender, cs.priceOracle);
 
-    bool isFirstBorrow = VaultLogic.erc20IncreaseBorrow(groupData, msg.sender, params.amount);
-    if (isFirstBorrow) {
-      VaultLogic.accountSetBorrowedAsset(poolData.accountLookup[msg.sender], params.asset, true);
-    }
+    VaultLogic.erc20IncreaseBorrow(groupData, msg.sender, params.amount);
+
+    VaultLogic.accountCheckAndSetBorrowedAsset(poolData, assetData, params.asset, msg.sender);
 
     VaultLogic.erc20TransferOut(params.asset, params.to, params.amount);
 
@@ -54,10 +53,9 @@ library BorrowLogic {
       params.amount = debtAmount;
     }
 
-    bool isFullRepay = VaultLogic.erc20DecreaseBorrow(groupData, msg.sender, params.amount);
-    if (isFullRepay) {
-      VaultLogic.accountSetBorrowedAsset(poolData.accountLookup[msg.sender], params.asset, false);
-    }
+    VaultLogic.erc20DecreaseBorrow(groupData, msg.sender, params.amount);
+
+    VaultLogic.accountCheckAndSetBorrowedAsset(poolData, assetData, params.asset, msg.sender);
 
     VaultLogic.erc20TransferIn(params.asset, msg.sender, params.amount);
 

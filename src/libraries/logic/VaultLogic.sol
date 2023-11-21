@@ -21,7 +21,13 @@ library VaultLogic {
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
 
+  //////////////////////////////////////////////////////////////////////////////
   // Account methods
+  //////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * @dev Add or remove user borrowed asset which used for flag.
+   */
   function accountSetBorrowedAsset(DataTypes.AccountData storage accountData, address asset, bool borrowing) internal {
     if (borrowing) {
       accountData.borrowedAssets.add(asset);
@@ -58,6 +64,9 @@ library VaultLogic {
     }
   }
 
+  /**
+   * @dev Add or remove user supplied asset which used for flag.
+   */
   function accountSetSuppliedAsset(
     DataTypes.AccountData storage accountData,
     address asset,
@@ -90,7 +99,16 @@ library VaultLogic {
     address account
   ) internal {
     DataTypes.AccountData storage accountData = poolData.accountLookup[account];
-    uint256 totalSupply = erc20GetUserSupply(assetData, account);
+
+    uint256 totalSupply;
+    if (assetData.assetType == Constants.ASSET_TYPE_ERC20) {
+      totalSupply = erc20GetUserScaledSupply(assetData, account);
+    } else if (assetData.assetType == Constants.ASSET_TYPE_ERC721) {
+      totalSupply = erc721GetUserCrossSupply(assetData, account);
+    } else {
+      revert(Errors.INVALID_ASSET_TYPE);
+    }
+
     if (totalSupply == 0) {
       accountSetSuppliedAsset(accountData, asset, false);
     } else {
@@ -98,7 +116,13 @@ library VaultLogic {
     }
   }
 
+  //////////////////////////////////////////////////////////////////////////////
   // ERC20 methods
+  //////////////////////////////////////////////////////////////////////////////
+
+  /**
+   * @dev Get user scaled supply balance not related to the index.
+   */
   function erc20GetUserScaledSupply(
     DataTypes.AssetData storage assetData,
     address account
@@ -106,11 +130,17 @@ library VaultLogic {
     return assetData.userCrossSupplied[account];
   }
 
+  /**
+   * @dev Get user supply balance, make sure the index already updated.
+   */
   function erc20GetUserSupply(DataTypes.AssetData storage assetData, address account) internal view returns (uint256) {
     uint256 amountScaled = assetData.userCrossSupplied[account];
     return amountScaled.rayMul(assetData.supplyIndex);
   }
 
+  /**
+   * @dev Increase user supply balance, make sure the index already updated.
+   */
   function erc20IncreaseSupply(
     DataTypes.AssetData storage assetData,
     address account,
@@ -125,6 +155,9 @@ library VaultLogic {
     return (assetData.userCrossSupplied[account] == amountScaled); // first supply
   }
 
+  /**
+   * @dev Decrease user supply balance, make sure the index already updated.
+   */
   function erc20DecreaseSupply(
     DataTypes.AssetData storage assetData,
     address account,
@@ -139,6 +172,9 @@ library VaultLogic {
     return (assetData.userCrossSupplied[account] == 0); // full withdraw
   }
 
+  /**
+   * @dev Transfer user supply balance, make sure the index already updated.
+   */
   function erc20TransferSupply(
     DataTypes.AssetData storage assetData,
     address from,
@@ -152,13 +188,39 @@ library VaultLogic {
     assetData.userCrossSupplied[to] += amountScaled;
   }
 
-  function erc20GetUserScaledBorrow(
+  /**
+   * @dev Get user scaled borrow balance in the group not related to the index.
+   */
+  function erc20GetUserScaledBorrowInGroup(
     DataTypes.GroupData storage groupData,
     address account
   ) internal view returns (uint256) {
     return groupData.userCrossBorrowed[account];
   }
 
+  /**
+   * @dev Get user scaled borrow balance in the asset not related to the index.
+   */
+  function erc20GetUserScaledBorrowInAsset(
+    DataTypes.AssetData storage assetData,
+    address account
+  ) internal view returns (uint256) {
+    uint256 totalScaledBorrow;
+
+    uint256[] memory groupIds = assetData.groupList.values();
+    for (uint256 i = 0; i < groupIds.length; i++) {
+      DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(groupIds[i])];
+
+      uint256 amountScaled = groupData.userCrossBorrowed[account];
+      totalScaledBorrow += amountScaled;
+    }
+
+    return totalScaledBorrow;
+  }
+
+  /**
+   * @dev Get user borrow balance in the group, make sure the index already updated.
+   */
   function erc20GetUserBorrowInGroup(
     DataTypes.GroupData storage groupData,
     address account
@@ -167,6 +229,9 @@ library VaultLogic {
     return amountScaled.rayMul(groupData.borrowIndex);
   }
 
+  /**
+   * @dev Get user borrow balance in the asset, make sure the index already updated.
+   */
   function erc20GetUserBorrowInAsset(
     DataTypes.AssetData storage assetData,
     address account
@@ -184,32 +249,26 @@ library VaultLogic {
     return totalBorrow;
   }
 
-  function erc20IncreaseBorrow(
-    DataTypes.GroupData storage groupData,
-    address account,
-    uint256 amount
-  ) internal returns (bool) {
+  /**
+   * @dev Increase user borrow balance in the asset, make sure the index already updated.
+   */
+  function erc20IncreaseBorrow(DataTypes.GroupData storage groupData, address account, uint256 amount) internal {
     uint256 amountScaled = amount.rayDiv(groupData.borrowIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
     groupData.totalCrossBorrowed += amountScaled;
     groupData.userCrossBorrowed[account] += amountScaled;
-
-    return (groupData.userCrossBorrowed[account] == amountScaled); // first borrow
   }
 
-  function erc20DecreaseBorrow(
-    DataTypes.GroupData storage groupData,
-    address account,
-    uint256 amount
-  ) internal returns (bool) {
+  /**
+   * @dev Decrease user borrow balance in the asset, make sure the index already updated.
+   */
+  function erc20DecreaseBorrow(DataTypes.GroupData storage groupData, address account, uint256 amount) internal {
     uint256 amountScaled = amount.rayDiv(groupData.borrowIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
     groupData.totalCrossBorrowed -= amountScaled;
     groupData.userCrossBorrowed[account] -= amountScaled;
-
-    return (groupData.userCrossBorrowed[account] == 0); // full repay
   }
 
   function erc20TransferIn(address underlyingAsset, address from, uint256 amount) internal {
@@ -230,7 +289,10 @@ library VaultLogic {
     require(poolSizeBefore == (poolSizeAfter + amount), Errors.INVALID_TRANSFER_AMOUNT);
   }
 
+  //////////////////////////////////////////////////////////////////////////////
   // ERC721 methods
+  //////////////////////////////////////////////////////////////////////////////
+
   function erc721GetTokenOwnerAndMode(
     DataTypes.AssetData storage assetData,
     uint256 tokenid
@@ -272,6 +334,9 @@ library VaultLogic {
     return assetData.userIsolateSupplied[user];
   }
 
+  /**
+   * @dev Transfer user supply balance.
+   */
   function erc721TransferSupply(
     DataTypes.AssetData storage assetData,
     address from,
