@@ -72,23 +72,9 @@ library SupplyLogic {
 
     VaultLogic.erc721TransferIn(params.asset, msg.sender, params.tokenIds);
 
-    for (uint256 i = 0; i < params.tokenIds.length; i++) {
-      DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[params.tokenIds[i]];
-      tokenData.owner = msg.sender;
-      tokenData.supplyMode = uint8(params.supplyMode);
-    }
+    VaultLogic.erc721IncreaseSupply(assetData, msg.sender, params.tokenIds, params.supplyMode);
 
-    if (params.supplyMode == Constants.SUPPLY_MODE_CROSS) {
-      assetData.totalCrossSupplied += params.tokenIds.length;
-      assetData.userCrossSupplied[msg.sender] += params.tokenIds.length;
-
-      VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, params.asset, msg.sender);
-    } else if (params.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
-      assetData.totalIsolateSupplied += params.tokenIds.length;
-      assetData.userIsolateSupplied[msg.sender] += params.tokenIds.length;
-    } else {
-      revert(Errors.INVALID_SUPPLY_MODE);
-    }
+    VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, params.asset, msg.sender);
 
     emit Events.DepositERC721(msg.sender, params.poolId, params.asset, params.tokenIds);
   }

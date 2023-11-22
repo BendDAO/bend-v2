@@ -141,35 +141,23 @@ library VaultLogic {
   /**
    * @dev Increase user supply balance, make sure the index already updated.
    */
-  function erc20IncreaseSupply(
-    DataTypes.AssetData storage assetData,
-    address account,
-    uint256 amount
-  ) internal returns (bool) {
+  function erc20IncreaseSupply(DataTypes.AssetData storage assetData, address account, uint256 amount) internal {
     uint256 amountScaled = amount.rayDiv(assetData.supplyIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
     assetData.totalCrossSupplied += amountScaled;
     assetData.userCrossSupplied[account] += amountScaled;
-
-    return (assetData.userCrossSupplied[account] == amountScaled); // first supply
   }
 
   /**
    * @dev Decrease user supply balance, make sure the index already updated.
    */
-  function erc20DecreaseSupply(
-    DataTypes.AssetData storage assetData,
-    address account,
-    uint256 amount
-  ) internal returns (bool) {
+  function erc20DecreaseSupply(DataTypes.AssetData storage assetData, address account, uint256 amount) internal {
     uint256 amountScaled = amount.rayDiv(assetData.supplyIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
     assetData.totalCrossSupplied -= amountScaled;
     assetData.userCrossSupplied[account] -= amountScaled;
-
-    return (assetData.userCrossSupplied[account] == 0); // full withdraw
   }
 
   /**
@@ -301,22 +289,59 @@ library VaultLogic {
     return (tokenData.owner, tokenData.supplyMode);
   }
 
+  function erc721IncreaseSupply(
+    DataTypes.AssetData storage assetData,
+    address user,
+    uint256[] memory tokenIds,
+    uint8 supplyMode
+  ) internal {
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
+      tokenData.owner = user;
+      tokenData.supplyMode = supplyMode;
+    }
+
+    if (supplyMode == Constants.SUPPLY_MODE_CROSS) {
+      assetData.totalCrossSupplied += tokenIds.length;
+      assetData.userCrossSupplied[user] += tokenIds.length;
+    } else if (supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
+      assetData.totalIsolateSupplied += tokenIds.length;
+      assetData.userIsolateSupplied[user] += tokenIds.length;
+    } else {
+      revert(Errors.INVALID_SUPPLY_MODE);
+    }
+  }
+
   function erc721DecreaseSupply(
     DataTypes.AssetData storage assetData,
     address user,
     uint256[] memory tokenIds
   ) internal {
+    uint256 crossNum;
+    uint256 isolateNum;
+
     for (uint256 i = 0; i < tokenIds.length; i++) {
       DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
+
       if (tokenData.supplyMode == Constants.SUPPLY_MODE_CROSS) {
-        assetData.userCrossSupplied[user] -= 1;
+        crossNum++;
       } else if (tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
-        assetData.userIsolateSupplied[user] -= 1;
+        isolateNum++;
       } else {
         revert(Errors.INVALID_SUPPLY_MODE);
       }
+
       tokenData.owner = address(0);
       tokenData.supplyMode = 0;
+    }
+
+    if (crossNum > 0) {
+      assetData.totalCrossSupplied -= crossNum;
+      assetData.userCrossSupplied[user] -= crossNum;
+    }
+    if (isolateNum > 0) {
+      assetData.totalIsolateSupplied -= isolateNum;
+      assetData.userIsolateSupplied[user] -= isolateNum;
     }
   }
 

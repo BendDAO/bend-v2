@@ -65,7 +65,7 @@ contract TestUser {
     _poolManager.depositERC20(poolId, asset, amount);
   }
 
-  function depositERC721(uint32 poolId, address asset, uint256[] calldata tokenIds, uint256 supplyMode) public {
+  function depositERC721(uint32 poolId, address asset, uint256[] calldata tokenIds, uint8 supplyMode) public {
     _poolManager.depositERC721(poolId, asset, tokenIds, supplyMode);
   }
 

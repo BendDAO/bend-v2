@@ -60,37 +60,46 @@ library DataTypes {
     uint8 supplyMode; // 0=cross margin, 1=isolate
   }
 
+  struct StakerData {
+    uint256 yieldCap;
+  }
+
   struct AssetData {
     // config params
     uint8 assetType; // ERC20=0, ERC721=1
     uint8 underlyingDecimals; // only for ERC20
-    uint8 riskGroupId; //risk group id
+    uint8 rateGroupId; //rate group id
     bool isActive;
     bool isFrozen;
     bool isPaused;
     bool isBorrowingEnabled;
     bool isYieldEnabled;
-    uint32 supplyCap;
-    uint32 borrowCap;
-    uint32 yieldCap;
     uint16 feeFactor;
     uint16 collateralFactor;
     uint16 liquidationThreshold;
     uint16 liquidationBonus;
+    uint256 supplyCap;
+    uint256 borrowCap;
+
     // group state
     mapping(uint8 => GroupData) groupLookup;
     EnumerableSetUpgradeable.UintSet groupList;
+
     // user state
     uint256 totalCrossSupplied; // total supplied balance in cross margin mode
     mapping(address => uint256) userCrossSupplied; // user supplied balance in cross margin mode
     uint256 totalIsolateSupplied; // total supplied balance in isolate mode, only for ERC721
     mapping(address => uint256) userIsolateSupplied; // user supplied balance in isolate mode, only for ERC721
     mapping(uint256 => ERC721TokenData) erc721TokenData; // token -> data, only for ERC721
+
     // asset interest state
     uint128 supplyRate;
     uint128 supplyIndex;
     uint256 accruedFee;
     uint40 lastUpdateTimestamp;
+
+    // yield state
+    mapping(address => StakerData) stakerLookup;
   }
 
   struct IsolateLoanData {
@@ -100,16 +109,9 @@ library DataTypes {
     uint256 debtGroupId;
   }
 
-  struct YieldStakerData {
-    uint256 yieldCap;
-  }
-
   struct PoolLendingStorage {
     uint32 nextPoolId;
     mapping(uint32 => PoolData) poolLookup;
-
-    // yield
-    mapping(address => YieldStakerData) stakerLookup;
   }
 
   /****************************************************************************/

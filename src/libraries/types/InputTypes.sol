@@ -24,7 +24,7 @@ library InputTypes {
     uint32 poolId;
     address asset;
     uint256[] tokenIds;
-    uint256 supplyMode;
+    uint8 supplyMode;
   }
 
   struct ExecuteWithdrawERC721Params {

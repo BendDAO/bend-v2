@@ -75,15 +75,14 @@ library BorrowLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroupId];
 
-    DataTypes.YieldStakerData storage stakerData = ps.stakerLookup[params.staker];
-    require(stakerData.yieldCap > 0, Errors.INVALID_YIELD_STAKER);
+    DataTypes.StakerData storage stakerData = assetData.stakerLookup[params.staker];
 
     InterestLogic.updateInterestIndexs(assetData, groupData);
 
     ValidateLogic.validateBorrowERC20ForYield(params, poolData, assetData, groupData);
 
     uint256 debtAmount = VaultLogic.erc20GetUserBorrowInGroup(groupData, msg.sender);
-    require((debtAmount + params.amount) < stakerData.yieldCap, Errors.YIELD_EXCEED_CAP_LIMIT);
+    require((debtAmount + params.amount) <= stakerData.yieldCap, Errors.YIELD_EXCEED_CAP_LIMIT);
 
     VaultLogic.erc20IncreaseBorrow(groupData, msg.sender, params.amount);
 
@@ -104,10 +103,6 @@ library BorrowLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroupId];
-
-    DataTypes.YieldStakerData storage stakerData = ps.stakerLookup[params.staker];
-
-    require(stakerData.yieldCap > 0, Errors.INVALID_YIELD_STAKER);
 
     InterestLogic.updateInterestIndexs(assetData, groupData);
 

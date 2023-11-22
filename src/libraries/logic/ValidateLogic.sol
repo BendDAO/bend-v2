@@ -28,7 +28,7 @@ library ValidateLogic {
     } else {
       require(assetData.underlyingDecimals == 0, Errors.INVALID_ASSET_DECIMALS);
     }
-    require(assetData.riskGroupId != 0, Errors.INVALID_GROUP_ID);
+    require(assetData.rateGroupId != 0, Errors.INVALID_GROUP_ID);
 
     require(assetData.isActive, Errors.ASSET_NOT_ACTIVE);
     require(!assetData.isPaused, Errors.ASSET_IS_PAUSED);

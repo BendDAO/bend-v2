@@ -120,14 +120,14 @@ library GenericLogic {
           result.inputCollateralInBaseCurrency += vars.userBalanceInBaseCurrency;
         }
 
-        if (currentAssetData.riskGroupId == group) {
+        if (currentAssetData.rateGroupId == group) {
           result.groupCollateralInBaseCurrency += vars.userBalanceInBaseCurrency;
         }
 
         if (currentAssetData.collateralFactor != 0) {
           result.avgLtv += vars.userBalanceInBaseCurrency * currentAssetData.collateralFactor;
 
-          if (currentAssetData.riskGroupId == group) {
+          if (currentAssetData.rateGroupId == group) {
             result.groupAvgLtv += vars.userBalanceInBaseCurrency * currentAssetData.collateralFactor;
           }
         } else {
@@ -136,7 +136,7 @@ library GenericLogic {
 
         result.avgLiquidationThreshold += vars.userBalanceInBaseCurrency * currentAssetData.liquidationThreshold;
 
-        if (currentAssetData.riskGroupId == group) {
+        if (currentAssetData.rateGroupId == group) {
           result.groupAvgLiquidationThreshold += vars.userBalanceInBaseCurrency * currentAssetData.liquidationThreshold;
         }
       }
@@ -173,7 +173,7 @@ library GenericLogic {
 
         vars.userAssetDebtInBaseCurrency += vars.userGroupDebtInBaseCurrency;
 
-        if (currentAssetData.riskGroupId == group) {
+        if (currentAssetData.rateGroupId == group) {
           result.groupDebtInBaseCurrency += vars.userGroupDebtInBaseCurrency;
         }
       }

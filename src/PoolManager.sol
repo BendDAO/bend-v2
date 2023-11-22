@@ -65,7 +65,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   }
 
   function deletePool(uint32 poolId) public nonReentrant {
-    return ConfigureLogic.executeDeletePool(poolId);
+    ConfigureLogic.executeDeletePool(poolId);
   }
 
   function addPoolGroup(uint32 poolId) public nonReentrant returns (uint8 groupId) {
@@ -73,86 +73,96 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   }
 
   function removePoolGroup(uint32 poolId, uint8 groupId) public nonReentrant {
-    return ConfigureLogic.executeRemovePoolGroup(poolId, groupId);
+    ConfigureLogic.executeRemovePoolGroup(poolId, groupId);
   }
 
-  function addAssetERC20(uint32 poolId, address underlyingAsset) public nonReentrant {
-    return ConfigureLogic.executeAddAssetERC20(poolId, underlyingAsset);
+  function setPoolYieldGroup(uint32 poolId, bool isEnable) public nonReentrant {
+    ConfigureLogic.executeSetPoolYieldGroup(poolId, isEnable);
   }
 
-  function removeAssetERC20(uint32 poolId, address underlyingAsset) public nonReentrant {
-    return ConfigureLogic.executeRemoveAssetERC20(poolId, underlyingAsset);
+  function addAssetERC20(uint32 poolId, address asset) public nonReentrant {
+    ConfigureLogic.executeAddAssetERC20(poolId, asset);
   }
 
-  function addAssetERC721(uint32 poolId, address underlyingAsset) public nonReentrant {
-    return ConfigureLogic.executeAddAssetERC721(poolId, underlyingAsset);
+  function removeAssetERC20(uint32 poolId, address asset) public nonReentrant {
+    ConfigureLogic.executeRemoveAssetERC20(poolId, asset);
   }
 
-  function removeAssetERC721(uint32 poolId, address underlyingAsset) public nonReentrant {
-    return ConfigureLogic.executeRemoveAssetERC721(poolId, underlyingAsset);
+  function addAssetERC721(uint32 poolId, address asset) public nonReentrant {
+    ConfigureLogic.executeAddAssetERC721(poolId, asset);
   }
 
-  function addAssetGroup(
-    uint32 poolId,
-    address underlyingAsset,
-    uint8 groupId,
-    address rateModel_
-  ) public nonReentrant {
-    return ConfigureLogic.executeAddAssetGroup(poolId, underlyingAsset, groupId, rateModel_);
+  function removeAssetERC721(uint32 poolId, address asset) public nonReentrant {
+    ConfigureLogic.executeRemoveAssetERC721(poolId, asset);
   }
 
-  function removeAssetGroup(uint32 poolId, address underlyingAsset, uint8 groupId) public nonReentrant {
-    return ConfigureLogic.executeRemoveAssetGroup(poolId, underlyingAsset, groupId);
+  function addAssetGroup(uint32 poolId, address asset, uint8 groupId, address rateModel_) public nonReentrant {
+    ConfigureLogic.executeAddAssetGroup(poolId, asset, groupId, rateModel_);
   }
 
-  function setAssetActive(uint32 poolId, address underlyingAsset, bool isActive) public nonReentrant {
-    return ConfigureLogic.executeSetAssetActive(poolId, underlyingAsset, isActive);
+  function removeAssetGroup(uint32 poolId, address asset, uint8 groupId) public nonReentrant {
+    ConfigureLogic.executeRemoveAssetGroup(poolId, asset, groupId);
   }
 
-  function setAssetFrozen(uint32 poolId, address underlyingAsset, bool isFrozen) public nonReentrant {
-    return ConfigureLogic.executeSetAssetFrozen(poolId, underlyingAsset, isFrozen);
+  function setAssetActive(uint32 poolId, address asset, bool isActive) public nonReentrant {
+    ConfigureLogic.executeSetAssetActive(poolId, asset, isActive);
   }
 
-  function setAssetPause(uint32 poolId, address underlyingAsset, bool isPause) public nonReentrant {
-    return ConfigureLogic.executeSetAssetPause(poolId, underlyingAsset, isPause);
+  function setAssetFrozen(uint32 poolId, address asset, bool isFrozen) public nonReentrant {
+    ConfigureLogic.executeSetAssetFrozen(poolId, asset, isFrozen);
   }
 
-  function setAssetBorrowing(uint32 poolId, address underlyingAsset, bool isEnable) public nonReentrant {
-    return ConfigureLogic.executeSetAssetBorrowing(poolId, underlyingAsset, isEnable);
+  function setAssetPause(uint32 poolId, address asset, bool isPause) public nonReentrant {
+    ConfigureLogic.executeSetAssetPause(poolId, asset, isPause);
   }
 
-  function setAssetRiskGroup(uint32 poolId, address underlyingAsset, uint8 riskGroupId) public nonReentrant {
-    return ConfigureLogic.executeSetAssetRiskGroup(poolId, underlyingAsset, riskGroupId);
+  function setAssetBorrowing(uint32 poolId, address asset, bool isEnable) public nonReentrant {
+    ConfigureLogic.executeSetAssetBorrowing(poolId, asset, isEnable);
+  }
+
+  function setAssetSupplyCap(uint32 poolId, address asset, uint256 newCap) public nonReentrant {
+    ConfigureLogic.executeSetAssetSupplyCap(poolId, asset, newCap);
+  }
+
+  function setAssetBorrowCap(uint32 poolId, address asset, uint256 newCap) public nonReentrant {
+    ConfigureLogic.executeSetAssetBorrowCap(poolId, asset, newCap);
+  }
+
+  function setAssetRateGroup(uint32 poolId, address asset, uint8 rateGroupId) public nonReentrant {
+    ConfigureLogic.executeSetAssetRateGroup(poolId, asset, rateGroupId);
   }
 
   function setAssetCollateralParams(
     uint32 poolId,
-    address underlyingAsset,
+    address asset,
     uint16 collateralFactor,
     uint16 liquidationThreshold,
     uint16 liquidationBonus
   ) public nonReentrant {
-    return
-      ConfigureLogic.executeSetAssetCollateralParams(
-        poolId,
-        underlyingAsset,
-        collateralFactor,
-        liquidationThreshold,
-        liquidationBonus
-      );
+    ConfigureLogic.executeSetAssetCollateralParams(
+      poolId,
+      asset,
+      collateralFactor,
+      liquidationThreshold,
+      liquidationBonus
+    );
   }
 
-  function setAssetProtocolFee(uint32 poolId, address underlyingAsset, uint16 feeFactor) public nonReentrant {
-    return ConfigureLogic.executeSetAssetProtocolFee(poolId, underlyingAsset, feeFactor);
+  function setAssetProtocolFee(uint32 poolId, address asset, uint16 feeFactor) public nonReentrant {
+    ConfigureLogic.executeSetAssetProtocolFee(poolId, asset, feeFactor);
   }
 
   function setAssetInterestRateModel(
     uint32 poolId,
-    address underlyingAsset,
+    address asset,
     uint8 groupId,
     address rateModel_
   ) public nonReentrant {
-    return ConfigureLogic.executeSetAssetInterestRateModel(poolId, underlyingAsset, groupId, rateModel_);
+    ConfigureLogic.executeSetAssetInterestRateModel(poolId, asset, groupId, rateModel_);
+  }
+
+  function setAssetYieldCap(uint32 poolId, address asset, address staker, uint256 cap) public nonReentrant {
+    ConfigureLogic.executeSetAssetYieldCap(poolId, asset, staker, cap);
   }
 
   /****************************************************************************/
@@ -175,7 +185,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     uint32 poolId,
     address asset,
     uint256[] calldata tokenIds,
-    uint256 supplyMode
+    uint8 supplyMode
   ) public whenNotPaused nonReentrant {
     SupplyLogic.executeDepositERC721(
       InputTypes.ExecuteDepositERC721Params({poolId: poolId, asset: asset, tokenIds: tokenIds, supplyMode: supplyMode})

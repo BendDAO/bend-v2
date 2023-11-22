@@ -11,7 +11,7 @@ library Constants {
   uint16 public constant MAX_NUMBER_OF_ASSET = 256;
   uint8 public constant MAX_NUMBER_OF_GROUP = 3;
 
-  uint8 public constant GROUP_ID_STAKING = 101;
+  uint8 public constant GROUP_ID_YIELD = 101;
 
   // Asset type
   uint8 public constant ASSET_TYPE_ERC20 = 1;

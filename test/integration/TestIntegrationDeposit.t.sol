@@ -50,7 +50,7 @@ contract TestIntegrationDeposit is IntegrationTest {
       tsCommonPoolId,
       address(tsBAYC),
       Constants.ASSET_TYPE_ERC721,
-      0,
+      Constants.SUPPLY_MODE_CROSS,
       address(tsDepositor1)
     );
     assertEq(testUserData.supplyBlance, amount, 'supplyBlance not match');

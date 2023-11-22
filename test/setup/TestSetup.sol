@@ -53,8 +53,8 @@ contract TestSetup is TestUtils {
   PoolManager public tsPoolManager;
 
   uint32 public tsCommonPoolId;
-  uint8 public tsLowRiskGroupId;
-  uint8 public tsHighRiskGroupId;
+  uint8 public tsLowInterestGroupId;
+  uint8 public tsHighInterestGroupId;
   DefaultInterestRateModel public tsLowRiskIRM;
   DefaultInterestRateModel public tsHighRiskIRM;
 
@@ -250,50 +250,50 @@ contract TestSetup is TestUtils {
   function initCommonPools() internal {
     tsCommonPoolId = tsPoolManager.createPool();
 
-    tsLowRiskGroupId = tsPoolManager.addPoolGroup(tsCommonPoolId);
-    tsHighRiskGroupId = tsPoolManager.addPoolGroup(tsCommonPoolId);
+    tsLowInterestGroupId = tsPoolManager.addPoolGroup(tsCommonPoolId);
+    tsHighInterestGroupId = tsPoolManager.addPoolGroup(tsCommonPoolId);
 
     // asset some erc20 assets
     tsPoolManager.addAssetERC20(tsCommonPoolId, address(tsWETH));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsWETH), 8050, 8300, 500);
     tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsWETH), 3000);
-    tsPoolManager.setAssetRiskGroup(tsCommonPoolId, address(tsWETH), tsLowRiskGroupId);
+    tsPoolManager.setAssetRateGroup(tsCommonPoolId, address(tsWETH), tsLowInterestGroupId);
     tsPoolManager.setAssetActive(tsCommonPoolId, address(tsWETH), true);
     tsPoolManager.setAssetBorrowing(tsCommonPoolId, address(tsWETH), true);
 
     tsPoolManager.addAssetERC20(tsCommonPoolId, address(tsDAI));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsDAI), 7700, 8000, 500);
     tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsDAI), 3000);
-    tsPoolManager.setAssetRiskGroup(tsCommonPoolId, address(tsDAI), tsLowRiskGroupId);
+    tsPoolManager.setAssetRateGroup(tsCommonPoolId, address(tsDAI), tsLowInterestGroupId);
     tsPoolManager.setAssetActive(tsCommonPoolId, address(tsDAI), true);
     tsPoolManager.setAssetBorrowing(tsCommonPoolId, address(tsDAI), true);
 
     tsPoolManager.addAssetERC20(tsCommonPoolId, address(tsUSDT));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsUSDT), 7400, 7600, 450);
     tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsUSDT), 3000);
-    tsPoolManager.setAssetRiskGroup(tsCommonPoolId, address(tsUSDT), tsLowRiskGroupId);
+    tsPoolManager.setAssetRateGroup(tsCommonPoolId, address(tsUSDT), tsLowInterestGroupId);
     tsPoolManager.setAssetActive(tsCommonPoolId, address(tsUSDT), true);
     tsPoolManager.setAssetBorrowing(tsCommonPoolId, address(tsUSDT), true);
 
     // add interest group to assets
-    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsWETH), tsLowRiskGroupId, address(tsLowRiskIRM));
-    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsWETH), tsHighRiskGroupId, address(tsHighRiskIRM));
+    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsWETH), tsLowInterestGroupId, address(tsLowRiskIRM));
+    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsWETH), tsHighInterestGroupId, address(tsHighRiskIRM));
 
-    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsDAI), tsLowRiskGroupId, address(tsLowRiskIRM));
-    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsDAI), tsHighRiskGroupId, address(tsHighRiskIRM));
+    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsDAI), tsLowInterestGroupId, address(tsLowRiskIRM));
+    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsDAI), tsHighInterestGroupId, address(tsHighRiskIRM));
 
-    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsUSDT), tsLowRiskGroupId, address(tsLowRiskIRM));
-    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsUSDT), tsHighRiskGroupId, address(tsHighRiskIRM));
+    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsUSDT), tsLowInterestGroupId, address(tsLowRiskIRM));
+    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsUSDT), tsHighInterestGroupId, address(tsHighRiskIRM));
 
     // add some nft assets
     tsPoolManager.addAssetERC721(tsCommonPoolId, address(tsBAYC));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsBAYC), 6000, 8000, 1000);
-    tsPoolManager.setAssetRiskGroup(tsCommonPoolId, address(tsBAYC), tsLowRiskGroupId);
+    tsPoolManager.setAssetRateGroup(tsCommonPoolId, address(tsBAYC), tsLowInterestGroupId);
     tsPoolManager.setAssetActive(tsCommonPoolId, address(tsBAYC), true);
 
     tsPoolManager.addAssetERC721(tsCommonPoolId, address(tsMAYC));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsMAYC), 5000, 8000, 1000);
-    tsPoolManager.setAssetRiskGroup(tsCommonPoolId, address(tsMAYC), tsHighRiskGroupId);
+    tsPoolManager.setAssetRateGroup(tsCommonPoolId, address(tsMAYC), tsHighInterestGroupId);
     tsPoolManager.setAssetActive(tsCommonPoolId, address(tsMAYC), true);
   }
 }
