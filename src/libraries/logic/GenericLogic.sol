@@ -58,13 +58,14 @@ library GenericLogic {
     address[] userBorrowedAssets;
     uint256 assetIndex;
     address currentAssetAddress;
-    uint256[] assetGroupIds;
+    uint256[] poolGroupIds;
     uint256 groupIndex;
     uint8 currentGroupId;
     uint256 assetPrice;
     uint256 userBalanceInBaseCurrency;
     uint256 userAssetDebtInBaseCurrency;
     uint256 userGroupDebtInBaseCurrency;
+    uint256 liquidateCollateralInBaseCurrency;
   }
 
   /**
@@ -80,8 +81,8 @@ library GenericLogic {
     address oracle
   ) internal view returns (ResultTypes.UserAccountResult memory result) {
     CalculateUserAccountDataVars memory vars;
-
     DataTypes.AccountData storage accountData = poolData.accountLookup[userAccount];
+    vars.poolGroupIds = poolData.groupList.values();
 
     // calculate the sum of all the collateral balance denominated in the base currency
     vars.userSuppliedAssets = VaultLogic.accountGetSuppliedAssets(accountData);
@@ -130,8 +131,6 @@ library GenericLogic {
           if (currentAssetData.rateGroupId == group) {
             result.groupAvgLtv += vars.userBalanceInBaseCurrency * currentAssetData.collateralFactor;
           }
-        } else {
-          result.hasZeroLtvCollateral = true;
         }
 
         result.avgLiquidationThreshold += vars.userBalanceInBaseCurrency * currentAssetData.liquidationThreshold;
@@ -159,9 +158,8 @@ library GenericLogic {
       // same debt can be borrowed in different groups by different collaterals
       // e.g. BAYC borrow ETH in group 1, MAYC borrow ETH in group 2
       vars.userAssetDebtInBaseCurrency = 0;
-      vars.assetGroupIds = poolData.groupList.values();
-      for (vars.groupIndex = 0; vars.groupIndex < vars.assetGroupIds.length; vars.groupIndex++) {
-        vars.currentGroupId = uint8(vars.assetGroupIds[vars.groupIndex]);
+      for (vars.groupIndex = 0; vars.groupIndex < vars.poolGroupIds.length; vars.groupIndex++) {
+        vars.currentGroupId = uint8(vars.poolGroupIds[vars.groupIndex]);
         DataTypes.GroupData storage currentGroupData = currentAssetData.groupLookup[vars.currentGroupId];
 
         vars.userGroupDebtInBaseCurrency = _getUserERC20DebtInBaseCurrency(
@@ -188,27 +186,32 @@ library GenericLogic {
     }
 
     // calculate the average LTV and Liquidation threshold based on the account
-    result.avgLtv = result.totalCollateralInBaseCurrency != 0
-      ? result.avgLtv / result.totalCollateralInBaseCurrency
-      : 0;
-    result.avgLiquidationThreshold = result.totalCollateralInBaseCurrency != 0
-      ? result.avgLiquidationThreshold / result.totalCollateralInBaseCurrency
-      : 0;
+    if (result.totalCollateralInBaseCurrency != 0) {
+      result.avgLtv = result.avgLtv / result.totalCollateralInBaseCurrency;
+      result.avgLiquidationThreshold = result.avgLiquidationThreshold / result.totalCollateralInBaseCurrency;
+    } else {
+      result.avgLtv = 0;
+      result.avgLiquidationThreshold = 0;
+    }
 
     // calculate the average LTV and Liquidation threshold based on the group
-    result.groupAvgLtv = result.groupCollateralInBaseCurrency != 0
-      ? result.groupAvgLtv / result.groupCollateralInBaseCurrency
-      : 0;
-    result.groupAvgLiquidationThreshold = result.groupCollateralInBaseCurrency != 0
-      ? result.groupAvgLiquidationThreshold / result.groupCollateralInBaseCurrency
-      : 0;
+    if (result.groupCollateralInBaseCurrency != 0) {
+      result.groupAvgLtv = result.groupAvgLtv / result.groupCollateralInBaseCurrency;
+      result.groupAvgLiquidationThreshold = result.groupAvgLiquidationThreshold / result.groupCollateralInBaseCurrency;
+    } else {
+      result.groupAvgLtv = 0;
+      result.groupAvgLiquidationThreshold = 0;
+    }
 
     // calculate the health factor
-    result.healthFactor = (result.totalDebtInBaseCurrency == 0)
-      ? type(uint256).max
-      : (result.totalCollateralInBaseCurrency.percentMul(result.avgLiquidationThreshold)).wadDiv(
-        result.totalDebtInBaseCurrency
+    if (result.totalDebtInBaseCurrency != 0) {
+      vars.liquidateCollateralInBaseCurrency = result.totalCollateralInBaseCurrency.percentMul(
+        result.avgLiquidationThreshold
       );
+      result.healthFactor = vars.liquidateCollateralInBaseCurrency.wadDiv(result.totalDebtInBaseCurrency);
+    } else {
+      result.healthFactor = type(uint256).max;
+    }
 
     console.log('totalCollateralInBaseCurrency', result.totalCollateralInBaseCurrency);
     console.log('totalDebtInBaseCurrency', result.totalDebtInBaseCurrency);
@@ -219,6 +222,110 @@ library GenericLogic {
     console.log('groupAvgLtv', result.groupAvgLtv);
     console.log('groupAvgLiquidationThreshold', result.groupAvgLiquidationThreshold);
     console.log('healthFactor', result.healthFactor);
+  }
+
+  struct CalculateUserAccountGroupDataVars {
+    address[] userSuppliedAssets;
+    address[] userBorrowedAssets;
+    uint256 assetIndex;
+    address currentAssetAddress;
+    uint256 assetPrice;
+    uint256 userBalanceInBaseCurrency;
+    uint256 userGroupDebtInBaseCurrency;
+  }
+
+  function calculateUserGroupData(
+    DataTypes.PoolData storage poolData,
+    address userAccount,
+    uint8 group,
+    address oracle
+  ) internal view returns (ResultTypes.UserGroupResult memory result) {
+    CalculateUserAccountDataVars memory vars;
+    DataTypes.AccountData storage accountData = poolData.accountLookup[userAccount];
+
+    // calculate the sum of all the collateral balance denominated in the base currency
+    vars.userSuppliedAssets = VaultLogic.accountGetSuppliedAssets(accountData);
+    console.log('userSuppliedAssets', vars.userSuppliedAssets.length);
+    for (vars.assetIndex = 0; vars.assetIndex < vars.userSuppliedAssets.length; vars.assetIndex++) {
+      vars.currentAssetAddress = vars.userSuppliedAssets[vars.assetIndex];
+      if (vars.currentAssetAddress == address(0)) {
+        continue;
+      }
+
+      DataTypes.AssetData storage currentAssetData = poolData.assetLookup[vars.currentAssetAddress];
+      if (currentAssetData.rateGroupId != group) {
+        continue;
+      }
+
+      vars.assetPrice = IPriceOracleGetter(oracle).getAssetPrice(vars.currentAssetAddress);
+
+      if (currentAssetData.liquidationThreshold != 0) {
+        if (currentAssetData.assetType == Constants.ASSET_TYPE_ERC20) {
+          vars.userBalanceInBaseCurrency = _getUserERC20BalanceInBaseCurrency(
+            userAccount,
+            currentAssetData,
+            vars.assetPrice
+          );
+        } else if (currentAssetData.assetType == Constants.ASSET_TYPE_ERC721) {
+          vars.userBalanceInBaseCurrency = _getUserERC721BalanceInBaseCurrency(
+            userAccount,
+            currentAssetData,
+            vars.assetPrice
+          );
+        } else {
+          revert(Errors.INVALID_ASSET_TYPE);
+        }
+        console.log('userBalanceInBaseCurrency', vars.userBalanceInBaseCurrency);
+
+        result.groupCollateralInBaseCurrency += vars.userBalanceInBaseCurrency;
+        if (currentAssetData.collateralFactor != 0) {
+          result.groupAvgLtv += vars.userBalanceInBaseCurrency * currentAssetData.collateralFactor;
+        }
+        result.groupAvgLiquidationThreshold += vars.userBalanceInBaseCurrency * currentAssetData.liquidationThreshold;
+      }
+    }
+
+    // calculate the sum of all the debt balance denominated in the base currency
+    vars.userBorrowedAssets = VaultLogic.accountGetBorrowedAssets(accountData);
+    console.log('userBorrowedAssets', vars.userBorrowedAssets.length);
+    for (vars.assetIndex = 0; vars.assetIndex < vars.userBorrowedAssets.length; vars.assetIndex++) {
+      vars.currentAssetAddress = vars.userBorrowedAssets[vars.assetIndex];
+      if (vars.currentAssetAddress == address(0)) {
+        continue;
+      }
+
+      DataTypes.AssetData storage currentAssetData = poolData.assetLookup[vars.currentAssetAddress];
+      require(currentAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+
+      vars.assetPrice = IPriceOracleGetter(oracle).getAssetPrice(vars.currentAssetAddress);
+
+      // only calculate the debt in the wanted group
+      DataTypes.GroupData storage currentGroupData = currentAssetData.groupLookup[group];
+      vars.userGroupDebtInBaseCurrency = _getUserERC20DebtInBaseCurrency(
+        userAccount,
+        currentAssetData,
+        currentGroupData,
+        vars.assetPrice
+      );
+
+      console.log('userGroupDebtInBaseCurrency', vars.userGroupDebtInBaseCurrency);
+
+      result.groupDebtInBaseCurrency += vars.userGroupDebtInBaseCurrency;
+    }
+
+    // calculate the average LTV and Liquidation threshold
+    if (result.groupCollateralInBaseCurrency != 0) {
+      result.groupAvgLtv = result.groupAvgLtv / result.groupCollateralInBaseCurrency;
+      result.groupAvgLiquidationThreshold = result.groupAvgLiquidationThreshold / result.groupCollateralInBaseCurrency;
+    } else {
+      result.groupAvgLtv = 0;
+      result.groupAvgLiquidationThreshold = 0;
+    }
+
+    console.log('groupCollateralInBaseCurrency', result.groupCollateralInBaseCurrency);
+    console.log('groupDebtInBaseCurrency', result.groupDebtInBaseCurrency);
+    console.log('groupAvgLtv', result.groupAvgLtv);
+    console.log('groupAvgLiquidationThreshold', result.groupAvgLiquidationThreshold);
   }
 
   /**

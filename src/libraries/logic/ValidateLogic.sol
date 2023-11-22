@@ -215,7 +215,7 @@ library ValidateLogic {
     DataTypes.PoolData storage poolData,
     address userAccount,
     address oracle
-  ) internal view returns (uint256, bool) {
+  ) internal view returns (uint256) {
     ResultTypes.UserAccountResult memory userAccountResult = GenericLogic.calculateUserAccountDataForHeathFactor(
       poolData,
       userAccount,
@@ -227,7 +227,7 @@ library ValidateLogic {
       Errors.HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD
     );
 
-    return (userAccountResult.healthFactor, userAccountResult.hasZeroLtvCollateral);
+    return (userAccountResult.healthFactor);
   }
 
   function validateBorrowERC20ForYield(

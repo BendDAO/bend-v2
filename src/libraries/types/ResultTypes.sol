@@ -15,6 +15,12 @@ library ResultTypes {
       uint256 groupAvgLtv;
       uint256 groupAvgLiquidationThreshold;
       uint256 healthFactor;
-      bool hasZeroLtvCollateral;
+    }
+
+    struct UserGroupResult {
+      uint256 groupCollateralInBaseCurrency;
+      uint256 groupDebtInBaseCurrency;
+      uint256 groupAvgLtv;
+      uint256 groupAvgLiquidationThreshold;
     }
 }

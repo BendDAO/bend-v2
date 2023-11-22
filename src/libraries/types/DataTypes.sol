@@ -45,11 +45,14 @@ library DataTypes {
   struct GroupData {
     // config parameters
     address interestRateModelAddress;
-    // user debt state
+
+    // user state
     uint256 totalCrossBorrowed;
     mapping(address => uint256) userCrossBorrowed;
     uint256 totalIsolateBorrowed;
-    // group debt state
+    mapping(address => uint256) userIsolateBorrowed;
+
+    // interest state
     uint128 borrowRate;
     uint128 borrowIndex;
     uint40 lastUpdateTimestamp;

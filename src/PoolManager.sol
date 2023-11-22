@@ -354,6 +354,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
 
     totalCollateralInBase = result.totalCollateralInBaseCurrency;
     totalBorrowInBase = result.totalDebtInBaseCurrency;
+
     availableBorrowInBase = GenericLogic.calculateAvailableBorrows(
       totalCollateralInBase,
       totalBorrowInBase,
@@ -363,6 +364,93 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     currentCollateralFactor = result.avgLtv;
     currentLiquidationThreshold = result.avgLiquidationThreshold;
     healthFactor = result.healthFactor;
+  }
+
+  function getUserGroupData(
+    uint32 poolId,
+    address user,
+    uint8[] calldata groupIds
+  )
+    public
+    view
+    returns (
+      uint256[] memory groupsCollateralInBase,
+      uint256[] memory groupsBorrowInBase,
+      uint256[] memory groupsAvailableBorrowInBase
+    )
+  {
+    DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+
+    for (uint256 i = 0; i < groupIds.length; i++) {
+      ResultTypes.UserGroupResult memory result = GenericLogic.calculateUserGroupData(
+        poolData,
+        user,
+        groupIds[i],
+        cs.priceOracle
+      );
+
+      groupsCollateralInBase[i] = result.groupCollateralInBaseCurrency;
+      groupsBorrowInBase[i] = result.groupDebtInBaseCurrency;
+
+      groupsAvailableBorrowInBase[i] = GenericLogic.calculateAvailableBorrows(
+        result.groupCollateralInBaseCurrency,
+        result.groupDebtInBaseCurrency,
+        result.groupAvgLtv
+      );
+    }
+  }
+
+  struct GetUserAssetDataLocalVars {
+    uint256 aidx;
+    uint256 gidx;
+    uint256[] poolGroupIds;
+    uint256 scaledSupply;
+    uint256 scaledBorrow;
+  }
+
+  function getUserAssetData(
+    uint32 poolId,
+    address user,
+    address[] calldata assets
+  )
+    public
+    view
+    returns (
+      uint256[] memory totalCrossSupplies,
+      uint256[] memory totalIsolateSupplies,
+      uint256[] memory totalCrossBorrows,
+      uint256[] memory totalIsolateBorrows
+    )
+  {
+    GetUserAssetDataLocalVars memory vars;
+
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+
+    vars.poolGroupIds = poolData.groupList.values();
+
+    for (vars.aidx = 0; vars.aidx < assets.length; vars.aidx++) {
+      DataTypes.AssetData storage assetData = poolData.assetLookup[assets[vars.aidx]];
+
+      if (assetData.assetType == Constants.ASSET_TYPE_ERC20) {
+        vars.scaledSupply = VaultLogic.erc20GetUserScaledSupply(assetData, user);
+        totalCrossSupplies[vars.aidx] = vars.scaledSupply.rayMul(InterestLogic.getNormalizedSupplyIncome(assetData));
+
+        for (vars.gidx = 0; vars.gidx < vars.poolGroupIds.length; vars.gidx++) {
+          DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(vars.poolGroupIds[vars.gidx])];
+          vars.scaledBorrow = VaultLogic.erc20GetUserScaledBorrowInGroup(groupData, user);
+          totalCrossBorrows[vars.aidx] += vars.scaledBorrow.rayMul(InterestLogic.getNormalizedBorrowDebt(groupData));
+        }
+
+        // TODO: isolate borrow
+        totalIsolateBorrows[vars.aidx] = 0;
+      } else if (assetData.assetType == Constants.ASSET_TYPE_ERC721) {
+        totalCrossSupplies[vars.aidx] = VaultLogic.erc721GetUserCrossSupply(assetData, user);
+        totalIsolateSupplies[vars.aidx] = VaultLogic.erc721GetUserIsolateSupply(assetData, user);
+      }
+    }
   }
 
   function getUserERC20ScaledSupplyBalance(uint32 poolId, address asset, address user) public view returns (uint256) {

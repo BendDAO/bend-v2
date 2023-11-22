@@ -193,7 +193,7 @@ library ConfigureLogic {
     require(assetData.totalIsolateSupplied == 0, Errors.ISOLATE_SUPPLY_NOT_EMPTY);
 
     uint256[] memory groupIds = poolData.groupList.values();
-    for (uint256 i=0; i<groupIds.length; i++) {
+    for (uint256 i = 0; i < groupIds.length; i++) {
       DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(groupIds[i])];
       require(groupData.totalCrossBorrowed == 0, Errors.CROSS_DEBT_NOT_EMPTY);
       require(groupData.totalIsolateBorrowed == 0, Errors.ISOLATE_DEBT_NOT_EMPTY);
