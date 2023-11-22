@@ -83,7 +83,6 @@ library DataTypes {
 
     // group state
     mapping(uint8 => GroupData) groupLookup;
-    EnumerableSetUpgradeable.UintSet groupList;
 
     // user state
     uint256 totalCrossSupplied; // total supplied balance in cross margin mode

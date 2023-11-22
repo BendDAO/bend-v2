@@ -30,7 +30,7 @@ library SupplyLogic {
 
     VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, params.asset, msg.sender);
 
-    InterestLogic.updateInterestRates(params.asset, assetData, params.amount, 0);
+    InterestLogic.updateInterestRates(poolData, params.asset, assetData, params.amount, 0);
 
     emit Events.DepositERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
@@ -55,7 +55,7 @@ library SupplyLogic {
 
     VaultLogic.erc20TransferOut(params.asset, params.to, params.amount);
 
-    InterestLogic.updateInterestRates(params.asset, assetData, 0, params.amount);
+    InterestLogic.updateInterestRates(poolData, params.asset, assetData, 0, params.amount);
 
     ValidateLogic.validateHealthFactor(poolData, msg.sender, cs.priceOracle);
 

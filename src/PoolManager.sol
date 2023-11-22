@@ -264,6 +264,20 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   /****************************************************************************/
   /* Pool Query */
   /****************************************************************************/
+  function getGroupList(uint32 poolId) public view returns (uint256[] memory) {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+
+    return poolData.groupList.values();
+  }
+
+  function getAssetList(uint32 poolId) public view returns (address[] memory) {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+
+    return poolData.assetList.values();
+  }
+
   function getAssetSupplyData(
     uint32 poolId,
     address asset
@@ -388,7 +402,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
     uint256 totalScaledBalance = 0;
-    uint256[] memory assetGroupIds = assetData.groupList.values();
+    uint256[] memory assetGroupIds = poolData.groupList.values();
     for (uint256 i = 0; i < assetGroupIds.length; i++) {
       DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(assetGroupIds[i])];
       totalScaledBalance += VaultLogic.erc20GetUserScaledBorrowInGroup(groupData, user);
@@ -418,7 +432,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
     uint256 totalBalance = 0;
-    uint256[] memory assetGroupIds = assetData.groupList.values();
+    uint256[] memory assetGroupIds = poolData.groupList.values();
     for (uint256 i = 0; i < assetGroupIds.length; i++) {
       DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(assetGroupIds[i])];
       uint256 scaledBalance = VaultLogic.erc20GetUserScaledBorrowInGroup(groupData, user);

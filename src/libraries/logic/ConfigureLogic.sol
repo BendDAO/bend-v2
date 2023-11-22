@@ -191,7 +191,13 @@ library ConfigureLogic {
     require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
     require(assetData.totalCrossSupplied == 0, Errors.CROSS_SUPPLY_NOT_EMPTY);
     require(assetData.totalIsolateSupplied == 0, Errors.ISOLATE_SUPPLY_NOT_EMPTY);
-    require(assetData.groupList.length() == 0, Errors.GROUP_LIST_NOT_EMPTY);
+
+    uint256[] memory groupIds = poolData.groupList.values();
+    for (uint256 i=0; i<groupIds.length; i++) {
+      DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(groupIds[i])];
+      require(groupData.totalCrossBorrowed == 0, Errors.CROSS_DEBT_NOT_EMPTY);
+      require(groupData.totalIsolateBorrowed == 0, Errors.ISOLATE_DEBT_NOT_EMPTY);
+    }
 
     bool isDelOk = poolData.assetList.remove(asset);
     require(isDelOk, Errors.ENUM_SET_REMOVE_FAILED);
@@ -208,15 +214,11 @@ library ConfigureLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     // only erc20 asset can be borrowed
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.INVALID_ASSET_TYPE);
-    require(assetData.groupList.length() <= Constants.MAX_NUMBER_OF_GROUP, Errors.GROUP_NUMBER_EXCEED_MAX_LIMIT);
 
     DataTypes.GroupData storage group = assetData.groupLookup[groupId];
     group.interestRateModelAddress = rateModel_;
 
     InterestLogic.initGroupData(group);
-
-    bool isAddOk = assetData.groupList.add(groupId);
-    require(isAddOk, Errors.ENUM_SET_ADD_FAILED);
 
     emit Events.AddAssetGroup(poolId, asset, groupId);
   }
@@ -233,9 +235,6 @@ library ConfigureLogic {
 
     require(groupData.totalCrossBorrowed == 0, Errors.CROSS_DEBT_NOT_EMPTY);
     require(groupData.totalIsolateBorrowed == 0, Errors.ISOLATE_DEBT_NOT_EMPTY);
-
-    bool isDelOk = assetData.groupList.remove(groupId);
-    require(isDelOk, Errors.ENUM_SET_REMOVE_FAILED);
 
     emit Events.RemoveAssetGroup(poolId, asset, groupId);
   }

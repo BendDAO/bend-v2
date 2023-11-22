@@ -165,6 +165,7 @@ library InterestLogic {
    * @notice Updates the asset current borrow rate and current supply rate.
    */
   function updateInterestRates(
+    DataTypes.PoolData storage poolData,
     address assetAddress,
     DataTypes.AssetData storage assetData,
     uint256 liquidityAdded,
@@ -172,7 +173,7 @@ library InterestLogic {
   ) internal {
     UpdateInterestRatesLocalVars memory vars;
 
-    vars.assetGroupIds = assetData.groupList.values();
+    vars.assetGroupIds = poolData.groupList.values();
 
     // calculate the total asset debt
     vars.allGroupDebtList = new uint256[](vars.assetGroupIds.length);

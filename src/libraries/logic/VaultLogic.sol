@@ -56,7 +56,7 @@ library VaultLogic {
     address account
   ) internal {
     DataTypes.AccountData storage accountData = poolData.accountLookup[account];
-    uint256 totalBorrow = erc20GetUserBorrowInAsset(assetData, account);
+    uint256 totalBorrow = erc20GetUserBorrowInAsset(poolData, assetData, account);
     if (totalBorrow == 0) {
       accountSetBorrowedAsset(accountData, asset, false);
     } else {
@@ -190,12 +190,13 @@ library VaultLogic {
    * @dev Get user scaled borrow balance in the asset not related to the index.
    */
   function erc20GetUserScaledBorrowInAsset(
+    DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage assetData,
     address account
   ) internal view returns (uint256) {
     uint256 totalScaledBorrow;
 
-    uint256[] memory groupIds = assetData.groupList.values();
+    uint256[] memory groupIds = poolData.groupList.values();
     for (uint256 i = 0; i < groupIds.length; i++) {
       DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(groupIds[i])];
 
@@ -221,12 +222,13 @@ library VaultLogic {
    * @dev Get user borrow balance in the asset, make sure the index already updated.
    */
   function erc20GetUserBorrowInAsset(
+    DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage assetData,
     address account
   ) internal view returns (uint256) {
     uint256 totalBorrow;
 
-    uint256[] memory groupIds = assetData.groupList.values();
+    uint256[] memory groupIds = poolData.groupList.values();
     for (uint256 i = 0; i < groupIds.length; i++) {
       DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(groupIds[i])];
 

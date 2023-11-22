@@ -159,7 +159,7 @@ library GenericLogic {
       // same debt can be borrowed in different groups by different collaterals
       // e.g. BAYC borrow ETH in group 1, MAYC borrow ETH in group 2
       vars.userAssetDebtInBaseCurrency = 0;
-      vars.assetGroupIds = currentAssetData.groupList.values();
+      vars.assetGroupIds = poolData.groupList.values();
       for (vars.groupIndex = 0; vars.groupIndex < vars.assetGroupIds.length; vars.groupIndex++) {
         vars.currentGroupId = uint8(vars.assetGroupIds[vars.groupIndex]);
         DataTypes.GroupData storage currentGroupData = currentAssetData.groupLookup[vars.currentGroupId];
