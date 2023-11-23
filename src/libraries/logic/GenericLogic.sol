@@ -121,21 +121,21 @@ library GenericLogic {
           result.inputCollateralInBaseCurrency += vars.userBalanceInBaseCurrency;
         }
 
-        if (currentAssetData.rateGroupId == group) {
+        if (currentAssetData.classGroup == group) {
           result.groupCollateralInBaseCurrency += vars.userBalanceInBaseCurrency;
         }
 
         if (currentAssetData.collateralFactor != 0) {
           result.avgLtv += vars.userBalanceInBaseCurrency * currentAssetData.collateralFactor;
 
-          if (currentAssetData.rateGroupId == group) {
+          if (currentAssetData.classGroup == group) {
             result.groupAvgLtv += vars.userBalanceInBaseCurrency * currentAssetData.collateralFactor;
           }
         }
 
         result.avgLiquidationThreshold += vars.userBalanceInBaseCurrency * currentAssetData.liquidationThreshold;
 
-        if (currentAssetData.rateGroupId == group) {
+        if (currentAssetData.classGroup == group) {
           result.groupAvgLiquidationThreshold += vars.userBalanceInBaseCurrency * currentAssetData.liquidationThreshold;
         }
       }
@@ -171,7 +171,7 @@ library GenericLogic {
 
         vars.userAssetDebtInBaseCurrency += vars.userGroupDebtInBaseCurrency;
 
-        if (currentAssetData.rateGroupId == group) {
+        if (currentAssetData.classGroup == group) {
           result.groupDebtInBaseCurrency += vars.userGroupDebtInBaseCurrency;
         }
       }
@@ -253,7 +253,7 @@ library GenericLogic {
       }
 
       DataTypes.AssetData storage currentAssetData = poolData.assetLookup[vars.currentAssetAddress];
-      if (currentAssetData.rateGroupId != group) {
+      if (currentAssetData.classGroup != group) {
         continue;
       }
 

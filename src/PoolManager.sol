@@ -128,8 +128,8 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     ConfigureLogic.executeSetAssetBorrowCap(poolId, asset, newCap);
   }
 
-  function setAssetRateGroup(uint32 poolId, address asset, uint8 rateGroupId) public nonReentrant {
-    ConfigureLogic.executeSetAssetRateGroup(poolId, asset, rateGroupId);
+  function setAssetClassGroup(uint32 poolId, address asset, uint8 classGroup) public nonReentrant {
+    ConfigureLogic.executeSetAssetClassGroup(poolId, asset, classGroup);
   }
 
   function setAssetCollateralParams(

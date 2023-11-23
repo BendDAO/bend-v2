@@ -71,7 +71,7 @@ library DataTypes {
     // config params
     uint8 assetType; // ERC20=0, ERC721=1
     uint8 underlyingDecimals; // only for ERC20
-    uint8 rateGroupId; //rate group id
+    uint8 classGroup;
     bool isActive;
     bool isFrozen;
     bool isPaused;

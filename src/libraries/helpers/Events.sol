@@ -26,7 +26,7 @@ library Events {
   event SetAssetBorrowing(uint32 poolId, address asset, bool isEnable);
   event SetAssetSupplyCap(uint32 poolId, address asset, uint256 newCap);
   event SetAssetBorrowCap(uint32 poolId, address asset, uint256 newCap);
-  event SetAssetInterestGroup(uint32 indexed poolId, address indexed asset, uint8 groupId);
+  event SetAssetClassGroup(uint32 indexed poolId, address indexed asset, uint8 groupId);
   event SetAssetCollateralParams(
     uint32 poolId,
     address asset,

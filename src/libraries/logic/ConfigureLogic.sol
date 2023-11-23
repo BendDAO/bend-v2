@@ -91,7 +91,7 @@ library ConfigureLogic {
     // check all assets not belong to this group
     address[] memory allAssets = poolData.assetList.values();
     for (uint256 i = 0; i < allAssets.length; i++) {
-      require(poolData.assetLookup[allAssets[i]].rateGroupId != groupId, Errors.GROUP_HAS_ASSET);
+      require(poolData.assetLookup[allAssets[i]].classGroup != groupId, Errors.GROUP_HAS_ASSET);
     }
 
     poolData.enabledGroups[groupId] = false;
@@ -330,7 +330,7 @@ library ConfigureLogic {
     emit Events.SetAssetBorrowCap(poolId, asset, newCap);
   }
 
-  function executeSetAssetRateGroup(uint32 poolId, address asset, uint8 groupId) public {
+  function executeSetAssetClassGroup(uint32 poolId, address asset, uint8 classGroup) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
@@ -339,9 +339,9 @@ library ConfigureLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
 
-    assetData.rateGroupId = groupId;
+    assetData.classGroup = classGroup;
 
-    emit Events.SetAssetInterestGroup(poolId, asset, groupId);
+    emit Events.SetAssetClassGroup(poolId, asset, classGroup);
   }
 
   function executeSetAssetCollateralParams(
