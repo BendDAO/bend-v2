@@ -72,7 +72,11 @@ library BorrowLogic {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
+
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
+    require(poolData.isYieldEnabled, Errors.POOL_YIELD_NOT_ENABLE);
+    require(!poolData.isYieldPaused, Errors.POOL_YIELD_IS_PAUSED);
+
     DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroupId];
 
     DataTypes.StakerData storage stakerData = assetData.stakerLookup[params.staker];

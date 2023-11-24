@@ -11,6 +11,7 @@ library Constants {
   uint16 public constant MAX_NUMBER_OF_ASSET = 256;
 
   uint8 public constant MAX_NUMBER_OF_GROUP = 4;
+  uint8 public constant GROUP_ID_INVALID = 255;
   uint8 public constant GROUP_ID_YIELD = 0;
   uint8 public constant GROUP_ID_LEND_MIN = 1;
   uint8 public constant GROUP_ID_LEND_MAX = 3;

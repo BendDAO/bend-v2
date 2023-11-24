@@ -2,43 +2,50 @@
 pragma solidity ^0.8.19;
 
 library Events {
-  event AssetAggregatorUpdated(address asset, address aggregator);
+  /* Oracle Events */
+  event AssetAggregatorUpdated(address indexed asset, address aggregator);
   event BendNFTOracleUpdated(address bendNFTOracle);
 
+  /* Pool Events */
   event CreatePool(uint32 indexed poolId);
   event DeletePool(uint32 indexed poolId);
 
   event AddPoolGroup(uint32 indexed poolId, uint8 groupId);
   event RemovePoolGroup(uint32 indexed poolId, uint8 groupId);
 
-  event SetPoolYieldGroup(uint32 poolId, bool isEnable);
+  event SetPoolYieldEnable(uint32 indexed poolId, bool isEnable);
+  event SetPoolYieldPause(uint32 indexed poolId, bool isPause);
+
+  /* Asset Events */
+  event AssetInterestSupplyDataUpdated(address indexed asset, uint256 supplyRate, uint256 supplyIndex);
+  event AssetInterestBorrowDataUpdated(address indexed asset, uint256 groupId, uint256 borrowRate, uint256 borrowIndex);
 
   event AddAsset(uint32 indexed poolId, address indexed asset, uint8 assetType);
   event RemoveAsset(uint32 indexed poolId, address indexed asset, uint8 assetType);
 
   event AddAssetGroup(uint32 indexed poolId, address indexed asset, uint8 groupId);
   event RemoveAssetGroup(uint32 indexed poolId, address indexed asset, uint8 groupId);
-  event SetAssetInterestRateModel(uint32 indexed poolId, address indexed asset, uint8 groupId, address rateModel);
 
-  event SetAssetActive(uint32 poolId, address asset, bool isActive);
-  event SetAssetFrozen(uint32 poolId, address asset, bool isFrozen);
-  event SetAssetPause(uint32 poolId, address asset, bool isPause);
-  event SetAssetBorrowing(uint32 poolId, address asset, bool isEnable);
-  event SetAssetSupplyCap(uint32 poolId, address asset, uint256 newCap);
-  event SetAssetBorrowCap(uint32 poolId, address asset, uint256 newCap);
+  event SetAssetActive(uint32 indexed poolId, address indexed asset, bool isActive);
+  event SetAssetFrozen(uint32 indexed poolId, address indexed asset, bool isFrozen);
+  event SetAssetPause(uint32 indexed poolId, address indexed asset, bool isPause);
+  event SetAssetBorrowing(uint32 indexed poolId, address indexed asset, bool isEnable);
+  event SetAssetSupplyCap(uint32 indexed poolId, address indexed asset, uint256 newCap);
+  event SetAssetBorrowCap(uint32 indexed poolId, address indexed asset, uint256 newCap);
   event SetAssetClassGroup(uint32 indexed poolId, address indexed asset, uint8 groupId);
   event SetAssetCollateralParams(
-    uint32 poolId,
-    address asset,
+    uint32 indexed poolId,
+    address indexed asset,
     uint16 collateralFactor,
     uint16 liquidationThreshold,
     uint16 liquidationBonus
   );
-  event SetAssetProtocolFee(uint32 poolId, address asset, uint16 feeFactor);
+  event SetAssetProtocolFee(uint32 indexed poolId, address indexed asset, uint16 feeFactor);
+  event SetAssetInterestRateModel(uint32 indexed poolId, address indexed asset, uint8 groupId, address rateModel);
+  event SetAssetYieldEnable(uint32 indexed poolId, address indexed asset, bool isEnable);
+  event SetAssetYieldPause(uint32 indexed poolId, address indexed asset, bool isPause);
 
-  event AssetInterestSupplyDataUpdated(address indexed asset, uint256 supplyRate, uint256 supplyIndex);
-  event AssetInterestBorrowDataUpdated(address indexed asset, uint256 groupId, uint256 borrowRate, uint256 borrowIndex);
-
+  /* Lending Events */
   event DepositERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
   event WithdrawERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
 
@@ -66,6 +73,7 @@ library Events {
     bool supplyAsCollateral
   );
 
+  /* Yield Events */
   event BorrowERC20ForYield(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
   event RepayERC20ForYield(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
 }

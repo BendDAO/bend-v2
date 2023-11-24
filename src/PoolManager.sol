@@ -76,8 +76,12 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     ConfigureLogic.executeRemovePoolGroup(poolId, groupId);
   }
 
-  function setPoolYieldGroup(uint32 poolId, bool isEnable) public nonReentrant {
-    ConfigureLogic.executeSetPoolYieldGroup(poolId, isEnable);
+  function setPoolYieldEnable(uint32 poolId, bool isEnable) public nonReentrant {
+    ConfigureLogic.executeSetPoolYieldEnable(poolId, isEnable);
+  }
+
+  function setPoolYieldPause(uint32 poolId, bool isPause) public nonReentrant {
+    ConfigureLogic.executeSetPoolYieldPause(poolId, isPause);
   }
 
   function addAssetERC20(uint32 poolId, address asset) public nonReentrant {
@@ -159,6 +163,14 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     address rateModel_
   ) public nonReentrant {
     ConfigureLogic.executeSetAssetInterestRateModel(poolId, asset, groupId, rateModel_);
+  }
+
+  function setAssetYieldEnable(uint32 poolId, address asset, bool isEnable) public nonReentrant {
+    ConfigureLogic.executeSetAssetYieldEnable(poolId, asset, isEnable);
+  }
+
+  function setAssetYieldPause(uint32 poolId, address asset, bool isPause) public nonReentrant {
+    ConfigureLogic.executeSetAssetYieldPause(poolId, asset, isPause);
   }
 
   function setAssetYieldCap(uint32 poolId, address asset, address staker, uint256 cap) public nonReentrant {

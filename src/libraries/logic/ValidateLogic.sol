@@ -245,16 +245,18 @@ library ValidateLogic {
     DataTypes.GroupData storage groupData
   ) internal view {
     validatePoolBasic(poolData);
-    require(poolData.yieldGroupId != 0, Errors.POOL_YIELD_NOT_ENABLE);
+    require(poolData.isYieldEnabled, Errors.POOL_YIELD_NOT_ENABLE);
+    require(!poolData.isYieldPaused, Errors.POOL_YIELD_IS_PAUSED);
 
     validateAssetBasic(assetData);
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+    require(assetData.isYieldEnabled, Errors.ASSET_YIELD_NOT_ENABLE);
+    require(!assetData.isYieldPaused, Errors.ASSET_YIELD_IS_PAUSED);
+    require(!assetData.isFrozen, Errors.ASSET_IS_FROZEN);
+
     validateGroupBasic(groupData);
 
-    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
     require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
-
-    require(!assetData.isFrozen, Errors.ASSET_IS_FROZEN);
-    require(assetData.isYieldEnabled, Errors.ASSET_IS_YIELD_DISABLED);
   }
 
   function validateRepayERC20ForYield(
@@ -264,12 +266,14 @@ library ValidateLogic {
     DataTypes.GroupData storage groupData
   ) internal view {
     validatePoolBasic(poolData);
-    require(poolData.yieldGroupId != 0, Errors.POOL_YIELD_NOT_ENABLE);
+    require(!poolData.isYieldPaused, Errors.POOL_YIELD_IS_PAUSED);
 
     validateAssetBasic(assetData);
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+    require(!assetData.isYieldPaused, Errors.ASSET_YIELD_IS_PAUSED);
+
     validateGroupBasic(groupData);
 
-    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
     require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
   }
 }

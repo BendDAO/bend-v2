@@ -107,19 +107,46 @@ library ConfigureLogic {
     emit Events.RemovePoolGroup(poolId, groupId);
   }
 
-  function executeSetPoolYieldGroup(uint32 poolId, bool isEnable) public {
+  function executeSetPoolYieldEnable(uint32 poolId, bool isEnable) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
 
     if (isEnable) {
+      require(!poolData.isYieldEnabled, Errors.POOL_YIELD_ALREADY_ENABLE);
+
+      poolData.isYieldEnabled = true;
       poolData.yieldGroupId = Constants.GROUP_ID_YIELD;
     } else {
-      poolData.yieldGroupId = 0;
+      require(poolData.isYieldEnabled, Errors.POOL_YIELD_NOT_ENABLE);
+
+      // check this group not used by any asset in the pool
+      address[] memory allAssets = poolData.assetList.values();
+      for (uint256 i = 0; i < allAssets.length; i++) {
+        DataTypes.AssetData storage assetData = poolData.assetLookup[allAssets[i]];
+        require(!assetData.isYieldEnabled, Errors.ASSET_YIELD_ALREADY_ENABLE);
+
+        DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroupId];
+        VaultLogic.checkGroupHasEmptyLiquidity(groupData);
+      }
+
+      poolData.isYieldEnabled = false;
+      poolData.yieldGroupId = Constants.GROUP_ID_INVALID;
     }
 
-    emit Events.SetPoolYieldGroup(poolId, isEnable);
+    emit Events.SetPoolYieldEnable(poolId, isEnable);
+  }
+
+  function executeSetPoolYieldPause(uint32 poolId, bool isPause) public {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    _validateOwnerAndPool(poolData);
+
+    poolData.isYieldPaused = isPause;
+
+    emit Events.SetPoolYieldPause(poolId, isPause);
   }
 
   function executeAddAssetERC20(uint32 poolId, address asset) public {
@@ -418,6 +445,48 @@ library ConfigureLogic {
 
     DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
     groupData.interestRateModelAddress = rateModel_;
+
+    emit Events.SetAssetInterestRateModel(poolId, asset, groupId, rateModel_);
+  }
+
+  function executeSetAssetYieldEnable(uint32 poolId, address asset, bool isEnable) public {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    _validateOwnerAndPool(poolData);
+
+    require(poolData.isYieldEnabled, Errors.POOL_YIELD_NOT_ENABLE);
+
+    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+
+    if (isEnable) {
+      require(!assetData.isYieldEnabled, Errors.ASSET_YIELD_ALREADY_ENABLE);
+      assetData.isYieldEnabled = true;
+    } else {
+      require(assetData.isYieldEnabled, Errors.ASSET_YIELD_NOT_ENABLE);
+
+      DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroupId];
+      VaultLogic.checkGroupHasEmptyLiquidity(groupData);
+
+      assetData.isYieldEnabled = false;
+    }
+
+    emit Events.SetAssetYieldEnable(poolId, asset, isEnable);
+  }
+
+  function executeSetAssetYieldPause(uint32 poolId, address asset, bool isPause) public {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    _validateOwnerAndPool(poolData);
+
+    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+
+    assetData.isYieldPaused = isPause;
+
+    emit Events.SetAssetYieldPause(poolId, asset, isPause);
   }
 
   function executeSetAssetYieldCap(uint32 poolId, address asset, address staker, uint256 cap) public {

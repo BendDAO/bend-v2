@@ -33,6 +33,8 @@ library DataTypes {
     mapping(address => AccountData) accountLookup;
 
     // yield
+    bool isYieldEnabled;
+    bool isYieldPaused;
     uint8 yieldGroupId;
   }
 
@@ -78,6 +80,7 @@ library DataTypes {
     bool isPaused;
     bool isBorrowingEnabled;
     bool isYieldEnabled;
+    bool isYieldPaused;
     uint16 feeFactor;
     uint16 collateralFactor;
     uint16 liquidationThreshold;

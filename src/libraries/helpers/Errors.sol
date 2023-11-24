@@ -36,7 +36,9 @@ library Errors {
 
   string public constant POOL_ALREADY_EXISTS = '300';
   string public constant POOL_NOT_EXISTS = '301';
-  string public constant POOL_YIELD_NOT_ENABLE = '302';
+  string public constant POOL_YIELD_ALREADY_ENABLE = '303';
+  string public constant POOL_YIELD_NOT_ENABLE = '304';
+  string public constant POOL_YIELD_IS_PAUSED = '305';
 
   string public constant GROUP_ALREADY_EXISTS = '320';
   string public constant GROUP_NOT_EXISTS = '321';
@@ -58,7 +60,9 @@ library Errors {
   string public constant ASSET_IS_BORROW_DISABLED = '351';
   string public constant ASSET_NOT_CROSS_MODE = '352';
   string public constant ASSET_NOT_ISOLATE_MODE = '353';
-  string public constant ASSET_IS_YIELD_DISABLED = '354';
+  string public constant ASSET_YIELD_ALREADY_ENABLE = '354';
+  string public constant ASSET_YIELD_NOT_ENABLE = '355';
+  string public constant ASSET_YIELD_IS_PAUSED = '356';
 
   string public constant HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD = '400';
   string public constant HEALTH_FACTOR_NOT_BELOW_THRESHOLD = '401';
