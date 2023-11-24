@@ -28,11 +28,11 @@ library BorrowLogic {
 
     VaultLogic.erc20IncreaseBorrow(groupData, msg.sender, params.amount);
 
-    VaultLogic.accountCheckAndSetBorrowedAsset(poolData, assetData, params.asset, msg.sender);
+    VaultLogic.accountCheckAndSetBorrowedAsset(poolData, assetData, msg.sender);
 
     VaultLogic.erc20TransferOut(params.asset, params.to, params.amount);
 
-    InterestLogic.updateInterestRates(poolData, params.asset, assetData, 0, params.amount);
+    InterestLogic.updateInterestRates(poolData, assetData, 0, params.amount);
 
     emit Events.BorrowERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
@@ -55,11 +55,11 @@ library BorrowLogic {
 
     VaultLogic.erc20DecreaseBorrow(groupData, msg.sender, params.amount);
 
-    VaultLogic.accountCheckAndSetBorrowedAsset(poolData, assetData, params.asset, msg.sender);
+    VaultLogic.accountCheckAndSetBorrowedAsset(poolData, assetData, msg.sender);
 
     VaultLogic.erc20TransferIn(params.asset, msg.sender, params.amount);
 
-    InterestLogic.updateInterestRates(poolData, params.asset, assetData, 0, params.amount);
+    InterestLogic.updateInterestRates(poolData, assetData, 0, params.amount);
 
     emit Events.RepayERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
@@ -88,7 +88,7 @@ library BorrowLogic {
 
     VaultLogic.erc20TransferOut(params.asset, msg.sender, params.amount);
 
-    InterestLogic.updateInterestRates(poolData, params.asset, assetData, 0, params.amount);
+    InterestLogic.updateInterestRates(poolData, assetData, 0, params.amount);
 
     emit Events.BorrowERC20ForYield(msg.sender, params.poolId, params.asset, params.amount);
   }
@@ -117,7 +117,7 @@ library BorrowLogic {
 
     VaultLogic.erc20TransferIn(params.asset, msg.sender, params.amount);
 
-    InterestLogic.updateInterestRates(poolData, params.asset, assetData, 0, params.amount);
+    InterestLogic.updateInterestRates(poolData, assetData, 0, params.amount);
 
     emit Events.RepayERC20ForYield(msg.sender, params.poolId, params.asset, params.amount);
   }

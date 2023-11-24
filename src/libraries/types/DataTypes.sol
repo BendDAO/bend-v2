@@ -16,11 +16,10 @@ library DataTypes {
   /****************************************************************************/
   /* Data Types for Pool Lending */
   struct PoolData {
-    uint256 poolId;
+    uint32 poolId;
     address governanceAdmin;
 
     // group
-    uint8 nextGroupId;
     mapping(uint8 => bool) enabledGroups;
     EnumerableSetUpgradeable.UintSet groupList;
 
@@ -56,6 +55,7 @@ library DataTypes {
     uint128 borrowRate;
     uint128 borrowIndex;
     uint40 lastUpdateTimestamp;
+    uint8 groupId;
   }
 
   struct ERC721TokenData {
@@ -69,6 +69,7 @@ library DataTypes {
 
   struct AssetData {
     // config params
+    address underlyingAsset;
     uint8 assetType; // ERC20=0, ERC721=1
     uint8 underlyingDecimals; // only for ERC20
     uint8 classGroup;
@@ -86,6 +87,7 @@ library DataTypes {
 
     // group state
     mapping(uint8 => GroupData) groupLookup;
+    EnumerableSetUpgradeable.UintSet groupList;
 
     // user state
     uint256 totalCrossSupplied; // total supplied balance in cross margin mode

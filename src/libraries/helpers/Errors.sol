@@ -42,7 +42,7 @@ library Errors {
   string public constant GROUP_NOT_EXISTS = '321';
   string public constant GROUP_LIST_NOT_EMPTY = '322';
   string public constant GROUP_NUMBER_EXCEED_MAX_LIMIT = '323';
-  string public constant GROUP_HAS_ASSET = '324';
+  string public constant GROUP_USDED_BY_ASSET = '324';
 
   string public constant ASSET_ALREADY_EXISTS = '340';
   string public constant ASSET_NOT_EXISTS = '341';

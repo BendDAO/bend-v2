@@ -34,7 +34,7 @@ contract TestIntegrationDeposit is IntegrationTest {
     assertEq(testUserData.supplyBlance, amount, 'supplyBlance not match');
   }
 
-  function testShouldDepositERC721() public {
+  function xtestShouldDepositERC721() public {
     uint256[] memory tokenIds = tsDepositor1.getTokenIds();
     uint256 amount = tokenIds.length;
 

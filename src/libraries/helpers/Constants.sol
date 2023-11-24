@@ -9,9 +9,11 @@ library Constants {
   uint16 public constant MAX_FEE_FACTOR = 10000;
 
   uint16 public constant MAX_NUMBER_OF_ASSET = 256;
-  uint8 public constant MAX_NUMBER_OF_GROUP = 3;
 
-  uint8 public constant GROUP_ID_YIELD = 101;
+  uint8 public constant MAX_NUMBER_OF_GROUP = 4;
+  uint8 public constant GROUP_ID_YIELD = 0;
+  uint8 public constant GROUP_ID_LEND_MIN = 1;
+  uint8 public constant GROUP_ID_LEND_MAX = 3;
 
   // Asset type
   uint8 public constant ASSET_TYPE_ERC20 = 1;

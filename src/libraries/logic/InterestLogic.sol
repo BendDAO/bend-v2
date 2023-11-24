@@ -165,15 +165,14 @@ library InterestLogic {
    * @notice Updates the asset current borrow rate and current supply rate.
    */
   function updateInterestRates(
-    DataTypes.PoolData storage poolData,
-    address assetAddress,
+    DataTypes.PoolData storage /*poolData*/,
     DataTypes.AssetData storage assetData,
     uint256 liquidityAdded,
     uint256 liquidityTaken
   ) internal {
     UpdateInterestRatesLocalVars memory vars;
 
-    vars.assetGroupIds = poolData.groupList.values();
+    vars.assetGroupIds = assetData.groupList.values();
 
     // calculate the total asset debt
     vars.allGroupDebtList = new uint256[](vars.assetGroupIds.length);
@@ -189,7 +188,7 @@ library InterestLogic {
 
     // calculate the total asset supply
     vars.availableLiquidity =
-      IERC20Upgradeable(assetAddress).balanceOf(address(this)) +
+      IERC20Upgradeable(assetData.underlyingAsset).balanceOf(address(this)) +
       liquidityAdded -
       liquidityTaken;
     vars.availableLiquidityPlusDebt = vars.availableLiquidity + vars.totalAssetDebt;
@@ -201,7 +200,7 @@ library InterestLogic {
       DataTypes.GroupData storage loopGroupData = assetData.groupLookup[vars.loopGroupId];
       (vars.nextGroupBorrowRate) = IInterestRateModel(loopGroupData.interestRateModelAddress).calculateGroupBorrowRate(
         InputTypes.CalculateGroupBorrowRateParams({
-          assetAddress: assetAddress,
+          assetAddress: assetData.underlyingAsset,
           borrowUsageRatio: vars.assetBorrowUsageRatio
         })
       );
@@ -209,7 +208,7 @@ library InterestLogic {
       loopGroupData.borrowRate = vars.nextGroupBorrowRate.toUint128();
 
       emit Events.AssetInterestBorrowDataUpdated(
-        assetAddress,
+        assetData.underlyingAsset,
         vars.loopGroupId,
         vars.nextGroupBorrowRate,
         loopGroupData.borrowIndex
@@ -234,7 +233,11 @@ library InterestLogic {
     );
     assetData.supplyRate = vars.nextAssetSupplyRate.toUint128();
 
-    emit Events.AssetInterestSupplyDataUpdated(assetAddress, vars.nextAssetSupplyRate, assetData.supplyIndex);
+    emit Events.AssetInterestSupplyDataUpdated(
+      assetData.underlyingAsset,
+      vars.nextAssetSupplyRate,
+      assetData.supplyIndex
+    );
   }
 
   struct AccrueToTreasuryLocalVars {

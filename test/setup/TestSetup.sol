@@ -53,10 +53,13 @@ contract TestSetup is TestUtils {
   PoolManager public tsPoolManager;
 
   uint32 public tsCommonPoolId;
-  uint8 public tsLowInterestGroupId;
-  uint8 public tsHighInterestGroupId;
-  DefaultInterestRateModel public tsLowRiskIRM;
-  DefaultInterestRateModel public tsHighRiskIRM;
+  uint8 public tsLowRateGroupId;
+  uint8 public tsMiddleRateGroupId;
+  uint8 public tsHighRateGroupId;
+
+  DefaultInterestRateModel public tsLowRateIRM;
+  DefaultInterestRateModel public tsMiddleRateIRM;
+  DefaultInterestRateModel public tsHighRateIRM;
 
   TestData public tsDataHelper;
 
@@ -138,13 +141,13 @@ contract TestSetup is TestUtils {
     //tsPoolManager.initialize(address(aclManager), address(tsPriceOracle));
 
     // Interest Rate Model
-    tsLowRiskIRM = new DefaultInterestRateModel(
+    tsLowRateIRM = new DefaultInterestRateModel(
       (65 * WadRayMath.RAY) / 100,
       (10 * WadRayMath.RAY) / 100,
       (5 * WadRayMath.RAY) / 100,
       (100 * WadRayMath.RAY) / 100
     );
-    tsHighRiskIRM = new DefaultInterestRateModel(
+    tsHighRateIRM = new DefaultInterestRateModel(
       (65 * WadRayMath.RAY) / 100,
       (15 * WadRayMath.RAY) / 100,
       (8 * WadRayMath.RAY) / 100,
@@ -243,57 +246,61 @@ contract TestSetup is TestUtils {
     tsHEVM.label(address(tsPriceOracle), 'PriceOracle');
     tsHEVM.label(address(tsPoolManager), 'PoolManager');
 
-    tsHEVM.label(address(tsLowRiskIRM), 'LowRiskIRM');
-    tsHEVM.label(address(tsHighRiskIRM), 'HighRiskIRM');
+    tsHEVM.label(address(tsLowRateIRM), 'LowRiskIRM');
+    tsHEVM.label(address(tsHighRateIRM), 'HighRiskIRM');
   }
 
   function initCommonPools() internal {
     tsCommonPoolId = tsPoolManager.createPool();
 
-    tsLowInterestGroupId = tsPoolManager.addPoolGroup(tsCommonPoolId);
-    tsHighInterestGroupId = tsPoolManager.addPoolGroup(tsCommonPoolId);
+    tsLowRateGroupId = 1;
+    tsMiddleRateGroupId = 2;
+    tsHighRateGroupId = 3;
+    tsPoolManager.addPoolGroup(tsCommonPoolId, tsLowRateGroupId);
+    tsPoolManager.addPoolGroup(tsCommonPoolId, tsMiddleRateGroupId);
+    tsPoolManager.addPoolGroup(tsCommonPoolId, tsHighRateGroupId);
 
     // asset some erc20 assets
     tsPoolManager.addAssetERC20(tsCommonPoolId, address(tsWETH));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsWETH), 8050, 8300, 500);
     tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsWETH), 3000);
-    tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsWETH), tsLowInterestGroupId);
+    tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsWETH), tsLowRateGroupId);
     tsPoolManager.setAssetActive(tsCommonPoolId, address(tsWETH), true);
     tsPoolManager.setAssetBorrowing(tsCommonPoolId, address(tsWETH), true);
 
     tsPoolManager.addAssetERC20(tsCommonPoolId, address(tsDAI));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsDAI), 7700, 8000, 500);
     tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsDAI), 3000);
-    tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsDAI), tsLowInterestGroupId);
+    tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsDAI), tsLowRateGroupId);
     tsPoolManager.setAssetActive(tsCommonPoolId, address(tsDAI), true);
     tsPoolManager.setAssetBorrowing(tsCommonPoolId, address(tsDAI), true);
 
     tsPoolManager.addAssetERC20(tsCommonPoolId, address(tsUSDT));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsUSDT), 7400, 7600, 450);
     tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsUSDT), 3000);
-    tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsUSDT), tsLowInterestGroupId);
+    tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsUSDT), tsLowRateGroupId);
     tsPoolManager.setAssetActive(tsCommonPoolId, address(tsUSDT), true);
     tsPoolManager.setAssetBorrowing(tsCommonPoolId, address(tsUSDT), true);
 
     // add interest group to assets
-    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsWETH), tsLowInterestGroupId, address(tsLowRiskIRM));
-    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsWETH), tsHighInterestGroupId, address(tsHighRiskIRM));
+    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsWETH), tsLowRateGroupId, address(tsLowRateIRM));
+    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsWETH), tsHighRateGroupId, address(tsHighRateIRM));
 
-    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsDAI), tsLowInterestGroupId, address(tsLowRiskIRM));
-    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsDAI), tsHighInterestGroupId, address(tsHighRiskIRM));
+    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsDAI), tsLowRateGroupId, address(tsLowRateIRM));
+    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsDAI), tsHighRateGroupId, address(tsHighRateIRM));
 
-    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsUSDT), tsLowInterestGroupId, address(tsLowRiskIRM));
-    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsUSDT), tsHighInterestGroupId, address(tsHighRiskIRM));
+    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsUSDT), tsLowRateGroupId, address(tsLowRateIRM));
+    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsUSDT), tsHighRateGroupId, address(tsHighRateIRM));
 
     // add some nft assets
     tsPoolManager.addAssetERC721(tsCommonPoolId, address(tsBAYC));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsBAYC), 6000, 8000, 1000);
-    tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsBAYC), tsLowInterestGroupId);
+    tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsBAYC), tsLowRateGroupId);
     tsPoolManager.setAssetActive(tsCommonPoolId, address(tsBAYC), true);
 
     tsPoolManager.addAssetERC721(tsCommonPoolId, address(tsMAYC));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsMAYC), 5000, 8000, 1000);
-    tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsMAYC), tsHighInterestGroupId);
+    tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsMAYC), tsHighRateGroupId);
     tsPoolManager.setAssetActive(tsCommonPoolId, address(tsMAYC), true);
   }
 }

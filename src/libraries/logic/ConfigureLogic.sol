@@ -20,6 +20,7 @@ import {InputTypes} from '../types/InputTypes.sol';
 
 import {StorageSlot} from './StorageSlot.sol';
 import {InterestLogic} from './InterestLogic.sol';
+import {VaultLogic} from './VaultLogic.sol';
 
 /**
  * @title ConfigureLogic library
@@ -44,7 +45,6 @@ library ConfigureLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     poolData.poolId = poolId;
     poolData.governanceAdmin = msg.sender;
-    poolData.nextGroupId = 1;
 
     emit Events.CreatePool(poolId);
   }
@@ -62,16 +62,16 @@ library ConfigureLogic {
     emit Events.DeletePool(poolId);
   }
 
-  function executeAddPoolGroup(uint32 poolId) public returns (uint8 groupId) {
+  function executeAddPoolGroup(uint32 poolId, uint8 groupId) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
 
+    require(groupId >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
+    require(groupId <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
+    require(poolData.enabledGroups[groupId] == false, Errors.GROUP_ALREADY_EXISTS);
     require(poolData.groupList.length() <= Constants.MAX_NUMBER_OF_GROUP, Errors.GROUP_NUMBER_EXCEED_MAX_LIMIT);
-
-    groupId = poolData.nextGroupId;
-    poolData.nextGroupId++;
 
     poolData.enabledGroups[groupId] = true;
     bool isAddOk = poolData.groupList.add(groupId);
@@ -86,16 +86,21 @@ library ConfigureLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
 
+    require(groupId >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
+    require(groupId <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
     require(poolData.enabledGroups[groupId] == true, Errors.GROUP_NOT_EXISTS);
 
-    // check all assets not belong to this group
+    // check this group not used by any asset in the pool
     address[] memory allAssets = poolData.assetList.values();
     for (uint256 i = 0; i < allAssets.length; i++) {
-      require(poolData.assetLookup[allAssets[i]].classGroup != groupId, Errors.GROUP_HAS_ASSET);
+      DataTypes.AssetData storage assetData = poolData.assetLookup[allAssets[i]];
+      require(assetData.classGroup != groupId, Errors.GROUP_USDED_BY_ASSET);
+
+      DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
+      VaultLogic.checkGroupHasEmptyLiquidity(groupData);
     }
 
     poolData.enabledGroups[groupId] = false;
-
     bool isDelOk = poolData.groupList.remove(groupId);
     require(isDelOk, Errors.ENUM_SET_REMOVE_FAILED);
 
@@ -128,6 +133,7 @@ library ConfigureLogic {
 
     require(poolData.assetList.length() <= Constants.MAX_NUMBER_OF_ASSET, Errors.ASSET_NUMBER_EXCEED_MAX_LIMIT);
 
+    assetData.underlyingAsset = asset;
     assetData.assetType = uint8(Constants.ASSET_TYPE_ERC20);
     assetData.underlyingDecimals = IERC20MetadataUpgradeable(asset).decimals();
 
@@ -163,6 +169,7 @@ library ConfigureLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.assetType == 0, Errors.ASSET_ALREADY_EXISTS);
 
+    assetData.underlyingAsset = asset;
     assetData.assetType = uint8(Constants.ASSET_TYPE_ERC721);
 
     bool isAddOk = poolData.assetList.add(asset);
@@ -189,15 +196,8 @@ library ConfigureLogic {
     address asset
   ) private {
     require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
-    require(assetData.totalCrossSupplied == 0, Errors.CROSS_SUPPLY_NOT_EMPTY);
-    require(assetData.totalIsolateSupplied == 0, Errors.ISOLATE_SUPPLY_NOT_EMPTY);
 
-    uint256[] memory groupIds = poolData.groupList.values();
-    for (uint256 i = 0; i < groupIds.length; i++) {
-      DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(groupIds[i])];
-      require(groupData.totalCrossBorrowed == 0, Errors.CROSS_DEBT_NOT_EMPTY);
-      require(groupData.totalIsolateBorrowed == 0, Errors.ISOLATE_DEBT_NOT_EMPTY);
-    }
+    VaultLogic.checkAssetHasEmptyLiquidity(poolData, assetData);
 
     bool isDelOk = poolData.assetList.remove(asset);
     require(isDelOk, Errors.ENUM_SET_REMOVE_FAILED);
@@ -206,19 +206,27 @@ library ConfigureLogic {
   function executeAddAssetGroup(uint32 poolId, address asset, uint8 groupId, address rateModel_) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
+    require(groupId >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
+    require(groupId <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
+    require(rateModel_ != address(0), Errors.INVALID_ADDRESS);
+
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
 
     require(poolData.enabledGroups[groupId] == true, Errors.GROUP_NOT_EXISTS);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-    // only erc20 asset can be borrowed
+    // only erc20 asset can be borrowed and have rate group
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.INVALID_ASSET_TYPE);
 
     DataTypes.GroupData storage group = assetData.groupLookup[groupId];
+    group.groupId = groupId;
     group.interestRateModelAddress = rateModel_;
 
     InterestLogic.initGroupData(group);
+
+    bool isAddOk = assetData.groupList.add(groupId);
+    require(isAddOk, Errors.ENUM_SET_ADD_FAILED);
 
     emit Events.AddAssetGroup(poolId, asset, groupId);
   }
@@ -226,15 +234,24 @@ library ConfigureLogic {
   function executeRemoveAssetGroup(uint32 poolId, address asset, uint8 groupId) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
+    require(groupId >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
+    require(groupId <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
+
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
-    require(groupData.interestRateModelAddress != address(0), Errors.GROUP_NOT_EXISTS);
 
-    require(groupData.totalCrossBorrowed == 0, Errors.CROSS_DEBT_NOT_EMPTY);
-    require(groupData.totalIsolateBorrowed == 0, Errors.ISOLATE_DEBT_NOT_EMPTY);
+    // only erc20 asset can be borrowed and have rate group
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.INVALID_ASSET_TYPE);
+
+    VaultLogic.checkGroupHasEmptyLiquidity(groupData);
+
+    bool isDelOk = assetData.groupList.remove(groupId);
+    require(isDelOk, Errors.ENUM_SET_REMOVE_FAILED);
+
+    delete assetData.groupLookup[groupId];
 
     emit Events.RemoveAssetGroup(poolId, asset, groupId);
   }
@@ -391,11 +408,13 @@ library ConfigureLogic {
   function executeSetAssetInterestRateModel(uint32 poolId, address asset, uint8 groupId, address rateModel_) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
+    require(rateModel_ != address(0), Errors.INVALID_ADDRESS);
+
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
     DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
     groupData.interestRateModelAddress = rateModel_;

@@ -52,15 +52,14 @@ library VaultLogic {
   function accountCheckAndSetBorrowedAsset(
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage assetData,
-    address asset,
     address account
   ) internal {
     DataTypes.AccountData storage accountData = poolData.accountLookup[account];
     uint256 totalBorrow = erc20GetUserBorrowInAsset(poolData, assetData, account);
     if (totalBorrow == 0) {
-      accountSetBorrowedAsset(accountData, asset, false);
+      accountSetBorrowedAsset(accountData, assetData.underlyingAsset, false);
     } else {
-      accountSetBorrowedAsset(accountData, asset, true);
+      accountSetBorrowedAsset(accountData, assetData.underlyingAsset, true);
     }
   }
 
@@ -95,7 +94,6 @@ library VaultLogic {
   function accountCheckAndSetSuppliedAsset(
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage assetData,
-    address asset,
     address account
   ) internal {
     DataTypes.AccountData storage accountData = poolData.accountLookup[account];
@@ -110,9 +108,9 @@ library VaultLogic {
     }
 
     if (totalSupply == 0) {
-      accountSetSuppliedAsset(accountData, asset, false);
+      accountSetSuppliedAsset(accountData, assetData.underlyingAsset, false);
     } else {
-      accountSetSuppliedAsset(accountData, asset, true);
+      accountSetSuppliedAsset(accountData, assetData.underlyingAsset, true);
     }
   }
 
@@ -190,13 +188,13 @@ library VaultLogic {
    * @dev Get user scaled borrow balance in the asset not related to the index.
    */
   function erc20GetUserScaledBorrowInAsset(
-    DataTypes.PoolData storage poolData,
+    DataTypes.PoolData storage /*poolData*/,
     DataTypes.AssetData storage assetData,
     address account
   ) internal view returns (uint256) {
     uint256 totalScaledBorrow;
 
-    uint256[] memory groupIds = poolData.groupList.values();
+    uint256[] memory groupIds = assetData.groupList.values();
     for (uint256 i = 0; i < groupIds.length; i++) {
       DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(groupIds[i])];
 
@@ -222,13 +220,13 @@ library VaultLogic {
    * @dev Get user borrow balance in the asset, make sure the index already updated.
    */
   function erc20GetUserBorrowInAsset(
-    DataTypes.PoolData storage poolData,
+    DataTypes.PoolData storage /*poolData*/,
     DataTypes.AssetData storage assetData,
     address account
   ) internal view returns (uint256) {
     uint256 totalBorrow;
 
-    uint256[] memory groupIds = poolData.groupList.values();
+    uint256[] memory groupIds = assetData.groupList.values();
     for (uint256 i = 0; i < groupIds.length; i++) {
       DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(groupIds[i])];
 
@@ -407,5 +405,28 @@ library VaultLogic {
     uint poolSizeAfter = IERC721Upgradeable(underlyingAsset).balanceOf(address(this));
 
     require(poolSizeBefore == (poolSizeAfter + tokenIds.length), Errors.INVALID_TRANSFER_AMOUNT);
+  }
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Misc methods
+  //////////////////////////////////////////////////////////////////////////////
+  function checkAssetHasEmptyLiquidity(
+    DataTypes.PoolData storage /*poolData*/,
+    DataTypes.AssetData storage assetData
+  ) internal view {
+    require(assetData.totalCrossSupplied == 0, Errors.CROSS_SUPPLY_NOT_EMPTY);
+    require(assetData.totalIsolateSupplied == 0, Errors.ISOLATE_SUPPLY_NOT_EMPTY);
+
+    uint256[] memory assetGroupIds = assetData.groupList.values();
+    for (uint256 gidx = 0; gidx < assetGroupIds.length; gidx++) {
+      DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(assetGroupIds[gidx])];
+
+      checkGroupHasEmptyLiquidity(groupData);
+    }
+  }
+
+  function checkGroupHasEmptyLiquidity(DataTypes.GroupData storage groupData) internal view {
+    require(groupData.totalCrossBorrowed == 0, Errors.CROSS_DEBT_NOT_EMPTY);
+    require(groupData.totalIsolateBorrowed == 0, Errors.ISOLATE_DEBT_NOT_EMPTY);
   }
 }

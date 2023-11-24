@@ -81,8 +81,6 @@ library LiquidationLogic {
     (vars.actualCollateralToLiquidate, vars.actualDebtToLiquidate) = _calculateAvailableERC20CollateralToLiquidate(
       collateralAssetData,
       debtAssetData,
-      params.collateralAsset,
-      params.debtAsset,
       vars.actualDebtToLiquidate,
       vars.userCollateralBalance,
       IPriceOracleGetter(cs.priceOracle)
@@ -94,13 +92,13 @@ library LiquidationLogic {
     vars.remainDebtToLiquidate = _repayUserERC20Debt(poolData, debtAssetData, params.user, vars.actualDebtToLiquidate);
     require(vars.remainDebtToLiquidate == 0, Errors.LIQUIDATE_REPAY_DEBT_FAILED);
 
-    InterestLogic.updateInterestRates(poolData, params.debtAsset, debtAssetData, vars.actualDebtToLiquidate, 0);
+    InterestLogic.updateInterestRates(poolData, debtAssetData, vars.actualDebtToLiquidate, 0);
 
     // If all the debt has being repaid we need clear the borrow flag
-    VaultLogic.accountCheckAndSetBorrowedAsset(poolData, debtAssetData, params.debtAsset, params.user);
+    VaultLogic.accountCheckAndSetBorrowedAsset(poolData, debtAssetData, params.user);
 
     // If all the collateral has being liquidated we need clear the supply flag
-    VaultLogic.accountCheckAndSetSuppliedAsset(poolData, collateralAssetData, params.collateralAsset, params.user);
+    VaultLogic.accountCheckAndSetSuppliedAsset(poolData, collateralAssetData, params.user);
 
     // Whether transfer the liquidated collateral or supplied as new collateral to liquidator
     if (params.supplyAsCollateral) {
@@ -178,16 +176,16 @@ library LiquidationLogic {
       VaultLogic.erc20TransferSupply(debtAssetData, params.user, msg.sender, vars.remainDebtToLiquidate);
 
       // If the collateral is supplied at first we need set the supply flag
-      VaultLogic.accountCheckAndSetSuppliedAsset(poolData, debtAssetData, params.debtAsset, params.user);
+      VaultLogic.accountCheckAndSetSuppliedAsset(poolData, debtAssetData, params.user);
     }
 
-    InterestLogic.updateInterestRates(poolData, params.debtAsset, debtAssetData, vars.actualDebtToLiquidate, 0);
+    InterestLogic.updateInterestRates(poolData, debtAssetData, vars.actualDebtToLiquidate, 0);
 
     // If all the debt has being repaid we need to clear the borrow flag
-    VaultLogic.accountCheckAndSetBorrowedAsset(poolData, debtAssetData, params.debtAsset, msg.sender);
+    VaultLogic.accountCheckAndSetBorrowedAsset(poolData, debtAssetData, msg.sender);
 
     // If all the collateral has been liquidated we need clear the supply flag
-    VaultLogic.accountCheckAndSetSuppliedAsset(poolData, collateralAssetData, params.collateralAsset, msg.sender);
+    VaultLogic.accountCheckAndSetSuppliedAsset(poolData, collateralAssetData, msg.sender);
 
     // Whether transfer the liquidated collateral or supplied as new collateral to liquidator
     if (params.supplyAsCollateral) {
@@ -221,13 +219,7 @@ library LiquidationLogic {
 
     VaultLogic.erc20TransferOut(params.collateralAsset, msg.sender, vars.actualCollateralToLiquidate);
 
-    InterestLogic.updateInterestRates(
-      poolData,
-      params.collateralAsset,
-      collateralAssetData,
-      0,
-      vars.actualCollateralToLiquidate
-    );
+    InterestLogic.updateInterestRates(poolData, collateralAssetData, 0, vars.actualCollateralToLiquidate);
   }
 
   /**
@@ -242,20 +234,20 @@ library LiquidationLogic {
     VaultLogic.erc20TransferSupply(collateralAssetData, params.user, msg.sender, vars.actualCollateralToLiquidate);
 
     // If the collateral is supplied at first we need set the supply flag
-    VaultLogic.accountCheckAndSetSuppliedAsset(poolData, collateralAssetData, params.collateralAsset, msg.sender);
+    VaultLogic.accountCheckAndSetSuppliedAsset(poolData, collateralAssetData, msg.sender);
   }
 
   /**
    * @notice Burns the debt of the user up to the amount being repaid by the liquidator.
    */
   function _repayUserERC20Debt(
-    DataTypes.PoolData storage poolData,
+    DataTypes.PoolData storage /*poolData*/,
     DataTypes.AssetData storage debtAssetData,
     address user,
     uint256 actualDebtToLiquidate
   ) internal returns (uint256) {
     // sort group id from lowest interest rate to highest
-    uint256[] memory assetGroupIds = poolData.groupList.values();
+    uint256[] memory assetGroupIds = debtAssetData.groupList.values();
     KVSortUtils.KeyValue[] memory groupRateList = new KVSortUtils.KeyValue[](assetGroupIds.length);
     for (uint256 i = 0; i < groupRateList.length; i++) {
       DataTypes.GroupData storage loopGroupData = debtAssetData.groupLookup[uint8(assetGroupIds[i])];
@@ -333,16 +325,14 @@ library LiquidationLogic {
   function _calculateAvailableERC20CollateralToLiquidate(
     DataTypes.AssetData storage collateralAssetData,
     DataTypes.AssetData storage debtAssetData,
-    address collateralAsset,
-    address debtAsset,
     uint256 debtToCover,
     uint256 userCollateralBalance,
     IPriceOracleGetter oracle
   ) internal view returns (uint256, uint256) {
     AvailableERC20CollateralToLiquidateLocalVars memory vars;
 
-    vars.collateralPrice = oracle.getAssetPrice(collateralAsset);
-    vars.debtAssetPrice = oracle.getAssetPrice(debtAsset);
+    vars.collateralPrice = oracle.getAssetPrice(collateralAssetData.underlyingAsset);
+    vars.debtAssetPrice = oracle.getAssetPrice(debtAssetData.underlyingAsset);
 
     vars.collateralDecimals = collateralAssetData.underlyingDecimals;
     vars.debtAssetDecimals = debtAssetData.underlyingDecimals;
@@ -397,7 +387,7 @@ library LiquidationLogic {
     VaultLogic.erc721TransferSupply(collateralAssetData, params.user, msg.sender, params.collateralTokenIds);
 
     // If the collateral is supplied at first we need set the supply flag
-    VaultLogic.accountCheckAndSetSuppliedAsset(poolData, collateralAssetData, params.collateralAsset, msg.sender);
+    VaultLogic.accountCheckAndSetSuppliedAsset(poolData, collateralAssetData, msg.sender);
   }
 
   struct CalculateDebtAmountFromERC721CollateralLocalVars {

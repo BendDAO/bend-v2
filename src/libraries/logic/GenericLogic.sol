@@ -58,7 +58,7 @@ library GenericLogic {
     address[] userBorrowedAssets;
     uint256 assetIndex;
     address currentAssetAddress;
-    uint256[] poolGroupIds;
+    uint256[] assetGroupIds;
     uint256 groupIndex;
     uint8 currentGroupId;
     uint256 assetPrice;
@@ -82,7 +82,6 @@ library GenericLogic {
   ) internal view returns (ResultTypes.UserAccountResult memory result) {
     CalculateUserAccountDataVars memory vars;
     DataTypes.AccountData storage accountData = poolData.accountLookup[userAccount];
-    vars.poolGroupIds = poolData.groupList.values();
 
     // calculate the sum of all the collateral balance denominated in the base currency
     vars.userSuppliedAssets = VaultLogic.accountGetSuppliedAssets(accountData);
@@ -152,14 +151,15 @@ library GenericLogic {
 
       DataTypes.AssetData storage currentAssetData = poolData.assetLookup[vars.currentAssetAddress];
       require(currentAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+      vars.assetGroupIds = currentAssetData.groupList.values();
 
       vars.assetPrice = IPriceOracleGetter(oracle).getAssetPrice(vars.currentAssetAddress);
 
       // same debt can be borrowed in different groups by different collaterals
       // e.g. BAYC borrow ETH in group 1, MAYC borrow ETH in group 2
       vars.userAssetDebtInBaseCurrency = 0;
-      for (vars.groupIndex = 0; vars.groupIndex < vars.poolGroupIds.length; vars.groupIndex++) {
-        vars.currentGroupId = uint8(vars.poolGroupIds[vars.groupIndex]);
+      for (vars.groupIndex = 0; vars.groupIndex < vars.assetGroupIds.length; vars.groupIndex++) {
+        vars.currentGroupId = uint8(vars.assetGroupIds[vars.groupIndex]);
         DataTypes.GroupData storage currentGroupData = currentAssetData.groupLookup[vars.currentGroupId];
 
         vars.userGroupDebtInBaseCurrency = _getUserERC20DebtInBaseCurrency(

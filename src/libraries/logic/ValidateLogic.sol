@@ -118,8 +118,12 @@ library ValidateLogic {
     validateGroupBasic(groupData);
 
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+
     require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
     require(inputParams.to != address(0), Errors.INVALID_TO_ADDRESS);
+
+    require(inputParams.group >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
+    require(inputParams.group <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
 
     require(!assetData.isFrozen, Errors.ASSET_IS_FROZEN);
     require(assetData.isBorrowingEnabled, Errors.ASSET_IS_BORROW_DISABLED);
@@ -163,7 +167,11 @@ library ValidateLogic {
     validateGroupBasic(groupData);
 
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+
     require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
+
+    require(inputParams.group >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
+    require(inputParams.group <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
   }
 
   function validateLiquidateERC20(
