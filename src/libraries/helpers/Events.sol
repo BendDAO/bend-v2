@@ -52,8 +52,20 @@ library Events {
   event DepositERC721(address indexed sender, uint256 indexed poolId, address indexed asset, uint256[] tokenIds);
   event WithdrawERC721(address indexed sender, uint256 indexed poolId, address indexed asset, uint256[] tokenIds);
 
-  event BorrowERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
-  event RepayERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
+  event BorrowERC20(
+    address indexed sender,
+    uint256 indexed poolId,
+    address indexed asset,
+    uint8[] groups,
+    uint256[] amounts
+  );
+  event RepayERC20(
+    address indexed sender,
+    uint256 indexed poolId,
+    address indexed asset,
+    uint8[] groups,
+    uint256[] amounts
+  );
 
   event LiquidateERC20(
     address liquidator,

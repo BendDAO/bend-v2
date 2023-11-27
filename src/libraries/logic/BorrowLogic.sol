@@ -20,21 +20,39 @@ library BorrowLogic {
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
-    DataTypes.GroupData storage groupData = assetData.groupLookup[params.group];
 
-    InterestLogic.updateInterestIndexs(assetData, groupData);
+    // check the basic params
+    ValidateLogic.validateBorrowERC20Basic(params, poolData, assetData);
 
-    ValidateLogic.validateBorrowERC20(params, poolData, assetData, groupData, msg.sender, cs.priceOracle);
+    // account status need latest balance, update supply & borrow index first
+    InterestLogic.updateInterestSupplyIndex(assetData);
 
-    VaultLogic.erc20IncreaseBorrow(groupData, msg.sender, params.amount);
+    for (uint256 gidx = 0; gidx < params.groups.length; gidx++) {
+      DataTypes.GroupData storage groupData = assetData.groupLookup[params.groups[gidx]];
+
+      InterestLogic.updateInterestBorrowIndex(assetData, groupData);
+    }
+
+    // check the user account
+    ValidateLogic.validateBorrowERC20Account(params, poolData, assetData, msg.sender, cs.priceOracle);
+
+    // update debt state
+    uint256 totalBorrowAmount;
+    for (uint256 gidx = 0; gidx < params.groups.length; gidx++) {
+      DataTypes.GroupData storage groupData = assetData.groupLookup[params.groups[gidx]];
+
+      VaultLogic.erc20IncreaseBorrow(groupData, msg.sender, params.amounts[gidx]);
+      totalBorrowAmount += params.amounts[gidx];
+    }
 
     VaultLogic.accountCheckAndSetBorrowedAsset(poolData, assetData, msg.sender);
 
-    VaultLogic.erc20TransferOut(params.asset, params.to, params.amount);
+    // transfer underlying asset to borrower
+    VaultLogic.erc20TransferOut(params.asset, msg.sender, totalBorrowAmount);
 
-    InterestLogic.updateInterestRates(poolData, assetData, 0, params.amount);
+    InterestLogic.updateInterestRates(poolData, assetData, 0, totalBorrowAmount);
 
-    emit Events.BorrowERC20(msg.sender, params.poolId, params.asset, params.amount);
+    emit Events.BorrowERC20(msg.sender, params.poolId, params.asset, params.groups, params.amounts);
   }
 
   function executeRepayERC20(InputTypes.ExecuteRepayERC20Params memory params) public {
@@ -42,26 +60,42 @@ library BorrowLogic {
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
-    DataTypes.GroupData storage groupData = assetData.groupLookup[params.group];
 
-    InterestLogic.updateInterestIndexs(assetData, groupData);
+    // do some basic checks, e.g. params
+    ValidateLogic.validateRepayERC20Basic(params, poolData, assetData);
 
-    ValidateLogic.validateRepayERC20(params, poolData, assetData, groupData);
+    // account status need latest balance, update supply & borrow index first
+    InterestLogic.updateInterestSupplyIndex(assetData);
 
-    uint256 debtAmount = VaultLogic.erc20GetUserBorrowInGroup(groupData, msg.sender);
-    if (debtAmount < params.amount) {
-      params.amount = debtAmount;
+    for (uint256 gidx = 0; gidx < params.groups.length; gidx++) {
+      DataTypes.GroupData storage groupData = assetData.groupLookup[params.groups[gidx]];
+
+      InterestLogic.updateInterestBorrowIndex(assetData, groupData);
     }
 
-    VaultLogic.erc20DecreaseBorrow(groupData, msg.sender, params.amount);
+    // update debt state
+    uint256 totalRepayAmount;
+    for (uint256 gidx = 0; gidx < params.groups.length; gidx++) {
+      DataTypes.GroupData storage groupData = assetData.groupLookup[params.groups[gidx]];
+
+      uint256 repayAmount = VaultLogic.erc20GetUserBorrowInGroup(groupData, msg.sender);
+      if (repayAmount > params.amounts[gidx]) {
+        repayAmount = params.amounts[gidx];
+      }
+
+      VaultLogic.erc20DecreaseBorrow(groupData, msg.sender, repayAmount);
+
+      totalRepayAmount += repayAmount;
+    }
 
     VaultLogic.accountCheckAndSetBorrowedAsset(poolData, assetData, msg.sender);
 
-    VaultLogic.erc20TransferIn(params.asset, msg.sender, params.amount);
+    // transfer underlying asset from borrower to pool
+    VaultLogic.erc20TransferIn(params.asset, msg.sender, totalRepayAmount);
 
-    InterestLogic.updateInterestRates(poolData, assetData, 0, params.amount);
+    InterestLogic.updateInterestRates(poolData, assetData, 0, totalRepayAmount);
 
-    emit Events.RepayERC20(msg.sender, params.poolId, params.asset, params.amount);
+    emit Events.RepayERC20(msg.sender, params.poolId, params.asset, params.groups, params.amounts);
   }
 
   /**

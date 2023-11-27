@@ -28,13 +28,13 @@ contract TestIntegrationBorrow is IntegrationTest {
     tsBorrower1.depositERC20(tsCommonPoolId, address(tsWETH), wethAmount);
 
     uint256 usdtAmount = 1000 * (10 ** tsUSDT.decimals());
-    tsBorrower1.borrowERC20(tsCommonPoolId, address(tsUSDT), tsLowRateGroupId, usdtAmount, address(this));
+    tsBorrower1.borrowERC20(tsCommonPoolId, address(tsUSDT), tsLowRateGroupId, usdtAmount);
   }
 
   function testShouldBorrowERC20WhenHasERC721() public {
     tsBorrower1.setApprovalForAllERC721(address(tsBAYC));
     tsBorrower1.depositERC721(tsCommonPoolId, address(tsBAYC), tsBorrower1.getTokenIds(), Constants.SUPPLY_MODE_CROSS);
 
-    tsBorrower1.borrowERC20(tsCommonPoolId, address(tsWETH), tsLowRateGroupId, 10 ether, address(this));
+    tsBorrower1.borrowERC20(tsCommonPoolId, address(tsWETH), tsLowRateGroupId, 10 ether);
   }
 }

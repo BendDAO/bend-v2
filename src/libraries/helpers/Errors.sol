@@ -22,6 +22,7 @@ library Errors {
   string public constant INVALID_DEBT_AMOUNT = '116';
   string public constant INVALID_TOKEN_OWNER = '117';
   string public constant INVALID_YIELD_STAKER = '118';
+  string public constant INCONSISTENT_PARAMS_LENGH = '119';
 
   string public constant ENUM_SET_ADD_FAILED = '150';
   string public constant ENUM_SET_REMOVE_FAILED = '151';
@@ -43,8 +44,9 @@ library Errors {
   string public constant GROUP_ALREADY_EXISTS = '320';
   string public constant GROUP_NOT_EXISTS = '321';
   string public constant GROUP_LIST_NOT_EMPTY = '322';
-  string public constant GROUP_NUMBER_EXCEED_MAX_LIMIT = '323';
-  string public constant GROUP_USDED_BY_ASSET = '324';
+  string public constant GROUP_LIST_IS_EMPTY = '323';
+  string public constant GROUP_NUMBER_EXCEED_MAX_LIMIT = '324';
+  string public constant GROUP_USDED_BY_ASSET = '325';
 
   string public constant ASSET_ALREADY_EXISTS = '340';
   string public constant ASSET_NOT_EXISTS = '341';

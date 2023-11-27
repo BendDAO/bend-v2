@@ -99,34 +99,35 @@ library ValidateLogic {
   }
 
   struct ValidateBorrowERC20Vars {
+    uint256 gidx;
     uint256 amountInBaseCurrency;
     uint256 collateralNeededInBaseCurrency;
   }
 
-  function validateBorrowERC20(
+  function validateBorrowERC20Basic(
+    InputTypes.ExecuteBorrowERC20Params memory inputParams,
+    DataTypes.PoolData storage poolData,
+    DataTypes.AssetData storage assetData
+  ) internal view {
+    validatePoolBasic(poolData);
+    validateAssetBasic(assetData);
+
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+    require(!assetData.isFrozen, Errors.ASSET_IS_FROZEN);
+    require(assetData.isBorrowingEnabled, Errors.ASSET_IS_BORROW_DISABLED);
+
+    require(inputParams.groups.length > 0, Errors.GROUP_LIST_IS_EMPTY);
+    require(inputParams.groups.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGH);
+  }
+
+  function validateBorrowERC20Account(
     InputTypes.ExecuteBorrowERC20Params memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage assetData,
-    DataTypes.GroupData storage groupData,
     address user,
     address priceOracle
   ) internal view {
     ValidateBorrowERC20Vars memory vars;
-
-    validatePoolBasic(poolData);
-    validateAssetBasic(assetData);
-    validateGroupBasic(groupData);
-
-    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
-
-    require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
-    require(inputParams.to != address(0), Errors.INVALID_TO_ADDRESS);
-
-    require(inputParams.group >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
-    require(inputParams.group <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
-
-    require(!assetData.isFrozen, Errors.ASSET_IS_FROZEN);
-    require(assetData.isBorrowingEnabled, Errors.ASSET_IS_BORROW_DISABLED);
 
     ResultTypes.UserAccountResult memory userAccountResult = GenericLogic.calculateUserAccountDataForBorrow(
       poolData,
@@ -135,45 +136,59 @@ library ValidateLogic {
     );
 
     require(
-      userAccountResult.allGroupsCollateralInBaseCurrency[inputParams.group] != 0,
-      Errors.COLLATERAL_BALANCE_IS_ZERO
-    );
-    require(userAccountResult.allGroupsAvgLtv[inputParams.group] != 0, Errors.LTV_VALIDATION_FAILED);
-
-    require(
       userAccountResult.healthFactor >= Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
       Errors.HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD
     );
 
-    vars.amountInBaseCurrency = IPriceOracleGetter(priceOracle).getAssetPrice(inputParams.asset) * inputParams.amount;
-    vars.amountInBaseCurrency = vars.amountInBaseCurrency / (10 ** assetData.underlyingDecimals);
+    for (vars.gidx = 0; vars.gidx < inputParams.groups.length; vars.gidx++) {
+      require(inputParams.amounts[vars.gidx] > 0, Errors.INVALID_AMOUNT);
+      require(inputParams.groups[vars.gidx] >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
+      require(inputParams.groups[vars.gidx] <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
 
-    //add the current already borrowed amount to the amount requested to calculate the total collateral needed.
-    vars.collateralNeededInBaseCurrency = (userAccountResult.allGroupsDebtInBaseCurrency[inputParams.group] +
-      vars.amountInBaseCurrency).percentDiv(userAccountResult.allGroupsAvgLtv[inputParams.group]); //LTV is calculated in percentage
+      require(
+        userAccountResult.allGroupsCollateralInBaseCurrency[inputParams.groups[vars.gidx]] != 0,
+        Errors.COLLATERAL_BALANCE_IS_ZERO
+      );
+      require(userAccountResult.allGroupsAvgLtv[inputParams.groups[vars.gidx]] != 0, Errors.LTV_VALIDATION_FAILED);
 
-    require(
-      vars.collateralNeededInBaseCurrency <= userAccountResult.allGroupsCollateralInBaseCurrency[inputParams.group],
-      Errors.COLLATERAL_CANNOT_COVER_NEW_BORROW
-    );
+      vars.amountInBaseCurrency =
+        IPriceOracleGetter(priceOracle).getAssetPrice(inputParams.asset) *
+        inputParams.amounts[vars.gidx];
+      vars.amountInBaseCurrency = vars.amountInBaseCurrency / (10 ** assetData.underlyingDecimals);
+
+      //add the current already borrowed amount to the amount requested to calculate the total collateral needed.
+      //LTV is calculated in percentage
+      vars.collateralNeededInBaseCurrency = (userAccountResult.allGroupsDebtInBaseCurrency[
+        inputParams.groups[vars.gidx]
+      ] + vars.amountInBaseCurrency).percentDiv(userAccountResult.allGroupsAvgLtv[inputParams.groups[vars.gidx]]);
+
+      require(
+        vars.collateralNeededInBaseCurrency <=
+          userAccountResult.allGroupsCollateralInBaseCurrency[inputParams.groups[vars.gidx]],
+        Errors.COLLATERAL_CANNOT_COVER_NEW_BORROW
+      );
+    }
   }
 
-  function validateRepayERC20(
+  function validateRepayERC20Basic(
     InputTypes.ExecuteRepayERC20Params memory inputParams,
     DataTypes.PoolData storage poolData,
-    DataTypes.AssetData storage assetData,
-    DataTypes.GroupData storage groupData
+    DataTypes.AssetData storage assetData
   ) internal view {
     validatePoolBasic(poolData);
     validateAssetBasic(assetData);
-    validateGroupBasic(groupData);
 
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
-    require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
+    require(inputParams.groups.length > 0, Errors.GROUP_LIST_IS_EMPTY);
+    require(inputParams.groups.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGH);
 
-    require(inputParams.group >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
-    require(inputParams.group <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
+    for (uint256 gidx = 0; gidx < inputParams.groups.length; gidx++) {
+      require(inputParams.amounts[gidx] > 0, Errors.INVALID_AMOUNT);
+
+      require(inputParams.groups[gidx] >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
+      require(inputParams.groups[gidx] <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
+    }
   }
 
   function validateLiquidateERC20(

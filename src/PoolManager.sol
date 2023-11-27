@@ -187,9 +187,9 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     );
   }
 
-  function withdrawERC20(uint32 poolId, address asset, uint256 amount, address to) public whenNotPaused nonReentrant {
+  function withdrawERC20(uint32 poolId, address asset, uint256 amount) public whenNotPaused nonReentrant {
     SupplyLogic.executeWithdrawERC20(
-      InputTypes.ExecuteWithdrawERC20Params({poolId: poolId, asset: asset, amount: amount, to: to})
+      InputTypes.ExecuteWithdrawERC20Params({poolId: poolId, asset: asset, amount: amount})
     );
   }
 
@@ -204,32 +204,31 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     );
   }
 
-  function withdrawERC721(
-    uint32 poolId,
-    address asset,
-    uint256[] calldata tokenIds,
-    address to
-  ) public whenNotPaused nonReentrant {
+  function withdrawERC721(uint32 poolId, address asset, uint256[] calldata tokenIds) public whenNotPaused nonReentrant {
     SupplyLogic.executeWithdrawERC721(
-      InputTypes.ExecuteWithdrawERC721Params({poolId: poolId, asset: asset, tokenIds: tokenIds, to: to})
+      InputTypes.ExecuteWithdrawERC721Params({poolId: poolId, asset: asset, tokenIds: tokenIds})
     );
   }
 
   function borrowERC20(
     uint32 poolId,
     address asset,
-    uint8 group,
-    uint256 amount,
-    address to
+    uint8[] calldata groups,
+    uint256[] calldata amounts
   ) public whenNotPaused nonReentrant {
     BorrowLogic.executeBorrowERC20(
-      InputTypes.ExecuteBorrowERC20Params({poolId: poolId, asset: asset, group: group, amount: amount, to: to})
+      InputTypes.ExecuteBorrowERC20Params({poolId: poolId, asset: asset, groups: groups, amounts: amounts})
     );
   }
 
-  function repayERC20(uint32 poolId, address asset, uint8 group, uint256 amount) public whenNotPaused nonReentrant {
+  function repayERC20(
+    uint32 poolId,
+    address asset,
+    uint8[] calldata groups,
+    uint256[] calldata amounts
+  ) public whenNotPaused nonReentrant {
     BorrowLogic.executeRepayERC20(
-      InputTypes.ExecuteRepayERC20Params({poolId: poolId, asset: asset, group: group, amount: amount})
+      InputTypes.ExecuteRepayERC20Params({poolId: poolId, asset: asset, groups: groups, amounts: amounts})
     );
   }
 

@@ -53,7 +53,7 @@ library SupplyLogic {
 
     VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, msg.sender);
 
-    VaultLogic.erc20TransferOut(params.asset, params.to, params.amount);
+    VaultLogic.erc20TransferOut(params.asset, msg.sender, params.amount);
 
     InterestLogic.updateInterestRates(poolData, assetData, 0, params.amount);
 
@@ -120,7 +120,7 @@ library SupplyLogic {
       // TODO: check isolate debt hf
     }
 
-    VaultLogic.erc721TransferOut(params.asset, params.to, params.tokenIds);
+    VaultLogic.erc721TransferOut(params.asset, msg.sender, params.tokenIds);
 
     emit Events.WithdrawERC721(msg.sender, params.poolId, params.asset, params.tokenIds);
   }
