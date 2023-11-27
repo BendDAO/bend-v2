@@ -70,12 +70,13 @@ library Errors {
   string public constant HEALTH_FACTOR_NOT_BELOW_THRESHOLD = '401';
   string public constant CROSS_SUPPLY_NOT_EMPTY = '402';
   string public constant ISOLATE_SUPPLY_NOT_EMPTY = '403';
-  string public constant CROSS_DEBT_NOT_EMPTY = '404';
-  string public constant ISOLATE_DEBT_NOT_EMPTY = '405';
+  string public constant CROSS_BORROW_NOT_EMPTY = '404';
+  string public constant ISOLATE_BORROW_NOT_EMPTY = '405';
   string public constant COLLATERAL_BALANCE_IS_ZERO = '406';
-  string public constant LTV_VALIDATION_FAILED = '407';
-  string public constant COLLATERAL_CANNOT_COVER_NEW_BORROW = '408';
-  string public constant LIQUIDATE_REPAY_DEBT_FAILED = '409';
+  string public constant BORROW_BALANCE_IS_ZERO = '407';
+  string public constant LTV_VALIDATION_FAILED = '408';
+  string public constant COLLATERAL_CANNOT_COVER_NEW_BORROW = '409';
+  string public constant LIQUIDATE_REPAY_DEBT_FAILED = '410';
 
-  string public constant YIELD_EXCEED_CAP_LIMIT = '501';
+  string public constant YIELD_EXCEED_CAP_LIMIT = '500';
 }

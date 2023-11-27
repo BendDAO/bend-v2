@@ -426,7 +426,7 @@ library VaultLogic {
   }
 
   function checkGroupHasEmptyLiquidity(DataTypes.GroupData storage groupData) internal view {
-    require(groupData.totalCrossBorrowed == 0, Errors.CROSS_DEBT_NOT_EMPTY);
-    require(groupData.totalIsolateBorrowed == 0, Errors.ISOLATE_DEBT_NOT_EMPTY);
+    require(groupData.totalCrossBorrowed == 0, Errors.CROSS_BORROW_NOT_EMPTY);
+    require(groupData.totalIsolateBorrowed == 0, Errors.ISOLATE_BORROW_NOT_EMPTY);
   }
 }
