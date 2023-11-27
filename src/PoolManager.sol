@@ -403,21 +403,20 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
 
-    for (uint256 i = 0; i < groupIds.length; i++) {
-      ResultTypes.UserGroupResult memory result = GenericLogic.calculateUserGroupData(
-        poolData,
-        user,
-        groupIds[i],
-        cs.priceOracle
-      );
+    ResultTypes.UserAccountResult memory result = GenericLogic.calculateUserAccountDataForHeathFactor(
+      poolData,
+      user,
+      cs.priceOracle
+    );
 
-      groupsCollateralInBase[i] = result.groupCollateralInBaseCurrency;
-      groupsBorrowInBase[i] = result.groupDebtInBaseCurrency;
+    for (uint256 i = 0; i < groupIds.length; i++) {
+      groupsCollateralInBase[i] = result.allGroupsCollateralInBaseCurrency[groupIds[i]];
+      groupsBorrowInBase[i] = result.allGroupsDebtInBaseCurrency[groupIds[i]];
 
       groupsAvailableBorrowInBase[i] = GenericLogic.calculateAvailableBorrows(
-        result.groupCollateralInBaseCurrency,
-        result.groupDebtInBaseCurrency,
-        result.groupAvgLtv
+        result.allGroupsCollateralInBaseCurrency[groupIds[i]],
+        result.allGroupsDebtInBaseCurrency[groupIds[i]],
+        result.allGroupsAvgLtv[groupIds[i]]
       );
     }
   }

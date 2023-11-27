@@ -131,12 +131,14 @@ library ValidateLogic {
     ResultTypes.UserAccountResult memory userAccountResult = GenericLogic.calculateUserAccountDataForBorrow(
       poolData,
       user,
-      inputParams.group,
       priceOracle
     );
 
-    require(userAccountResult.groupCollateralInBaseCurrency != 0, Errors.COLLATERAL_BALANCE_IS_ZERO);
-    require(userAccountResult.groupAvgLtv != 0, Errors.LTV_VALIDATION_FAILED);
+    require(
+      userAccountResult.allGroupsCollateralInBaseCurrency[inputParams.group] != 0,
+      Errors.COLLATERAL_BALANCE_IS_ZERO
+    );
+    require(userAccountResult.allGroupsAvgLtv[inputParams.group] != 0, Errors.LTV_VALIDATION_FAILED);
 
     require(
       userAccountResult.healthFactor >= Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
@@ -147,11 +149,11 @@ library ValidateLogic {
     vars.amountInBaseCurrency = vars.amountInBaseCurrency / (10 ** assetData.underlyingDecimals);
 
     //add the current already borrowed amount to the amount requested to calculate the total collateral needed.
-    vars.collateralNeededInBaseCurrency = (userAccountResult.groupDebtInBaseCurrency + vars.amountInBaseCurrency)
-      .percentDiv(userAccountResult.groupAvgLtv); //LTV is calculated in percentage
+    vars.collateralNeededInBaseCurrency = (userAccountResult.allGroupsDebtInBaseCurrency[inputParams.group] +
+      vars.amountInBaseCurrency).percentDiv(userAccountResult.allGroupsAvgLtv[inputParams.group]); //LTV is calculated in percentage
 
     require(
-      vars.collateralNeededInBaseCurrency <= userAccountResult.groupCollateralInBaseCurrency,
+      vars.collateralNeededInBaseCurrency <= userAccountResult.allGroupsCollateralInBaseCurrency[inputParams.group],
       Errors.COLLATERAL_CANNOT_COVER_NEW_BORROW
     );
   }
