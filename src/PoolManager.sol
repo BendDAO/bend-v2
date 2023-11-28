@@ -9,6 +9,7 @@ import {IERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20
 import {IERC721Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol';
 
 import {IACLManager} from './interfaces/IACLManager.sol';
+import {IWETH} from './interfaces/IWETH.sol';
 
 import './libraries/helpers/Constants.sol';
 import './libraries/helpers/Errors.sol';
@@ -23,6 +24,7 @@ import './libraries/logic/VaultLogic.sol';
 import './libraries/logic/SupplyLogic.sol';
 import './libraries/logic/BorrowLogic.sol';
 import './libraries/logic/LiquidationLogic.sol';
+import './libraries/logic/IsolateLogic.sol';
 
 contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721HolderUpgradeable {
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
@@ -271,6 +273,87 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       })
     );
   }
+
+  function isolateBorrowERC20(
+    uint32 poolId,
+    address nftAsset,
+    uint256[] calldata nftTokenIds,
+    address asset,
+    uint256[] calldata amounts
+  ) public whenNotPaused nonReentrant {
+    IsolateLogic.executeIsolateBorrowERC20(
+      InputTypes.ExecuteIsolateBorrowERC20Params({
+        poolId: poolId,
+        nftAsset: nftAsset,
+        nftTokenIds: nftTokenIds,
+        asset: asset,
+        amounts: amounts
+      })
+    );
+  }
+
+  function isolateRepayERC20(
+    uint32 poolId,
+    address nftAsset,
+    uint256[] calldata nftTokenIds,
+    address asset,
+    uint256[] calldata amounts
+  ) public whenNotPaused nonReentrant {
+    IsolateLogic.executeIsolateRepayERC20(
+      InputTypes.ExecuteIsolateRepayERC20Params({
+        poolId: poolId,
+        nftAsset: nftAsset,
+        nftTokenIds: nftTokenIds,
+        asset: asset,
+        amounts: amounts
+      })
+    );
+  }
+
+  function isolateAuction(
+    uint32 poolId,
+    address nftAsset,
+    uint256[] calldata nftTokenIds,
+    address asset,
+    uint256[] calldata amounts
+  ) public whenNotPaused nonReentrant {}
+
+  function isolateRedeem(
+    uint32 poolId,
+    address nftAsset,
+    uint256[] calldata nftTokenIds,
+    address asset,
+    uint256[] calldata amounts,
+    uint256[] calldata fines
+  ) public whenNotPaused nonReentrant {}
+
+  function isolateLiquidateERC721(
+    uint32 poolId,
+    address nftAsset,
+    uint256[] calldata nftTokenIds,
+    address asset,
+    uint256[] calldata amounts
+  ) public whenNotPaused nonReentrant {}
+
+  function setERC721SupplyMode(
+    uint32 poolId,
+    address nftAsset,
+    uint256[] calldata nftTokenIds
+  ) public whenNotPaused nonReentrant {}
+
+  function moveERC20BetweenPools(
+    uint32 fromPoolId,
+    address asset,
+    uint256 amount,
+    uint32 toPoolId
+  ) public whenNotPaused nonReentrant {}
+
+  function moveERC721BetweenPools(
+    uint32 fromPoolId,
+    address asset,
+    uint256[] calldata tokenIds,
+    uint32 toPoolId
+  ) public whenNotPaused nonReentrant {}
 
   /****************************************************************************/
   /* Pool Query */
@@ -598,5 +681,13 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
         setAssetPause(poolId, assets[i], paused);
       }
     }
+  }
+
+  /**
+   * @dev transfer ETH to an address, revert if it fails.
+   */
+  function _safeTransferETH(address to, uint256 value) internal {
+    (bool success, ) = to.call{value: value}(new bytes(0));
+    require(success, 'ETH_TRANSFER_FAILED');
   }
 }

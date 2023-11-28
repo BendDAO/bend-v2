@@ -248,6 +248,23 @@ library VaultLogic {
     groupData.userCrossBorrowed[account] += amountScaled;
   }
 
+  function erc20IncreaseIsolateBorrow(DataTypes.GroupData storage groupData, address account, uint256 amount) internal {
+    uint256 amountScaled = amount.rayDiv(groupData.borrowIndex);
+    require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
+
+    groupData.totalIsolateBorrowed += amountScaled;
+    groupData.userIsolateBorrowed[account] += amountScaled;
+  }
+
+  function erc20IncreaseIsolateScaledBorrow(
+    DataTypes.GroupData storage groupData,
+    address account,
+    uint256 amountScaled
+  ) internal {
+    groupData.totalIsolateBorrowed += amountScaled;
+    groupData.userIsolateBorrowed[account] += amountScaled;
+  }
+
   /**
    * @dev Decrease user borrow balance in the asset, make sure the index already updated.
    */
@@ -257,6 +274,23 @@ library VaultLogic {
 
     groupData.totalCrossBorrowed -= amountScaled;
     groupData.userCrossBorrowed[account] -= amountScaled;
+  }
+
+  function erc20DecreaseIsolateBorrow(DataTypes.GroupData storage groupData, address account, uint256 amount) internal {
+    uint256 amountScaled = amount.rayDiv(groupData.borrowIndex);
+    require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
+
+    groupData.totalIsolateBorrowed -= amountScaled;
+    groupData.userIsolateBorrowed[account] -= amountScaled;
+  }
+
+  function erc20DecreaseIsolateScaledBorrow(
+    DataTypes.GroupData storage groupData,
+    address account,
+    uint256 amountScaled
+  ) internal {
+    groupData.totalIsolateBorrowed -= amountScaled;
+    groupData.userIsolateBorrowed[account] -= amountScaled;
   }
 
   function erc20TransferIn(address underlyingAsset, address from, uint256 amount) internal {

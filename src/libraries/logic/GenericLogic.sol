@@ -216,14 +216,11 @@ library GenericLogic {
     }
 
     // calculate the health factor
-    if (result.totalDebtInBaseCurrency != 0) {
-      vars.liquidateCollateralInBaseCurrency = result.totalCollateralInBaseCurrency.percentMul(
-        result.avgLiquidationThreshold
-      );
-      result.healthFactor = vars.liquidateCollateralInBaseCurrency.wadDiv(result.totalDebtInBaseCurrency);
-    } else {
-      result.healthFactor = type(uint256).max;
-    }
+    result.healthFactor = calculateHealthFactorFromBalances(
+      result.totalCollateralInBaseCurrency,
+      result.totalDebtInBaseCurrency,
+      result.avgLiquidationThreshold
+    );
 
     console.log('totalCollateralInBaseCurrency', result.totalCollateralInBaseCurrency);
     console.log('totalDebtInBaseCurrency', result.totalDebtInBaseCurrency);
@@ -232,11 +229,66 @@ library GenericLogic {
     console.log('healthFactor', result.healthFactor);
   }
 
+  struct CalculateNftLoanDataVars {
+    uint256 debtAssetPriceInBaseCurrency;
+    uint256 nftPriceInBaseCurrency;
+    uint256 normalizedIndex;
+    uint256 loanDebtAmount;
+  }
+
+  /**
+   * @dev Calculates the nft loan data.
+   **/
+  function calculateNftLoanData(
+    DataTypes.PoolData storage /*poolData*/,
+    DataTypes.AssetData storage debtAssetData,
+    DataTypes.GroupData storage debtGroupData,
+    DataTypes.AssetData storage nftAssetData,
+    DataTypes.IsolateLoanData storage nftLoanData,
+    address oracle
+  ) internal view returns (ResultTypes.NftLoanResult memory result) {
+    CalculateNftLoanDataVars memory vars;
+
+    // query debt asset and nft price fromo oracle
+    vars.debtAssetPriceInBaseCurrency = IPriceOracleGetter(oracle).getAssetPrice(debtAssetData.underlyingAsset);
+    vars.nftPriceInBaseCurrency = IPriceOracleGetter(oracle).getAssetPrice(nftAssetData.underlyingAsset);
+
+    // calculate total collateral balance for the nft
+    result.totalCollateralInBaseCurrency = vars.nftPriceInBaseCurrency;
+
+    // calculate total borrow balance for the loan
+    if (nftLoanData.scaledAmount > 0) {
+      vars.normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtGroupData);
+      vars.loanDebtAmount = nftLoanData.scaledAmount.rayMul(vars.normalizedIndex);
+
+      vars.loanDebtAmount = vars.debtAssetPriceInBaseCurrency * vars.loanDebtAmount;
+      result.totalDebtInBaseCurrency = vars.loanDebtAmount / (10 ** debtAssetData.underlyingDecimals);
+    }
+
+    // calculate health by borrow and collateral
+    result.healthFactor = calculateHealthFactorFromBalances(
+      result.totalCollateralInBaseCurrency,
+      result.totalDebtInBaseCurrency,
+      nftAssetData.liquidationThreshold
+    );
+  }
+
+  /**
+   * @dev Calculates the health factor from the corresponding balances
+   **/
+  function calculateHealthFactorFromBalances(
+    uint256 totalCollateral,
+    uint256 totalDebt,
+    uint256 liquidationThreshold
+  ) internal pure returns (uint256) {
+    if (totalDebt == 0) return type(uint256).max;
+
+    return (totalCollateral.percentMul(liquidationThreshold)).wadDiv(totalDebt);
+  }
+
   /**
    * @notice Calculates the maximum amount that can be borrowed depending on the available collateral, the total debt
    * and the average Loan To Value
-   * @param ltv The average loan to value
-   * @return The amount available to borrow in the base currency of the used by the price feed
    */
   function calculateAvailableBorrows(
     uint256 totalCollateralInBaseCurrency,

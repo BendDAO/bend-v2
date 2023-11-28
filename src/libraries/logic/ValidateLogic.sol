@@ -146,10 +146,10 @@ library ValidateLogic {
       require(inputParams.groups[vars.gidx] <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
 
       require(
-        userAccountResult.allGroupsCollateralInBaseCurrency[inputParams.groups[vars.gidx]] != 0,
+        userAccountResult.allGroupsCollateralInBaseCurrency[inputParams.groups[vars.gidx]] > 0,
         Errors.COLLATERAL_BALANCE_IS_ZERO
       );
-      require(userAccountResult.allGroupsAvgLtv[inputParams.groups[vars.gidx]] != 0, Errors.LTV_VALIDATION_FAILED);
+      require(userAccountResult.allGroupsAvgLtv[inputParams.groups[vars.gidx]] > 0, Errors.LTV_VALIDATION_FAILED);
 
       vars.amountInBaseCurrency =
         IPriceOracleGetter(priceOracle).getAssetPrice(inputParams.asset) *
@@ -253,6 +253,117 @@ library ValidateLogic {
     );
 
     return (userAccountResult.healthFactor);
+  }
+
+  function validateIsolateBorrowERC20Basic(
+    InputTypes.ExecuteIsolateBorrowERC20Params memory inputParams,
+    DataTypes.PoolData storage poolData,
+    DataTypes.AssetData storage debtAssetData,
+    DataTypes.AssetData storage nftAssetData,
+    address user
+  ) internal view {
+    validatePoolBasic(poolData);
+
+    validateAssetBasic(debtAssetData);
+    require(debtAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+    require(!debtAssetData.isFrozen, Errors.ASSET_IS_FROZEN);
+    require(debtAssetData.isBorrowingEnabled, Errors.ASSET_IS_BORROW_DISABLED);
+
+    validateAssetBasic(nftAssetData);
+    require(nftAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
+    require(!nftAssetData.isFrozen, Errors.ASSET_IS_FROZEN);
+
+    require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
+    require(inputParams.nftTokenIds.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGH);
+
+    for (uint256 i = 0; i < inputParams.nftTokenIds.length; i++) {
+      require(inputParams.amounts[i] > 0, Errors.INVALID_AMOUNT);
+
+      (address owner, uint8 supplyMode) = VaultLogic.erc721GetTokenOwnerAndMode(
+        nftAssetData,
+        inputParams.nftTokenIds[i]
+      );
+      require(owner == user, Errors.INVALID_TOKEN_OWNER);
+      require(supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.ASSET_NOT_ISOLATE_MODE);
+    }
+  }
+
+  function validateIsolateBorrowERC20Loan(
+    InputTypes.ExecuteIsolateBorrowERC20Params memory inputParams,
+    uint256 nftIndex,
+    DataTypes.PoolData storage poolData,
+    DataTypes.AssetData storage debtAssetData,
+    DataTypes.GroupData storage debtGroupData,
+    DataTypes.AssetData storage nftAssetData,
+    DataTypes.IsolateLoanData storage loanData,
+    address priceOracle
+  ) internal view {
+    validateGroupBasic(debtGroupData);
+
+    if (loanData.loanStatus != 0) {
+      require(loanData.loanStatus == Constants.LOAN_STATUS_ACTIVE, Errors.INVALID_LOAN_STATUS);
+      require(loanData.reserveAsset == inputParams.asset, Errors.ISOLATE_LOAN_ASSET_NOT_MATCH);
+      require(loanData.reserveGroup == nftAssetData.classGroup, Errors.ISOLATE_LOAN_GROUP_NOT_MATCH);
+    }
+
+    ResultTypes.NftLoanResult memory nftLoanResult = GenericLogic.calculateNftLoanData(
+      poolData,
+      debtAssetData,
+      debtGroupData,
+      nftAssetData,
+      loanData,
+      priceOracle
+    );
+
+    require(
+      nftLoanResult.healthFactor >= Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
+      Errors.HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD
+    );
+
+    require(nftLoanResult.totalCollateralInBaseCurrency > 0, Errors.COLLATERAL_BALANCE_IS_ZERO);
+
+    //add the current already borrowed amount to the amount requested to calculate the total collateral needed.
+    uint256 collateralNeededInBaseCurrency = (nftLoanResult.totalDebtInBaseCurrency + inputParams.amounts[nftIndex])
+      .percentDiv(nftAssetData.collateralFactor);
+    require(
+      collateralNeededInBaseCurrency <= nftLoanResult.totalCollateralInBaseCurrency,
+      Errors.COLLATERAL_CANNOT_COVER_NEW_BORROW
+    );
+  }
+
+  function validateIsolateRepayERC20Basic(
+    InputTypes.ExecuteIsolateRepayERC20Params memory inputParams,
+    DataTypes.PoolData storage poolData,
+    DataTypes.AssetData storage debtAssetData,
+    DataTypes.AssetData storage nftAssetData
+  ) internal view {
+    validatePoolBasic(poolData);
+
+    validateAssetBasic(debtAssetData);
+    require(debtAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+    require(!debtAssetData.isFrozen, Errors.ASSET_IS_FROZEN);
+    require(debtAssetData.isBorrowingEnabled, Errors.ASSET_IS_BORROW_DISABLED);
+
+    validateAssetBasic(nftAssetData);
+    require(nftAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
+
+    require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
+    require(inputParams.nftTokenIds.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGH);
+
+    for (uint256 i = 0; i < inputParams.amounts.length; i++) {
+      require(inputParams.amounts[i] > 0, Errors.INVALID_AMOUNT);
+    }
+  }
+
+  function validateIsolateRepayERC20Loan(
+    InputTypes.ExecuteIsolateRepayERC20Params memory inputParams,
+    DataTypes.GroupData storage debtGroupData,
+    DataTypes.IsolateLoanData storage loanData
+  ) internal view {
+    validateGroupBasic(debtGroupData);
+
+    require(loanData.loanStatus == Constants.LOAN_STATUS_ACTIVE, Errors.INVALID_LOAN_STATUS);
+    require(loanData.reserveAsset == inputParams.asset, Errors.ISOLATE_LOAN_ASSET_NOT_MATCH);
   }
 
   function validateBorrowERC20ForYield(

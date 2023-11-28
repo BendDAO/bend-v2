@@ -25,6 +25,12 @@ library Constants {
   uint8 public constant SUPPLY_MODE_ISOLATE = 2;
   uint8 public constant SUPPLY_MODE_YIELD = 3;
 
+  // Loan Status
+  uint8 public constant LOAN_STATUS_ACTIVE = 1;
+  uint8 public constant LOAN_STATUS_REPAID = 2;
+  uint8 public constant LOAN_STATUS_AUCTION = 3;
+  uint8 public constant LOAN_STATUS_DEFAULT = 4;
+
   // Minimum health factor allowed under any circumstance
   // A value of 0.95e18 results in 0.95
   uint256 public constant MINIMUM_HEALTH_FACTOR_LIQUIDATION_THRESHOLD = 0.95e18;

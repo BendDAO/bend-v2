@@ -16,4 +16,10 @@ library ResultTypes {
       address highestDebtAsset;
       uint256 highestDebtInBaseCurrency;
     }
+
+    struct NftLoanResult {
+      uint256 totalCollateralInBaseCurrency;
+      uint256 totalDebtInBaseCurrency;
+      uint256 healthFactor;
+    }
 }

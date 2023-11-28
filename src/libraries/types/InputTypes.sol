@@ -32,6 +32,12 @@ library InputTypes {
     uint256[] tokenIds;
   }
 
+  struct ExecuteSetERC721SupplyModeParams {
+    uint32 poolId;
+    address nftAsset;
+    uint256[] nftTokenIds;
+  }
+
   struct ExecuteBorrowERC20Params {
     uint32 poolId;
     address asset;
@@ -62,6 +68,22 @@ library InputTypes {
     uint256[] collateralTokenIds;
     address debtAsset;
     bool supplyAsCollateral;
+  }
+
+  struct ExecuteIsolateBorrowERC20Params {
+    uint32 poolId;
+    address nftAsset;
+    uint256[] nftTokenIds;
+    address asset;
+    uint256[] amounts;
+  }
+
+  struct ExecuteIsolateRepayERC20Params {
+    uint32 poolId;
+    address nftAsset;
+    uint256[] nftTokenIds;
+    address asset;
+    uint256[] amounts;
   }
 
   struct ExecuteBorrowERC20ForYieldParams {

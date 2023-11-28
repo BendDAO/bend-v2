@@ -23,6 +23,7 @@ library Errors {
   string public constant INVALID_TOKEN_OWNER = '117';
   string public constant INVALID_YIELD_STAKER = '118';
   string public constant INCONSISTENT_PARAMS_LENGH = '119';
+  string public constant INVALID_LOAN_STATUS = '120';
 
   string public constant ENUM_SET_ADD_FAILED = '150';
   string public constant ENUM_SET_REMOVE_FAILED = '151';
@@ -79,4 +80,8 @@ library Errors {
   string public constant LIQUIDATE_REPAY_DEBT_FAILED = '410';
 
   string public constant YIELD_EXCEED_CAP_LIMIT = '500';
+
+  string public constant ISOLATE_LOAN_ASSET_NOT_MATCH = '600';
+  string public constant ISOLATE_LOAN_GROUP_NOT_MATCH = '601';
+  string public constant ISOLATE_LOAN_BORROWER_NOT_MATCH = '602';
 }

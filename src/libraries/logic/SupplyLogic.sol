@@ -124,4 +124,6 @@ library SupplyLogic {
 
     emit Events.WithdrawERC721(msg.sender, params.poolId, params.asset, params.tokenIds);
   }
+
+  function executeSetERC721SupplyMode(InputTypes.ExecuteSetERC721SupplyModeParams memory params) public {}
 }

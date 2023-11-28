@@ -111,9 +111,9 @@ library DataTypes {
 
   struct IsolateLoanData {
     address reserveAsset;
-    uint256 reserveAmount;
-    uint256 loanStatus; // 0=init, 1=active, 2=repaid, 3=auction, 4=liquidated
-    uint256 debtGroupId;
+    uint256 scaledAmount;
+    uint8 reserveGroup;
+    uint8 loanStatus;
   }
 
   struct PoolLendingStorage {
