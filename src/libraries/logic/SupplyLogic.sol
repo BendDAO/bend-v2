@@ -24,13 +24,13 @@ library SupplyLogic {
 
     ValidateLogic.validateDepositERC20(params, poolData, assetData, msg.sender);
 
-    VaultLogic.erc20TransferIn(params.asset, msg.sender, params.amount);
-
     VaultLogic.erc20IncreaseSupply(assetData, msg.sender, params.amount);
 
     VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, msg.sender);
 
     InterestLogic.updateInterestRates(poolData, assetData, params.amount, 0);
+
+    VaultLogic.erc20TransferIn(assetData, msg.sender, params.amount);
 
     emit Events.DepositERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
@@ -53,9 +53,9 @@ library SupplyLogic {
 
     VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, msg.sender);
 
-    VaultLogic.erc20TransferOut(params.asset, msg.sender, params.amount);
-
     InterestLogic.updateInterestRates(poolData, assetData, 0, params.amount);
+
+    VaultLogic.erc20TransferOut(assetData, msg.sender, params.amount);
 
     ValidateLogic.validateHealthFactor(poolData, msg.sender, cs.priceOracle);
 
@@ -70,7 +70,7 @@ library SupplyLogic {
 
     ValidateLogic.validateDepositERC721(params, poolData, assetData, msg.sender);
 
-    VaultLogic.erc721TransferIn(params.asset, msg.sender, params.tokenIds);
+    VaultLogic.erc721TransferIn(assetData, msg.sender, params.tokenIds);
 
     VaultLogic.erc721IncreaseSupply(assetData, msg.sender, params.tokenIds, params.supplyMode);
 
@@ -120,7 +120,7 @@ library SupplyLogic {
       // TODO: check isolate debt hf
     }
 
-    VaultLogic.erc721TransferOut(params.asset, msg.sender, params.tokenIds);
+    VaultLogic.erc721TransferOut(assetData, msg.sender, params.tokenIds);
 
     emit Events.WithdrawERC721(msg.sender, params.poolId, params.asset, params.tokenIds);
   }

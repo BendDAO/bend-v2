@@ -91,7 +91,7 @@ library LiquidationLogic {
     InterestLogic.updateInterestRates(poolData, debtAssetData, vars.actualDebtToLiquidate, 0);
 
     // Transfers the debt asset being repaid to the vault, where the liquidity is kept
-    VaultLogic.erc20TransferIn(params.debtAsset, msg.sender, vars.actualDebtToLiquidate);
+    VaultLogic.erc20TransferIn(debtAssetData, msg.sender, vars.actualDebtToLiquidate);
 
     vars.remainDebtToLiquidate = _repayUserERC20Debt(poolData, debtAssetData, params.user, vars.actualDebtToLiquidate);
     require(vars.remainDebtToLiquidate == 0, Errors.LIQUIDATE_REPAY_DEBT_FAILED);
@@ -171,7 +171,7 @@ library LiquidationLogic {
     InterestLogic.updateInterestRates(poolData, debtAssetData, vars.actualDebtToLiquidate, 0);
 
     // Transfers the debt asset being repaid to the vault, where the liquidity is kept
-    VaultLogic.erc20TransferIn(params.debtAsset, msg.sender, vars.actualDebtToLiquidate);
+    VaultLogic.erc20TransferIn(debtAssetData, msg.sender, vars.actualDebtToLiquidate);
 
     // try to repay debt for the user, the liquidated debt amount may less than user total debt
     vars.remainDebtToLiquidate = _repayUserERC20Debt(poolData, debtAssetData, params.user, vars.actualDebtToLiquidate);
@@ -221,7 +221,7 @@ library LiquidationLogic {
 
     InterestLogic.updateInterestRates(poolData, collateralAssetData, 0, vars.actualCollateralToLiquidate);
 
-    VaultLogic.erc20TransferOut(params.collateralAsset, msg.sender, vars.actualCollateralToLiquidate);
+    VaultLogic.erc20TransferOut(collateralAssetData, msg.sender, vars.actualCollateralToLiquidate);
   }
 
   /**
@@ -375,7 +375,7 @@ library LiquidationLogic {
     // Burn the equivalent amount of collateral, sending the underlying to the liquidator
     VaultLogic.erc721DecreaseSupply(collateralAssetData, params.user, params.collateralTokenIds);
 
-    VaultLogic.erc721TransferOut(params.collateralAsset, msg.sender, params.collateralTokenIds);
+    VaultLogic.erc721TransferOut(collateralAssetData, msg.sender, params.collateralTokenIds);
   }
 
   /**

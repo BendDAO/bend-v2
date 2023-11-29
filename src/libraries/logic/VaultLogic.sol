@@ -117,6 +117,13 @@ library VaultLogic {
   //////////////////////////////////////////////////////////////////////////////
   // ERC20 methods
   //////////////////////////////////////////////////////////////////////////////
+  /**
+   * @dev Get total supply balance, make sure the index already updated.
+   */
+  function erc20GetTotalSupply(DataTypes.AssetData storage assetData) internal view returns (uint256) {
+    uint256 amountScaled = assetData.totalCrossSupplied + assetData.totalIsolateSupplied;
+    return amountScaled.rayMul(assetData.supplyIndex);
+  }
 
   /**
    * @dev Get user scaled supply balance not related to the index.
@@ -293,8 +300,11 @@ library VaultLogic {
     groupData.userIsolateBorrowed[account] -= amountScaled;
   }
 
-  function erc20TransferIn(address asset, address from, uint256 amount) internal {
+  function erc20TransferIn(DataTypes.AssetData storage assetData, address from, uint256 amount) internal {
+    address asset = assetData.underlyingAsset;
     uint256 poolSizeBefore = IERC20Upgradeable(asset).balanceOf(address(this));
+
+    assetData.availableLiquidity += amount;
 
     IERC20Upgradeable(asset).safeTransferFrom(from, address(this), amount);
 
@@ -302,10 +312,14 @@ library VaultLogic {
     require(poolSizeAfter == (poolSizeBefore + amount), Errors.INVALID_TRANSFER_AMOUNT);
   }
 
-  function erc20TransferOut(address asset, address to, uint amount) internal {
+  function erc20TransferOut(DataTypes.AssetData storage assetData, address to, uint amount) internal {
+    address asset = assetData.underlyingAsset;
+
     require(to != address(0), Errors.INVALID_TO_ADDRESS);
 
     uint256 poolSizeBefore = IERC20Upgradeable(asset).balanceOf(address(this));
+
+    assetData.availableLiquidity -= amount;
 
     IERC20Upgradeable(asset).safeTransfer(to, amount);
 
@@ -430,8 +444,11 @@ library VaultLogic {
     }
   }
 
-  function erc721TransferIn(address asset, address from, uint256[] memory tokenIds) internal {
+  function erc721TransferIn(DataTypes.AssetData storage assetData, address from, uint256[] memory tokenIds) internal {
+    address asset = assetData.underlyingAsset;
     uint256 poolSizeBefore = IERC721Upgradeable(asset).balanceOf(address(this));
+
+    assetData.availableLiquidity += tokenIds.length;
 
     for (uint256 i = 0; i < tokenIds.length; i++) {
       IERC721Upgradeable(asset).safeTransferFrom(from, address(this), tokenIds[i]);
@@ -442,8 +459,12 @@ library VaultLogic {
     require(poolSizeAfter == (poolSizeBefore + tokenIds.length), Errors.INVALID_TRANSFER_AMOUNT);
   }
 
-  function erc721TransferOut(address asset, address to, uint256[] memory tokenIds) internal {
+  function erc721TransferOut(DataTypes.AssetData storage assetData, address to, uint256[] memory tokenIds) internal {
+    address asset = assetData.underlyingAsset;
+
     require(to != address(0), Errors.INVALID_TO_ADDRESS);
+
+    assetData.availableLiquidity -= tokenIds.length;
 
     uint256 poolSizeBefore = IERC721Upgradeable(asset).balanceOf(address(this));
 

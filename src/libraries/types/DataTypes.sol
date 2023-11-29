@@ -98,8 +98,9 @@ library DataTypes {
 
     // user state
     uint256 totalCrossSupplied; // total supplied balance in cross margin mode
-    mapping(address => uint256) userCrossSupplied; // user supplied balance in cross margin mode
     uint256 totalIsolateSupplied; // total supplied balance in isolate mode, only for ERC721
+    uint256 availableLiquidity;
+    mapping(address => uint256) userCrossSupplied; // user supplied balance in cross margin mode
     mapping(address => uint256) userIsolateSupplied; // user supplied balance in isolate mode, only for ERC721
     mapping(uint256 => ERC721TokenData) erc721TokenData; // token -> data, only for ERC721
 

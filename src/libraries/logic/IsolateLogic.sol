@@ -82,7 +82,7 @@ library IsolateLogic {
     InterestLogic.updateInterestRates(poolData, debtAssetData, 0, vars.totalBorrowAmount);
 
     // transfer underlying asset to borrower
-    VaultLogic.erc20TransferOut(params.asset, msg.sender, vars.totalBorrowAmount);
+    VaultLogic.erc20TransferOut(debtAssetData, msg.sender, vars.totalBorrowAmount);
 
     emit Events.IsolateBorrow(
       msg.sender,
@@ -146,7 +146,7 @@ library IsolateLogic {
     InterestLogic.updateInterestRates(poolData, debtAssetData, vars.totalRepayAmount, 0);
 
     // transfer underlying asset from borrower to pool
-    VaultLogic.erc20TransferIn(params.asset, msg.sender, vars.totalRepayAmount);
+    VaultLogic.erc20TransferIn(debtAssetData, msg.sender, vars.totalRepayAmount);
 
     emit Events.IsolateRepay(
       msg.sender,
@@ -329,7 +329,7 @@ library IsolateLogic {
     InterestLogic.updateInterestRates(poolData, debtAssetData, vars.totalRedeemAmount, 0);
 
     // transfer underlying asset from borrower to pool
-    VaultLogic.erc20TransferIn(params.asset, msg.sender, vars.totalRedeemAmount);
+    VaultLogic.erc20TransferIn(debtAssetData, msg.sender, vars.totalRedeemAmount);
 
     emit Events.IsolateRedeem(msg.sender, params.poolId, params.nftAsset, params.nftTokenIds, params.asset);
   }
@@ -395,7 +395,7 @@ library IsolateLogic {
 
       // transfer remain amount to borrower
       if (vars.remainBidAmount > 0) {
-        VaultLogic.erc20TransferOut(params.asset, tokenData.owner, vars.remainBidAmount);
+        VaultLogic.erc20TransferOut(debtAssetData, tokenData.owner, vars.remainBidAmount);
       }
 
       vars.totalBorrowAmount += vars.borrowAmount;
@@ -416,11 +416,11 @@ library IsolateLogic {
 
     if (vars.totalExtraAmount > 0) {
       // transfer underlying asset from liquidator to pool
-      VaultLogic.erc20TransferIn(params.asset, msg.sender, vars.totalExtraAmount);
+      VaultLogic.erc20TransferIn(debtAssetData, msg.sender, vars.totalExtraAmount);
     }
 
     // transfer erc721 to bidder
-    VaultLogic.erc721TransferOut(params.asset, msg.sender, params.nftTokenIds);
+    VaultLogic.erc721TransferOut(nftAssetData, msg.sender, params.nftTokenIds);
 
     emit Events.IsolateLiquidate(msg.sender, params.poolId, params.nftAsset, params.nftTokenIds, params.asset);
   }

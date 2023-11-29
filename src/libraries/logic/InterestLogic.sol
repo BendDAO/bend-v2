@@ -152,7 +152,6 @@ library InterestLogic {
     uint256[] allGroupDebtList;
     uint256 totalAssetScaledDebt;
     uint256 totalAssetDebt;
-    uint256 availableLiquidity;
     uint256 availableLiquidityPlusDebt;
     uint256 assetBorrowUsageRatio;
     uint256 groupBorrowUsageRatio;
@@ -187,11 +186,11 @@ library InterestLogic {
     }
 
     // calculate the total asset supply
-    vars.availableLiquidity =
-      IERC20Upgradeable(assetData.underlyingAsset).balanceOf(address(this)) +
+    vars.availableLiquidityPlusDebt =
+      assetData.availableLiquidity +
       liquidityAdded -
-      liquidityTaken;
-    vars.availableLiquidityPlusDebt = vars.availableLiquidity + vars.totalAssetDebt;
+      liquidityTaken +
+      vars.totalAssetDebt;
     vars.assetBorrowUsageRatio = vars.totalAssetDebt.rayDiv(vars.availableLiquidityPlusDebt);
 
     // calculate the group borrow rate

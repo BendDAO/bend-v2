@@ -50,7 +50,7 @@ library BorrowLogic {
     InterestLogic.updateInterestRates(poolData, assetData, 0, totalBorrowAmount);
 
     // transfer underlying asset to borrower
-    VaultLogic.erc20TransferOut(params.asset, msg.sender, totalBorrowAmount);
+    VaultLogic.erc20TransferOut(assetData, msg.sender, totalBorrowAmount);
 
     emit Events.CrossBorrowERC20(msg.sender, params.poolId, params.asset, params.groups, params.amounts);
   }
@@ -95,7 +95,7 @@ library BorrowLogic {
     InterestLogic.updateInterestRates(poolData, assetData, totalRepayAmount, 0);
 
     // transfer underlying asset from borrower to pool
-    VaultLogic.erc20TransferIn(params.asset, msg.sender, totalRepayAmount);
+    VaultLogic.erc20TransferIn(assetData, msg.sender, totalRepayAmount);
 
     emit Events.CrossRepayERC20(msg.sender, params.poolId, params.asset, params.groups, params.amounts);
   }
@@ -123,7 +123,7 @@ library BorrowLogic {
 
     InterestLogic.updateInterestRates(poolData, assetData, 0, params.amount);
 
-    VaultLogic.erc20TransferOut(params.asset, msg.sender, params.amount);
+    VaultLogic.erc20TransferOut(assetData, msg.sender, params.amount);
 
     emit Events.YieldBorrowERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
@@ -154,7 +154,7 @@ library BorrowLogic {
 
     InterestLogic.updateInterestRates(poolData, assetData, params.amount, 0);
 
-    VaultLogic.erc20TransferIn(params.asset, msg.sender, params.amount);
+    VaultLogic.erc20TransferIn(assetData, msg.sender, params.amount);
 
     emit Events.YieldRepayERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
