@@ -311,6 +311,15 @@ library VaultLogic {
     require(poolSizeBefore == (poolSizeAfter + amount), Errors.INVALID_TRANSFER_AMOUNT);
   }
 
+  function erc20TransferBetweenUsers(address underlyingAsset, address from, address to, uint amount) internal {
+    uint256 poolSizeBefore = IERC20Upgradeable(underlyingAsset).balanceOf(to);
+
+    IERC20Upgradeable(underlyingAsset).safeTransferFrom(from, to, amount);
+
+    uint poolSizeAfter = IERC20Upgradeable(underlyingAsset).balanceOf(to);
+    require(poolSizeBefore == (poolSizeAfter + amount), Errors.INVALID_TRANSFER_AMOUNT);
+  }
+
   //////////////////////////////////////////////////////////////////////////////
   // ERC721 methods
   //////////////////////////////////////////////////////////////////////////////

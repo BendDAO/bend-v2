@@ -85,6 +85,10 @@ library DataTypes {
     uint16 collateralFactor;
     uint16 liquidationThreshold;
     uint16 liquidationBonus;
+    uint16 redeemThreshold;
+    uint16 bidFineFactor;
+    uint16 minBidFineFactor;
+    uint40 auctionDuration;
     uint256 supplyCap;
     uint256 borrowCap;
 
@@ -114,6 +118,10 @@ library DataTypes {
     uint256 scaledAmount;
     uint8 reserveGroup;
     uint8 loanStatus;
+    uint40 bidStartTimestamp;
+    address firstBidder;
+    address lastBidder;
+    uint256 bidAmount;
   }
 
   struct PoolLendingStorage {

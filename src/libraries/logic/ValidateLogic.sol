@@ -137,7 +137,7 @@ library ValidateLogic {
 
     require(
       userAccountResult.healthFactor >= Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
-      Errors.HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD
+      Errors.HEALTH_FACTOR_BELOW_LIQUIDATION_THRESHOLD
     );
 
     for (vars.gidx = 0; vars.gidx < inputParams.groups.length; vars.gidx++) {
@@ -249,14 +249,14 @@ library ValidateLogic {
 
     require(
       userAccountResult.healthFactor >= Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
-      Errors.HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD
+      Errors.HEALTH_FACTOR_BELOW_LIQUIDATION_THRESHOLD
     );
 
     return (userAccountResult.healthFactor);
   }
 
-  function validateIsolateBorrowERC20Basic(
-    InputTypes.ExecuteIsolateBorrowERC20Params memory inputParams,
+  function validateIsolateBorrowBasic(
+    InputTypes.ExecuteIsolateBorrowParams memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage debtAssetData,
     DataTypes.AssetData storage nftAssetData,
@@ -288,8 +288,8 @@ library ValidateLogic {
     }
   }
 
-  function validateIsolateBorrowERC20Loan(
-    InputTypes.ExecuteIsolateBorrowERC20Params memory inputParams,
+  function validateIsolateBorrowLoan(
+    InputTypes.ExecuteIsolateBorrowParams memory inputParams,
     uint256 nftIndex,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage debtAssetData,
@@ -317,7 +317,7 @@ library ValidateLogic {
 
     require(
       nftLoanResult.healthFactor >= Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
-      Errors.HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD
+      Errors.HEALTH_FACTOR_BELOW_LIQUIDATION_THRESHOLD
     );
 
     require(nftLoanResult.totalCollateralInBaseCurrency > 0, Errors.COLLATERAL_BALANCE_IS_ZERO);
@@ -331,8 +331,8 @@ library ValidateLogic {
     );
   }
 
-  function validateIsolateRepayERC20Basic(
-    InputTypes.ExecuteIsolateRepayERC20Params memory inputParams,
+  function validateIsolateRepayBasic(
+    InputTypes.ExecuteIsolateRepayParams memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage debtAssetData,
     DataTypes.AssetData storage nftAssetData
@@ -341,8 +341,6 @@ library ValidateLogic {
 
     validateAssetBasic(debtAssetData);
     require(debtAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
-    require(!debtAssetData.isFrozen, Errors.ASSET_IS_FROZEN);
-    require(debtAssetData.isBorrowingEnabled, Errors.ASSET_IS_BORROW_DISABLED);
 
     validateAssetBasic(nftAssetData);
     require(nftAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
@@ -355,14 +353,106 @@ library ValidateLogic {
     }
   }
 
-  function validateIsolateRepayERC20Loan(
-    InputTypes.ExecuteIsolateRepayERC20Params memory inputParams,
+  function validateIsolateRepayLoan(
+    InputTypes.ExecuteIsolateRepayParams memory inputParams,
     DataTypes.GroupData storage debtGroupData,
     DataTypes.IsolateLoanData storage loanData
   ) internal view {
     validateGroupBasic(debtGroupData);
 
     require(loanData.loanStatus == Constants.LOAN_STATUS_ACTIVE, Errors.INVALID_LOAN_STATUS);
+    require(loanData.reserveAsset == inputParams.asset, Errors.ISOLATE_LOAN_ASSET_NOT_MATCH);
+  }
+
+  function validateIsolateAuctionBasic(
+    InputTypes.ExecuteIsolateAuctionParams memory inputParams,
+    DataTypes.PoolData storage poolData,
+    DataTypes.AssetData storage debtAssetData,
+    DataTypes.AssetData storage nftAssetData
+  ) internal view {
+    validatePoolBasic(poolData);
+
+    validateAssetBasic(debtAssetData);
+    require(debtAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+
+    validateAssetBasic(nftAssetData);
+    require(nftAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
+
+    require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
+    require(inputParams.nftTokenIds.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGH);
+
+    for (uint256 i = 0; i < inputParams.amounts.length; i++) {
+      require(inputParams.amounts[i] > 0, Errors.INVALID_AMOUNT);
+    }
+  }
+
+  function validateIsolateAuctionLoan(
+    InputTypes.ExecuteIsolateAuctionParams memory inputParams,
+    DataTypes.GroupData storage debtGroupData,
+    DataTypes.IsolateLoanData storage loanData
+  ) internal view {
+    validateGroupBasic(debtGroupData);
+
+    require(
+      loanData.loanStatus == Constants.LOAN_STATUS_ACTIVE || loanData.loanStatus == Constants.LOAN_STATUS_AUCTION,
+      Errors.INVALID_LOAN_STATUS
+    );
+    require(loanData.reserveAsset == inputParams.asset, Errors.ISOLATE_LOAN_ASSET_NOT_MATCH);
+  }
+
+  function validateIsolateRedeemBasic(
+    InputTypes.ExecuteIsolateRedeemParams memory inputParams,
+    DataTypes.PoolData storage poolData,
+    DataTypes.AssetData storage debtAssetData,
+    DataTypes.AssetData storage nftAssetData
+  ) internal view {
+    validatePoolBasic(poolData);
+
+    validateAssetBasic(debtAssetData);
+    require(debtAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+
+    validateAssetBasic(nftAssetData);
+    require(nftAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
+
+    require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
+  }
+
+  function validateIsolateRedeemLoan(
+    InputTypes.ExecuteIsolateRedeemParams memory inputParams,
+    DataTypes.GroupData storage debtGroupData,
+    DataTypes.IsolateLoanData storage loanData
+  ) internal view {
+    validateGroupBasic(debtGroupData);
+
+    require(loanData.loanStatus == Constants.LOAN_STATUS_AUCTION, Errors.INVALID_LOAN_STATUS);
+    require(loanData.reserveAsset == inputParams.asset, Errors.ISOLATE_LOAN_ASSET_NOT_MATCH);
+  }
+
+  function validateIsolateLiquidateBasic(
+    InputTypes.ExecuteIsolateLiquidateParams memory inputParams,
+    DataTypes.PoolData storage poolData,
+    DataTypes.AssetData storage debtAssetData,
+    DataTypes.AssetData storage nftAssetData
+  ) internal view {
+    validatePoolBasic(poolData);
+
+    validateAssetBasic(debtAssetData);
+    require(debtAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+
+    validateAssetBasic(nftAssetData);
+    require(nftAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
+
+    require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
+  }
+
+  function validateIsolateLiquidateLoan(
+    InputTypes.ExecuteIsolateLiquidateParams memory inputParams,
+    DataTypes.GroupData storage debtGroupData,
+    DataTypes.IsolateLoanData storage loanData
+  ) internal view {
+    validateGroupBasic(debtGroupData);
+
+    require(loanData.loanStatus == Constants.LOAN_STATUS_AUCTION, Errors.INVALID_LOAN_STATUS);
     require(loanData.reserveAsset == inputParams.asset, Errors.ISOLATE_LOAN_ASSET_NOT_MATCH);
   }
 

@@ -67,8 +67,8 @@ library Errors {
   string public constant ASSET_YIELD_NOT_ENABLE = '355';
   string public constant ASSET_YIELD_IS_PAUSED = '356';
 
-  string public constant HEALTH_FACTOR_LOWER_THAN_LIQUIDATION_THRESHOLD = '400';
-  string public constant HEALTH_FACTOR_NOT_BELOW_THRESHOLD = '401';
+  string public constant HEALTH_FACTOR_BELOW_LIQUIDATION_THRESHOLD = '400';
+  string public constant HEALTH_FACTOR_NOT_BELOW_LIQUIDATION_THRESHOLD = '401';
   string public constant CROSS_SUPPLY_NOT_EMPTY = '402';
   string public constant ISOLATE_SUPPLY_NOT_EMPTY = '403';
   string public constant CROSS_BORROW_NOT_EMPTY = '404';
@@ -84,4 +84,10 @@ library Errors {
   string public constant ISOLATE_LOAN_ASSET_NOT_MATCH = '600';
   string public constant ISOLATE_LOAN_GROUP_NOT_MATCH = '601';
   string public constant ISOLATE_LOAN_BORROWER_NOT_MATCH = '602';
+  string public constant ISOLATE_BORROW_NOT_EXCEED_LIQUIDATION_THRESHOLD = '603';
+  string public constant ISOLATE_BID_PRICE_LESS_THAN_BORROW = '604';
+  string public constant ISOLATE_BID_PRICE_LESS_THAN_LIQUIDATION_PRICE = '605';
+  string public constant ISOLATE_BID_PRICE_LESS_THAN_HIGHEST_PRICE = '606';
+  string public constant ISOLATE_BID_AUCTION_DURATION_HAS_END = '607';
+  string public constant ISOLATE_BID_AUCTION_DURATION_NOT_END = '608';
 }

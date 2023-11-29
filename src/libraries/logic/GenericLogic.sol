@@ -231,7 +231,7 @@ library GenericLogic {
 
   struct CalculateNftLoanDataVars {
     uint256 debtAssetPriceInBaseCurrency;
-    uint256 nftPriceInBaseCurrency;
+    uint256 nftAssetPriceInBaseCurrency;
     uint256 normalizedIndex;
     uint256 loanDebtAmount;
   }
@@ -251,19 +251,18 @@ library GenericLogic {
 
     // query debt asset and nft price fromo oracle
     vars.debtAssetPriceInBaseCurrency = IPriceOracleGetter(oracle).getAssetPrice(debtAssetData.underlyingAsset);
-    vars.nftPriceInBaseCurrency = IPriceOracleGetter(oracle).getAssetPrice(nftAssetData.underlyingAsset);
+    vars.nftAssetPriceInBaseCurrency = IPriceOracleGetter(oracle).getAssetPrice(nftAssetData.underlyingAsset);
 
     // calculate total collateral balance for the nft
-    result.totalCollateralInBaseCurrency = vars.nftPriceInBaseCurrency;
+    result.totalCollateralInBaseCurrency = vars.nftAssetPriceInBaseCurrency;
 
     // calculate total borrow balance for the loan
-    if (nftLoanData.scaledAmount > 0) {
-      vars.normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtGroupData);
-      vars.loanDebtAmount = nftLoanData.scaledAmount.rayMul(vars.normalizedIndex);
-
-      vars.loanDebtAmount = vars.debtAssetPriceInBaseCurrency * vars.loanDebtAmount;
-      result.totalDebtInBaseCurrency = vars.loanDebtAmount / (10 ** debtAssetData.underlyingDecimals);
-    }
+    result.totalDebtInBaseCurrency = _getNftLoanDebtInBaseCurrency(
+      debtAssetData,
+      debtGroupData,
+      nftLoanData,
+      vars.debtAssetPriceInBaseCurrency
+    );
 
     // calculate health by borrow and collateral
     result.healthFactor = calculateHealthFactorFromBalances(
@@ -271,6 +270,107 @@ library GenericLogic {
       result.totalDebtInBaseCurrency,
       nftAssetData.liquidationThreshold
     );
+  }
+
+  struct CaculateNftLoanLiquidatePriceVars {
+    uint256 nftAssetPriceInBaseCurrency;
+    uint256 debtAssetPriceInBaseCurrency;
+    uint256 normalizedIndex;
+    uint256 borrowAmount;
+    uint256 thresholdPrice;
+    uint256 liquidatePrice;
+  }
+
+  function calculateNftLoanLiquidatePrice(
+    DataTypes.PoolData storage /*poolData*/,
+    DataTypes.AssetData storage debtAssetData,
+    DataTypes.GroupData storage debtGroupData,
+    DataTypes.AssetData storage nftAssetData,
+    DataTypes.IsolateLoanData storage nftLoanData,
+    address oracle
+  ) internal view returns (uint256, uint256, uint256) {
+    CaculateNftLoanLiquidatePriceVars memory vars;
+
+    /*
+     * 0                   CR                  LH                  100
+     * |___________________|___________________|___________________|
+     *  <       Borrowing with Interest        <
+     * CR: Callteral Ratio;
+     * LH: Liquidate Threshold;
+     * Liquidate Trigger: Borrowing with Interest > thresholdPrice;
+     * Liquidate Price: (100% - BonusRatio) * NFT Price;
+     */
+
+    // query debt asset and nft price fromo oracle
+    vars.debtAssetPriceInBaseCurrency = IPriceOracleGetter(oracle).getAssetPrice(debtAssetData.underlyingAsset);
+    vars.nftAssetPriceInBaseCurrency = IPriceOracleGetter(oracle).getAssetPrice(nftAssetData.underlyingAsset);
+
+    vars.normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtGroupData);
+    vars.borrowAmount = nftLoanData.scaledAmount.rayMul(vars.normalizedIndex);
+
+    vars.thresholdPrice = vars.nftAssetPriceInBaseCurrency.percentMul(nftAssetData.liquidationThreshold);
+    vars.thresholdPrice =
+      (vars.thresholdPrice * (10 ** debtAssetData.underlyingDecimals)) /
+      vars.debtAssetPriceInBaseCurrency;
+
+    if (nftAssetData.liquidationBonus < PercentageMath.PERCENTAGE_FACTOR) {
+      vars.liquidatePrice = vars.nftAssetPriceInBaseCurrency.percentMul(
+        PercentageMath.PERCENTAGE_FACTOR - nftAssetData.liquidationBonus
+      );
+      vars.liquidatePrice =
+        (vars.liquidatePrice * (10 ** debtAssetData.underlyingDecimals)) /
+        vars.debtAssetPriceInBaseCurrency;
+    }
+
+    if (vars.liquidatePrice < vars.borrowAmount) {
+      vars.liquidatePrice = vars.borrowAmount;
+    }
+
+    return (vars.borrowAmount, vars.thresholdPrice, vars.liquidatePrice);
+  }
+
+  struct CalculateNftLoanBidFineVars {
+    uint256 nftBaseCurrencyPriceInBaseCurrency;
+    uint256 minBidFineInBaseCurrency;
+    uint256 minBidFineAmount;
+    uint256 debtAssetPriceInBaseCurrency;
+    uint256 normalizedIndex;
+    uint256 borrowAmount;
+    uint256 bidFineAmount;
+  }
+
+  function calculateNftLoanBidFine(
+    DataTypes.PoolData storage /*poolData*/,
+    DataTypes.AssetData storage debtAssetData,
+    DataTypes.GroupData storage debtGroupData,
+    DataTypes.AssetData storage nftAssetData,
+    DataTypes.IsolateLoanData storage nftLoanData,
+    address oracle
+  ) internal view returns (uint256, uint256) {
+    CalculateNftLoanBidFineVars memory vars;
+
+    // query debt asset and nft price fromo oracle
+    vars.debtAssetPriceInBaseCurrency = IPriceOracleGetter(oracle).getAssetPrice(debtAssetData.underlyingAsset);
+
+    // calculate the min bid fine based on the base currency, e.g. ETH
+    vars.nftBaseCurrencyPriceInBaseCurrency = IPriceOracleGetter(oracle).getAssetPrice(
+      IPriceOracleGetter(oracle).NFT_BASE_CURRENCY()
+    );
+    vars.minBidFineInBaseCurrency = vars.nftBaseCurrencyPriceInBaseCurrency.percentMul(nftAssetData.minBidFineFactor);
+    vars.minBidFineAmount =
+      (vars.minBidFineInBaseCurrency * (10 ** debtAssetData.underlyingDecimals)) /
+      vars.debtAssetPriceInBaseCurrency;
+
+    // calculate the bid fine based on the borrow amount
+    vars.normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtGroupData);
+    vars.borrowAmount = nftLoanData.scaledAmount.rayMul(vars.normalizedIndex);
+    vars.bidFineAmount = vars.borrowAmount.percentMul(nftAssetData.bidFineFactor);
+
+    if (vars.bidFineAmount < vars.minBidFineAmount) {
+      vars.bidFineAmount = vars.minBidFineAmount;
+    }
+
+    return (vars.minBidFineAmount, vars.bidFineAmount);
   }
 
   /**
@@ -355,5 +455,24 @@ library GenericLogic {
     }
 
     return userTotalBalance;
+  }
+
+  function _getNftLoanDebtInBaseCurrency(
+    DataTypes.AssetData storage debtAssetData,
+    DataTypes.GroupData storage debtGroupData,
+    DataTypes.IsolateLoanData storage nftLoanData,
+    uint256 debtAssetPrice
+  ) private view returns (uint256) {
+    uint256 loanDebtAmount;
+
+    if (nftLoanData.scaledAmount > 0) {
+      uint256 normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtGroupData);
+      loanDebtAmount = nftLoanData.scaledAmount.rayMul(normalizedIndex);
+
+      loanDebtAmount = debtAssetPrice * loanDebtAmount;
+      loanDebtAmount = loanDebtAmount / (10 ** debtAssetData.underlyingDecimals);
+    }
+
+    return loanDebtAmount;
   }
 }

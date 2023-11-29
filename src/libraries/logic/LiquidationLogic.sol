@@ -67,7 +67,7 @@ library LiquidationLogic {
 
     require(
       userAccountResult.healthFactor < Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
-      Errors.HEALTH_FACTOR_NOT_BELOW_THRESHOLD
+      Errors.HEALTH_FACTOR_NOT_BELOW_LIQUIDATION_THRESHOLD
     );
 
     // calculate user's debt and collateral supply
@@ -154,7 +154,7 @@ library LiquidationLogic {
 
     require(
       vars.userAccountResult.healthFactor < Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
-      Errors.HEALTH_FACTOR_NOT_BELOW_THRESHOLD
+      Errors.HEALTH_FACTOR_NOT_BELOW_LIQUIDATION_THRESHOLD
     );
 
     vars.userCollateralBalance = VaultLogic.erc721GetUserCrossSupply(collateralAssetData, params.user);

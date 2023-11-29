@@ -14,6 +14,9 @@ library PercentageMath {
   // Half percentage factor (50.00%)
   uint256 internal constant HALF_PERCENTAGE_FACTOR = 0.5e4;
 
+  // One percentage factor (1.00%)
+  uint256 internal constant ONE_PERCENTAGE_FACTOR = 0.01e4;
+
   /**
    * @notice Executes a percentage multiplication
    * @dev assembly optimized for improved gas savings, see https://twitter.com/transmissions11/status/1451131036377571328

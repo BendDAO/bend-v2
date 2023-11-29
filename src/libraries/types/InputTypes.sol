@@ -70,7 +70,7 @@ library InputTypes {
     bool supplyAsCollateral;
   }
 
-  struct ExecuteIsolateBorrowERC20Params {
+  struct ExecuteIsolateBorrowParams {
     uint32 poolId;
     address nftAsset;
     uint256[] nftTokenIds;
@@ -78,12 +78,34 @@ library InputTypes {
     uint256[] amounts;
   }
 
-  struct ExecuteIsolateRepayERC20Params {
+  struct ExecuteIsolateRepayParams {
     uint32 poolId;
     address nftAsset;
     uint256[] nftTokenIds;
     address asset;
     uint256[] amounts;
+  }
+
+  struct ExecuteIsolateAuctionParams {
+    uint32 poolId;
+    address nftAsset;
+    uint256[] nftTokenIds;
+    address asset;
+    uint256[] amounts;
+  }
+
+  struct ExecuteIsolateRedeemParams {
+    uint32 poolId;
+    address nftAsset;
+    uint256[] nftTokenIds;
+    address asset;
+  }
+
+  struct ExecuteIsolateLiquidateParams {
+    uint32 poolId;
+    address nftAsset;
+    uint256[] nftTokenIds;
+    address asset;
   }
 
   struct ExecuteBorrowERC20ForYieldParams {

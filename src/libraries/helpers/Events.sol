@@ -86,7 +86,7 @@ library Events {
   );
 
   // Isolate Lending Events
-  event IsolateBorrowERC20(
+  event IsolateBorrow(
     address indexed sender,
     uint256 indexed poolId,
     address nftAsset,
@@ -95,13 +95,38 @@ library Events {
     uint256[] amounts
   );
 
-  event IsolateRepayERC20(
+  event IsolateRepay(
     address indexed sender,
     uint256 indexed poolId,
     address nftAsset,
     uint256[] tokenIds,
     address indexed asset,
     uint256[] amounts
+  );
+
+  event IsolateAuction(
+    address indexed sender,
+    uint256 indexed poolId,
+    address nftAsset,
+    uint256[] tokenIds,
+    address indexed asset,
+    uint256[] amounts
+  );
+
+  event IsolateRedeem(
+    address indexed sender,
+    uint256 indexed poolId,
+    address nftAsset,
+    uint256[] tokenIds,
+    address indexed asset
+  );
+
+  event IsolateLiquidate(
+    address indexed sender,
+    uint256 indexed poolId,
+    address nftAsset,
+    uint256[] tokenIds,
+    address indexed asset
   );
 
   /* Yield Events */

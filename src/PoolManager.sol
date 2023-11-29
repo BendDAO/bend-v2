@@ -274,15 +274,15 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     );
   }
 
-  function isolateBorrowERC20(
+  function isolateBorrow(
     uint32 poolId,
     address nftAsset,
     uint256[] calldata nftTokenIds,
     address asset,
     uint256[] calldata amounts
   ) public whenNotPaused nonReentrant {
-    IsolateLogic.executeIsolateBorrowERC20(
-      InputTypes.ExecuteIsolateBorrowERC20Params({
+    IsolateLogic.executeIsolateBorrow(
+      InputTypes.ExecuteIsolateBorrowParams({
         poolId: poolId,
         nftAsset: nftAsset,
         nftTokenIds: nftTokenIds,
@@ -292,15 +292,15 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     );
   }
 
-  function isolateRepayERC20(
+  function isolateRepay(
     uint32 poolId,
     address nftAsset,
     uint256[] calldata nftTokenIds,
     address asset,
     uint256[] calldata amounts
   ) public whenNotPaused nonReentrant {
-    IsolateLogic.executeIsolateRepayERC20(
-      InputTypes.ExecuteIsolateRepayERC20Params({
+    IsolateLogic.executeIsolateRepay(
+      InputTypes.ExecuteIsolateRepayParams({
         poolId: poolId,
         nftAsset: nftAsset,
         nftTokenIds: nftTokenIds,
@@ -316,24 +316,49 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     uint256[] calldata nftTokenIds,
     address asset,
     uint256[] calldata amounts
-  ) public whenNotPaused nonReentrant {}
+  ) public whenNotPaused nonReentrant {
+    IsolateLogic.executeIsolateAuction(
+      InputTypes.ExecuteIsolateAuctionParams({
+        poolId: poolId,
+        nftAsset: nftAsset,
+        nftTokenIds: nftTokenIds,
+        asset: asset,
+        amounts: amounts
+      })
+    );
+  }
 
   function isolateRedeem(
     uint32 poolId,
     address nftAsset,
     uint256[] calldata nftTokenIds,
-    address asset,
-    uint256[] calldata amounts,
-    uint256[] calldata fines
-  ) public whenNotPaused nonReentrant {}
+    address asset
+  ) public whenNotPaused nonReentrant {
+    IsolateLogic.executeIsolateRedeem(
+      InputTypes.ExecuteIsolateRedeemParams({
+        poolId: poolId,
+        nftAsset: nftAsset,
+        nftTokenIds: nftTokenIds,
+        asset: asset
+      })
+    );
+  }
 
-  function isolateLiquidateERC721(
+  function isolateLiquidate(
     uint32 poolId,
     address nftAsset,
     uint256[] calldata nftTokenIds,
-    address asset,
-    uint256[] calldata amounts
-  ) public whenNotPaused nonReentrant {}
+    address asset
+  ) public whenNotPaused nonReentrant {
+    IsolateLogic.executeIsolateLiquidate(
+      InputTypes.ExecuteIsolateLiquidateParams({
+        poolId: poolId,
+        nftAsset: nftAsset,
+        nftTokenIds: nftTokenIds,
+        asset: asset
+      })
+    );
+  }
 
   function setERC721SupplyMode(
     uint32 poolId,
