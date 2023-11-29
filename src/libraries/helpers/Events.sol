@@ -45,21 +45,15 @@ library Events {
   event SetAssetYieldEnable(uint32 indexed poolId, address indexed asset, bool isEnable);
   event SetAssetYieldPause(uint32 indexed poolId, address indexed asset, bool isPause);
 
-  /* Lending Events */
+  /* Supply Events */
   event DepositERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
   event WithdrawERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
 
   event DepositERC721(address indexed sender, uint256 indexed poolId, address indexed asset, uint256[] tokenIds);
   event WithdrawERC721(address indexed sender, uint256 indexed poolId, address indexed asset, uint256[] tokenIds);
 
-  event BorrowERC20(
-    address indexed sender,
-    uint256 indexed poolId,
-    address indexed asset,
-    uint8[] groups,
-    uint256[] amounts
-  );
-  event RepayERC20(
+  // Cross Lending Events
+  event CrossBorrowERC20(
     address indexed sender,
     uint256 indexed poolId,
     address indexed asset,
@@ -67,7 +61,15 @@ library Events {
     uint256[] amounts
   );
 
-  event LiquidateERC20(
+  event CrossRepayERC20(
+    address indexed sender,
+    uint256 indexed poolId,
+    address indexed asset,
+    uint8[] groups,
+    uint256[] amounts
+  );
+
+  event CrossLiquidateERC20(
     address liquidator,
     address indexed user,
     address indexed collateralAsset,
@@ -77,7 +79,7 @@ library Events {
     bool supplyAsCollateral
   );
 
-  event LiquidateERC721(
+  event CrossLiquidateERC721(
     address liquidator,
     address indexed user,
     address indexed collateralAsset,
@@ -131,5 +133,6 @@ library Events {
 
   /* Yield Events */
   event YieldBorrowERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
+
   event YieldRepayERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
 }

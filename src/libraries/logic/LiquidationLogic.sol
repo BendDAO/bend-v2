@@ -109,7 +109,7 @@ library LiquidationLogic {
     // If user's all the collateral has being liquidated we need clear the supply flag
     VaultLogic.accountCheckAndSetSuppliedAsset(poolData, collateralAssetData, params.user);
 
-    emit Events.LiquidateERC20(
+    emit Events.CrossLiquidateERC20(
       msg.sender,
       params.user,
       params.collateralAsset,
@@ -196,7 +196,7 @@ library LiquidationLogic {
     // If all the collateral has been liquidated we need clear the supply flag
     VaultLogic.accountCheckAndSetSuppliedAsset(poolData, collateralAssetData, params.user);
 
-    emit Events.LiquidateERC721(
+    emit Events.CrossLiquidateERC721(
       msg.sender,
       params.user,
       params.collateralAsset,

@@ -52,7 +52,7 @@ library BorrowLogic {
     // transfer underlying asset to borrower
     VaultLogic.erc20TransferOut(params.asset, msg.sender, totalBorrowAmount);
 
-    emit Events.BorrowERC20(msg.sender, params.poolId, params.asset, params.groups, params.amounts);
+    emit Events.CrossBorrowERC20(msg.sender, params.poolId, params.asset, params.groups, params.amounts);
   }
 
   function executeCrossRepayERC20(InputTypes.ExecuteCrossRepayERC20Params memory params) public {
@@ -97,7 +97,7 @@ library BorrowLogic {
     // transfer underlying asset from borrower to pool
     VaultLogic.erc20TransferIn(params.asset, msg.sender, totalRepayAmount);
 
-    emit Events.RepayERC20(msg.sender, params.poolId, params.asset, params.groups, params.amounts);
+    emit Events.CrossRepayERC20(msg.sender, params.poolId, params.asset, params.groups, params.amounts);
   }
 
   /**
