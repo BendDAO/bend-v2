@@ -117,7 +117,7 @@ library ConfigureLogic {
       require(!poolData.isYieldEnabled, Errors.POOL_YIELD_ALREADY_ENABLE);
 
       poolData.isYieldEnabled = true;
-      poolData.yieldGroupId = Constants.GROUP_ID_YIELD;
+      poolData.yieldGroup = Constants.GROUP_ID_YIELD;
     } else {
       require(poolData.isYieldEnabled, Errors.POOL_YIELD_NOT_ENABLE);
 
@@ -127,12 +127,12 @@ library ConfigureLogic {
         DataTypes.AssetData storage assetData = poolData.assetLookup[allAssets[i]];
         require(!assetData.isYieldEnabled, Errors.ASSET_YIELD_ALREADY_ENABLE);
 
-        DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroupId];
+        DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
         VaultLogic.checkGroupHasEmptyLiquidity(groupData);
       }
 
       poolData.isYieldEnabled = false;
-      poolData.yieldGroupId = Constants.GROUP_ID_INVALID;
+      poolData.yieldGroup = Constants.GROUP_ID_INVALID;
     }
 
     emit Events.SetPoolYieldEnable(poolId, isEnable);
@@ -466,7 +466,7 @@ library ConfigureLogic {
     } else {
       require(assetData.isYieldEnabled, Errors.ASSET_YIELD_NOT_ENABLE);
 
-      DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroupId];
+      DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
       VaultLogic.checkGroupHasEmptyLiquidity(groupData);
 
       assetData.isYieldEnabled = false;
@@ -489,7 +489,7 @@ library ConfigureLogic {
     emit Events.SetAssetYieldPause(poolId, asset, isPause);
   }
 
-  function executeSetAssetYieldCap(uint32 poolId, address asset, address staker, uint256 cap) public {
+  function executeSetAssetYieldCap(uint32 poolId, address asset, uint256 cap) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
@@ -497,6 +497,19 @@ library ConfigureLogic {
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+
+    assetData.yieldCap = cap;
+  }
+
+  function executeSetStakerYieldCap(uint32 poolId, address staker, address asset, uint256 cap) public {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    _validateOwnerAndPool(poolData);
+
+    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+    require(cap <= assetData.yieldCap, Errors.YIELD_EXCEED_ASSET_CAP_LIMIT);
 
     DataTypes.StakerData storage stakerData = assetData.stakerLookup[staker];
     stakerData.yieldCap = cap;

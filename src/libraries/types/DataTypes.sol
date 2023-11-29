@@ -35,7 +35,7 @@ library DataTypes {
     // yield
     bool isYieldEnabled;
     bool isYieldPaused;
-    uint8 yieldGroupId;
+    uint8 yieldGroup;
   }
 
   struct AccountData {
@@ -91,6 +91,7 @@ library DataTypes {
     uint40 auctionDuration;
     uint256 supplyCap;
     uint256 borrowCap;
+    uint256 yieldCap;
 
     // group state
     mapping(uint8 => GroupData) groupLookup;

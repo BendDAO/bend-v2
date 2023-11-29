@@ -175,8 +175,12 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     ConfigureLogic.executeSetAssetYieldPause(poolId, asset, isPause);
   }
 
-  function setAssetYieldCap(uint32 poolId, address asset, address staker, uint256 cap) public nonReentrant {
-    ConfigureLogic.executeSetAssetYieldCap(poolId, asset, staker, cap);
+  function setAssetYieldCap(uint32 poolId, address asset, uint256 cap) public nonReentrant {
+    ConfigureLogic.executeSetAssetYieldCap(poolId, asset, cap);
+  }
+
+  function setStakerYieldCap(uint32 poolId, address staker, address asset, uint256 cap) public nonReentrant {
+    ConfigureLogic.executeSetStakerYieldCap(poolId, staker, asset, cap);
   }
 
   /****************************************************************************/
@@ -362,6 +366,18 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
         nftTokenIds: nftTokenIds,
         asset: asset
       })
+    );
+  }
+
+  function yieldBorrowERC20(uint32 poolId, address asset, uint256 amount) public whenNotPaused nonReentrant {
+    BorrowLogic.executeYieldBorrowERC20(
+      InputTypes.ExecuteYieldBorrowERC20Params({poolId: poolId, asset: asset, amount: amount})
+    );
+  }
+
+  function yieldRepayERC20(uint32 poolId, address asset, uint256 amount) public whenNotPaused nonReentrant {
+    BorrowLogic.executeYieldRepayERC20(
+      InputTypes.ExecuteYieldRepayERC20Params({poolId: poolId, asset: asset, amount: amount})
     );
   }
 
@@ -683,6 +699,16 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
     return VaultLogic.erc721GetUserIsolateSupply(assetData, user);
+  }
+
+  function getYieldERC20BorrowBalance(uint32 poolId, address asset, address staker) public view returns (uint256) {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+    DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
+
+    uint256 scaledBalance = VaultLogic.erc20GetUserScaledCrossBorrowInGroup(groupData, staker);
+    return scaledBalance.rayMul(InterestLogic.getNormalizedBorrowDebt(groupData));
   }
 
   // Pool Admin

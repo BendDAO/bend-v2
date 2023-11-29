@@ -185,6 +185,14 @@ library VaultLogic {
   }
 
   /**
+   * @dev Get total borrow balance in the group, make sure the index already updated.
+   */
+  function erc20GetTotalCrossBorrowInGroup(DataTypes.GroupData storage groupData) internal view returns (uint256) {
+    uint256 amountScaled = groupData.totalCrossBorrowed;
+    return amountScaled.rayMul(groupData.borrowIndex);
+  }
+
+  /**
    * @dev Get user scaled borrow balance in the group not related to the index.
    */
   function erc20GetUserScaledCrossBorrowInGroup(

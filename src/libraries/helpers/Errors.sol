@@ -79,7 +79,8 @@ library Errors {
   string public constant COLLATERAL_CANNOT_COVER_NEW_BORROW = '409';
   string public constant LIQUIDATE_REPAY_DEBT_FAILED = '410';
 
-  string public constant YIELD_EXCEED_CAP_LIMIT = '500';
+  string public constant YIELD_EXCEED_ASSET_CAP_LIMIT = '500';
+  string public constant YIELD_EXCEED_STAKER_CAP_LIMIT = '501';
 
   string public constant ISOLATE_LOAN_ASSET_NOT_MATCH = '600';
   string public constant ISOLATE_LOAN_GROUP_NOT_MATCH = '601';
