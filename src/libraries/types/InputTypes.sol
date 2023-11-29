@@ -38,21 +38,23 @@ library InputTypes {
     uint256[] nftTokenIds;
   }
 
-  struct ExecuteBorrowERC20Params {
+  // Cross Lending
+
+  struct ExecuteCrossBorrowERC20Params {
     uint32 poolId;
     address asset;
     uint8[] groups;
     uint256[] amounts;
   }
 
-  struct ExecuteRepayERC20Params {
+  struct ExecuteCrossRepayERC20Params {
     uint32 poolId;
     address asset;
     uint8[] groups;
     uint256[] amounts;
   }
 
-  struct ExecuteLiquidateERC20Params {
+  struct ExecuteCrossLiquidateERC20Params {
     uint32 poolId;
     address user;
     address collateralAsset;
@@ -61,7 +63,7 @@ library InputTypes {
     bool supplyAsCollateral;
   }
 
-  struct ExecuteLiquidateERC721Params {
+  struct ExecuteCrossLiquidateERC721Params {
     uint32 poolId;
     address user;
     address collateralAsset;
@@ -69,6 +71,8 @@ library InputTypes {
     address debtAsset;
     bool supplyAsCollateral;
   }
+
+  // Isolate Lending
 
   struct ExecuteIsolateBorrowParams {
     uint32 poolId;
@@ -108,14 +112,16 @@ library InputTypes {
     address asset;
   }
 
-  struct ExecuteBorrowERC20ForYieldParams {
+  // Yield
+
+  struct ExecuteYieldBorrowERC20Params {
     uint32 poolId;
     address asset;
     uint256 amount;
     address staker;
   }
 
-  struct ExecuteRepayERC20ForYieldParams {
+  struct ExecuteYieldRepayERC20Params {
     uint32 poolId;
     address asset;
     uint256 amount;

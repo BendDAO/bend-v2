@@ -105,7 +105,7 @@ library ValidateLogic {
   }
 
   function validateBorrowERC20Basic(
-    InputTypes.ExecuteBorrowERC20Params memory inputParams,
+    InputTypes.ExecuteCrossBorrowERC20Params memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage assetData
   ) internal view {
@@ -121,7 +121,7 @@ library ValidateLogic {
   }
 
   function validateBorrowERC20Account(
-    InputTypes.ExecuteBorrowERC20Params memory inputParams,
+    InputTypes.ExecuteCrossBorrowERC20Params memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage assetData,
     address user,
@@ -171,7 +171,7 @@ library ValidateLogic {
   }
 
   function validateRepayERC20Basic(
-    InputTypes.ExecuteRepayERC20Params memory inputParams,
+    InputTypes.ExecuteCrossRepayERC20Params memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage assetData
   ) internal view {
@@ -192,7 +192,7 @@ library ValidateLogic {
   }
 
   function validateLiquidateERC20(
-    InputTypes.ExecuteLiquidateERC20Params memory inputParams,
+    InputTypes.ExecuteCrossLiquidateERC20Params memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage collateralAssetData,
     DataTypes.AssetData storage debtAssetData,
@@ -210,7 +210,7 @@ library ValidateLogic {
   }
 
   function validateLiquidateERC721(
-    InputTypes.ExecuteLiquidateERC721Params memory inputParams,
+    InputTypes.ExecuteCrossLiquidateERC721Params memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage collateralAssetData,
     DataTypes.AssetData storage debtAssetData,
@@ -456,8 +456,8 @@ library ValidateLogic {
     require(loanData.reserveAsset == inputParams.asset, Errors.ISOLATE_LOAN_ASSET_NOT_MATCH);
   }
 
-  function validateBorrowERC20ForYield(
-    InputTypes.ExecuteBorrowERC20ForYieldParams memory inputParams,
+  function validateYieldBorrowERC20(
+    InputTypes.ExecuteYieldBorrowERC20Params memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage assetData,
     DataTypes.GroupData storage groupData
@@ -477,8 +477,8 @@ library ValidateLogic {
     require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
   }
 
-  function validateRepayERC20ForYield(
-    InputTypes.ExecuteRepayERC20ForYieldParams memory inputParams,
+  function validateYieldRepayERC20(
+    InputTypes.ExecuteYieldRepayERC20Params memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage assetData,
     DataTypes.GroupData storage groupData

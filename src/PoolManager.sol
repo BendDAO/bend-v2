@@ -215,29 +215,29 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     );
   }
 
-  function borrowERC20(
+  function crossBorrowERC20(
     uint32 poolId,
     address asset,
     uint8[] calldata groups,
     uint256[] calldata amounts
   ) public whenNotPaused nonReentrant {
-    BorrowLogic.executeBorrowERC20(
-      InputTypes.ExecuteBorrowERC20Params({poolId: poolId, asset: asset, groups: groups, amounts: amounts})
+    BorrowLogic.executeCrossBorrowERC20(
+      InputTypes.ExecuteCrossBorrowERC20Params({poolId: poolId, asset: asset, groups: groups, amounts: amounts})
     );
   }
 
-  function repayERC20(
+  function crossRepayERC20(
     uint32 poolId,
     address asset,
     uint8[] calldata groups,
     uint256[] calldata amounts
   ) public whenNotPaused nonReentrant {
-    BorrowLogic.executeRepayERC20(
-      InputTypes.ExecuteRepayERC20Params({poolId: poolId, asset: asset, groups: groups, amounts: amounts})
+    BorrowLogic.executeCrossRepayERC20(
+      InputTypes.ExecuteCrossRepayERC20Params({poolId: poolId, asset: asset, groups: groups, amounts: amounts})
     );
   }
 
-  function liquidateERC20(
+  function crossLiquidateERC20(
     uint32 poolId,
     address user,
     address collateralAsset,
@@ -245,8 +245,8 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     uint256 debtToCover,
     bool supplyAsCollateral
   ) public whenNotPaused nonReentrant {
-    LiquidationLogic.executeLiquidateERC20(
-      InputTypes.ExecuteLiquidateERC20Params({
+    LiquidationLogic.executeCrossLiquidateERC20(
+      InputTypes.ExecuteCrossLiquidateERC20Params({
         poolId: poolId,
         user: user,
         collateralAsset: collateralAsset,
@@ -257,7 +257,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     );
   }
 
-  function liquidateERC721(
+  function crossLiquidateERC721(
     uint32 poolId,
     address user,
     address collateralAsset,
@@ -265,8 +265,8 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     address debtAsset,
     bool supplyAsCollateral
   ) public whenNotPaused nonReentrant {
-    LiquidationLogic.executeLiquidateERC721(
-      InputTypes.ExecuteLiquidateERC721Params({
+    LiquidationLogic.executeCrossLiquidateERC721(
+      InputTypes.ExecuteCrossLiquidateERC721Params({
         poolId: poolId,
         user: user,
         collateralAsset: collateralAsset,

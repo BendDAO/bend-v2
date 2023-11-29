@@ -14,7 +14,7 @@ import {InterestLogic} from './InterestLogic.sol';
 import {ValidateLogic} from './ValidateLogic.sol';
 
 library BorrowLogic {
-  function executeBorrowERC20(InputTypes.ExecuteBorrowERC20Params memory params) public {
+  function executeCrossBorrowERC20(InputTypes.ExecuteCrossBorrowERC20Params memory params) public {
     DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
@@ -55,7 +55,7 @@ library BorrowLogic {
     emit Events.BorrowERC20(msg.sender, params.poolId, params.asset, params.groups, params.amounts);
   }
 
-  function executeRepayERC20(InputTypes.ExecuteRepayERC20Params memory params) public {
+  function executeCrossRepayERC20(InputTypes.ExecuteCrossRepayERC20Params memory params) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
@@ -104,7 +104,7 @@ library BorrowLogic {
    * @notice Implements the borrow for yield feature.
    * It allows whitelisted staker to draw liquidity from the protocol without any collateral.
    */
-  function executeBorrowERC20ForYield(InputTypes.ExecuteBorrowERC20ForYieldParams memory params) public {
+  function executeYieldBorrowERC20(InputTypes.ExecuteYieldBorrowERC20Params memory params) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
@@ -114,7 +114,7 @@ library BorrowLogic {
 
     InterestLogic.updateInterestIndexs(assetData, groupData);
 
-    ValidateLogic.validateBorrowERC20ForYield(params, poolData, assetData, groupData);
+    ValidateLogic.validateYieldBorrowERC20(params, poolData, assetData, groupData);
 
     uint256 debtAmount = VaultLogic.erc20GetUserBorrowInGroup(groupData, msg.sender);
     require((debtAmount + params.amount) <= stakerData.yieldCap, Errors.YIELD_EXCEED_CAP_LIMIT);
@@ -125,14 +125,14 @@ library BorrowLogic {
 
     VaultLogic.erc20TransferOut(params.asset, msg.sender, params.amount);
 
-    emit Events.BorrowERC20ForYield(msg.sender, params.poolId, params.asset, params.amount);
+    emit Events.YieldBorrowERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
 
   /**
    * @notice Implements the repay for yield feature.
    * It transfers the underlying back to the pool and clears the equivalent amount of debt.
    */
-  function executeRepayERC20ForYield(InputTypes.ExecuteRepayERC20ForYieldParams memory params) public {
+  function executeYieldRepayERC20(InputTypes.ExecuteYieldRepayERC20Params memory params) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
@@ -141,7 +141,7 @@ library BorrowLogic {
 
     InterestLogic.updateInterestIndexs(assetData, groupData);
 
-    ValidateLogic.validateRepayERC20ForYield(params, poolData, assetData, groupData);
+    ValidateLogic.validateYieldRepayERC20(params, poolData, assetData, groupData);
 
     uint256 debtAmount = VaultLogic.erc20GetUserBorrowInGroup(groupData, msg.sender);
     require(debtAmount > 0, Errors.BORROW_BALANCE_IS_ZERO);
@@ -156,6 +156,6 @@ library BorrowLogic {
 
     VaultLogic.erc20TransferIn(params.asset, msg.sender, params.amount);
 
-    emit Events.RepayERC20ForYield(msg.sender, params.poolId, params.asset, params.amount);
+    emit Events.YieldRepayERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
 }

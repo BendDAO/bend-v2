@@ -42,7 +42,7 @@ library LiquidationLogic {
    * covers `debtToCover` amount of debt of the user getting liquidated, and receives
    * a proportional amount of the `collateralAsset` plus a bonus to cover market risk
    */
-  function executeLiquidateERC20(InputTypes.ExecuteLiquidateERC20Params memory params) external {
+  function executeCrossLiquidateERC20(InputTypes.ExecuteCrossLiquidateERC20Params memory params) external {
     LiquidateERC20LocalVars memory vars;
 
     DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
@@ -130,7 +130,7 @@ library LiquidationLogic {
   /**
    * @notice Function to liquidate a ERC721 collateral if its Health Factor drops below 1.
    */
-  function executeLiquidateERC721(InputTypes.ExecuteLiquidateERC721Params memory params) external {
+  function executeCrossLiquidateERC721(InputTypes.ExecuteCrossLiquidateERC721Params memory params) external {
     LiquidateERC721LocalVars memory vars;
 
     DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
@@ -211,7 +211,7 @@ library LiquidationLogic {
   function _transferUserERC20CollateralToLiquidator(
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage collateralAssetData,
-    InputTypes.ExecuteLiquidateERC20Params memory params,
+    InputTypes.ExecuteCrossLiquidateERC20Params memory params,
     LiquidateERC20LocalVars memory vars
   ) internal {
     InterestLogic.updateInterestSupplyIndex(collateralAssetData);
@@ -230,7 +230,7 @@ library LiquidationLogic {
   function _supplyUserERC20CollateralToLiquidator(
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage collateralAssetData,
-    InputTypes.ExecuteLiquidateERC20Params memory params,
+    InputTypes.ExecuteCrossLiquidateERC20Params memory params,
     LiquidateERC20LocalVars memory vars
   ) internal {
     VaultLogic.erc20TransferSupply(collateralAssetData, params.user, msg.sender, vars.actualCollateralToLiquidate);
@@ -290,7 +290,7 @@ library LiquidationLogic {
   function _calculateUserERC20Debt(
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage debtAssetData,
-    InputTypes.ExecuteLiquidateERC20Params memory params,
+    InputTypes.ExecuteCrossLiquidateERC20Params memory params,
     uint256 healthFactor
   ) internal view returns (uint256, uint256) {
     uint256 userTotalDebt = VaultLogic.erc20GetUserBorrowInAsset(poolData, debtAssetData, params.user);
@@ -370,7 +370,7 @@ library LiquidationLogic {
    */
   function _transferUserERC721CollateralToLiquidator(
     DataTypes.AssetData storage collateralAssetData,
-    InputTypes.ExecuteLiquidateERC721Params memory params
+    InputTypes.ExecuteCrossLiquidateERC721Params memory params
   ) internal {
     // Burn the equivalent amount of collateral, sending the underlying to the liquidator
     VaultLogic.erc721DecreaseSupply(collateralAssetData, params.user, params.collateralTokenIds);
@@ -384,7 +384,7 @@ library LiquidationLogic {
   function _supplyUserERC721CollateralToLiquidator(
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage collateralAssetData,
-    InputTypes.ExecuteLiquidateERC721Params memory params
+    InputTypes.ExecuteCrossLiquidateERC721Params memory params
   ) internal {
     VaultLogic.erc721TransferSupply(collateralAssetData, params.user, msg.sender, params.collateralTokenIds);
 
@@ -411,7 +411,7 @@ library LiquidationLogic {
   function _calculateDebtAmountFromERC721Collateral(
     DataTypes.AssetData storage collateralAssetData,
     DataTypes.AssetData storage debtAssetData,
-    InputTypes.ExecuteLiquidateERC721Params memory params,
+    InputTypes.ExecuteCrossLiquidateERC721Params memory params,
     LiquidateERC721LocalVars memory liqVars,
     IPriceOracleGetter oracle
   ) internal view returns (uint256) {

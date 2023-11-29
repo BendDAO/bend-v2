@@ -69,31 +69,31 @@ contract TestUser {
     _poolManager.depositERC721(poolId, asset, tokenIds, supplyMode);
   }
 
-  function borrowERC20(uint32 poolId, address asset, uint8[] calldata groups, uint256[] calldata amounts) public {
-    _poolManager.borrowERC20(poolId, asset, groups, amounts);
+  function crossBorrowERC20(uint32 poolId, address asset, uint8[] calldata groups, uint256[] calldata amounts) public {
+    _poolManager.crossBorrowERC20(poolId, asset, groups, amounts);
   }
 
-  function borrowERC20(uint32 poolId, address asset, uint8 group, uint256 amount) public {
+  function crossBorrowERC20(uint32 poolId, address asset, uint8 group, uint256 amount) public {
     uint8[] memory groups = new uint8[](1);
     groups[0] = group;
 
     uint256[] memory amounts = new uint256[](1);
     amounts[0] = amount;
 
-    _poolManager.borrowERC20(poolId, asset, groups, amounts);
+    _poolManager.crossBorrowERC20(poolId, asset, groups, amounts);
   }
 
-  function repayERC20(uint32 poolId, address asset, uint8[] calldata groups, uint256[] calldata amounts) public {
-    _poolManager.repayERC20(poolId, asset, groups, amounts);
+  function crossRepayERC20(uint32 poolId, address asset, uint8[] calldata groups, uint256[] calldata amounts) public {
+    _poolManager.crossRepayERC20(poolId, asset, groups, amounts);
   }
 
-  function repayERC20(uint32 poolId, address asset, uint8 group, uint256 amount) public {
+  function crossRepayERC20(uint32 poolId, address asset, uint8 group, uint256 amount) public {
     uint8[] memory groups = new uint8[](1);
     groups[0] = group;
 
     uint256[] memory amounts = new uint256[](1);
     amounts[0] = amount;
 
-    _poolManager.repayERC20(poolId, asset, groups, amounts);
+    _poolManager.crossRepayERC20(poolId, asset, groups, amounts);
   }
 }

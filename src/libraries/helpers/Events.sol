@@ -130,6 +130,6 @@ library Events {
   );
 
   /* Yield Events */
-  event BorrowERC20ForYield(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
-  event RepayERC20ForYield(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
+  event YieldBorrowERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
+  event YieldRepayERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
 }
