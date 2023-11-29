@@ -127,7 +127,6 @@ library DataTypes {
   }
 
   struct PoolLendingStorage {
-    address isolateEscrowAccount;
     uint32 nextPoolId;
     mapping(uint32 => PoolData) poolLookup;
   }

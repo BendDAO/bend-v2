@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
-import {IEscrowAccount} from '../../interfaces/IEscrowAccount.sol';
-
 import {Constants} from '../helpers/Constants.sol';
 import {Errors} from '../helpers/Errors.sol';
 import {Events} from '../helpers/Events.sol';
