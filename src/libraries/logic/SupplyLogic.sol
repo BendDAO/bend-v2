@@ -30,7 +30,7 @@ library SupplyLogic {
 
     InterestLogic.updateInterestRates(poolData, assetData, params.amount, 0);
 
-    VaultLogic.erc20TransferIn(assetData, msg.sender, params.amount);
+    VaultLogic.erc20TransferInLiquidity(assetData, msg.sender, params.amount);
 
     emit Events.DepositERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
@@ -55,7 +55,7 @@ library SupplyLogic {
 
     InterestLogic.updateInterestRates(poolData, assetData, 0, params.amount);
 
-    VaultLogic.erc20TransferOut(assetData, msg.sender, params.amount);
+    VaultLogic.erc20TransferOutLiquidity(assetData, msg.sender, params.amount);
 
     ValidateLogic.validateHealthFactor(poolData, msg.sender, cs.priceOracle);
 
@@ -70,7 +70,7 @@ library SupplyLogic {
 
     ValidateLogic.validateDepositERC721(params, poolData, assetData, msg.sender);
 
-    VaultLogic.erc721TransferIn(assetData, msg.sender, params.tokenIds);
+    VaultLogic.erc721TransferInLiquidity(assetData, msg.sender, params.tokenIds);
 
     if (params.supplyMode == Constants.SUPPLY_MODE_CROSS) {
       VaultLogic.erc721IncreaseCrossSupply(assetData, msg.sender, params.tokenIds);
@@ -109,7 +109,7 @@ library SupplyLogic {
       VaultLogic.erc721DecreaseIsolateSupply(assetData, msg.sender, params.tokenIds);
     }
 
-    VaultLogic.erc721TransferOut(assetData, msg.sender, params.tokenIds);
+    VaultLogic.erc721TransferOutLiquidity(assetData, msg.sender, params.tokenIds);
 
     emit Events.WithdrawERC721(msg.sender, params.poolId, params.asset, params.tokenIds);
   }

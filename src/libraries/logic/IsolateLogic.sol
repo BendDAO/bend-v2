@@ -82,7 +82,7 @@ library IsolateLogic {
     InterestLogic.updateInterestRates(poolData, debtAssetData, 0, vars.totalBorrowAmount);
 
     // transfer underlying asset to borrower
-    VaultLogic.erc20TransferOut(debtAssetData, msg.sender, vars.totalBorrowAmount);
+    VaultLogic.erc20TransferOutLiquidity(debtAssetData, msg.sender, vars.totalBorrowAmount);
 
     emit Events.IsolateBorrow(
       msg.sender,
@@ -146,7 +146,7 @@ library IsolateLogic {
     InterestLogic.updateInterestRates(poolData, debtAssetData, vars.totalRepayAmount, 0);
 
     // transfer underlying asset from borrower to pool
-    VaultLogic.erc20TransferIn(debtAssetData, msg.sender, vars.totalRepayAmount);
+    VaultLogic.erc20TransferInLiquidity(debtAssetData, msg.sender, vars.totalRepayAmount);
 
     emit Events.IsolateRepay(
       msg.sender,
@@ -231,14 +231,14 @@ library IsolateLogic {
 
       // transfer last bid amount to previous bidder from escrow
       if (loanData.lastBidder != address(0)) {
-        IEscrowAccount(ps.isolateEscrowAccount).transferERC20(params.asset, loanData.lastBidder, loanData.bidAmount);
+        VaultLogic.erc20TransferOutBidAmount(debtAssetData, loanData.lastBidder, loanData.bidAmount);
       }
 
       vars.totalBidAmount += params.amounts[vars.nidx];
     }
 
     // transfer underlying asset from liquidator to escrow
-    VaultLogic.erc20TransferBetweenWallets(params.asset, msg.sender, ps.isolateEscrowAccount, vars.totalBidAmount);
+    VaultLogic.erc20TransferInBidAmount(debtAssetData, msg.sender, vars.totalBidAmount);
 
     emit Events.IsolateAuction(
       msg.sender,
@@ -314,7 +314,7 @@ library IsolateLogic {
 
       if (loanData.lastBidder != address(0)) {
         // transfer last bid from escrow to bidder
-        IEscrowAccount(ps.isolateEscrowAccount).transferERC20(params.asset, loanData.lastBidder, loanData.bidAmount);
+        VaultLogic.erc20TransferOutBidAmount(debtAssetData, loanData.lastBidder, loanData.bidAmount);
       }
 
       if (loanData.firstBidder != address(0)) {
@@ -329,7 +329,7 @@ library IsolateLogic {
     InterestLogic.updateInterestRates(poolData, debtAssetData, vars.totalRedeemAmount, 0);
 
     // transfer underlying asset from borrower to pool
-    VaultLogic.erc20TransferIn(debtAssetData, msg.sender, vars.totalRedeemAmount);
+    VaultLogic.erc20TransferInLiquidity(debtAssetData, msg.sender, vars.totalRedeemAmount);
 
     emit Events.IsolateRedeem(msg.sender, params.poolId, params.nftAsset, params.nftTokenIds, params.asset);
   }
@@ -376,26 +376,28 @@ library IsolateLogic {
       vars.normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtGroupData);
       vars.borrowAmount = loanData.scaledAmount.rayMul(vars.normalizedIndex);
 
-      // Last bid can not cover borrow amount
+      // Last bid can not cover borrow amount and liquidator need pay the extra amount
       if (loanData.bidAmount < vars.borrowAmount) {
         vars.extraBorrowAmount = vars.borrowAmount - loanData.bidAmount;
       } else {
         vars.extraBorrowAmount = 0;
       }
 
+      // Last bid exceed borrow amount and the remain part belong to borrower
       if (loanData.bidAmount > vars.borrowAmount) {
         vars.remainBidAmount = loanData.bidAmount - vars.borrowAmount;
       } else {
         vars.remainBidAmount = 0;
       }
 
+      // burn the borrow amount and delete the loan data
       VaultLogic.erc20DecreaseIsolateScaledBorrow(debtGroupData, msg.sender, loanData.scaledAmount);
 
       delete poolData.loanLookup[params.nftAsset][params.nftTokenIds[vars.nidx]];
 
       // transfer remain amount to borrower
       if (vars.remainBidAmount > 0) {
-        VaultLogic.erc20TransferOut(debtAssetData, tokenData.owner, vars.remainBidAmount);
+        VaultLogic.erc20TransferOutBidAmount(debtAssetData, tokenData.owner, vars.remainBidAmount);
       }
 
       vars.totalBorrowAmount += vars.borrowAmount;
@@ -411,16 +413,16 @@ library IsolateLogic {
     // update interest rate according latest borrow amount (utilizaton)
     InterestLogic.updateInterestRates(poolData, debtAssetData, vars.totalBorrowAmount, 0);
 
-    // transfer bid from escrow to pool
-    IEscrowAccount(ps.isolateEscrowAccount).transferERC20(params.asset, address(this), vars.totalBidAmount);
+    // bid already in pool and now repay the borrow but need to increase liquidity
+    VaultLogic.erc20TransferOutBidAmountToLiqudity(debtAssetData, vars.totalBidAmount);
 
     if (vars.totalExtraAmount > 0) {
       // transfer underlying asset from liquidator to pool
-      VaultLogic.erc20TransferIn(debtAssetData, msg.sender, vars.totalExtraAmount);
+      VaultLogic.erc20TransferInLiquidity(debtAssetData, msg.sender, vars.totalExtraAmount);
     }
 
     // transfer erc721 to bidder
-    VaultLogic.erc721TransferOut(nftAssetData, msg.sender, params.nftTokenIds);
+    VaultLogic.erc721TransferOutLiquidity(nftAssetData, msg.sender, params.nftTokenIds);
 
     emit Events.IsolateLiquidate(msg.sender, params.poolId, params.nftAsset, params.nftTokenIds, params.asset);
   }
