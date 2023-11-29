@@ -30,6 +30,7 @@ library InputTypes {
     uint32 poolId;
     address asset;
     uint256[] tokenIds;
+    uint8 supplyMode;
   }
 
   struct ExecuteSetERC721SupplyModeParams {

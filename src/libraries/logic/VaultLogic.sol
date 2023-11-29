@@ -55,7 +55,7 @@ library VaultLogic {
     address account
   ) internal {
     DataTypes.AccountData storage accountData = poolData.accountLookup[account];
-    uint256 totalBorrow = erc20GetUserBorrowInAsset(poolData, assetData, account);
+    uint256 totalBorrow = erc20GetUserCrossBorrowInAsset(poolData, assetData, account);
     if (totalBorrow == 0) {
       accountSetBorrowedAsset(accountData, assetData.underlyingAsset, false);
     } else {
@@ -100,7 +100,7 @@ library VaultLogic {
 
     uint256 totalSupply;
     if (assetData.assetType == Constants.ASSET_TYPE_ERC20) {
-      totalSupply = erc20GetUserScaledSupply(assetData, account);
+      totalSupply = erc20GetUserScaledCrossSupply(assetData, account);
     } else if (assetData.assetType == Constants.ASSET_TYPE_ERC721) {
       totalSupply = erc721GetUserCrossSupply(assetData, account);
     } else {
@@ -128,7 +128,7 @@ library VaultLogic {
   /**
    * @dev Get user scaled supply balance not related to the index.
    */
-  function erc20GetUserScaledSupply(
+  function erc20GetUserScaledCrossSupply(
     DataTypes.AssetData storage assetData,
     address account
   ) internal view returns (uint256) {
@@ -138,7 +138,10 @@ library VaultLogic {
   /**
    * @dev Get user supply balance, make sure the index already updated.
    */
-  function erc20GetUserSupply(DataTypes.AssetData storage assetData, address account) internal view returns (uint256) {
+  function erc20GetUserCrossSupply(
+    DataTypes.AssetData storage assetData,
+    address account
+  ) internal view returns (uint256) {
     uint256 amountScaled = assetData.userCrossSupplied[account];
     return amountScaled.rayMul(assetData.supplyIndex);
   }
@@ -146,7 +149,7 @@ library VaultLogic {
   /**
    * @dev Increase user supply balance, make sure the index already updated.
    */
-  function erc20IncreaseSupply(DataTypes.AssetData storage assetData, address account, uint256 amount) internal {
+  function erc20IncreaseCrossSupply(DataTypes.AssetData storage assetData, address account, uint256 amount) internal {
     uint256 amountScaled = amount.rayDiv(assetData.supplyIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
@@ -157,7 +160,7 @@ library VaultLogic {
   /**
    * @dev Decrease user supply balance, make sure the index already updated.
    */
-  function erc20DecreaseSupply(DataTypes.AssetData storage assetData, address account, uint256 amount) internal {
+  function erc20DecreaseCrossSupply(DataTypes.AssetData storage assetData, address account, uint256 amount) internal {
     uint256 amountScaled = amount.rayDiv(assetData.supplyIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
@@ -168,7 +171,7 @@ library VaultLogic {
   /**
    * @dev Transfer user supply balance, make sure the index already updated.
    */
-  function erc20TransferSupply(
+  function erc20TransferCrossSupply(
     DataTypes.AssetData storage assetData,
     address from,
     address to,
@@ -184,7 +187,7 @@ library VaultLogic {
   /**
    * @dev Get user scaled borrow balance in the group not related to the index.
    */
-  function erc20GetUserScaledBorrowInGroup(
+  function erc20GetUserScaledCrossBorrowInGroup(
     DataTypes.GroupData storage groupData,
     address account
   ) internal view returns (uint256) {
@@ -194,7 +197,7 @@ library VaultLogic {
   /**
    * @dev Get user scaled borrow balance in the asset not related to the index.
    */
-  function erc20GetUserScaledBorrowInAsset(
+  function erc20GetUserScaledCrossBorrowInAsset(
     DataTypes.PoolData storage /*poolData*/,
     DataTypes.AssetData storage assetData,
     address account
@@ -215,7 +218,7 @@ library VaultLogic {
   /**
    * @dev Get user borrow balance in the group, make sure the index already updated.
    */
-  function erc20GetUserBorrowInGroup(
+  function erc20GetUserCrossBorrowInGroup(
     DataTypes.GroupData storage groupData,
     address account
   ) internal view returns (uint256) {
@@ -226,7 +229,7 @@ library VaultLogic {
   /**
    * @dev Get user borrow balance in the asset, make sure the index already updated.
    */
-  function erc20GetUserBorrowInAsset(
+  function erc20GetUserCrossBorrowInAsset(
     DataTypes.PoolData storage /*poolData*/,
     DataTypes.AssetData storage assetData,
     address account
@@ -247,7 +250,7 @@ library VaultLogic {
   /**
    * @dev Increase user borrow balance in the asset, make sure the index already updated.
    */
-  function erc20IncreaseBorrow(DataTypes.GroupData storage groupData, address account, uint256 amount) internal {
+  function erc20IncreaseCrossBorrow(DataTypes.GroupData storage groupData, address account, uint256 amount) internal {
     uint256 amountScaled = amount.rayDiv(groupData.borrowIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
@@ -275,7 +278,7 @@ library VaultLogic {
   /**
    * @dev Decrease user borrow balance in the asset, make sure the index already updated.
    */
-  function erc20DecreaseBorrow(DataTypes.GroupData storage groupData, address account, uint256 amount) internal {
+  function erc20DecreaseCrossBorrow(DataTypes.GroupData storage groupData, address account, uint256 amount) internal {
     uint256 amountScaled = amount.rayDiv(groupData.borrowIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
@@ -350,60 +353,68 @@ library VaultLogic {
     return (tokenData.owner, tokenData.supplyMode);
   }
 
-  function erc721IncreaseSupply(
-    DataTypes.AssetData storage assetData,
-    address user,
-    uint256[] memory tokenIds,
-    uint8 supplyMode
-  ) internal {
-    for (uint256 i = 0; i < tokenIds.length; i++) {
-      DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
-      tokenData.owner = user;
-      tokenData.supplyMode = supplyMode;
-    }
-
-    if (supplyMode == Constants.SUPPLY_MODE_CROSS) {
-      assetData.totalCrossSupplied += tokenIds.length;
-      assetData.userCrossSupplied[user] += tokenIds.length;
-    } else if (supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
-      assetData.totalIsolateSupplied += tokenIds.length;
-      assetData.userIsolateSupplied[user] += tokenIds.length;
-    } else {
-      revert(Errors.INVALID_SUPPLY_MODE);
-    }
-  }
-
-  function erc721DecreaseSupply(
+  function erc721IncreaseCrossSupply(
     DataTypes.AssetData storage assetData,
     address user,
     uint256[] memory tokenIds
   ) internal {
-    uint256 crossNum;
-    uint256 isolateNum;
-
     for (uint256 i = 0; i < tokenIds.length; i++) {
       DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
+      tokenData.owner = user;
+      tokenData.supplyMode = Constants.SUPPLY_MODE_CROSS;
+    }
 
-      if (tokenData.supplyMode == Constants.SUPPLY_MODE_CROSS) {
-        crossNum++;
-      } else if (tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
-        isolateNum++;
-      } else {
-        revert(Errors.INVALID_SUPPLY_MODE);
-      }
+    assetData.totalCrossSupplied += tokenIds.length;
+    assetData.userCrossSupplied[user] += tokenIds.length;
+  }
+
+  function erc721IncreaseIsolateSupply(
+    DataTypes.AssetData storage assetData,
+    address user,
+    uint256[] memory tokenIds
+  ) internal {
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
+      tokenData.owner = user;
+      tokenData.supplyMode = Constants.SUPPLY_MODE_ISOLATE;
+    }
+
+    assetData.totalIsolateSupplied += tokenIds.length;
+    assetData.userIsolateSupplied[user] += tokenIds.length;
+  }
+
+  function erc721DecreaseCrossSupply(
+    DataTypes.AssetData storage assetData,
+    address user,
+    uint256[] memory tokenIds
+  ) internal {
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
+      require(tokenData.supplyMode == Constants.SUPPLY_MODE_CROSS, Errors.INVALID_SUPPLY_MODE);
 
       tokenData.owner = address(0);
       tokenData.supplyMode = 0;
     }
 
-    if (crossNum > 0) {
-      assetData.totalCrossSupplied -= crossNum;
-      assetData.userCrossSupplied[user] -= crossNum;
+    assetData.totalCrossSupplied -= tokenIds.length;
+    assetData.userCrossSupplied[user] -= tokenIds.length;
+  }
+
+  function erc721DecreaseIsolateSupply(
+    DataTypes.AssetData storage assetData,
+    address user,
+    uint256[] memory tokenIds
+  ) internal {
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
+      require(tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.INVALID_SUPPLY_MODE);
+
+      tokenData.owner = address(0);
+      tokenData.supplyMode = 0;
     }
-    if (isolateNum > 0) {
-      assetData.totalIsolateSupplied -= isolateNum;
-      assetData.userIsolateSupplied[user] -= isolateNum;
-    }
+
+    assetData.totalIsolateSupplied -= tokenIds.length;
+    assetData.userIsolateSupplied[user] -= tokenIds.length;
   }
 
   function erc721GetUserCrossSupply(
@@ -423,7 +434,7 @@ library VaultLogic {
   /**
    * @dev Transfer user supply balance.
    */
-  function erc721TransferSupply(
+  function erc721TransferCrossSupply(
     DataTypes.AssetData storage assetData,
     address from,
     address to,
@@ -431,17 +442,30 @@ library VaultLogic {
   ) internal {
     for (uint256 i = 0; i < tokenIds.length; i++) {
       DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
+      require(tokenData.supplyMode == Constants.SUPPLY_MODE_CROSS, Errors.INVALID_SUPPLY_MODE);
+
       tokenData.owner = to;
-      if (tokenData.supplyMode == Constants.SUPPLY_MODE_CROSS) {
-        assetData.userCrossSupplied[from] -= 1;
-        assetData.userCrossSupplied[to] += 1;
-      } else if (tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
-        assetData.userIsolateSupplied[from] -= 1;
-        assetData.userIsolateSupplied[to] += 1;
-      } else {
-        revert(Errors.INVALID_SUPPLY_MODE);
-      }
     }
+
+    assetData.userCrossSupplied[from] -= tokenIds.length;
+    assetData.userCrossSupplied[to] += tokenIds.length;
+  }
+
+  function erc721TransferIsolateSupply(
+    DataTypes.AssetData storage assetData,
+    address from,
+    address to,
+    uint256[] memory tokenIds
+  ) internal {
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
+      require(tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.INVALID_SUPPLY_MODE);
+
+      tokenData.owner = to;
+    }
+
+    assetData.userIsolateSupplied[from] -= tokenIds.length;
+    assetData.userIsolateSupplied[to] += tokenIds.length;
   }
 
   function erc721TransferIn(DataTypes.AssetData storage assetData, address from, uint256[] memory tokenIds) internal {

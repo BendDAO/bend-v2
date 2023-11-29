@@ -24,7 +24,7 @@ library SupplyLogic {
 
     ValidateLogic.validateDepositERC20(params, poolData, assetData, msg.sender);
 
-    VaultLogic.erc20IncreaseSupply(assetData, msg.sender, params.amount);
+    VaultLogic.erc20IncreaseCrossSupply(assetData, msg.sender, params.amount);
 
     VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, msg.sender);
 
@@ -46,7 +46,7 @@ library SupplyLogic {
 
     ValidateLogic.validateWithdrawERC20(params, poolData, assetData, msg.sender);
 
-    uint256 userBalance = VaultLogic.erc20GetUserSupply(assetData, msg.sender);
+    uint256 userBalance = VaultLogic.erc20GetUserCrossSupply(assetData, msg.sender);
     if (userBalance < params.amount) {
       params.amount = userBalance;
     }
@@ -72,7 +72,11 @@ library SupplyLogic {
 
     VaultLogic.erc721TransferIn(assetData, msg.sender, params.tokenIds);
 
-    VaultLogic.erc721IncreaseSupply(assetData, msg.sender, params.tokenIds, params.supplyMode);
+    if (params.supplyMode == Constants.SUPPLY_MODE_CROSS) {
+      VaultLogic.erc721IncreaseCrossSupply(assetData, msg.sender, params.tokenIds);
+    } else if (params.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
+      VaultLogic.erc721IncreaseIsolateSupply(assetData, msg.sender, params.tokenIds);
+    }
 
     VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, msg.sender);
 
@@ -90,34 +94,19 @@ library SupplyLogic {
 
     ValidateLogic.validateWithdrawERC721(params, poolData, assetData, msg.sender);
 
-    bool isCrossWithdraw = false;
+    if (params.supplyMode == Constants.SUPPLY_MODE_CROSS) {
+      VaultLogic.erc721DecreaseCrossSupply(assetData, msg.sender, params.tokenIds);
 
-    for (uint256 i = 0; i < params.tokenIds.length; i++) {
-      DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[params.tokenIds[i]];
-      require(tokenData.owner == msg.sender, Errors.INVALID_CALLER);
-
-      if (tokenData.supplyMode == Constants.SUPPLY_MODE_CROSS) {
-        isCrossWithdraw = true;
-
-        assetData.totalCrossSupplied -= params.tokenIds.length;
-        assetData.userCrossSupplied[msg.sender] -= params.tokenIds.length;
-      } else if (tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
-        assetData.totalIsolateSupplied -= params.tokenIds.length;
-        assetData.userIsolateSupplied[msg.sender] -= params.tokenIds.length;
-
-        // TODO: check if the nft has debt in isolate mode
-      }
-
-      tokenData.owner = address(0);
-      tokenData.supplyMode = 0;
-    }
-
-    if (isCrossWithdraw) {
       VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, msg.sender);
 
       ValidateLogic.validateHealthFactor(poolData, msg.sender, cs.priceOracle);
-    } else {
-      // TODO: check isolate debt hf
+    } else if (params.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
+      for (uint256 i = 0; i < params.tokenIds.length; i++) {
+        DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[params.asset][params.tokenIds[i]];
+        require(loanData.loanStatus == 0, Errors.ISOLATE_LOAN_EXISTS);
+      }
+
+      VaultLogic.erc721DecreaseIsolateSupply(assetData, msg.sender, params.tokenIds);
     }
 
     VaultLogic.erc721TransferOut(assetData, msg.sender, params.tokenIds);

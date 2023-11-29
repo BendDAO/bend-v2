@@ -96,6 +96,16 @@ library ValidateLogic {
 
     require(assetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
     require(inputParams.tokenIds.length > 0, Errors.INVALID_ID_LIST);
+    require(
+      inputParams.supplyMode == Constants.SUPPLY_MODE_CROSS || inputParams.supplyMode == Constants.SUPPLY_MODE_ISOLATE,
+      Errors.INVALID_SUPPLY_MODE
+    );
+
+    for (uint256 i = 0; i < inputParams.tokenIds.length; i++) {
+      DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[inputParams.tokenIds[i]];
+      require(tokenData.owner == msg.sender, Errors.INVALID_CALLER);
+      require(tokenData.supplyMode == inputParams.supplyMode, Errors.INVALID_SUPPLY_MODE);
+    }
   }
 
   struct ValidateBorrowERC20Vars {

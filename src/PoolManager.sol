@@ -209,9 +209,14 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     );
   }
 
-  function withdrawERC721(uint32 poolId, address asset, uint256[] calldata tokenIds) public whenNotPaused nonReentrant {
+  function withdrawERC721(
+    uint32 poolId,
+    address asset,
+    uint256[] calldata tokenIds,
+    uint8 supplyMode
+  ) public whenNotPaused nonReentrant {
     SupplyLogic.executeWithdrawERC721(
-      InputTypes.ExecuteWithdrawERC721Params({poolId: poolId, asset: asset, tokenIds: tokenIds})
+      InputTypes.ExecuteWithdrawERC721Params({poolId: poolId, asset: asset, tokenIds: tokenIds, supplyMode: supplyMode})
     );
   }
 
@@ -563,12 +568,12 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       vars.assetGroupIds = assetData.groupList.values();
 
       if (assetData.assetType == Constants.ASSET_TYPE_ERC20) {
-        vars.scaledSupply = VaultLogic.erc20GetUserScaledSupply(assetData, user);
+        vars.scaledSupply = VaultLogic.erc20GetUserScaledCrossSupply(assetData, user);
         totalCrossSupplies[vars.aidx] = vars.scaledSupply.rayMul(InterestLogic.getNormalizedSupplyIncome(assetData));
 
         for (vars.gidx = 0; vars.gidx < vars.assetGroupIds.length; vars.gidx++) {
           DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(vars.assetGroupIds[vars.gidx])];
-          vars.scaledBorrow = VaultLogic.erc20GetUserScaledBorrowInGroup(groupData, user);
+          vars.scaledBorrow = VaultLogic.erc20GetUserScaledCrossBorrowInGroup(groupData, user);
           totalCrossBorrows[vars.aidx] += vars.scaledBorrow.rayMul(InterestLogic.getNormalizedBorrowDebt(groupData));
         }
 
@@ -586,7 +591,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
-    return VaultLogic.erc20GetUserScaledSupply(assetData, user);
+    return VaultLogic.erc20GetUserScaledCrossSupply(assetData, user);
   }
 
   function getUserERC20SupplyBalance(uint32 poolId, address asset, address user) public view returns (uint256) {
@@ -594,7 +599,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
-    uint256 scaledBalance = VaultLogic.erc20GetUserScaledSupply(assetData, user);
+    uint256 scaledBalance = VaultLogic.erc20GetUserScaledCrossSupply(assetData, user);
     return scaledBalance.rayMul(InterestLogic.getNormalizedSupplyIncome(assetData));
   }
 
@@ -609,7 +614,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[group];
 
-    return VaultLogic.erc20GetUserScaledBorrowInGroup(groupData, user);
+    return VaultLogic.erc20GetUserScaledCrossBorrowInGroup(groupData, user);
   }
 
   function getUserERC20ScaledBorrowBalance(uint32 poolId, address asset, address user) public view returns (uint256) {
@@ -621,7 +626,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     uint256[] memory assetGroupIds = assetData.groupList.values();
     for (uint256 i = 0; i < assetGroupIds.length; i++) {
       DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(assetGroupIds[i])];
-      totalScaledBalance += VaultLogic.erc20GetUserScaledBorrowInGroup(groupData, user);
+      totalScaledBalance += VaultLogic.erc20GetUserScaledCrossBorrowInGroup(groupData, user);
     }
 
     return totalScaledBalance;
@@ -638,7 +643,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[group];
 
-    uint256 scaledBalance = VaultLogic.erc20GetUserScaledBorrowInGroup(groupData, user);
+    uint256 scaledBalance = VaultLogic.erc20GetUserScaledCrossBorrowInGroup(groupData, user);
     return scaledBalance.rayMul(InterestLogic.getNormalizedBorrowDebt(groupData));
   }
 
@@ -651,7 +656,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     uint256[] memory assetGroupIds = assetData.groupList.values();
     for (uint256 i = 0; i < assetGroupIds.length; i++) {
       DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(assetGroupIds[i])];
-      uint256 scaledBalance = VaultLogic.erc20GetUserScaledBorrowInGroup(groupData, user);
+      uint256 scaledBalance = VaultLogic.erc20GetUserScaledCrossBorrowInGroup(groupData, user);
       totalBalance += scaledBalance.rayMul(InterestLogic.getNormalizedBorrowDebt(groupData));
     }
 

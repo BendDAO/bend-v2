@@ -41,7 +41,7 @@ library BorrowLogic {
     for (uint256 gidx = 0; gidx < params.groups.length; gidx++) {
       DataTypes.GroupData storage groupData = assetData.groupLookup[params.groups[gidx]];
 
-      VaultLogic.erc20IncreaseBorrow(groupData, msg.sender, params.amounts[gidx]);
+      VaultLogic.erc20IncreaseCrossBorrow(groupData, msg.sender, params.amounts[gidx]);
       totalBorrowAmount += params.amounts[gidx];
     }
 
@@ -78,14 +78,14 @@ library BorrowLogic {
     for (uint256 gidx = 0; gidx < params.groups.length; gidx++) {
       DataTypes.GroupData storage groupData = assetData.groupLookup[params.groups[gidx]];
 
-      uint256 debtAmount = VaultLogic.erc20GetUserBorrowInGroup(groupData, msg.sender);
+      uint256 debtAmount = VaultLogic.erc20GetUserCrossBorrowInGroup(groupData, msg.sender);
       require(debtAmount > 0, Errors.BORROW_BALANCE_IS_ZERO);
 
       if (debtAmount < params.amounts[gidx]) {
         params.amounts[gidx] = debtAmount;
       }
 
-      VaultLogic.erc20DecreaseBorrow(groupData, msg.sender, params.amounts[gidx]);
+      VaultLogic.erc20DecreaseCrossBorrow(groupData, msg.sender, params.amounts[gidx]);
 
       totalRepayAmount += params.amounts[gidx];
     }
@@ -116,10 +116,10 @@ library BorrowLogic {
 
     ValidateLogic.validateYieldBorrowERC20(params, poolData, assetData, groupData);
 
-    uint256 debtAmount = VaultLogic.erc20GetUserBorrowInGroup(groupData, msg.sender);
+    uint256 debtAmount = VaultLogic.erc20GetUserCrossBorrowInGroup(groupData, msg.sender);
     require((debtAmount + params.amount) <= stakerData.yieldCap, Errors.YIELD_EXCEED_CAP_LIMIT);
 
-    VaultLogic.erc20IncreaseBorrow(groupData, msg.sender, params.amount);
+    VaultLogic.erc20IncreaseCrossBorrow(groupData, msg.sender, params.amount);
 
     InterestLogic.updateInterestRates(poolData, assetData, 0, params.amount);
 
@@ -143,14 +143,14 @@ library BorrowLogic {
 
     ValidateLogic.validateYieldRepayERC20(params, poolData, assetData, groupData);
 
-    uint256 debtAmount = VaultLogic.erc20GetUserBorrowInGroup(groupData, msg.sender);
+    uint256 debtAmount = VaultLogic.erc20GetUserCrossBorrowInGroup(groupData, msg.sender);
     require(debtAmount > 0, Errors.BORROW_BALANCE_IS_ZERO);
 
     if (debtAmount < params.amount) {
       params.amount = debtAmount;
     }
 
-    VaultLogic.erc20DecreaseBorrow(groupData, msg.sender, params.amount);
+    VaultLogic.erc20DecreaseCrossBorrow(groupData, msg.sender, params.amount);
 
     InterestLogic.updateInterestRates(poolData, assetData, params.amount, 0);
 
