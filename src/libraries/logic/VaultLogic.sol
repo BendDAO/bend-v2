@@ -293,30 +293,34 @@ library VaultLogic {
     groupData.userIsolateBorrowed[account] -= amountScaled;
   }
 
-  function erc20TransferIn(address underlyingAsset, address from, uint256 amount) internal {
-    uint256 poolSizeBefore = IERC20Upgradeable(underlyingAsset).balanceOf(address(this));
+  function erc20TransferIn(address asset, address from, uint256 amount) internal {
+    uint256 poolSizeBefore = IERC20Upgradeable(asset).balanceOf(address(this));
 
-    IERC20Upgradeable(underlyingAsset).safeTransferFrom(from, address(this), amount);
+    IERC20Upgradeable(asset).safeTransferFrom(from, address(this), amount);
 
-    uint256 poolSizeAfter = IERC20Upgradeable(underlyingAsset).balanceOf(address(this));
+    uint256 poolSizeAfter = IERC20Upgradeable(asset).balanceOf(address(this));
     require(poolSizeAfter == (poolSizeBefore + amount), Errors.INVALID_TRANSFER_AMOUNT);
   }
 
-  function erc20TransferOut(address underlyingAsset, address to, uint amount) internal {
-    uint256 poolSizeBefore = IERC20Upgradeable(underlyingAsset).balanceOf(address(this));
+  function erc20TransferOut(address asset, address to, uint amount) internal {
+    require(to != address(0), Errors.INVALID_TO_ADDRESS);
 
-    IERC20Upgradeable(underlyingAsset).safeTransfer(to, amount);
+    uint256 poolSizeBefore = IERC20Upgradeable(asset).balanceOf(address(this));
 
-    uint poolSizeAfter = IERC20Upgradeable(underlyingAsset).balanceOf(address(this));
+    IERC20Upgradeable(asset).safeTransfer(to, amount);
+
+    uint poolSizeAfter = IERC20Upgradeable(asset).balanceOf(address(this));
     require(poolSizeBefore == (poolSizeAfter + amount), Errors.INVALID_TRANSFER_AMOUNT);
   }
 
-  function erc20TransferBetweenUsers(address underlyingAsset, address from, address to, uint amount) internal {
-    uint256 poolSizeBefore = IERC20Upgradeable(underlyingAsset).balanceOf(to);
+  function erc20TransferBetweenWallets(address asset, address from, address to, uint amount) internal {
+    require(to != address(0), Errors.INVALID_TO_ADDRESS);
 
-    IERC20Upgradeable(underlyingAsset).safeTransferFrom(from, to, amount);
+    uint256 poolSizeBefore = IERC20Upgradeable(asset).balanceOf(to);
 
-    uint poolSizeAfter = IERC20Upgradeable(underlyingAsset).balanceOf(to);
+    IERC20Upgradeable(asset).safeTransferFrom(from, to, amount);
+
+    uint poolSizeAfter = IERC20Upgradeable(asset).balanceOf(to);
     require(poolSizeBefore == (poolSizeAfter + amount), Errors.INVALID_TRANSFER_AMOUNT);
   }
 
@@ -426,26 +430,28 @@ library VaultLogic {
     }
   }
 
-  function erc721TransferIn(address underlyingAsset, address from, uint256[] memory tokenIds) internal {
-    uint256 poolSizeBefore = IERC721Upgradeable(underlyingAsset).balanceOf(address(this));
+  function erc721TransferIn(address asset, address from, uint256[] memory tokenIds) internal {
+    uint256 poolSizeBefore = IERC721Upgradeable(asset).balanceOf(address(this));
 
     for (uint256 i = 0; i < tokenIds.length; i++) {
-      IERC721Upgradeable(underlyingAsset).safeTransferFrom(from, address(this), tokenIds[i]);
+      IERC721Upgradeable(asset).safeTransferFrom(from, address(this), tokenIds[i]);
     }
 
-    uint256 poolSizeAfter = IERC721Upgradeable(underlyingAsset).balanceOf(address(this));
+    uint256 poolSizeAfter = IERC721Upgradeable(asset).balanceOf(address(this));
 
     require(poolSizeAfter == (poolSizeBefore + tokenIds.length), Errors.INVALID_TRANSFER_AMOUNT);
   }
 
-  function erc721TransferOut(address underlyingAsset, address to, uint256[] memory tokenIds) internal {
-    uint256 poolSizeBefore = IERC721Upgradeable(underlyingAsset).balanceOf(address(this));
+  function erc721TransferOut(address asset, address to, uint256[] memory tokenIds) internal {
+    require(to != address(0), Errors.INVALID_TO_ADDRESS);
+
+    uint256 poolSizeBefore = IERC721Upgradeable(asset).balanceOf(address(this));
 
     for (uint256 i = 0; i < tokenIds.length; i++) {
-      IERC721Upgradeable(underlyingAsset).safeTransferFrom(address(this), to, tokenIds[i]);
+      IERC721Upgradeable(asset).safeTransferFrom(address(this), to, tokenIds[i]);
     }
 
-    uint poolSizeAfter = IERC721Upgradeable(underlyingAsset).balanceOf(address(this));
+    uint poolSizeAfter = IERC721Upgradeable(asset).balanceOf(address(this));
 
     require(poolSizeBefore == (poolSizeAfter + tokenIds.length), Errors.INVALID_TRANSFER_AMOUNT);
   }

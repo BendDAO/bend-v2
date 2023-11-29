@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
+import {IEscrowAccount} from '../../interfaces/IEscrowAccount.sol';
+
 import {Constants} from '../helpers/Constants.sol';
 import {Errors} from '../helpers/Errors.sol';
 import {Events} from '../helpers/Events.sol';
@@ -227,16 +229,16 @@ library IsolateLogic {
         );
       }
 
-      // transfer last bid amount to previous bidder from pool
+      // transfer last bid amount to previous bidder from escrow
       if (loanData.lastBidder != address(0)) {
-        VaultLogic.erc20TransferOut(params.asset, loanData.lastBidder, loanData.bidAmount);
+        IEscrowAccount(ps.isolateEscrowAccount).transferERC20(params.asset, loanData.lastBidder, loanData.bidAmount);
       }
 
       vars.totalBidAmount += params.amounts[vars.nidx];
     }
 
-    // transfer underlying asset from liquidator to pool
-    VaultLogic.erc20TransferIn(params.asset, msg.sender, vars.totalBidAmount);
+    // transfer underlying asset from liquidator to escrow
+    VaultLogic.erc20TransferBetweenWallets(params.asset, msg.sender, ps.isolateEscrowAccount, vars.totalBidAmount);
 
     emit Events.IsolateAuction(
       msg.sender,
@@ -311,13 +313,13 @@ library IsolateLogic {
       VaultLogic.erc20DecreaseIsolateScaledBorrow(debtGroupData, msg.sender, vars.amountScaled);
 
       if (loanData.lastBidder != address(0)) {
-        // transfer last bid from pool to bidder
-        VaultLogic.erc20TransferOut(params.asset, loanData.lastBidder, loanData.bidAmount);
+        // transfer last bid from escrow to bidder
+        IEscrowAccount(ps.isolateEscrowAccount).transferERC20(params.asset, loanData.lastBidder, loanData.bidAmount);
       }
 
       if (loanData.firstBidder != address(0)) {
         // transfer bid fine from borrower to the first bidder
-        VaultLogic.erc20TransferBetweenUsers(params.asset, msg.sender, loanData.firstBidder, vars.bidFine);
+        VaultLogic.erc20TransferBetweenWallets(params.asset, msg.sender, loanData.firstBidder, vars.bidFine);
       }
 
       vars.totalRedeemAmount += vars.redeemAmount;
@@ -338,6 +340,7 @@ library IsolateLogic {
     uint256 normalizedIndex;
     uint256 borrowAmount;
     uint256 totalBorrowAmount;
+    uint256 totalBidAmount;
     uint256 extraBorrowAmount;
     uint256 totalExtraAmount;
     uint256 remainBidAmount;
@@ -376,10 +379,14 @@ library IsolateLogic {
       // Last bid can not cover borrow amount
       if (loanData.bidAmount < vars.borrowAmount) {
         vars.extraBorrowAmount = vars.borrowAmount - loanData.bidAmount;
+      } else {
+        vars.extraBorrowAmount = 0;
       }
 
       if (loanData.bidAmount > vars.borrowAmount) {
         vars.remainBidAmount = loanData.bidAmount - vars.borrowAmount;
+      } else {
+        vars.remainBidAmount = 0;
       }
 
       VaultLogic.erc20DecreaseIsolateScaledBorrow(debtGroupData, msg.sender, loanData.scaledAmount);
@@ -392,11 +399,20 @@ library IsolateLogic {
       }
 
       vars.totalBorrowAmount += vars.borrowAmount;
+      vars.totalBidAmount += loanData.bidAmount;
       vars.totalExtraAmount += vars.extraBorrowAmount;
     }
 
+    require(
+      vars.totalBorrowAmount == (vars.totalBidAmount + vars.totalExtraAmount),
+      Errors.ISOLATE_LOAN_BORROW_AMOUNT_NOT_MATCH
+    );
+
     // update interest rate according latest borrow amount (utilizaton)
-    InterestLogic.updateInterestRates(poolData, debtAssetData, vars.totalBorrowAmount + vars.totalExtraAmount, 0);
+    InterestLogic.updateInterestRates(poolData, debtAssetData, vars.totalBorrowAmount, 0);
+
+    // transfer bid from escrow to pool
+    IEscrowAccount(ps.isolateEscrowAccount).transferERC20(params.asset, address(this), vars.totalBidAmount);
 
     if (vars.totalExtraAmount > 0) {
       // transfer underlying asset from liquidator to pool

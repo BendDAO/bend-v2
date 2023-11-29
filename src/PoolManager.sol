@@ -26,6 +26,8 @@ import './libraries/logic/BorrowLogic.sol';
 import './libraries/logic/LiquidationLogic.sol';
 import './libraries/logic/IsolateLogic.sol';
 
+import './EscrowAccount.sol';
+
 contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721HolderUpgradeable {
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
@@ -56,6 +58,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
 
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
     ps.nextPoolId = 1;
+    ps.isolateEscrowAccount = address(new EscrowAccount(address(this)));
   }
 
   /****************************************************************************/

@@ -206,7 +206,7 @@ library ValidateLogic {
     require(collateralAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
     require(debtAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
-    require(inputParams.debtToCover > 0, Errors.INVALID_DEBT_AMOUNT);
+    require(inputParams.debtToCover > 0, Errors.INVALID_BORROW_AMOUNT);
   }
 
   function validateLiquidateERC721(
@@ -283,7 +283,7 @@ library ValidateLogic {
         nftAssetData,
         inputParams.nftTokenIds[i]
       );
-      require(owner == user, Errors.INVALID_TOKEN_OWNER);
+      require(owner == user, Errors.ISOLATE_LOAN_OWNER_NOT_MATCH);
       require(supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.ASSET_NOT_ISOLATE_MODE);
     }
   }

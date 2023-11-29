@@ -19,7 +19,7 @@ library Errors {
   string public constant INVALID_CALLER = '113';
   string public constant INVALID_ID_LIST = '114';
   string public constant INVALID_COLLATERAL_AMOUNT = '115';
-  string public constant INVALID_DEBT_AMOUNT = '116';
+  string public constant INVALID_BORROW_AMOUNT = '116';
   string public constant INVALID_TOKEN_OWNER = '117';
   string public constant INVALID_YIELD_STAKER = '118';
   string public constant INCONSISTENT_PARAMS_LENGH = '119';
@@ -83,11 +83,12 @@ library Errors {
 
   string public constant ISOLATE_LOAN_ASSET_NOT_MATCH = '600';
   string public constant ISOLATE_LOAN_GROUP_NOT_MATCH = '601';
-  string public constant ISOLATE_LOAN_BORROWER_NOT_MATCH = '602';
+  string public constant ISOLATE_LOAN_OWNER_NOT_MATCH = '602';
   string public constant ISOLATE_BORROW_NOT_EXCEED_LIQUIDATION_THRESHOLD = '603';
   string public constant ISOLATE_BID_PRICE_LESS_THAN_BORROW = '604';
   string public constant ISOLATE_BID_PRICE_LESS_THAN_LIQUIDATION_PRICE = '605';
   string public constant ISOLATE_BID_PRICE_LESS_THAN_HIGHEST_PRICE = '606';
   string public constant ISOLATE_BID_AUCTION_DURATION_HAS_END = '607';
   string public constant ISOLATE_BID_AUCTION_DURATION_NOT_END = '608';
+  string public constant ISOLATE_LOAN_BORROW_AMOUNT_NOT_MATCH = '609';
 }
