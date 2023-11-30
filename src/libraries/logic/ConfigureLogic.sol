@@ -34,7 +34,7 @@ library ConfigureLogic {
     require(poolData.governanceAdmin == msg.sender, Errors.INVALID_CALLER);
   }
 
-  function executeCreatePool() public returns (uint32 poolId) {
+  function executeCreatePool(string memory name) public returns (uint32 poolId) {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     require(ps.nextPoolId > 0, Errors.INVALID_POOL_ID);
@@ -44,9 +44,10 @@ library ConfigureLogic {
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     poolData.poolId = poolId;
+    poolData.name = name;
     poolData.governanceAdmin = msg.sender;
 
-    emit Events.CreatePool(poolId);
+    emit Events.CreatePool(msg.sender, poolId, name);
   }
 
   function executeDeletePool(uint32 poolId) public {
@@ -59,7 +60,7 @@ library ConfigureLogic {
 
     delete ps.poolLookup[poolId];
 
-    emit Events.DeletePool(poolId);
+    emit Events.DeletePool(msg.sender, poolId);
   }
 
   function executeAddPoolGroup(uint32 poolId, uint8 groupId) public {

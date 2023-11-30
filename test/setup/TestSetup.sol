@@ -251,7 +251,7 @@ contract TestSetup is TestUtils {
   }
 
   function initCommonPools() internal {
-    tsCommonPoolId = tsPoolManager.createPool();
+    tsCommonPoolId = tsPoolManager.createPool('Common Pool');
 
     tsLowRateGroupId = 1;
     tsMiddleRateGroupId = 2;

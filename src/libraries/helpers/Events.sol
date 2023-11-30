@@ -7,8 +7,8 @@ library Events {
   event BendNFTOracleUpdated(address bendNFTOracle);
 
   /* Pool Events */
-  event CreatePool(uint32 indexed poolId);
-  event DeletePool(uint32 indexed poolId);
+  event CreatePool(address indexed sender, uint32 indexed poolId, string name);
+  event DeletePool(address indexed sender, uint32 indexed poolId);
 
   event AddPoolGroup(uint32 indexed poolId, uint8 groupId);
   event RemovePoolGroup(uint32 indexed poolId, uint8 groupId);

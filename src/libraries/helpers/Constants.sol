@@ -2,6 +2,8 @@
 pragma solidity ^0.8.19;
 
 library Constants {
+  uint32 public constant INITIAL_POOL_ID = 1;
+
   // Asset params
   uint16 public constant MAX_COLLATERAL_FACTOR = 10000;
   uint16 public constant MAX_LIQUIDATION_THRESHOLD = 10000;

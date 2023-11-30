@@ -56,15 +56,15 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     cs.priceOracle = priceOracle_;
 
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
-    ps.nextPoolId = 1;
+    ps.nextPoolId = Constants.INITIAL_POOL_ID;
   }
 
   /****************************************************************************/
   /* Pool Configuration */
   /****************************************************************************/
 
-  function createPool() public nonReentrant returns (uint32 poolId) {
-    return ConfigureLogic.executeCreatePool();
+  function createPool(string memory name) public nonReentrant returns (uint32 poolId) {
+    return ConfigureLogic.executeCreatePool(name);
   }
 
   function deletePool(uint32 poolId) public nonReentrant {

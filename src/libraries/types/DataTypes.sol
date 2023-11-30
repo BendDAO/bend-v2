@@ -17,6 +17,7 @@ library DataTypes {
   /* Data Types for Pool Lending */
   struct PoolData {
     uint32 poolId;
+    string name;
     address governanceAdmin;
 
     // group
