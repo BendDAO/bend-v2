@@ -41,9 +41,12 @@ library Events {
     uint16 liquidationBonus
   );
   event SetAssetProtocolFee(uint32 indexed poolId, address indexed asset, uint16 feeFactor);
-  event SetAssetInterestRateModel(uint32 indexed poolId, address indexed asset, uint8 groupId, address rateModel);
+  event SetAssetLendingRate(uint32 indexed poolId, address indexed asset, uint8 groupId, address rateModel);
+
   event SetAssetYieldEnable(uint32 indexed poolId, address indexed asset, bool isEnable);
   event SetAssetYieldPause(uint32 indexed poolId, address indexed asset, bool isPause);
+  event SetAssetYieldCap(uint32 indexed poolId, address indexed asset, uint256 newCap);
+  event SetAssetYieldRate(uint32 indexed poolId, address indexed asset, address rateModel);
 
   /* Supply Events */
   event DepositERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);

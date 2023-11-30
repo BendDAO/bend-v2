@@ -22,7 +22,8 @@ library ValidateLogic {
   }
 
   function validateAssetBasic(DataTypes.AssetData storage assetData) internal view {
-    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+    require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
+
     if (assetData.assetType == Constants.ASSET_TYPE_ERC20) {
       require(assetData.underlyingDecimals > 0, Errors.INVALID_ASSET_DECIMALS);
     } else {
@@ -35,7 +36,7 @@ library ValidateLogic {
   }
 
   function validateGroupBasic(DataTypes.GroupData storage groupData) internal view {
-    require(groupData.interestRateModelAddress != address(0), Errors.INVALID_IRM_ADDRESS);
+    require(groupData.rateModel != address(0), Errors.INVALID_IRM_ADDRESS);
   }
 
   function validateDepositERC20(

@@ -248,7 +248,7 @@ library ConfigureLogic {
 
     DataTypes.GroupData storage group = assetData.groupLookup[groupId];
     group.groupId = groupId;
-    group.interestRateModelAddress = rateModel_;
+    group.rateModel = rateModel_;
 
     InterestLogic.initGroupData(group);
 
@@ -272,6 +272,7 @@ library ConfigureLogic {
 
     // only erc20 asset can be borrowed and have rate group
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.INVALID_ASSET_TYPE);
+    require(assetData.groupList.contains(groupId), Errors.GROUP_NOT_EXISTS);
 
     VaultLogic.checkGroupHasEmptyLiquidity(groupData);
 
@@ -294,7 +295,7 @@ library ConfigureLogic {
     _validateOwnerAndPool(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+    require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
 
     assetData.isActive = isActive;
 
@@ -308,7 +309,7 @@ library ConfigureLogic {
     _validateOwnerAndPool(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+    require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
 
     assetData.isFrozen = isFrozen;
 
@@ -322,7 +323,7 @@ library ConfigureLogic {
     _validateOwnerAndPool(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+    require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
 
     assetData.isPaused = isPause;
 
@@ -336,7 +337,7 @@ library ConfigureLogic {
     _validateOwnerAndPool(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+    require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
     assetData.isBorrowingEnabled = isEnable;
@@ -351,7 +352,7 @@ library ConfigureLogic {
     _validateOwnerAndPool(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+    require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
     assetData.supplyCap = newCap;
@@ -366,7 +367,7 @@ library ConfigureLogic {
     _validateOwnerAndPool(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+    require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
     assetData.borrowCap = newCap;
@@ -381,7 +382,7 @@ library ConfigureLogic {
     _validateOwnerAndPool(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+    require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
 
     assetData.classGroup = classGroup;
 
@@ -407,7 +408,7 @@ library ConfigureLogic {
     _validateOwnerAndPool(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+    require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
 
     assetData.collateralFactor = collateralFactor;
     assetData.liquidationThreshold = liquidationThreshold;
@@ -425,28 +426,33 @@ library ConfigureLogic {
     _validateOwnerAndPool(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-    require(assetData.assetType != 0, Errors.ASSET_NOT_EXISTS);
+    require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
 
     assetData.feeFactor = feeFactor;
 
     emit Events.SetAssetProtocolFee(poolId, asset, feeFactor);
   }
 
-  function executeSetAssetInterestRateModel(uint32 poolId, address asset, uint8 groupId, address rateModel_) public {
+  function executeSetAssetLendingRate(uint32 poolId, address asset, uint8 groupId, address rateModel_) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
+    require(groupId >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
+    require(groupId <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
     require(rateModel_ != address(0), Errors.INVALID_ADDRESS);
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+    require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
-    DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
-    groupData.interestRateModelAddress = rateModel_;
+    require(assetData.groupList.contains(groupId), Errors.GROUP_NOT_EXISTS);
 
-    emit Events.SetAssetInterestRateModel(poolId, asset, groupId, rateModel_);
+    DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
+    groupData.rateModel = rateModel_;
+
+    emit Events.SetAssetLendingRate(poolId, asset, groupId, rateModel_);
   }
 
   function executeSetAssetYieldEnable(uint32 poolId, address asset, bool isEnable) public {
@@ -458,16 +464,24 @@ library ConfigureLogic {
     require(poolData.isYieldEnabled, Errors.POOL_YIELD_NOT_ENABLE);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+    require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
     if (isEnable) {
       require(!assetData.isYieldEnabled, Errors.ASSET_YIELD_ALREADY_ENABLE);
       assetData.isYieldEnabled = true;
+
+      DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
+      groupData.groupId = poolData.yieldGroup;
+
+      InterestLogic.initGroupData(groupData);
     } else {
       require(assetData.isYieldEnabled, Errors.ASSET_YIELD_NOT_ENABLE);
 
       DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
       VaultLogic.checkGroupHasEmptyLiquidity(groupData);
+
+      delete assetData.groupLookup[poolData.yieldGroup];
 
       assetData.isYieldEnabled = false;
     }
@@ -482,6 +496,7 @@ library ConfigureLogic {
     _validateOwnerAndPool(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+    require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
     assetData.isYieldPaused = isPause;
@@ -489,30 +504,57 @@ library ConfigureLogic {
     emit Events.SetAssetYieldPause(poolId, asset, isPause);
   }
 
-  function executeSetAssetYieldCap(uint32 poolId, address asset, uint256 cap) public {
+  function executeSetAssetYieldCap(uint32 poolId, address asset, uint256 newCap) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
+    require(poolData.isYieldEnabled, Errors.POOL_YIELD_NOT_ENABLE);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+    require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+    require(assetData.isYieldEnabled, Errors.ASSET_YIELD_NOT_ENABLE);
 
-    assetData.yieldCap = cap;
+    assetData.yieldCap = newCap;
+
+    emit Events.SetAssetYieldCap(poolId, asset, newCap);
   }
 
-  function executeSetStakerYieldCap(uint32 poolId, address staker, address asset, uint256 cap) public {
+  function executeSetAssetYieldRate(uint32 poolId, address asset, address rateModel_) public {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    require(rateModel_ != address(0), Errors.INVALID_ADDRESS);
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    _validateOwnerAndPool(poolData);
+    require(poolData.isYieldEnabled, Errors.POOL_YIELD_NOT_ENABLE);
+
+    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+    require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+    require(assetData.isYieldEnabled, Errors.ASSET_YIELD_NOT_ENABLE);
+
+    DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
+    groupData.rateModel = rateModel_;
+
+    emit Events.SetAssetYieldRate(poolId, asset, rateModel_);
+  }
+
+  function executeSetStakerYieldCap(uint32 poolId, address staker, address asset, uint256 newCap) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+    require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
-    require(cap <= assetData.yieldCap, Errors.YIELD_EXCEED_ASSET_CAP_LIMIT);
+    require(assetData.isYieldEnabled, Errors.ASSET_YIELD_NOT_ENABLE);
+    require(newCap <= assetData.yieldCap, Errors.YIELD_EXCEED_ASSET_CAP_LIMIT);
 
     DataTypes.StakerData storage stakerData = assetData.stakerLookup[staker];
-    stakerData.yieldCap = cap;
+    stakerData.yieldCap = newCap;
   }
 
   function _validateOwnerAndPool(DataTypes.PoolData storage poolData) private view {

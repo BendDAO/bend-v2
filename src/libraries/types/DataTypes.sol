@@ -45,7 +45,7 @@ library DataTypes {
 
   struct GroupData {
     // config parameters
-    address interestRateModelAddress;
+    address rateModel;
 
     // user state
     uint256 totalCrossBorrowed;

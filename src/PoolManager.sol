@@ -25,6 +25,7 @@ import './libraries/logic/SupplyLogic.sol';
 import './libraries/logic/BorrowLogic.sol';
 import './libraries/logic/LiquidationLogic.sol';
 import './libraries/logic/IsolateLogic.sol';
+import './libraries/logic/YieldLogic.sol';
 
 contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721HolderUpgradeable {
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
@@ -158,13 +159,8 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     ConfigureLogic.executeSetAssetProtocolFee(poolId, asset, feeFactor);
   }
 
-  function setAssetInterestRateModel(
-    uint32 poolId,
-    address asset,
-    uint8 groupId,
-    address rateModel_
-  ) public nonReentrant {
-    ConfigureLogic.executeSetAssetInterestRateModel(poolId, asset, groupId, rateModel_);
+  function setAssetLendingRate(uint32 poolId, address asset, uint8 groupId, address rateModel_) public nonReentrant {
+    ConfigureLogic.executeSetAssetLendingRate(poolId, asset, groupId, rateModel_);
   }
 
   function setAssetYieldEnable(uint32 poolId, address asset, bool isEnable) public nonReentrant {
@@ -179,12 +175,16 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     ConfigureLogic.executeSetAssetYieldCap(poolId, asset, cap);
   }
 
+  function setAssetYieldRate(uint32 poolId, address asset, address rateModel_) public nonReentrant {
+    ConfigureLogic.executeSetAssetYieldRate(poolId, asset, rateModel_);
+  }
+
   function setStakerYieldCap(uint32 poolId, address staker, address asset, uint256 cap) public nonReentrant {
     ConfigureLogic.executeSetStakerYieldCap(poolId, staker, asset, cap);
   }
 
   /****************************************************************************/
-  /* Pool Lending */
+  /* Supply */
   /****************************************************************************/
 
   function depositERC20(uint32 poolId, address asset, uint256 amount) public whenNotPaused nonReentrant {
@@ -220,6 +220,10 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       InputTypes.ExecuteWithdrawERC721Params({poolId: poolId, asset: asset, tokenIds: tokenIds, supplyMode: supplyMode})
     );
   }
+
+  /****************************************************************************/
+  /* Cross Lending */
+  /****************************************************************************/
 
   function crossBorrowERC20(
     uint32 poolId,
@@ -282,6 +286,10 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       })
     );
   }
+
+  /****************************************************************************/
+  /* Isolate Lending */
+  /****************************************************************************/
 
   function isolateBorrow(
     uint32 poolId,
@@ -369,17 +377,24 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     );
   }
 
+  /****************************************************************************/
+  /* Yield */
+  /****************************************************************************/
   function yieldBorrowERC20(uint32 poolId, address asset, uint256 amount) public whenNotPaused nonReentrant {
-    BorrowLogic.executeYieldBorrowERC20(
+    YieldLogic.executeYieldBorrowERC20(
       InputTypes.ExecuteYieldBorrowERC20Params({poolId: poolId, asset: asset, amount: amount})
     );
   }
 
   function yieldRepayERC20(uint32 poolId, address asset, uint256 amount) public whenNotPaused nonReentrant {
-    BorrowLogic.executeYieldRepayERC20(
+    YieldLogic.executeYieldRepayERC20(
       InputTypes.ExecuteYieldRepayERC20Params({poolId: poolId, asset: asset, amount: amount})
     );
   }
+
+  /****************************************************************************/
+  /* Misc Features */
+  /****************************************************************************/
 
   function setERC721SupplyMode(
     uint32 poolId,
