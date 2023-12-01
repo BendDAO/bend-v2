@@ -9,8 +9,4 @@ import {InputTypes} from '../types/InputTypes.sol';
 import {DataTypes} from '../types/DataTypes.sol';
 import {StorageSlot} from './StorageSlot.sol';
 
-library PoolLogic {
-  function executeMoveERC20BetweenPools() public {}
-
-  function executeMoveERC721BetweenPools() public {}
-}
+library PoolLogic {}

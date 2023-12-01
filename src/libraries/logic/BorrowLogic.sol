@@ -22,7 +22,7 @@ library BorrowLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
 
     // check the basic params
-    ValidateLogic.validateBorrowERC20Basic(params, poolData, assetData);
+    ValidateLogic.validateCrossBorrowERC20Basic(params, poolData, assetData);
 
     // account status need latest balance, update supply & borrow index first
     InterestLogic.updateInterestSupplyIndex(assetData);
@@ -34,7 +34,7 @@ library BorrowLogic {
     }
 
     // check the user account
-    ValidateLogic.validateBorrowERC20Account(params, poolData, assetData, msg.sender, cs.priceOracle);
+    ValidateLogic.validateCrossBorrowERC20Account(params, poolData, assetData, msg.sender, cs.priceOracle);
 
     // update debt state
     uint256 totalBorrowAmount;
@@ -62,7 +62,7 @@ library BorrowLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
 
     // do some basic checks, e.g. params
-    ValidateLogic.validateRepayERC20Basic(params, poolData, assetData);
+    ValidateLogic.validateCrossRepayERC20Basic(params, poolData, assetData);
 
     // account status need latest balance, update supply & borrow index first
     InterestLogic.updateInterestSupplyIndex(assetData);

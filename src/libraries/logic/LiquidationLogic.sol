@@ -55,7 +55,7 @@ library LiquidationLogic {
 
     InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
 
-    ValidateLogic.validateLiquidateERC20(params, poolData, collateralAssetData, debtAssetData, debtGroupData);
+    ValidateLogic.validateCrossLiquidateERC20(params, poolData, collateralAssetData, debtAssetData, debtGroupData);
 
     // check the user account state
     ResultTypes.UserAccountResult memory userAccountResult = GenericLogic.calculateUserAccountDataForLiquidate(
@@ -143,7 +143,7 @@ library LiquidationLogic {
 
     InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
 
-    ValidateLogic.validateLiquidateERC721(params, poolData, collateralAssetData, debtAssetData, debtGroupData);
+    ValidateLogic.validateCrossLiquidateERC721(params, poolData, collateralAssetData, debtAssetData, debtGroupData);
 
     vars.userAccountResult = GenericLogic.calculateUserAccountDataForLiquidate(
       poolData,

@@ -221,6 +221,22 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     );
   }
 
+  function setERC721SupplyMode(
+    uint32 poolId,
+    address asset,
+    uint256[] calldata tokenIds,
+    uint8 supplyMode
+  ) public whenNotPaused nonReentrant {
+    SupplyLogic.executeSetERC721SupplyMode(
+      InputTypes.ExecuteSetERC721SupplyModeParams({
+        poolId: poolId,
+        asset: asset,
+        tokenIds: tokenIds,
+        supplyMode: supplyMode
+      })
+    );
+  }
+
   /****************************************************************************/
   /* Cross Lending */
   /****************************************************************************/
@@ -395,26 +411,6 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   /****************************************************************************/
   /* Misc Features */
   /****************************************************************************/
-
-  function setERC721SupplyMode(
-    uint32 poolId,
-    address nftAsset,
-    uint256[] calldata nftTokenIds
-  ) public whenNotPaused nonReentrant {}
-
-  function moveERC20BetweenPools(
-    uint32 fromPoolId,
-    address asset,
-    uint256 amount,
-    uint32 toPoolId
-  ) public whenNotPaused nonReentrant {}
-
-  function moveERC721BetweenPools(
-    uint32 fromPoolId,
-    address asset,
-    uint256[] calldata tokenIds,
-    uint32 toPoolId
-  ) public whenNotPaused nonReentrant {}
 
   /****************************************************************************/
   /* Pool Query */

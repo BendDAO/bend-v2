@@ -109,13 +109,13 @@ library ValidateLogic {
     }
   }
 
-  struct ValidateBorrowERC20Vars {
+  struct ValidateCrossBorrowERC20Vars {
     uint256 gidx;
     uint256 amountInBaseCurrency;
     uint256 collateralNeededInBaseCurrency;
   }
 
-  function validateBorrowERC20Basic(
+  function validateCrossBorrowERC20Basic(
     InputTypes.ExecuteCrossBorrowERC20Params memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage assetData
@@ -131,14 +131,14 @@ library ValidateLogic {
     require(inputParams.groups.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGH);
   }
 
-  function validateBorrowERC20Account(
+  function validateCrossBorrowERC20Account(
     InputTypes.ExecuteCrossBorrowERC20Params memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage assetData,
     address user,
     address priceOracle
   ) internal view {
-    ValidateBorrowERC20Vars memory vars;
+    ValidateCrossBorrowERC20Vars memory vars;
 
     ResultTypes.UserAccountResult memory userAccountResult = GenericLogic.calculateUserAccountDataForBorrow(
       poolData,
@@ -181,7 +181,7 @@ library ValidateLogic {
     }
   }
 
-  function validateRepayERC20Basic(
+  function validateCrossRepayERC20Basic(
     InputTypes.ExecuteCrossRepayERC20Params memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage assetData
@@ -202,7 +202,7 @@ library ValidateLogic {
     }
   }
 
-  function validateLiquidateERC20(
+  function validateCrossLiquidateERC20(
     InputTypes.ExecuteCrossLiquidateERC20Params memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage collateralAssetData,
@@ -220,7 +220,7 @@ library ValidateLogic {
     require(inputParams.debtToCover > 0, Errors.INVALID_BORROW_AMOUNT);
   }
 
-  function validateLiquidateERC721(
+  function validateCrossLiquidateERC721(
     InputTypes.ExecuteCrossLiquidateERC721Params memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage collateralAssetData,

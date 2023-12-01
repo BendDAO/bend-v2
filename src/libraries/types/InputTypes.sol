@@ -35,8 +35,9 @@ library InputTypes {
 
   struct ExecuteSetERC721SupplyModeParams {
     uint32 poolId;
-    address nftAsset;
-    uint256[] nftTokenIds;
+    address asset;
+    uint256[] tokenIds;
+    uint8 supplyMode;
   }
 
   // Cross Lending
@@ -126,4 +127,6 @@ library InputTypes {
     address asset;
     uint256 amount;
   }
+
+  // Misc
 }
