@@ -46,7 +46,7 @@ library SupplyLogic {
 
     ValidateLogic.validateWithdrawERC20(params, poolData, assetData, msg.sender);
 
-    uint256 userBalance = VaultLogic.erc20GetUserCrossSupply(assetData, msg.sender);
+    uint256 userBalance = VaultLogic.erc20GetUserCrossSupply(assetData, msg.sender, assetData.supplyIndex);
     if (userBalance < params.amount) {
       params.amount = userBalance;
     }

@@ -78,7 +78,7 @@ library BorrowLogic {
     for (uint256 gidx = 0; gidx < params.groups.length; gidx++) {
       DataTypes.GroupData storage groupData = assetData.groupLookup[params.groups[gidx]];
 
-      uint256 debtAmount = VaultLogic.erc20GetUserCrossBorrowInGroup(groupData, msg.sender);
+      uint256 debtAmount = VaultLogic.erc20GetUserCrossBorrowInGroup(groupData, msg.sender, groupData.borrowIndex);
       require(debtAmount > 0, Errors.BORROW_BALANCE_IS_ZERO);
 
       if (debtAmount < params.amounts[gidx]) {
@@ -116,10 +116,10 @@ library BorrowLogic {
 
     ValidateLogic.validateYieldBorrowERC20(params, poolData, assetData, groupData);
 
-    uint256 stakerBorrow = VaultLogic.erc20GetUserCrossBorrowInGroup(groupData, msg.sender);
+    uint256 stakerBorrow = VaultLogic.erc20GetUserCrossBorrowInGroup(groupData, msg.sender, groupData.borrowIndex);
     require((stakerBorrow + params.amount) <= stakerData.yieldCap, Errors.YIELD_EXCEED_STAKER_CAP_LIMIT);
 
-    uint256 totalBorrow = VaultLogic.erc20GetTotalCrossBorrowInGroup(groupData);
+    uint256 totalBorrow = VaultLogic.erc20GetTotalCrossBorrowInGroup(groupData, groupData.borrowIndex);
     require((totalBorrow + params.amount) < assetData.yieldCap, Errors.YIELD_EXCEED_ASSET_CAP_LIMIT);
 
     VaultLogic.erc20IncreaseCrossBorrow(groupData, msg.sender, params.amount);
@@ -146,7 +146,7 @@ library BorrowLogic {
 
     ValidateLogic.validateYieldRepayERC20(params, poolData, assetData, groupData);
 
-    uint256 debtAmount = VaultLogic.erc20GetUserCrossBorrowInGroup(groupData, msg.sender);
+    uint256 debtAmount = VaultLogic.erc20GetUserCrossBorrowInGroup(groupData, msg.sender, groupData.borrowIndex);
     require(debtAmount > 0, Errors.BORROW_BALANCE_IS_ZERO);
 
     if (debtAmount < params.amount) {

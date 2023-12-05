@@ -455,13 +455,16 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
-    totalCrossSupplied = assetData.totalCrossSupplied;
-    totalIsolateSupplied = assetData.totalIsolateSupplied;
     if (assetData.assetType == Constants.ASSET_TYPE_ERC20) {
-      availableSupply = IERC20Upgradeable(asset).balanceOf(address(this));
+      uint256 index = InterestLogic.getNormalizedSupplyIncome(assetData);
+      totalCrossSupplied = VaultLogic.erc20GetTotalCrossSupply(assetData, index);
+      totalIsolateSupplied = VaultLogic.erc20GetTotalIsolateSupply(assetData, index);
     } else if (assetData.assetType == Constants.ASSET_TYPE_ERC721) {
-      availableSupply = IERC721Upgradeable(asset).balanceOf(address(this));
+      totalCrossSupplied = VaultLogic.erc721GetTotalCrossSupply(assetData);
+      totalIsolateSupplied = VaultLogic.erc721GetTotalIsolateSupply(assetData);
     }
+
+    availableSupply = assetData.availableLiquidity;
     supplyRate = assetData.supplyRate;
     supplyIndex = assetData.supplyIndex;
   }
@@ -480,10 +483,13 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[group];
 
-    totalCrossBorrow = groupData.totalCrossBorrowed;
-    totalIsolateBorrow = groupData.totalIsolateBorrowed;
-    borrowRate = groupData.borrowRate;
-    borrowIndex = groupData.borrowIndex;
+    if (assetData.assetType == Constants.ASSET_TYPE_ERC20) {
+      uint256 index = InterestLogic.getNormalizedBorrowDebt(groupData);
+      totalCrossBorrow = VaultLogic.erc20GetTotalCrossBorrowInGroup(groupData, index);
+      totalIsolateBorrow = VaultLogic.erc20GetTotalIsolateBorrowInGroup(groupData, index);
+      borrowRate = groupData.borrowRate;
+      borrowIndex = groupData.borrowIndex;
+    }
   }
 
   function getUserAccountData(

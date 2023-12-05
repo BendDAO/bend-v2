@@ -53,6 +53,7 @@ library LiquidationLogic {
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.debtAsset];
     DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[debtAssetData.classGroup];
 
+    InterestLogic.updateInterestSupplyIndex(collateralAssetData);
     InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
 
     ValidateLogic.validateCrossLiquidateERC20(params, poolData, collateralAssetData, debtAssetData, debtGroupData);
@@ -78,7 +79,11 @@ library LiquidationLogic {
       userAccountResult.healthFactor
     );
 
-    vars.userCollateralBalance = VaultLogic.erc20GetUserCrossSupply(collateralAssetData, params.user);
+    vars.userCollateralBalance = VaultLogic.erc20GetUserCrossSupply(
+      collateralAssetData,
+      params.user,
+      collateralAssetData.supplyIndex
+    );
 
     (vars.actualCollateralToLiquidate, vars.actualDebtToLiquidate) = _calculateAvailableERC20CollateralToLiquidate(
       collateralAssetData,
@@ -265,7 +270,11 @@ library LiquidationLogic {
       uint256 reverseIdx = (groupRateList.length - 1) - i;
       DataTypes.GroupData storage loopGroupData = debtAssetData.groupLookup[uint8(groupRateList[reverseIdx].key)];
 
-      uint256 curDebtRepayAmount = VaultLogic.erc20GetUserCrossBorrowInGroup(loopGroupData, user);
+      uint256 curDebtRepayAmount = VaultLogic.erc20GetUserCrossBorrowInGroup(
+        loopGroupData,
+        user,
+        loopGroupData.borrowIndex
+      );
       if (curDebtRepayAmount > remainDebtToLiquidate) {
         curDebtRepayAmount = remainDebtToLiquidate;
         remainDebtToLiquidate = 0;

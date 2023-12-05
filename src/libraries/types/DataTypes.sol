@@ -49,10 +49,10 @@ library DataTypes {
     address rateModel;
 
     // user state
-    uint256 totalCrossBorrowed;
-    mapping(address => uint256) userCrossBorrowed;
-    uint256 totalIsolateBorrowed;
-    mapping(address => uint256) userIsolateBorrowed;
+    uint256 totalScaledCrossBorrowed;
+    mapping(address => uint256) userScaledCrossBorrowed;
+    uint256 totalScaledIsolateBorrowed;
+    mapping(address => uint256) userScaledIsolateBorrowed;
 
     // interest state
     uint128 borrowRate;
@@ -99,12 +99,12 @@ library DataTypes {
     EnumerableSetUpgradeable.UintSet groupList;
 
     // user state
-    uint256 totalCrossSupplied; // total supplied balance in cross margin mode
-    uint256 totalIsolateSupplied; // total supplied balance in isolate mode, only for ERC721
+    uint256 totalScaledCrossSupplied; // total supplied balance in cross margin mode
+    uint256 totalScaledIsolateSupplied; // total supplied balance in isolate mode, only for ERC721
     uint256 availableLiquidity;
     uint256 totalBidAmout;
-    mapping(address => uint256) userCrossSupplied; // user supplied balance in cross margin mode
-    mapping(address => uint256) userIsolateSupplied; // user supplied balance in isolate mode, only for ERC721
+    mapping(address => uint256) userScaledCrossSupplied; // user supplied balance in cross margin mode
+    mapping(address => uint256) userScaledIsolateSupplied; // user supplied balance in isolate mode, only for ERC721
     mapping(uint256 => ERC721TokenData) erc721TokenData; // token -> data, only for ERC721
 
     // asset interest state
