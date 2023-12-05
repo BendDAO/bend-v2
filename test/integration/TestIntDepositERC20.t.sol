@@ -2,12 +2,20 @@
 pragma solidity ^0.8.19;
 
 import 'src/libraries/helpers/Constants.sol';
+import 'src/libraries/helpers/Errors.sol';
 
 import './TestWithIntegration.sol';
 
 contract TestIntDepositERC20 is TestWithIntegration {
   function onSetUp() public virtual override {
     super.onSetUp();
+  }
+
+  function test_RevertIf_AmountZero() public {
+    uint256 amount = 0 ether;
+
+    tsDepositor1.approveERC20(address(tsWETH), 1);
+    actionDepositERC20(address(tsDepositor1), tsCommonPoolId, address(tsWETH), amount, bytes(Errors.INVALID_AMOUNT));
   }
 
   function test_RevertIf_InsufficientAllowance() public {
@@ -23,16 +31,16 @@ contract TestIntDepositERC20 is TestWithIntegration {
     );
   }
 
-  function test_RevertIf_InsufficientBalance() public {
-    uint256 amount = 100000 ether;
+  function test_RevertIf_ExceedBalance() public {
+    uint256 amount = 1_000_000_000 ether;
 
-    tsDepositor1.approveERC20(address(tsWETH), 1);
+    tsDepositor1.approveERC20(address(tsWETH), amount);
     actionDepositERC20(
       address(tsDepositor1),
       tsCommonPoolId,
       address(tsWETH),
       amount,
-      bytes('ERC20: insufficient allowance')
+      bytes('ERC20: transfer amount exceeds balance')
     );
   }
 

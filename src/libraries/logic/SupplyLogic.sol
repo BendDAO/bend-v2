@@ -13,6 +13,8 @@ import {VaultLogic} from './VaultLogic.sol';
 import {InterestLogic} from './InterestLogic.sol';
 import {ValidateLogic} from './ValidateLogic.sol';
 
+import 'forge-std/console.sol';
+
 library SupplyLogic {
   function executeDepositERC20(InputTypes.ExecuteDepositERC20Params memory params) external {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
@@ -46,10 +48,13 @@ library SupplyLogic {
 
     ValidateLogic.validateWithdrawERC20(params, poolData, assetData, msg.sender);
 
+    // withdraw amount can not bigger than supply balance
     uint256 userBalance = VaultLogic.erc20GetUserCrossSupply(assetData, msg.sender, assetData.supplyIndex);
     if (userBalance < params.amount) {
       params.amount = userBalance;
     }
+
+    VaultLogic.erc20DecreaseCrossSupply(assetData, msg.sender, params.amount);
 
     VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, msg.sender);
 
@@ -57,6 +62,7 @@ library SupplyLogic {
 
     VaultLogic.erc20TransferOutLiquidity(assetData, msg.sender, params.amount);
 
+    // check the HF still greater than 1.0
     ValidateLogic.validateHealthFactor(poolData, msg.sender, cs.priceOracle);
 
     emit Events.WithdrawERC20(msg.sender, params.poolId, params.asset, params.amount);

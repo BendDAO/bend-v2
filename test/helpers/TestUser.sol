@@ -4,10 +4,11 @@ pragma solidity ^0.8.19;
 import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {ERC721} from '@openzeppelin/contracts/token/ERC721/ERC721.sol';
+import {ERC721Holder} from '@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol';
 
 import 'src/PoolManager.sol';
 
-contract TestUser {
+contract TestUser is ERC721Holder {
   using SafeERC20 for ERC20;
 
   PoolManager internal _poolManager;
@@ -59,41 +60,5 @@ contract TestUser {
 
   function setApprovalForAllERC721(address token, address spender, bool val) external {
     ERC721(token).setApprovalForAll(spender, val);
-  }
-
-  function depositERC20(uint32 poolId, address asset, uint256 amount) public {
-    _poolManager.depositERC20(poolId, asset, amount);
-  }
-
-  function depositERC721(uint32 poolId, address asset, uint256[] calldata tokenIds, uint8 supplyMode) public {
-    _poolManager.depositERC721(poolId, asset, tokenIds, supplyMode);
-  }
-
-  function crossBorrowERC20(uint32 poolId, address asset, uint8[] calldata groups, uint256[] calldata amounts) public {
-    _poolManager.crossBorrowERC20(poolId, asset, groups, amounts);
-  }
-
-  function crossBorrowERC20(uint32 poolId, address asset, uint8 group, uint256 amount) public {
-    uint8[] memory groups = new uint8[](1);
-    groups[0] = group;
-
-    uint256[] memory amounts = new uint256[](1);
-    amounts[0] = amount;
-
-    _poolManager.crossBorrowERC20(poolId, asset, groups, amounts);
-  }
-
-  function crossRepayERC20(uint32 poolId, address asset, uint8[] calldata groups, uint256[] calldata amounts) public {
-    _poolManager.crossRepayERC20(poolId, asset, groups, amounts);
-  }
-
-  function crossRepayERC20(uint32 poolId, address asset, uint8 group, uint256 amount) public {
-    uint8[] memory groups = new uint8[](1);
-    groups[0] = group;
-
-    uint256[] memory amounts = new uint256[](1);
-    amounts[0] = amount;
-
-    _poolManager.crossRepayERC20(poolId, asset, groups, amounts);
   }
 }

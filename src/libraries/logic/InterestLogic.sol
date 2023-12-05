@@ -16,6 +16,8 @@ import {Events} from '../helpers/Events.sol';
 import {DataTypes} from '../types/DataTypes.sol';
 import {InputTypes} from '../types/InputTypes.sol';
 
+import 'forge-std/console.sol';
+
 /**
  * @title InterestLogic library
  * @notice Implements the logic to update the interest state
@@ -191,13 +193,15 @@ library InterestLogic {
       liquidityAdded -
       liquidityTaken +
       vars.totalAssetDebt;
-    vars.assetBorrowUsageRatio = vars.totalAssetDebt.rayDiv(vars.availableLiquidityPlusDebt);
+    if (vars.availableLiquidityPlusDebt > 0) {
+      vars.assetBorrowUsageRatio = vars.totalAssetDebt.rayDiv(vars.availableLiquidityPlusDebt);
+    }
 
     // calculate the group borrow rate
     for (uint256 i = 0; i < vars.assetGroupIds.length; i++) {
       vars.loopGroupId = uint8(vars.assetGroupIds[i]);
       DataTypes.GroupData storage loopGroupData = assetData.groupLookup[vars.loopGroupId];
-      (vars.nextGroupBorrowRate) = IInterestRateModel(loopGroupData.rateModel).calculateGroupBorrowRate(
+      vars.nextGroupBorrowRate = IInterestRateModel(loopGroupData.rateModel).calculateGroupBorrowRate(
         vars.assetBorrowUsageRatio
       );
 

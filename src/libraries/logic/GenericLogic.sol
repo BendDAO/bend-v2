@@ -88,7 +88,7 @@ library GenericLogic {
 
     // calculate the sum of all the collateral balance denominated in the base currency
     vars.userSuppliedAssets = VaultLogic.accountGetSuppliedAssets(accountData);
-    console.log('userSuppliedAssets', vars.userSuppliedAssets.length);
+    //console.log('userSuppliedAssets', vars.userSuppliedAssets.length);
     for (vars.assetIndex = 0; vars.assetIndex < vars.userSuppliedAssets.length; vars.assetIndex++) {
       vars.currentAssetAddress = vars.userSuppliedAssets[vars.assetIndex];
       if (vars.currentAssetAddress == address(0)) {
@@ -115,7 +115,7 @@ library GenericLogic {
         } else {
           revert(Errors.INVALID_ASSET_TYPE);
         }
-        console.log('userBalanceInBaseCurrency', vars.userBalanceInBaseCurrency);
+        //console.log('userBalanceInBaseCurrency', vars.userBalanceInBaseCurrency);
 
         result.totalCollateralInBaseCurrency += vars.userBalanceInBaseCurrency;
 
@@ -143,7 +143,7 @@ library GenericLogic {
 
     // calculate the sum of all the debt balance denominated in the base currency
     vars.userBorrowedAssets = VaultLogic.accountGetBorrowedAssets(accountData);
-    console.log('userBorrowedAssets', vars.userBorrowedAssets.length);
+    //console.log('userBorrowedAssets', vars.userBorrowedAssets.length);
     for (vars.assetIndex = 0; vars.assetIndex < vars.userBorrowedAssets.length; vars.assetIndex++) {
       vars.currentAssetAddress = vars.userBorrowedAssets[vars.assetIndex];
       if (vars.currentAssetAddress == address(0)) {
@@ -175,7 +175,7 @@ library GenericLogic {
         result.allGroupsDebtInBaseCurrency[vars.currentGroupId] += vars.userGroupDebtInBaseCurrency;
       }
 
-      console.log('userAssetDebtInBaseCurrency', vars.userAssetDebtInBaseCurrency);
+      //console.log('userAssetDebtInBaseCurrency', vars.userAssetDebtInBaseCurrency);
 
       result.totalDebtInBaseCurrency += vars.userAssetDebtInBaseCurrency;
       if (vars.userAssetDebtInBaseCurrency > result.highestDebtInBaseCurrency) {
@@ -208,11 +208,11 @@ library GenericLogic {
         result.allGroupsAvgLiquidationThreshold[vars.groupIndex] = 0;
       }
 
-      console.log('groupIndex', vars.groupIndex);
+      /*console.log('groupIndex', vars.groupIndex);
       console.log('  groupCollateralInBaseCurrency', result.allGroupsCollateralInBaseCurrency[vars.groupIndex]);
       console.log('  groupDebtInBaseCurrency', result.allGroupsDebtInBaseCurrency[vars.groupIndex]);
       console.log('  groupAvgLtv', result.allGroupsAvgLtv[vars.groupIndex]);
-      console.log('  groupAvgLiquidationThreshold', result.allGroupsAvgLiquidationThreshold[vars.groupIndex]);
+      console.log('  groupAvgLiquidationThreshold', result.allGroupsAvgLiquidationThreshold[vars.groupIndex]);*/
     }
 
     // calculate the health factor
@@ -222,11 +222,11 @@ library GenericLogic {
       result.avgLiquidationThreshold
     );
 
-    console.log('totalCollateralInBaseCurrency', result.totalCollateralInBaseCurrency);
+    /*console.log('totalCollateralInBaseCurrency', result.totalCollateralInBaseCurrency);
     console.log('totalDebtInBaseCurrency', result.totalDebtInBaseCurrency);
     console.log('avgLtv', result.avgLtv);
     console.log('avgLiquidationThreshold', result.avgLiquidationThreshold);
-    console.log('healthFactor', result.healthFactor);
+    console.log('healthFactor', result.healthFactor);*/
   }
 
   struct CalculateNftLoanDataVars {
