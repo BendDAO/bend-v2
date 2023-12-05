@@ -307,6 +307,21 @@ library VaultLogic {
     return totalBorrow;
   }
 
+  function erc20GetUserScaledIsolateBorrowInGroup(
+    DataTypes.GroupData storage groupData,
+    address account
+  ) internal view returns (uint256) {
+    return groupData.userScaledIsolateBorrowed[account];
+  }
+
+  function erc20GetUserIsolateBorrowInGroup(
+    DataTypes.GroupData storage groupData,
+    address account,
+    uint256 index
+  ) internal view returns (uint256) {
+    return groupData.userScaledIsolateBorrowed[account].rayMul(index);
+  }
+
   /**
    * @dev Increase user borrow balance in the asset, make sure the index already updated.
    */

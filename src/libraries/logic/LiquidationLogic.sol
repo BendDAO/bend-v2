@@ -30,6 +30,8 @@ library LiquidationLogic {
   using PercentageMath for uint256;
 
   struct LiquidateERC20LocalVars {
+    uint256 gidx;
+    uint256[] assetGroupIds;
     uint256 userCollateralBalance;
     uint256 userTotalDebt;
     uint256 actualDebtToLiquidate;
@@ -51,12 +53,17 @@ library LiquidationLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage collateralAssetData = poolData.assetLookup[params.collateralAsset];
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.debtAsset];
-    DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[debtAssetData.classGroup];
 
     InterestLogic.updateInterestSupplyIndex(collateralAssetData);
-    InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
 
-    ValidateLogic.validateCrossLiquidateERC20(params, poolData, collateralAssetData, debtAssetData, debtGroupData);
+    // make sure debt asset's all group index updated
+    vars.assetGroupIds = debtAssetData.groupList.values();
+    for (vars.gidx = 0; vars.gidx < vars.assetGroupIds.length; vars.gidx++) {
+      DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[uint8(vars.assetGroupIds[vars.gidx])];
+      InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
+    }
+
+    ValidateLogic.validateCrossLiquidateERC20(params, poolData, collateralAssetData, debtAssetData);
 
     // check the user account state
     ResultTypes.UserAccountResult memory userAccountResult = GenericLogic.calculateUserAccountDataForLiquidate(
@@ -126,6 +133,8 @@ library LiquidationLogic {
   }
 
   struct LiquidateERC721LocalVars {
+    uint256 gidx;
+    uint256[] assetGroupIds;
     uint256 userCollateralBalance;
     uint256 actualDebtToLiquidate;
     uint256 remainDebtToLiquidate;
@@ -144,11 +153,15 @@ library LiquidationLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage collateralAssetData = poolData.assetLookup[params.collateralAsset];
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.debtAsset];
-    DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[debtAssetData.classGroup];
 
-    InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
+    // make sure debt asset's all group index updated
+    vars.assetGroupIds = debtAssetData.groupList.values();
+    for (vars.gidx = 0; vars.gidx < vars.assetGroupIds.length; vars.gidx++) {
+      DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[uint8(vars.assetGroupIds[vars.gidx])];
+      InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
+    }
 
-    ValidateLogic.validateCrossLiquidateERC721(params, poolData, collateralAssetData, debtAssetData, debtGroupData);
+    ValidateLogic.validateCrossLiquidateERC721(params, poolData, collateralAssetData, debtAssetData);
 
     vars.userAccountResult = GenericLogic.calculateUserAccountDataForLiquidate(
       poolData,

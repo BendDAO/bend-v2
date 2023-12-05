@@ -206,13 +206,11 @@ library ValidateLogic {
     InputTypes.ExecuteCrossLiquidateERC20Params memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage collateralAssetData,
-    DataTypes.AssetData storage debtAssetData,
-    DataTypes.GroupData storage debtGroupData
+    DataTypes.AssetData storage debtAssetData
   ) internal view {
     validatePoolBasic(poolData);
     validateAssetBasic(collateralAssetData);
     validateAssetBasic(debtAssetData);
-    validateGroupBasic(debtGroupData);
 
     require(collateralAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
     require(debtAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
@@ -224,13 +222,11 @@ library ValidateLogic {
     InputTypes.ExecuteCrossLiquidateERC721Params memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage collateralAssetData,
-    DataTypes.AssetData storage debtAssetData,
-    DataTypes.GroupData storage debtGroupData
+    DataTypes.AssetData storage debtAssetData
   ) internal view {
     validatePoolBasic(poolData);
     validateAssetBasic(collateralAssetData);
     validateAssetBasic(debtAssetData);
-    validateGroupBasic(debtGroupData);
 
     require(collateralAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
     require(debtAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
