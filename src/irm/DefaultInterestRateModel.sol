@@ -79,19 +79,17 @@ contract DefaultInterestRateModel is IDefaultInterestRateModel {
   }
 
   /// @inheritdoc IInterestRateModel
-  function calculateGroupBorrowRate(
-    InputTypes.CalculateGroupBorrowRateParams memory params
-  ) public view override returns (uint256) {
+  function calculateGroupBorrowRate(uint256 utilizationRate) public view override returns (uint256) {
     CalcInterestRatesLocalVars memory vars;
 
     vars.currentBorrowRate = _baseVariableBorrowRate;
 
-    if (params.borrowUsageRatio > OPTIMAL_USAGE_RATIO) {
-      uint256 excessBorrowUsageRatio = (params.borrowUsageRatio - OPTIMAL_USAGE_RATIO).rayDiv(MAX_EXCESS_USAGE_RATIO);
+    if (utilizationRate > OPTIMAL_USAGE_RATIO) {
+      uint256 excessRate = (utilizationRate - OPTIMAL_USAGE_RATIO).rayDiv(MAX_EXCESS_USAGE_RATIO);
 
-      vars.currentBorrowRate += _variableRateSlope1 + _variableRateSlope2.rayMul(excessBorrowUsageRatio);
+      vars.currentBorrowRate += _variableRateSlope1 + _variableRateSlope2.rayMul(excessRate);
     } else {
-      vars.currentBorrowRate += _variableRateSlope1.rayMul(params.borrowUsageRatio).rayDiv(OPTIMAL_USAGE_RATIO);
+      vars.currentBorrowRate += _variableRateSlope1.rayMul(utilizationRate).rayDiv(OPTIMAL_USAGE_RATIO);
     }
 
     return (vars.currentBorrowRate);

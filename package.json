@@ -21,6 +21,7 @@
     "test:hardhat": ". ./setup-test-env.sh && TS_NODE_TRANSPILE_ONLY=1 hardhat test test/hardhat/*.spec.ts",
     "test:forge": "forge test -vvv",
     "test": "npm run test:forge",
+    "test:contract": "forge test --match-contract ${TEST_CONTRACT} -vvvv",
     "ci:test": ". ./setup-test-env.sh && npm run test:forge && npm run test:hardhat",
     "ci:clean": "rm -rf ./artifacts ./out ./cache ./forge-cache ./types ./typechain-types ./temp-artifacts",
     "prepare": "husky install",

@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
-import './IntegrationTest.sol';
+import './TestWithIntegration.sol';
 
 import 'src/libraries/helpers/Constants.sol';
 
-contract TestIntegrationBorrow is IntegrationTest {
+contract TestIntCrossBorrowERC20 is TestWithIntegration {
   function onSetUp() public virtual override {
     super.onSetUp();
 
@@ -32,7 +32,7 @@ contract TestIntegrationBorrow is IntegrationTest {
   }
 
   function testShouldBorrowERC20WhenHasERC721() public {
-    tsBorrower1.setApprovalForAllERC721(address(tsBAYC));
+    tsBorrower1.setApprovalForAllERC721(address(tsBAYC), true);
     tsBorrower1.depositERC721(tsCommonPoolId, address(tsBAYC), tsBorrower1.getTokenIds(), Constants.SUPPLY_MODE_CROSS);
 
     tsBorrower1.crossBorrowERC20(tsCommonPoolId, address(tsWETH), tsLowRateGroupId, 10 ether);

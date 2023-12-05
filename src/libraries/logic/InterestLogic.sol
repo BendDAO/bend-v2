@@ -198,10 +198,7 @@ library InterestLogic {
       vars.loopGroupId = uint8(vars.assetGroupIds[i]);
       DataTypes.GroupData storage loopGroupData = assetData.groupLookup[vars.loopGroupId];
       (vars.nextGroupBorrowRate) = IInterestRateModel(loopGroupData.rateModel).calculateGroupBorrowRate(
-        InputTypes.CalculateGroupBorrowRateParams({
-          assetAddress: assetData.underlyingAsset,
-          borrowUsageRatio: vars.assetBorrowUsageRatio
-        })
+        vars.assetBorrowUsageRatio
       );
 
       loopGroupData.borrowRate = vars.nextGroupBorrowRate.toUint128();

@@ -53,12 +53,12 @@ contract TestUser {
     ERC721(token).approve(spender, tokenId);
   }
 
-  function setApprovalForAllERC721(address token) external {
-    ERC721(token).setApprovalForAll(address(_poolManager), true);
+  function setApprovalForAllERC721(address token, bool val) external {
+    ERC721(token).setApprovalForAll(address(_poolManager), val);
   }
 
-  function setApprovalForAllERC721(address token, address spender) external {
-    ERC721(token).setApprovalForAll(spender, true);
+  function setApprovalForAllERC721(address token, address spender, bool val) external {
+    ERC721(token).setApprovalForAll(spender, val);
   }
 
   function depositERC20(uint32 poolId, address asset, uint256 amount) public {
