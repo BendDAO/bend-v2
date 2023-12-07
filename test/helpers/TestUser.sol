@@ -34,31 +34,39 @@ contract TestUser is ERC721Holder {
     return _tokenIds;
   }
 
-  function balanceOf(address token) external view returns (uint256) {
+  function balanceOf(address token) public view returns (uint256) {
     return ERC20(token).balanceOf(address(this));
   }
 
-  function approveERC20(address token, uint256 amount) external {
+  function approveERC20(address token, uint256 amount) public {
     ERC20(token).safeApprove(address(_poolManager), amount);
   }
 
-  function approveERC20(address token, address spender, uint256 amount) external {
+  function approveERC20(address token, address spender, uint256 amount) public {
     ERC20(token).safeApprove(spender, amount);
   }
 
-  function approveERC721(address token, uint256 tokenId) external {
+  function approveERC721(address token, uint256 tokenId) public {
     ERC721(token).approve(address(_poolManager), tokenId);
   }
 
-  function approveERC721(address token, address spender, uint256 tokenId) external {
+  function approveERC721(address token, address spender, uint256 tokenId) public {
     ERC721(token).approve(spender, tokenId);
   }
 
-  function setApprovalForAllERC721(address token, bool val) external {
+  function setApprovalForAllERC721(address token, bool val) public {
     ERC721(token).setApprovalForAll(address(_poolManager), val);
   }
 
-  function setApprovalForAllERC721(address token, address spender, bool val) external {
+  function setApprovalForAllERC721(address token, address spender, bool val) public {
     ERC721(token).setApprovalForAll(spender, val);
+  }
+
+  function depositERC20(uint32 poolId, address asset, uint256 amount) public {
+    _poolManager.depositERC20(poolId, asset, amount);
+  }
+
+  function depositERC721(uint32 poolId, address asset, uint256[] calldata tokenIds, uint8 supplyMode) public {
+    _poolManager.depositERC721(poolId, asset, tokenIds, supplyMode);
   }
 }

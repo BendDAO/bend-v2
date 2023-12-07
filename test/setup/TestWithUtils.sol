@@ -6,6 +6,12 @@ import 'forge-std/Test.sol';
 abstract contract TestWithUtils is Test {
   uint256 internal constant BLOCK_TIME = 12;
 
+  bool internal _debugFlag;
+
+  function setDebugFlag(bool flag) internal {
+    _debugFlag = flag;
+  }
+
   /// @dev Asserts a is approximately less than or equal to b, with a maximum absolute difference of maxDelta.
   function assertApproxLeAbs(uint256 a, uint256 b, uint256 maxDelta, string memory err) internal {
     assertLe(a, b, err);

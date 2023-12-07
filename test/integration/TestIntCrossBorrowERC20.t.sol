@@ -1,23 +1,58 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
-import './TestWithIntegration.sol';
-
 import 'src/libraries/helpers/Constants.sol';
+
+import 'test/helpers/TestUser.sol';
+import 'test/integration/TestWithIntegration.sol';
 
 contract TestIntCrossBorrowERC20 is TestWithIntegration {
   function onSetUp() public virtual override {
     super.onSetUp();
   }
 
-  function testShouldBorrowUSDTWhenHasETH() public {
-    uint256 wethAmount = 10 ether;
-    tsBorrower1.approveERC20(address(tsWETH), wethAmount);
-
-    uint256 usdtAmount = 1000 * (10 ** tsUSDT.decimals());
+  function prepareUSDT(TestUser user) internal {
+    uint256 depositAmount = 100_000 * (10 ** tsUSDT.decimals());
+    user.approveERC20(address(tsUSDT), depositAmount);
+    user.depositERC20(tsCommonPoolId, address(tsUSDT), depositAmount);
   }
 
-  function testShouldBorrowERC20WhenHasERC721() public {
-    tsBorrower1.setApprovalForAllERC721(address(tsBAYC), true);
+  function prepareWETH(TestUser user) internal {
+    uint256 depositAmount = 10 ether;
+    user.approveERC20(address(tsWETH), depositAmount);
+    user.depositERC20(tsCommonPoolId, address(tsWETH), depositAmount);
+  }
+
+  function prepareBAYC(TestUser user) internal {
+    uint256[] memory tokenIds = user.getTokenIds();
+    user.setApprovalForAllERC721(address(tsBAYC), true);
+    user.depositERC721(tsCommonPoolId, address(tsBAYC), tokenIds, Constants.SUPPLY_MODE_CROSS);
+  }
+
+  function test_Should_BorrowUSDT_HasWETH() public {
+    prepareUSDT(tsDepositor1);
+
+    prepareWETH(tsBorrower1);
+
+    uint8[] memory borrowGroups = new uint8[](1);
+    borrowGroups[0] = tsLowRateGroupId;
+
+    uint256[] memory borrowAmounts = new uint256[](1);
+    borrowAmounts[0] = 1000 * (10 ** tsUSDT.decimals());
+
+    actionCrossBorrowERC20(
+      address(tsDepositor1),
+      tsCommonPoolId,
+      address(tsUSDT),
+      borrowGroups,
+      borrowAmounts,
+      new bytes(0)
+    );
+  }
+
+  function _test_Should_BorrowUSDT_HasBAYC() public {
+    prepareUSDT(tsDepositor1);
+
+    prepareBAYC(tsBorrower1);
   }
 }

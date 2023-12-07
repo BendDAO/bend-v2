@@ -155,10 +155,9 @@ library InterestLogic {
     uint256 totalAssetScaledDebt;
     uint256 totalAssetDebt;
     uint256 availableLiquidityPlusDebt;
-    uint256 assetBorrowUsageRatio;
-    uint256 groupBorrowUsageRatio;
+    uint256 assetUtilizationRate;
     uint256 nextGroupBorrowRate;
-    uint256 avgAssetBorrowRate;
+    uint256 nextAssetBorrowRate;
     uint256 nextAssetSupplyRate;
   }
 
@@ -194,18 +193,24 @@ library InterestLogic {
       liquidityTaken +
       vars.totalAssetDebt;
     if (vars.availableLiquidityPlusDebt > 0) {
-      vars.assetBorrowUsageRatio = vars.totalAssetDebt.rayDiv(vars.availableLiquidityPlusDebt);
+      vars.assetUtilizationRate = vars.totalAssetDebt.rayDiv(vars.availableLiquidityPlusDebt);
     }
 
     // calculate the group borrow rate
     for (uint256 i = 0; i < vars.assetGroupIds.length; i++) {
       vars.loopGroupId = uint8(vars.assetGroupIds[i]);
       DataTypes.GroupData storage loopGroupData = assetData.groupLookup[vars.loopGroupId];
-      vars.nextGroupBorrowRate = IInterestRateModel(loopGroupData.rateModel).calculateGroupBorrowRate(
-        vars.assetBorrowUsageRatio
-      );
 
+      vars.nextGroupBorrowRate = IInterestRateModel(loopGroupData.rateModel).calculateGroupBorrowRate(
+        vars.assetUtilizationRate
+      );
       loopGroupData.borrowRate = vars.nextGroupBorrowRate.toUint128();
+
+      if (vars.totalAssetDebt > 0) {
+        vars.nextAssetBorrowRate += vars.nextGroupBorrowRate.rayMul(vars.allGroupDebtList[i]).rayDiv(
+          vars.totalAssetDebt
+        );
+      }
 
       emit Events.AssetInterestBorrowDataUpdated(
         assetData.underlyingAsset,
@@ -216,18 +221,7 @@ library InterestLogic {
     }
 
     // calculate the asset supply rate
-    vars.avgAssetBorrowRate = 0;
-    for (uint256 i = 0; i < vars.assetGroupIds.length; i++) {
-      vars.loopGroupId = uint8(vars.assetGroupIds[i]);
-      DataTypes.GroupData storage loopGroupData = assetData.groupLookup[vars.loopGroupId];
-
-      if ((vars.totalAssetDebt != 0) && (vars.allGroupDebtList[i] != 0)) {
-        vars.groupBorrowUsageRatio = vars.allGroupDebtList[i].rayDiv(vars.totalAssetDebt);
-        vars.avgAssetBorrowRate += uint256(loopGroupData.borrowRate).rayMul(vars.groupBorrowUsageRatio);
-      }
-    }
-
-    vars.nextAssetSupplyRate = vars.avgAssetBorrowRate.rayMul(vars.assetBorrowUsageRatio);
+    vars.nextAssetSupplyRate = vars.nextAssetBorrowRate.rayMul(vars.assetUtilizationRate);
     vars.nextAssetSupplyRate = vars.nextAssetSupplyRate.percentMul(
       PercentageMath.PERCENTAGE_FACTOR - assetData.feeFactor
     );

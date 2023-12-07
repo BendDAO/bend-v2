@@ -445,6 +445,81 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     return assetData.groupList.values();
   }
 
+  function getAssetConfigFlag(
+    uint32 poolId,
+    address asset
+  )
+    public
+    view
+    returns (
+      bool isActive,
+      bool isFrozen,
+      bool isPaused,
+      bool isBorrowingEnabled,
+      bool isYieldEnabled,
+      bool isYieldPaused
+    )
+  {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+
+    return (
+      assetData.isActive,
+      assetData.isFrozen,
+      assetData.isPaused,
+      assetData.isBorrowingEnabled,
+      assetData.isYieldEnabled,
+      assetData.isYieldPaused
+    );
+  }
+
+  function getAssetConfigCap(
+    uint32 poolId,
+    address asset
+  ) public view returns (uint256 supplyCap, uint256 borrowCap, uint256 yieldCap) {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+
+    return (assetData.supplyCap, assetData.borrowCap, assetData.yieldCap);
+  }
+
+  function getAssetLendingConfig(
+    uint32 poolId,
+    address asset
+  )
+    public
+    view
+    returns (uint16 feeFactor, uint16 collateralFactor, uint16 liquidationThreshold, uint16 liquidationBonus)
+  {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+
+    return (
+      assetData.feeFactor,
+      assetData.collateralFactor,
+      assetData.liquidationThreshold,
+      assetData.liquidationBonus
+    );
+  }
+
+  function getAssetAuctionConfig(
+    uint32 poolId,
+    address asset
+  )
+    public
+    view
+    returns (uint16 redeemThreshold, uint16 bidFineFactor, uint16 minBidFineFactor, uint40 auctionDuration)
+  {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+
+    return (assetData.redeemThreshold, assetData.bidFineFactor, assetData.minBidFineFactor, assetData.auctionDuration);
+  }
+
   function getAssetSupplyData(
     uint32 poolId,
     address asset
