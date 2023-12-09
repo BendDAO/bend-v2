@@ -305,7 +305,7 @@ library GenericLogic {
     vars.debtAssetPriceInBaseCurrency = IPriceOracleGetter(oracle).getAssetPrice(debtAssetData.underlyingAsset);
     vars.nftAssetPriceInBaseCurrency = IPriceOracleGetter(oracle).getAssetPrice(nftAssetData.underlyingAsset);
 
-    vars.normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtGroupData);
+    vars.normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtAssetData, debtGroupData);
     vars.borrowAmount = nftLoanData.scaledAmount.rayMul(vars.normalizedIndex);
 
     vars.thresholdPrice = vars.nftAssetPriceInBaseCurrency.percentMul(nftAssetData.liquidationThreshold);
@@ -362,7 +362,7 @@ library GenericLogic {
       vars.debtAssetPriceInBaseCurrency;
 
     // calculate the bid fine based on the borrow amount
-    vars.normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtGroupData);
+    vars.normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtAssetData, debtGroupData);
     vars.borrowAmount = nftLoanData.scaledAmount.rayMul(vars.normalizedIndex);
     vars.bidFineAmount = vars.borrowAmount.percentMul(nftAssetData.bidFineFactor);
 
@@ -417,7 +417,7 @@ library GenericLogic {
     // fetching variable debt
     uint256 userTotalDebt = groupData.userScaledCrossBorrowed[userAccount];
     if (userTotalDebt != 0) {
-      uint256 normalizedIndex = InterestLogic.getNormalizedBorrowDebt(groupData);
+      uint256 normalizedIndex = InterestLogic.getNormalizedBorrowDebt(assetData, groupData);
       userTotalDebt = userTotalDebt.rayMul(normalizedIndex);
       userTotalDebt = assetPrice * userTotalDebt;
     }
@@ -466,7 +466,7 @@ library GenericLogic {
     uint256 loanDebtAmount;
 
     if (nftLoanData.scaledAmount > 0) {
-      uint256 normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtGroupData);
+      uint256 normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtAssetData, debtGroupData);
       loanDebtAmount = nftLoanData.scaledAmount.rayMul(normalizedIndex);
 
       loanDebtAmount = debtAssetPrice * loanDebtAmount;

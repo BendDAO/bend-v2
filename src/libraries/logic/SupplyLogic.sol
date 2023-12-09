@@ -22,7 +22,7 @@ library SupplyLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
 
-    InterestLogic.updateInterestSupplyIndex(assetData);
+    InterestLogic.updateInterestIndexs(poolData, assetData);
 
     ValidateLogic.validateDepositERC20(params, poolData, assetData, msg.sender);
 
@@ -44,7 +44,7 @@ library SupplyLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
 
-    InterestLogic.updateInterestSupplyIndex(assetData);
+    InterestLogic.updateInterestIndexs(poolData, assetData);
 
     ValidateLogic.validateWithdrawERC20(params, poolData, assetData, msg.sender);
 
@@ -96,7 +96,7 @@ library SupplyLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
 
-    InterestLogic.updateInterestSupplyIndex(assetData);
+    InterestLogic.updateInterestIndexs(poolData, assetData);
 
     ValidateLogic.validateWithdrawERC721(params, poolData, assetData, msg.sender);
 

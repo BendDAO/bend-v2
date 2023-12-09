@@ -25,13 +25,7 @@ library BorrowLogic {
     ValidateLogic.validateCrossBorrowERC20Basic(params, poolData, assetData);
 
     // account status need latest balance, update supply & borrow index first
-    InterestLogic.updateInterestSupplyIndex(assetData);
-
-    for (uint256 gidx = 0; gidx < params.groups.length; gidx++) {
-      DataTypes.GroupData storage groupData = assetData.groupLookup[params.groups[gidx]];
-
-      InterestLogic.updateInterestBorrowIndex(assetData, groupData);
-    }
+    InterestLogic.updateInterestIndexs(poolData, assetData);
 
     // check the user account
     ValidateLogic.validateCrossBorrowERC20Account(params, poolData, assetData, msg.sender, cs.priceOracle);
@@ -65,13 +59,7 @@ library BorrowLogic {
     ValidateLogic.validateCrossRepayERC20Basic(params, poolData, assetData);
 
     // account status need latest balance, update supply & borrow index first
-    InterestLogic.updateInterestSupplyIndex(assetData);
-
-    for (uint256 gidx = 0; gidx < params.groups.length; gidx++) {
-      DataTypes.GroupData storage groupData = assetData.groupLookup[params.groups[gidx]];
-
-      InterestLogic.updateInterestBorrowIndex(assetData, groupData);
-    }
+    InterestLogic.updateInterestIndexs(poolData, assetData);
 
     // update debt state
     uint256 totalRepayAmount;
@@ -112,7 +100,7 @@ library BorrowLogic {
     DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
     DataTypes.StakerData storage stakerData = assetData.stakerLookup[msg.sender];
 
-    InterestLogic.updateInterestIndexs(assetData, groupData);
+    InterestLogic.updateInterestIndexs(poolData, assetData);
 
     ValidateLogic.validateYieldBorrowERC20(params, poolData, assetData, groupData);
 
@@ -142,7 +130,7 @@ library BorrowLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
 
-    InterestLogic.updateInterestIndexs(assetData, groupData);
+    InterestLogic.updateInterestIndexs(poolData, assetData);
 
     ValidateLogic.validateYieldRepayERC20(params, poolData, assetData, groupData);
 

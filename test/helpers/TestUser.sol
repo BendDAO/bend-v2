@@ -66,7 +66,15 @@ contract TestUser is ERC721Holder {
     _poolManager.depositERC20(poolId, asset, amount);
   }
 
+  function withdrawERC20(uint32 poolId, address asset, uint256 amount) public {
+    _poolManager.withdrawERC20(poolId, asset, amount);
+  }
+
   function depositERC721(uint32 poolId, address asset, uint256[] calldata tokenIds, uint8 supplyMode) public {
     _poolManager.depositERC721(poolId, asset, tokenIds, supplyMode);
+  }
+
+  function withdrawERC721(uint32 poolId, address asset, uint256[] calldata tokenIds, uint8 supplyMode) public {
+    _poolManager.withdrawERC721(poolId, asset, tokenIds, supplyMode);
   }
 }

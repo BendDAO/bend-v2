@@ -26,7 +26,7 @@ library YieldLogic {
     DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
     DataTypes.StakerData storage stakerData = assetData.stakerLookup[msg.sender];
 
-    InterestLogic.updateInterestIndexs(assetData, groupData);
+    InterestLogic.updateInterestIndexs(poolData, assetData);
 
     ValidateLogic.validateYieldBorrowERC20(params, poolData, assetData, groupData);
 
@@ -56,7 +56,7 @@ library YieldLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
 
-    InterestLogic.updateInterestIndexs(assetData, groupData);
+    InterestLogic.updateInterestIndexs(poolData, assetData);
 
     ValidateLogic.validateYieldRepayERC20(params, poolData, assetData, groupData);
 

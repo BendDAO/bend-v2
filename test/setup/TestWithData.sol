@@ -33,9 +33,7 @@ abstract contract TestWithData is TestWithSetup {
     uint256 borrowRate;
     uint256 borrowIndex;
     address rateModel;
-    uint256 lastUpdateTimestamp;
     // fields not come from contract
-    uint256 totalBorrow;
   }
 
   struct TestAssetData {
@@ -52,10 +50,10 @@ abstract contract TestWithData is TestWithSetup {
     uint256 lastUpdateTimestamp;
     TestGroupData[] groupsData;
     // fields not come from contract
-    uint256 totalSupply;
+    uint256 totalScaledCrossBorrow;
     uint256 totalCrossBorrow;
+    uint256 totalScaledIsolateBorrow;
     uint256 totalIsolateBorrow;
-    uint256 totalBorrow;
     uint256 totalLiquidity;
     uint256 utilizationRate;
   }
@@ -68,7 +66,6 @@ abstract contract TestWithData is TestWithSetup {
     uint256 totalScaledIsolateBorrow;
     uint256 totalIsolateBorrow;
     // fields not come from contract
-    uint256 totalBorrow;
   }
 
   struct TestUserAssetData {
@@ -85,8 +82,6 @@ abstract contract TestWithData is TestWithSetup {
     uint256 totalIsolateBorrow;
     TestUserGroupData[] groupsData;
     // fields not come from contract
-    uint256 totalSupply;
-    uint256 totalBorrow;
   }
 
   struct TestUserAccountData {
@@ -123,14 +118,15 @@ abstract contract TestWithData is TestWithSetup {
     ) = tsPoolManager.getAssetLendingConfig(poolId, asset);
 
     (
+      assetData.totalScaledCrossSupply,
       assetData.totalCrossSupply,
+      assetData.totalScaledIsolateSupply,
       assetData.totalIsolateSupply,
       assetData.availableSupply,
       assetData.supplyRate,
       assetData.supplyIndex,
       assetData.lastUpdateTimestamp
     ) = tsPoolManager.getAssetSupplyData(poolId, asset);
-    assetData.totalSupply = assetData.totalCrossSupply + assetData.totalIsolateSupply;
 
     uint256 maxGroupNum = tsPoolManager.getPoolMaxGroupNumber();
     assetData.groupsData = new TestGroupData[](maxGroupNum);
@@ -139,23 +135,26 @@ abstract contract TestWithData is TestWithSetup {
     for (uint256 i = 0; i < groupIds.length; i++) {
       TestGroupData memory groupData = assetData.groupsData[groupIds[i]];
       (
+        groupData.totalScaledCrossBorrow,
         groupData.totalCrossBorrow,
+        groupData.totalScaledIsolateBorrow,
         groupData.totalIsolateBorrow,
         groupData.borrowRate,
         groupData.borrowIndex,
-        groupData.rateModel,
-        groupData.lastUpdateTimestamp
+        groupData.rateModel
       ) = tsPoolManager.getAssetGroupData(poolId, asset, uint8(groupIds[i]));
-      groupData.totalBorrow = groupData.totalCrossBorrow + groupData.totalIsolateBorrow;
 
+      assetData.totalScaledCrossBorrow += groupData.totalScaledCrossBorrow;
       assetData.totalCrossBorrow += groupData.totalCrossBorrow;
+      assetData.totalScaledIsolateBorrow += groupData.totalScaledIsolateBorrow;
       assetData.totalIsolateBorrow += groupData.totalIsolateBorrow;
     }
 
-    assetData.totalBorrow = assetData.totalCrossBorrow + assetData.totalIsolateBorrow;
-    assetData.totalLiquidity = assetData.totalBorrow + assetData.availableSupply;
+    assetData.totalLiquidity = (assetData.totalCrossBorrow + assetData.totalIsolateBorrow) + assetData.availableSupply;
     if (assetData.totalLiquidity > 0) {
-      assetData.utilizationRate = assetData.totalBorrow.rayDiv(assetData.totalLiquidity);
+      assetData.utilizationRate = (assetData.totalCrossBorrow + assetData.totalIsolateBorrow).rayDiv(
+        assetData.totalLiquidity
+      );
     }
   }
 
@@ -186,15 +185,12 @@ abstract contract TestWithData is TestWithSetup {
       groupDataNew.borrowRate = groupDataOld.borrowRate;
       groupDataNew.borrowIndex = groupDataOld.borrowIndex;
       groupDataNew.rateModel = groupDataOld.rateModel;
-      groupDataNew.lastUpdateTimestamp = groupDataOld.lastUpdateTimestamp;
-
-      groupDataNew.totalBorrow = groupDataOld.totalBorrow;
     }
 
-    assetDataNew.totalSupply = assetDataOld.totalSupply;
+    assetDataNew.totalScaledCrossBorrow = assetDataOld.totalScaledCrossBorrow;
     assetDataNew.totalCrossBorrow = assetDataOld.totalCrossBorrow;
+    assetDataNew.totalScaledIsolateBorrow = assetDataOld.totalScaledIsolateBorrow;
     assetDataNew.totalIsolateBorrow = assetDataOld.totalIsolateBorrow;
-    assetDataNew.totalBorrow = assetDataOld.totalBorrow;
     assetDataNew.totalLiquidity = assetDataOld.totalLiquidity;
     assetDataNew.utilizationRate = assetDataOld.utilizationRate;
 
@@ -225,13 +221,18 @@ abstract contract TestWithData is TestWithSetup {
     }
 
     (
+      userAssetData.totalScaledCrossSupply,
+      userAssetData.totalScaledIsolateSupply,
+      userAssetData.totalScaledCrossBorrow,
+      userAssetData.totalScaledIsolateBorrow
+    ) = tsPoolManager.getUserAssetScaledData(user, poolId, asset);
+
+    (
       userAssetData.totalCrossSupply,
       userAssetData.totalIsolateSupply,
       userAssetData.totalCrossBorrow,
       userAssetData.totalIsolateBorrow
     ) = tsPoolManager.getUserAssetData(user, poolId, asset);
-    userAssetData.totalSupply = userAssetData.totalCrossSupply + userAssetData.totalIsolateSupply;
-    userAssetData.totalBorrow = userAssetData.totalCrossBorrow + userAssetData.totalIsolateBorrow;
 
     uint256 maxGroupNum = tsPoolManager.getPoolMaxGroupNumber();
     userAssetData.groupsData = new TestUserGroupData[](maxGroupNum);
@@ -239,13 +240,12 @@ abstract contract TestWithData is TestWithSetup {
     uint256[] memory groupIds = tsPoolManager.getAssetGroupList(poolId, asset);
     for (uint256 i = 0; i < groupIds.length; i++) {
       TestUserGroupData memory groupData = userAssetData.groupsData[groupIds[i]];
-      (groupData.totalCrossBorrow, groupData.totalIsolateBorrow) = tsPoolManager.getUserAssetGroupData(
-        user,
-        poolId,
-        asset,
-        uint8(groupIds[i])
-      );
-      groupData.totalBorrow = groupData.totalCrossBorrow + groupData.totalIsolateBorrow;
+      (
+        groupData.totalScaledCrossBorrow,
+        groupData.totalCrossBorrow,
+        groupData.totalScaledIsolateBorrow,
+        groupData.totalIsolateBorrow
+      ) = tsPoolManager.getUserAssetGroupData(user, poolId, asset, uint8(groupIds[i]));
     }
   }
 
@@ -260,8 +260,6 @@ abstract contract TestWithData is TestWithSetup {
     userAssetDataNew.totalScaledIsolateSupply = userAssetDataOld.totalScaledIsolateSupply;
     userAssetDataNew.totalIsolateSupply = userAssetDataOld.totalIsolateSupply;
 
-    userAssetDataNew.totalSupply = userAssetDataOld.totalSupply;
-
     userAssetDataNew.groupsData = new TestUserGroupData[](userAssetDataOld.groupsData.length);
     for (uint256 i = 0; i < userAssetDataOld.groupsData.length; i++) {
       TestUserGroupData memory groupDataOld = userAssetDataOld.groupsData[i];
@@ -271,11 +269,7 @@ abstract contract TestWithData is TestWithSetup {
       groupDataNew.totalCrossBorrow = groupDataOld.totalCrossBorrow;
       groupDataNew.totalScaledIsolateBorrow = groupDataOld.totalScaledIsolateBorrow;
       groupDataNew.totalIsolateBorrow = groupDataOld.totalIsolateBorrow;
-
-      groupDataNew.totalBorrow = groupDataOld.totalBorrow;
     }
-
-    userAssetDataNew.totalBorrow = userAssetDataOld.totalBorrow;
 
     if (_debugFlag) console.log('copyUserAssetData', 'end');
   }

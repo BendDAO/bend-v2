@@ -39,6 +39,9 @@ library IsolateLogic {
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.asset];
     DataTypes.AssetData storage nftAssetData = poolData.assetLookup[params.nftAsset];
 
+    // update state MUST BEFORE get borrow amount which is depent on latest borrow index
+    InterestLogic.updateInterestIndexs(poolData, debtAssetData);
+
     // check the basic params
     ValidateLogic.validateIsolateBorrowBasic(params, poolData, debtAssetData, nftAssetData, msg.sender);
 
@@ -47,8 +50,6 @@ library IsolateLogic {
     for (vars.nidx = 0; vars.nidx < params.nftTokenIds.length; vars.nidx++) {
       DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[nftAssetData.classGroup];
       DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[params.nftAsset][params.nftTokenIds[vars.nidx]];
-
-      InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
 
       ValidateLogic.validateIsolateBorrowLoan(
         params,
@@ -111,14 +112,15 @@ library IsolateLogic {
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.asset];
     DataTypes.AssetData storage nftAssetData = poolData.assetLookup[params.nftAsset];
 
+    // update state MUST BEFORE get borrow amount which is depent on latest borrow index
+    InterestLogic.updateInterestIndexs(poolData, debtAssetData);
+
     // do some basic checks, e.g. params
     ValidateLogic.validateIsolateRepayBasic(params, poolData, debtAssetData, nftAssetData);
 
     for (vars.nidx = 0; vars.nidx < params.nftTokenIds.length; vars.nidx++) {
       DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[params.nftAsset][params.nftTokenIds[vars.nidx]];
       DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[loanData.reserveGroup];
-
-      InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
 
       ValidateLogic.validateIsolateRepayLoan(params, debtGroupData, loanData);
 
@@ -179,13 +181,14 @@ library IsolateLogic {
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.asset];
     DataTypes.AssetData storage nftAssetData = poolData.assetLookup[params.nftAsset];
 
+    // update state MUST BEFORE get borrow amount which is depent on latest borrow index
+    InterestLogic.updateInterestIndexs(poolData, debtAssetData);
+
     ValidateLogic.validateIsolateAuctionBasic(params, poolData, debtAssetData, nftAssetData);
 
     for (vars.nidx = 0; vars.nidx < params.nftTokenIds.length; vars.nidx++) {
       DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[params.nftAsset][params.nftTokenIds[vars.nidx]];
       DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[loanData.reserveGroup];
-
-      InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
 
       ValidateLogic.validateIsolateAuctionLoan(params, debtGroupData, loanData);
 
@@ -272,21 +275,21 @@ library IsolateLogic {
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.asset];
     DataTypes.AssetData storage nftAssetData = poolData.assetLookup[params.nftAsset];
 
+    // update state MUST BEFORE get borrow amount which is depent on latest borrow index
+    InterestLogic.updateInterestIndexs(poolData, debtAssetData);
+
     ValidateLogic.validateIsolateRedeemBasic(params, poolData, debtAssetData, nftAssetData);
 
     for (vars.nidx = 0; vars.nidx < params.nftTokenIds.length; vars.nidx++) {
       DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[params.nftAsset][params.nftTokenIds[vars.nidx]];
       DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[loanData.reserveGroup];
 
-      // update state MUST BEFORE get borrow amount which is depent on latest borrow index
-      InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
-
       ValidateLogic.validateIsolateRedeemLoan(params, debtGroupData, loanData);
 
       vars.auctionEndTimestamp = loanData.bidStartTimestamp + nftAssetData.auctionDuration;
       require(block.timestamp <= vars.auctionEndTimestamp, Errors.ISOLATE_BID_AUCTION_DURATION_HAS_END);
 
-      vars.normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtGroupData);
+      vars.normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtAssetData, debtGroupData);
       vars.borrowAmount = loanData.scaledAmount.rayMul(vars.normalizedIndex);
 
       // check bid fine in min & max range
@@ -356,6 +359,9 @@ library IsolateLogic {
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.asset];
     DataTypes.AssetData storage nftAssetData = poolData.assetLookup[params.nftAsset];
 
+    // update state MUST BEFORE get borrow amount which is depent on latest borrow index
+    InterestLogic.updateInterestIndexs(poolData, debtAssetData);
+
     ValidateLogic.validateIsolateLiquidateBasic(params, poolData, debtAssetData, nftAssetData);
 
     for (vars.nidx = 0; vars.nidx < params.nftTokenIds.length; vars.nidx++) {
@@ -363,15 +369,12 @@ library IsolateLogic {
       DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[loanData.reserveGroup];
       DataTypes.ERC721TokenData storage tokenData = nftAssetData.erc721TokenData[params.nftTokenIds[vars.nidx]];
 
-      // update state MUST BEFORE get borrow amount which is depent on latest borrow index
-      InterestLogic.updateInterestBorrowIndex(debtAssetData, debtGroupData);
-
       ValidateLogic.validateIsolateLiquidateLoan(params, debtGroupData, loanData);
 
       vars.auctionEndTimestamp = loanData.bidStartTimestamp + nftAssetData.auctionDuration;
       require(block.timestamp > vars.auctionEndTimestamp, Errors.ISOLATE_BID_AUCTION_DURATION_NOT_END);
 
-      vars.normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtGroupData);
+      vars.normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtAssetData, debtGroupData);
       vars.borrowAmount = loanData.scaledAmount.rayMul(vars.normalizedIndex);
 
       // Last bid can not cover borrow amount and liquidator need pay the extra amount

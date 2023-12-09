@@ -57,7 +57,6 @@ library DataTypes {
     // interest state
     uint128 borrowRate;
     uint128 borrowIndex;
-    uint40 lastUpdateTimestamp;
     uint8 groupId;
   }
 

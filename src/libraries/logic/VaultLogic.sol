@@ -134,6 +134,14 @@ library VaultLogic {
     return assetData.totalScaledIsolateSupplied.rayMul(index);
   }
 
+  function erc20GetTotalScaledCrossSupply(DataTypes.AssetData storage assetData) internal view returns (uint256) {
+    return assetData.totalScaledCrossSupplied;
+  }
+
+  function erc20GetTotalScaledIsolateSupply(DataTypes.AssetData storage assetData) internal view returns (uint256) {
+    return assetData.totalScaledIsolateSupplied;
+  }
+
   /**
    * @dev Get user scaled supply balance not related to the index.
    */
