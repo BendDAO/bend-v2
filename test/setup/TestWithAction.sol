@@ -73,22 +73,13 @@ abstract contract TestWithAction is TestWithData {
       TestContractData memory dataAfter = getContractData(sender, poolId, asset, Constants.ASSET_TYPE_ERC20);
 
       // calc expected data
-      TestAssetData memory expectedAssetData = calcExpectedAssetDataAfterDepositERC20(
-        dataBefore,
-        dataAfter,
-        amount,
-        txTimestamp
-      );
-      TestUserAssetData memory expectedUserData = calcExpectedUserDataAfterDepositERC20(
-        dataBefore,
-        dataAfter,
-        amount,
-        txTimestamp
-      );
+      TestContractData memory dataExpected;
+      calcExpectedAssetDataAfterDepositERC20(dataBefore, dataAfter, dataExpected, amount, txTimestamp);
+      calcExpectedUserDataAfterDepositERC20(dataBefore, dataAfter, dataExpected, amount, txTimestamp);
 
       // check the results
-      checkAssetData(TestAction.DepositERC20, dataAfter.assetData, expectedAssetData);
-      checkUserAssetData(TestAction.DepositERC20, dataAfter.userAssetData, expectedUserData);
+      checkAssetData(TestAction.DepositERC20, dataAfter.assetData, dataExpected.assetData);
+      checkUserAssetData(TestAction.DepositERC20, dataAfter.userAssetData, dataExpected.userAssetData);
     }
     if (_debugFlag) console.log('>>>>actionDepositERC20', 'end');
   }
@@ -119,22 +110,13 @@ abstract contract TestWithAction is TestWithData {
       TestContractData memory dataAfter = getContractData(sender, poolId, asset, Constants.ASSET_TYPE_ERC20);
 
       // calc expected data
-      TestAssetData memory expectedAssetData = calcExpectedAssetDataAfterWithdrawERC20(
-        dataBefore,
-        dataAfter,
-        amount,
-        txTimestamp
-      );
-      TestUserAssetData memory expectedUserData = calcExpectedUserDataAfterWithdrawERC20(
-        dataBefore,
-        dataAfter,
-        amount,
-        txTimestamp
-      );
+      TestContractData memory dataExpected;
+      calcExpectedAssetDataAfterWithdrawERC20(dataBefore, dataAfter, dataExpected, amount, txTimestamp);
+      calcExpectedUserDataAfterWithdrawERC20(dataBefore, dataAfter, dataExpected, amount, txTimestamp);
 
       // check the results
-      checkAssetData(TestAction.WithdrawERC20, dataAfter.assetData, expectedAssetData);
-      checkUserAssetData(TestAction.WithdrawERC20, dataAfter.userAssetData, expectedUserData);
+      checkAssetData(TestAction.WithdrawERC20, dataAfter.assetData, dataExpected.assetData);
+      checkUserAssetData(TestAction.WithdrawERC20, dataAfter.userAssetData, dataExpected.userAssetData);
     }
     if (_debugFlag) console.log('actionWithdrawERC20', 'end');
   }
@@ -166,24 +148,27 @@ abstract contract TestWithAction is TestWithData {
       TestContractData memory dataAfter = getContractData(sender, poolId, asset, Constants.ASSET_TYPE_ERC721);
 
       // calc expected data
-      TestAssetData memory expectedAssetData = calcExpectedAssetDataAfterDepositERC721(
+      TestContractData memory dataExpected;
+      calcExpectedAssetDataAfterDepositERC721(
         dataBefore,
         dataAfter,
+        dataExpected,
         tokenIds.length,
         supplyMode,
         txTimestamp
       );
-      TestUserAssetData memory expectedUserData = calcExpectedUserDataAfterDepositERC721(
+      calcExpectedUserDataAfterDepositERC721(
         dataBefore,
         dataAfter,
+        dataExpected,
         tokenIds.length,
         supplyMode,
         txTimestamp
       );
 
       // check the results
-      checkAssetData(TestAction.DepositERC721, dataAfter.assetData, expectedAssetData);
-      checkUserAssetData(TestAction.DepositERC721, dataAfter.userAssetData, expectedUserData);
+      checkAssetData(TestAction.DepositERC721, dataAfter.assetData, dataExpected.assetData);
+      checkUserAssetData(TestAction.DepositERC721, dataAfter.userAssetData, dataExpected.userAssetData);
     }
     if (_debugFlag) console.log('actionDepositERC721', 'end');
   }
@@ -215,24 +200,27 @@ abstract contract TestWithAction is TestWithData {
       TestContractData memory dataAfter = getContractData(sender, poolId, asset, Constants.ASSET_TYPE_ERC20);
 
       // calc expected data
-      TestAssetData memory expectedAssetData = calcExpectedAssetDataAfterWithdrawERC721(
+      TestContractData memory dataExpected;
+      calcExpectedAssetDataAfterWithdrawERC721(
         dataBefore,
         dataAfter,
+        dataExpected,
         tokenIds.length,
         supplyMode,
         txTimestamp
       );
-      TestUserAssetData memory expectedUserData = calcExpectedUserDataAfterWithdrawERC721(
+      calcExpectedUserDataAfterWithdrawERC721(
         dataBefore,
         dataAfter,
+        dataExpected,
         tokenIds.length,
         supplyMode,
         txTimestamp
       );
 
       // check the results
-      checkAssetData(TestAction.WithdrawERC721, dataAfter.assetData, expectedAssetData);
-      checkUserAssetData(TestAction.WithdrawERC721, dataAfter.userAssetData, expectedUserData);
+      checkAssetData(TestAction.WithdrawERC721, dataAfter.assetData, dataExpected.assetData);
+      checkUserAssetData(TestAction.WithdrawERC721, dataAfter.userAssetData, dataExpected.userAssetData);
     }
     if (_debugFlag) console.log('actionWithdrawERC721', 'end');
   }
@@ -266,24 +254,13 @@ abstract contract TestWithAction is TestWithData {
       TestContractData memory dataAfter = getContractData(sender, poolId, asset, Constants.ASSET_TYPE_ERC20);
 
       // calc expected data
-      TestAssetData memory expectedAssetData = calcExpectedAssetDataAfterCrossBorrowERC20(
-        dataBefore,
-        dataAfter,
-        groups,
-        amounts,
-        txTimestamp
-      );
-      TestUserAssetData memory expectedUserData = calcExpectedUserDataAfterCrossBorrowERC20(
-        dataBefore,
-        dataAfter,
-        groups,
-        amounts,
-        txTimestamp
-      );
+      TestContractData memory dataExpected;
+      calcExpectedAssetDataAfterCrossBorrowERC20(dataBefore, dataAfter, dataExpected, groups, amounts, txTimestamp);
+      calcExpectedUserDataAfterCrossBorrowERC20(dataBefore, dataAfter, dataExpected, groups, amounts, txTimestamp);
 
       // check the results
-      checkAssetData(TestAction.CrossBorrowERC20, dataAfter.assetData, expectedAssetData);
-      checkUserAssetData(TestAction.CrossBorrowERC20, dataAfter.userAssetData, expectedUserData);
+      checkAssetData(TestAction.CrossBorrowERC20, dataAfter.assetData, dataExpected.assetData);
+      checkUserAssetData(TestAction.CrossBorrowERC20, dataAfter.userAssetData, dataExpected.userAssetData);
     }
     if (_debugFlag) console.log('>>>>actionCrossBorrowERC20', 'end');
   }
@@ -325,6 +302,88 @@ abstract contract TestWithAction is TestWithData {
       checkUserAssetData(TestAction.CrossRepayERC20, dataAfter.userAssetData, dataExpected.userAssetData);
     }
     if (_debugFlag) console.log('>>>>actionCrossRepayERC20', 'end');
+  }
+
+  function actionCrossLiquidateERC20(
+    address sender,
+    uint32 poolId,
+    address user,
+    address collateralAsset,
+    address debtAsset,
+    uint256 debtToCover,
+    bool supplyAsCollateral,
+    bytes memory revertMessage
+  ) internal {
+    if (_debugFlag) console.log('<<<<actionCrossLiquidateERC20', 'begin');
+    if (revertMessage.length > 0) {
+      vm.expectRevert(revertMessage);
+      tsHEVM.prank(sender);
+      tsPoolManager.crossLiquidateERC20(poolId, user, collateralAsset, debtAsset, debtToCover, supplyAsCollateral);
+    } else {
+      // fetch contract data
+      TestContractData memory dataBefore = getContractData(sender, poolId, collateralAsset, Constants.ASSET_TYPE_ERC20);
+
+      // send tx
+      if (_debugFlag) console.log('actionCrossLiquidateERC20', 'sendtx');
+      tsHEVM.prank(sender);
+      tsPoolManager.crossLiquidateERC20(poolId, user, collateralAsset, debtAsset, debtToCover, supplyAsCollateral);
+      uint256 txTimestamp = block.timestamp;
+
+      // fetch contract data
+      TestContractData memory dataAfter = getContractData(sender, poolId, collateralAsset, Constants.ASSET_TYPE_ERC20);
+
+      // calc expected data
+      TestContractData memory dataExpected;
+
+      //calcExpectedAssetDataAfterCrossRepayERC20(dataBefore, dataAfter, dataExpected, groups, amounts, txTimestamp);
+      //calcExpectedUserDataAfterCrossRepayERC20(dataBefore, dataAfter, dataExpected, groups, amounts, txTimestamp);
+
+      // check the results
+      //checkAssetData(TestAction.CrossRepayERC20, dataAfter.assetData, dataExpected.assetData);
+      //checkUserAssetData(TestAction.CrossRepayERC20, dataAfter.userAssetData, dataExpected.userAssetData);
+    }
+    if (_debugFlag) console.log('>>>>actionCrossLiquidateERC20', 'end');
+  }
+
+  function actionCrossLiquidateERC721(
+    address sender,
+    uint32 poolId,
+    address user,
+    address collateralAsset,
+    uint256[] memory tokenIds,
+    address debtAsset,
+    bool supplyAsCollateral,
+    bytes memory revertMessage
+  ) internal {
+    if (_debugFlag) console.log('<<<<actionCrossLiquidateERC721', 'begin');
+    if (revertMessage.length > 0) {
+      vm.expectRevert(revertMessage);
+      tsHEVM.prank(sender);
+      tsPoolManager.crossLiquidateERC721(poolId, user, collateralAsset, tokenIds, debtAsset, supplyAsCollateral);
+    } else {
+      // fetch contract data
+      TestContractData memory dataBefore = getContractData(sender, poolId, collateralAsset, Constants.ASSET_TYPE_ERC20);
+
+      // send tx
+      if (_debugFlag) console.log('actionCrossLiquidateERC721', 'sendtx');
+      tsHEVM.prank(sender);
+      tsPoolManager.crossLiquidateERC721(poolId, user, collateralAsset, tokenIds, debtAsset, supplyAsCollateral);
+      uint256 txTimestamp = block.timestamp;
+
+      // fetch contract data
+      TestContractData memory dataAfter = getContractData(sender, poolId, collateralAsset, Constants.ASSET_TYPE_ERC20);
+
+      // calc expected data
+      TestContractData memory dataExpected;
+
+      //calcExpectedAssetDataAfterCrossRepayERC20(dataBefore, dataAfter, dataExpected, groups, amounts, txTimestamp);
+      //calcExpectedUserDataAfterCrossRepayERC20(dataBefore, dataAfter, dataExpected, groups, amounts, txTimestamp);
+
+      // check the results
+      //checkAssetData(TestAction.CrossRepayERC20, dataAfter.assetData, dataExpected.assetData);
+      //checkUserAssetData(TestAction.CrossRepayERC20, dataAfter.userAssetData, dataExpected.userAssetData);
+    }
+    if (_debugFlag) console.log('>>>>actionCrossLiquidateERC721', 'end');
   }
 
   // Isolate Lending
@@ -400,11 +459,13 @@ abstract contract TestWithAction is TestWithData {
   function calcExpectedAssetDataAfterDepositERC20(
     TestContractData memory dataBefore,
     TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
     uint256 amountDeposited,
     uint256 txTimestamp
-  ) internal view returns (TestAssetData memory expectedAssetData) {
+  ) internal view {
     if (_debugFlag) console.log('calcExpectedAssetDataAfterDepositERC20', 'begin');
-    expectedAssetData = copyAssetData(dataBefore.assetData);
+    TestAssetData memory expectedAssetData = copyAssetData(dataBefore.assetData);
+    dataExpected.assetData = expectedAssetData;
 
     // index
     calcExpectedInterestIndexs(dataBefore.assetData, expectedAssetData, txTimestamp);
@@ -432,11 +493,13 @@ abstract contract TestWithAction is TestWithData {
   function calcExpectedUserDataAfterDepositERC20(
     TestContractData memory dataBefore,
     TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
     uint256 amountDeposited,
     uint256 /*txTimestamp*/
-  ) internal view returns (TestUserAssetData memory expectedUserData) {
+  ) internal view {
     if (_debugFlag) console.log('calcExpectedUserDataAfterDepositERC20', 'begin');
-    expectedUserData = copyUserAssetData(dataBefore.userAssetData);
+    TestUserAssetData memory expectedUserData = copyUserAssetData(dataBefore.userAssetData);
+    dataExpected.userAssetData = expectedUserData;
 
     // supply
     expectedUserData.walletBalance = dataBefore.userAssetData.walletBalance - amountDeposited;
@@ -453,11 +516,13 @@ abstract contract TestWithAction is TestWithData {
   function calcExpectedAssetDataAfterWithdrawERC20(
     TestContractData memory dataBefore,
     TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
     uint256 amountWithdrawn,
     uint256 txTimestamp
-  ) internal view returns (TestAssetData memory expectedAssetData) {
+  ) internal view {
     if (_debugFlag) console.log('calcExpectedAssetDataAfterWithdrawERC20', 'begin');
-    expectedAssetData = copyAssetData(dataBefore.assetData);
+    TestAssetData memory expectedAssetData = copyAssetData(dataBefore.assetData);
+    dataExpected.assetData = expectedAssetData;
 
     // index
     calcExpectedInterestIndexs(dataBefore.assetData, expectedAssetData, txTimestamp);
@@ -485,11 +550,13 @@ abstract contract TestWithAction is TestWithData {
   function calcExpectedUserDataAfterWithdrawERC20(
     TestContractData memory dataBefore,
     TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
     uint256 amountWithdrawn,
     uint256 /*txTimestamp*/
-  ) internal view returns (TestUserAssetData memory expectedUserData) {
+  ) internal view {
     if (_debugFlag) console.log('calcExpectedUserDataAfterWithdrawERC20', 'begin');
-    expectedUserData = copyUserAssetData(dataBefore.userAssetData);
+    TestUserAssetData memory expectedUserData = copyUserAssetData(dataBefore.userAssetData);
+    dataExpected.userAssetData = expectedUserData;
 
     // supply
     expectedUserData.walletBalance = dataBefore.userAssetData.walletBalance + amountWithdrawn;
@@ -506,12 +573,14 @@ abstract contract TestWithAction is TestWithData {
   function calcExpectedAssetDataAfterDepositERC721(
     TestContractData memory dataBefore,
     TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
     uint256 amountDeposited,
     uint8 supplyMode,
     uint256 /*txTimestamp*/
-  ) internal view returns (TestAssetData memory expectedAssetData) {
+  ) internal view {
     if (_debugFlag) console.log('calcExpectedAssetDataAfterDepositERC721', 'begin');
-    expectedAssetData = copyAssetData(dataBefore.assetData);
+    TestAssetData memory expectedAssetData = copyAssetData(dataBefore.assetData);
+    dataExpected.assetData = expectedAssetData;
 
     // index, no need for erc721
 
@@ -538,12 +607,14 @@ abstract contract TestWithAction is TestWithData {
   function calcExpectedUserDataAfterDepositERC721(
     TestContractData memory dataBefore,
     TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
     uint256 amountDeposited,
     uint8 supplyMode,
     uint256 /*txTimestamp*/
-  ) internal view returns (TestUserAssetData memory expectedUserData) {
+  ) internal view {
     if (_debugFlag) console.log('calcExpectedUserDataAfterDepositERC721', 'begin');
-    expectedUserData = copyUserAssetData(dataBefore.userAssetData);
+    TestUserAssetData memory expectedUserData = copyUserAssetData(dataBefore.userAssetData);
+    dataExpected.userAssetData = expectedUserData;
 
     // supply
     expectedUserData.walletBalance = dataBefore.userAssetData.walletBalance - amountDeposited;
@@ -564,12 +635,14 @@ abstract contract TestWithAction is TestWithData {
   function calcExpectedAssetDataAfterWithdrawERC721(
     TestContractData memory dataBefore,
     TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
     uint256 amountWithdrawn,
     uint8 supplyMode,
     uint256 /*txTimestamp*/
-  ) internal view returns (TestAssetData memory expectedAssetData) {
+  ) internal view {
     if (_debugFlag) console.log('calcExpectedAssetDataAfterWithdrawERC721', 'begin');
-    expectedAssetData = copyAssetData(dataBefore.assetData);
+    TestAssetData memory expectedAssetData = copyAssetData(dataBefore.assetData);
+    dataExpected.assetData = expectedAssetData;
 
     // index, no need for erc721
 
@@ -593,12 +666,14 @@ abstract contract TestWithAction is TestWithData {
   function calcExpectedUserDataAfterWithdrawERC721(
     TestContractData memory dataBefore,
     TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
     uint256 amountWithdrawn,
     uint8 supplyMode,
     uint256 /*txTimestamp*/
-  ) internal view returns (TestUserAssetData memory expectedUserData) {
+  ) internal view {
     if (_debugFlag) console.log('calcExpectedUserDataAfterWithdrawERC721', 'begin');
-    expectedUserData = copyUserAssetData(dataBefore.userAssetData);
+    TestUserAssetData memory expectedUserData = copyUserAssetData(dataBefore.userAssetData);
+    dataExpected.userAssetData = expectedUserData;
 
     // supply
     expectedUserData.walletBalance = dataBefore.userAssetData.walletBalance + amountWithdrawn;
@@ -619,12 +694,14 @@ abstract contract TestWithAction is TestWithData {
   function calcExpectedAssetDataAfterCrossBorrowERC20(
     TestContractData memory dataBefore,
     TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
     uint8[] memory groups,
     uint256[] memory amounts,
     uint256 txTimestamp
-  ) internal view returns (TestAssetData memory expectedAssetData) {
+  ) internal view {
     if (_debugFlag) console.log('calcExpectedAssetDataAfterCrossBorrowERC20', 'begin');
-    expectedAssetData = copyAssetData(dataBefore.assetData);
+    TestAssetData memory expectedAssetData = copyAssetData(dataBefore.assetData);
+    dataExpected.assetData = expectedAssetData;
 
     // index
     calcExpectedInterestIndexs(dataBefore.assetData, expectedAssetData, txTimestamp);
@@ -671,12 +748,14 @@ abstract contract TestWithAction is TestWithData {
   function calcExpectedUserDataAfterCrossBorrowERC20(
     TestContractData memory dataBefore,
     TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
     uint8[] memory groups,
     uint256[] memory amounts,
     uint256 /*txTimestamp*/
-  ) internal view returns (TestUserAssetData memory expectedUserData) {
+  ) internal view {
     if (_debugFlag) console.log('calcExpectedUserDataAfterCrossBorrowERC20', 'begin');
-    expectedUserData = copyUserAssetData(dataBefore.userAssetData);
+    TestUserAssetData memory expectedUserData = copyUserAssetData(dataBefore.userAssetData);
+    dataExpected.userAssetData = expectedUserData;
 
     uint256 totalAmountBorrowed;
     for (uint256 i = 0; i < amounts.length; i++) {

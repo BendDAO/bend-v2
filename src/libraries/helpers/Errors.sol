@@ -66,6 +66,8 @@ library Errors {
   string public constant ASSET_YIELD_ALREADY_ENABLE = '354';
   string public constant ASSET_YIELD_NOT_ENABLE = '355';
   string public constant ASSET_YIELD_IS_PAUSED = '356';
+  string public constant ASSET_INSUFFICIENT_LIQUIDITY = '357';
+  string public constant ASSET_INSUFFICIENT_BIDAMOUNT = '358';
 
   string public constant HEALTH_FACTOR_BELOW_LIQUIDATION_THRESHOLD = '400';
   string public constant HEALTH_FACTOR_NOT_BELOW_LIQUIDATION_THRESHOLD = '401';

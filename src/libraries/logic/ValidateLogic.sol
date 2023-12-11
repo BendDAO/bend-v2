@@ -65,6 +65,8 @@ library ValidateLogic {
 
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
     require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
+
+    require(inputParams.amount <= assetData.availableLiquidity, Errors.ASSET_INSUFFICIENT_LIQUIDITY);
   }
 
   function validateDepositERC721(
@@ -111,6 +113,7 @@ library ValidateLogic {
 
   struct ValidateCrossBorrowERC20Vars {
     uint256 gidx;
+    uint256 totalBorrowAmount;
     uint256 amountInBaseCurrency;
     uint256 collateralNeededInBaseCurrency;
   }
@@ -128,7 +131,6 @@ library ValidateLogic {
     require(assetData.isBorrowingEnabled, Errors.ASSET_IS_BORROW_DISABLED);
 
     require(inputParams.groups.length > 0, Errors.GROUP_LIST_IS_EMPTY);
-    require(inputParams.groups.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGH);
   }
 
   function validateCrossBorrowERC20Account(
@@ -178,7 +180,11 @@ library ValidateLogic {
           userAccountResult.allGroupsCollateralInBaseCurrency[inputParams.groups[vars.gidx]],
         Errors.COLLATERAL_CANNOT_COVER_NEW_BORROW
       );
+
+      vars.totalBorrowAmount += inputParams.amounts[vars.gidx];
     }
+
+    require(vars.totalBorrowAmount <= assetData.availableLiquidity, Errors.ASSET_INSUFFICIENT_LIQUIDITY);
   }
 
   function validateCrossRepayERC20Basic(
@@ -283,8 +289,10 @@ library ValidateLogic {
     require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
     require(inputParams.nftTokenIds.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGH);
 
+    uint256 totalBorrowAmount;
     for (uint256 i = 0; i < inputParams.nftTokenIds.length; i++) {
       require(inputParams.amounts[i] > 0, Errors.INVALID_AMOUNT);
+      totalBorrowAmount += inputParams.amounts[i];
 
       (address owner, uint8 supplyMode) = VaultLogic.erc721GetTokenOwnerAndMode(
         nftAssetData,
@@ -293,6 +301,8 @@ library ValidateLogic {
       require(owner == user, Errors.ISOLATE_LOAN_OWNER_NOT_MATCH);
       require(supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.ASSET_NOT_ISOLATE_MODE);
     }
+
+    require(totalBorrowAmount <= debtAssetData.availableLiquidity, Errors.ASSET_INSUFFICIENT_LIQUIDITY);
   }
 
   function validateIsolateBorrowLoan(
@@ -482,6 +492,7 @@ library ValidateLogic {
     validateGroupBasic(groupData);
 
     require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
+    require(inputParams.amount <= assetData.availableLiquidity, Errors.ASSET_INSUFFICIENT_LIQUIDITY);
   }
 
   function validateYieldRepayERC20(

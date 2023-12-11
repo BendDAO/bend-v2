@@ -405,6 +405,7 @@ library VaultLogic {
 
     uint256 poolSizeBefore = IERC20Upgradeable(asset).balanceOf(address(this));
 
+    require(assetData.availableLiquidity >= amount, Errors.ASSET_INSUFFICIENT_LIQUIDITY);
     assetData.availableLiquidity -= amount;
 
     IERC20Upgradeable(asset).safeTransfer(to, amount);
@@ -443,6 +444,7 @@ library VaultLogic {
 
     uint256 poolSizeBefore = IERC20Upgradeable(asset).balanceOf(address(this));
 
+    require(assetData.totalBidAmout >= amount, Errors.ASSET_INSUFFICIENT_BIDAMOUNT);
     assetData.totalBidAmout -= amount;
 
     IERC20Upgradeable(asset).safeTransfer(to, amount);

@@ -50,10 +50,28 @@ contract TestIntDepositERC20 is TestWithIntegration {
     uint256 amount1 = 123 ether;
     actionDepositERC20(address(tsDepositor1), tsCommonPoolId, address(tsWETH), amount1, new bytes(0));
 
-    advanceBlocks(100);
+    advanceTimes(30 days);
+
+    TestUserAssetData memory userAssetData1 = getUserAssetData(
+      address(tsDepositor1),
+      tsCommonPoolId,
+      address(tsWETH),
+      Constants.ASSET_TYPE_ERC20
+    );
+    assertEq(userAssetData1.totalCrossSupply, amount1, 'TC:UAD:totalCrossSupply == amount1');
 
     uint256 amount2 = 45 ether;
     actionDepositERC20(address(tsDepositor1), tsCommonPoolId, address(tsWETH), amount2, new bytes(0));
+
+    advanceTimes(30 days);
+
+    TestUserAssetData memory userAssetData2 = getUserAssetData(
+      address(tsDepositor1),
+      tsCommonPoolId,
+      address(tsWETH),
+      Constants.ASSET_TYPE_ERC20
+    );
+    assertEq(userAssetData2.totalCrossSupply, amount1 + amount2, 'TC:UAD:totalCrossSupply == amount1+amount2');
   }
 
   function test_Should_Deposit_USDT() public {
@@ -62,9 +80,27 @@ contract TestIntDepositERC20 is TestWithIntegration {
     uint256 amount1 = 543 * (10 ** tsUSDT.decimals());
     actionDepositERC20(address(tsDepositor1), tsCommonPoolId, address(tsUSDT), amount1, new bytes(0));
 
-    advanceBlocks(100);
+    advanceTimes(30 days);
+
+    TestUserAssetData memory userAssetData1 = getUserAssetData(
+      address(tsDepositor1),
+      tsCommonPoolId,
+      address(tsUSDT),
+      Constants.ASSET_TYPE_ERC20
+    );
+    assertEq(userAssetData1.totalCrossSupply, amount1, 'TC:UAD:totalCrossSupply == amount1');
 
     uint256 amount2 = 21 * (10 ** tsUSDT.decimals());
     actionDepositERC20(address(tsDepositor1), tsCommonPoolId, address(tsUSDT), amount2, new bytes(0));
+
+    advanceTimes(30 days);
+
+    TestUserAssetData memory userAssetData2 = getUserAssetData(
+      address(tsDepositor1),
+      tsCommonPoolId,
+      address(tsUSDT),
+      Constants.ASSET_TYPE_ERC20
+    );
+    assertEq(userAssetData2.totalCrossSupply, amount1 + amount2, 'TC:UAD:totalCrossSupply == amount1+amount2');
   }
 }

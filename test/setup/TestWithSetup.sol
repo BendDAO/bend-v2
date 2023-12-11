@@ -69,6 +69,11 @@ abstract contract TestWithSetup is TestWithUtils {
   TestUser public tsBorrower3;
   TestUser[] public tsBorrowers;
 
+  TestUser public tsLiquidator1;
+  TestUser public tsLiquidator2;
+  TestUser public tsLiquidator3;
+  TestUser[] public tsLiquidators;
+
   uint256[] public tsD1TokenIds;
   uint256[] public tsD2TokenIds;
   uint256[] public tsD3TokenIds;
@@ -178,6 +183,7 @@ abstract contract TestWithSetup is TestWithUtils {
   }
 
   function initUsers() internal {
+    // depositors
     for (uint256 i = 0; i < 3; i++) {
       uint256 uid = ((i + 1) * 100);
       tsDepositors.push(new TestUser(tsPoolManager, uid));
@@ -188,16 +194,27 @@ abstract contract TestWithSetup is TestWithUtils {
     tsDepositor2 = tsDepositors[1];
     tsDepositor3 = tsDepositors[2];
 
+    // borrowers
     for (uint256 i = 0; i < 3; i++) {
       uint256 uid = ((i + 4) * 100);
       tsBorrowers.push(new TestUser(tsPoolManager, uid));
       tsHEVM.label(address(tsBorrowers[i]), string(abi.encodePacked('Borrower', Strings.toString(i + 4))));
       fillUserBalances(tsBorrowers[i]);
     }
-
     tsBorrower1 = tsBorrowers[0];
     tsBorrower2 = tsBorrowers[1];
     tsBorrower3 = tsBorrowers[2];
+
+    // liquidators
+    for (uint256 i = 0; i < 3; i++) {
+      uint256 uid = ((i + 7) * 100);
+      tsLiquidators.push(new TestUser(tsPoolManager, uid));
+      tsHEVM.label(address(tsLiquidators[i]), string(abi.encodePacked('Liquidator', Strings.toString(i + 7))));
+      fillUserBalances(tsLiquidators[i]);
+    }
+    tsLiquidator1 = tsLiquidators[0];
+    tsLiquidator2 = tsLiquidators[1];
+    tsLiquidator3 = tsLiquidators[2];
   }
 
   function fillUserBalances(TestUser user) internal {

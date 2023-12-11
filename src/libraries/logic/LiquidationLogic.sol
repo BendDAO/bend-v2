@@ -23,6 +23,8 @@ import {InterestLogic} from './InterestLogic.sol';
 import {GenericLogic} from './GenericLogic.sol';
 import {ValidateLogic} from './ValidateLogic.sol';
 
+import 'forge-std/console.sol';
+
 library LiquidationLogic {
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
@@ -97,16 +99,17 @@ library LiquidationLogic {
       IPriceOracleGetter(cs.priceOracle)
     );
 
-    InterestLogic.updateInterestRates(poolData, debtAssetData, vars.actualDebtToLiquidate, 0);
-
-    // Transfers the debt asset being repaid to the vault, where the liquidity is kept
-    VaultLogic.erc20TransferInLiquidity(debtAssetData, msg.sender, vars.actualDebtToLiquidate);
-
     vars.remainDebtToLiquidate = _repayUserERC20Debt(poolData, debtAssetData, params.user, vars.actualDebtToLiquidate);
     require(vars.remainDebtToLiquidate == 0, Errors.LIQUIDATE_REPAY_DEBT_FAILED);
 
     // If all the debt has being repaid we need clear the borrow flag
     VaultLogic.accountCheckAndSetBorrowedAsset(poolData, debtAssetData, params.user);
+
+    // update rates before transer liquidator repaid debt asset
+    InterestLogic.updateInterestRates(poolData, debtAssetData, vars.actualDebtToLiquidate, 0);
+
+    // Transfers the debt asset being repaid to the vault, where the liquidity is kept
+    VaultLogic.erc20TransferInLiquidity(debtAssetData, msg.sender, vars.actualDebtToLiquidate);
 
     // Whether transfer the liquidated collateral or supplied as new collateral to liquidator
     if (params.supplyAsCollateral) {
@@ -163,8 +166,8 @@ library LiquidationLogic {
 
     vars.userAccountResult = GenericLogic.calculateUserAccountDataForLiquidate(
       poolData,
-      params.collateralAsset,
       params.user,
+      params.collateralAsset,
       cs.priceOracle
     );
 
@@ -184,11 +187,6 @@ library LiquidationLogic {
       IPriceOracleGetter(cs.priceOracle)
     );
 
-    InterestLogic.updateInterestRates(poolData, debtAssetData, vars.actualDebtToLiquidate, 0);
-
-    // Transfers the debt asset being repaid to the vault, where the liquidity is kept
-    VaultLogic.erc20TransferInLiquidity(debtAssetData, msg.sender, vars.actualDebtToLiquidate);
-
     // try to repay debt for the user, the liquidated debt amount may less than user total debt
     vars.remainDebtToLiquidate = _repayUserERC20Debt(poolData, debtAssetData, params.user, vars.actualDebtToLiquidate);
     if (vars.remainDebtToLiquidate > 0) {
@@ -201,6 +199,11 @@ library LiquidationLogic {
 
     // If all the debt has being repaid we need to clear the borrow flag
     VaultLogic.accountCheckAndSetBorrowedAsset(poolData, debtAssetData, params.user);
+
+    InterestLogic.updateInterestRates(poolData, debtAssetData, vars.actualDebtToLiquidate, 0);
+
+    // Transfers the debt asset being repaid to the vault, where the liquidity is kept
+    VaultLogic.erc20TransferInLiquidity(debtAssetData, msg.sender, vars.actualDebtToLiquidate);
 
     // Whether transfer the liquidated collateral or supplied as new collateral to liquidator
     if (params.supplyAsCollateral) {
@@ -233,6 +236,7 @@ library LiquidationLogic {
     // Burn the equivalent amount of collateral, sending the underlying to the liquidator
     VaultLogic.erc20DecreaseCrossSupply(collateralAssetData, params.user, vars.actualCollateralToLiquidate);
 
+    // update rates before transfer out collateral to liquidator
     InterestLogic.updateInterestRates(poolData, collateralAssetData, 0, vars.actualCollateralToLiquidate);
 
     VaultLogic.erc20TransferOutLiquidity(collateralAssetData, msg.sender, vars.actualCollateralToLiquidate);
@@ -247,6 +251,9 @@ library LiquidationLogic {
     InputTypes.ExecuteCrossLiquidateERC20Params memory params,
     LiquidateERC20LocalVars memory vars
   ) internal {
+    // no need to update the interest rate, cos the total suplly not changed
+
+    // transfer the equivalent amount between liquidator and borrower
     VaultLogic.erc20TransferCrossSupply(collateralAssetData, params.user, msg.sender, vars.actualCollateralToLiquidate);
 
     // If the collateral is supplied at first we need set the supply flag
@@ -267,7 +274,6 @@ library LiquidationLogic {
     KVSortUtils.KeyValue[] memory groupRateList = new KVSortUtils.KeyValue[](assetGroupIds.length);
     for (uint256 i = 0; i < groupRateList.length; i++) {
       DataTypes.GroupData storage loopGroupData = debtAssetData.groupLookup[uint8(assetGroupIds[i])];
-
       groupRateList[i].key = assetGroupIds[i];
       groupRateList[i].val = loopGroupData.borrowRate;
     }
@@ -284,6 +290,12 @@ library LiquidationLogic {
         user,
         loopGroupData.borrowIndex
       );
+      // just ignore if no debt in the group
+      if (curDebtRepayAmount == 0) {
+        continue;
+      }
+
+      // only repaid the max actual debt in the group
       if (curDebtRepayAmount > remainDebtToLiquidate) {
         curDebtRepayAmount = remainDebtToLiquidate;
         remainDebtToLiquidate = 0;
@@ -417,8 +429,6 @@ library LiquidationLogic {
     uint256 collateralTotalDebtToCover;
     uint256 collateralItemDebtToCover;
     uint256 debtAssetPrice;
-    uint256 collateralAssetUnit;
-    uint256 debtAssetDecimals;
     uint256 debtAssetUnit;
     uint256 debtAmountNeeded;
   }
@@ -435,14 +445,14 @@ library LiquidationLogic {
   ) internal view returns (uint256) {
     CalculateDebtAmountFromERC721CollateralLocalVars memory vars;
 
-    vars.collateralAssetUnit = oracle.BASE_CURRENCY_UNIT();
+    // in this function, all prices are in base currency
+
     vars.collateralPrice = oracle.getAssetPrice(params.collateralAsset);
     vars.collateralBonusPrice = vars.collateralPrice.percentMul(
       PercentageMath.PERCENTAGE_FACTOR - collateralAssetData.liquidationBonus
     );
 
-    vars.debtAssetDecimals = debtAssetData.underlyingDecimals;
-    vars.debtAssetUnit = 10 ** vars.debtAssetDecimals;
+    vars.debtAssetUnit = 10 ** debtAssetData.underlyingDecimals;
     vars.debtAssetPrice = oracle.getAssetPrice(params.debtAsset);
 
     // calculate the debt should be covered by the liquidated collateral of user
@@ -458,8 +468,9 @@ library LiquidationLogic {
       vars.collateralLiquidatePrice = vars.collateralItemDebtToCover;
     }
 
-    vars.debtAmountNeeded = ((vars.collateralLiquidatePrice * params.collateralTokenIds.length * vars.debtAssetUnit) /
-      (vars.debtAssetPrice * vars.collateralAssetUnit));
+    vars.debtAmountNeeded =
+      (vars.collateralLiquidatePrice * params.collateralTokenIds.length * vars.debtAssetUnit) /
+      vars.debtAssetPrice;
 
     return (vars.debtAmountNeeded);
   }
