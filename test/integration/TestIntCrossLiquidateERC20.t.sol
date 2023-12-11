@@ -50,9 +50,10 @@ contract TestIntCrossLiquidateERC20 is TestWithIntegration {
     // make some interest
     advanceTimes(365 days);
 
+    // drop down eth price to lower heath factor
     uint256 wethCurPrice = tsPriceOracle.getAssetPrice(address(tsWETH));
     uint256 wethNewPrice = (wethCurPrice * 80) / 100;
-    tsCLAggregatorUSDT.updateAnswer(int256(wethNewPrice));
+    tsCLAggregatorWETH.updateAnswer(int256(wethNewPrice));
 
     TestUserAccountData memory accountDataAfterBorrow = getUserAccountData(tsCommonPoolId, address(tsBorrower1));
     assertLt(accountDataAfterBorrow.healthFactor, 1e18, 'ACC:healthFactor');

@@ -343,8 +343,6 @@ library LiquidationLogic {
     uint256 maxCollateralToLiquidate;
     uint256 baseCollateral;
     uint256 bonusCollateral;
-    uint256 debtAssetDecimals;
-    uint256 collateralDecimals;
     uint256 collateralAssetUnit;
     uint256 debtAssetUnit;
     uint256 collateralAmount;
@@ -366,16 +364,13 @@ library LiquidationLogic {
     vars.collateralPrice = oracle.getAssetPrice(collateralAssetData.underlyingAsset);
     vars.debtAssetPrice = oracle.getAssetPrice(debtAssetData.underlyingAsset);
 
-    vars.collateralDecimals = collateralAssetData.underlyingDecimals;
-    vars.debtAssetDecimals = debtAssetData.underlyingDecimals;
-
-    vars.collateralAssetUnit = 10 ** vars.collateralDecimals;
-    vars.debtAssetUnit = 10 ** vars.debtAssetDecimals;
+    vars.collateralAssetUnit = 10 ** collateralAssetData.underlyingDecimals;
+    vars.debtAssetUnit = 10 ** debtAssetData.underlyingDecimals;
 
     // This is the base collateral to liquidate based on the given debt to cover
     vars.baseCollateral =
-      ((vars.debtAssetPrice * debtToCover * vars.collateralAssetUnit)) /
-      (vars.collateralPrice * vars.debtAssetUnit);
+      ((debtToCover * vars.debtAssetPrice * vars.collateralAssetUnit)) /
+      (vars.debtAssetUnit * vars.collateralPrice);
 
     vars.maxCollateralToLiquidate = vars.baseCollateral.percentMul(
       PercentageMath.PERCENTAGE_FACTOR + collateralAssetData.liquidationBonus
@@ -383,8 +378,8 @@ library LiquidationLogic {
 
     if (vars.maxCollateralToLiquidate > userCollateralBalance) {
       vars.collateralAmount = userCollateralBalance;
-      vars.debtAmountNeeded = ((vars.collateralPrice * vars.collateralAmount * vars.debtAssetUnit) /
-        (vars.debtAssetPrice * vars.collateralAssetUnit)).percentDiv(
+      vars.debtAmountNeeded = ((vars.collateralAmount * vars.collateralPrice * vars.debtAssetUnit) /
+        (vars.collateralAssetUnit * vars.debtAssetPrice)).percentDiv(
           PercentageMath.PERCENTAGE_FACTOR + collateralAssetData.liquidationBonus
         );
     } else {

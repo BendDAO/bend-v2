@@ -10,6 +10,7 @@ import {MathUtils} from 'src/libraries/math/MathUtils.sol';
 import {PercentageMath} from 'src/libraries/math/PercentageMath.sol';
 
 import {Constants} from 'src/libraries/helpers/Constants.sol';
+import {KVSortUtils} from 'src/libraries/helpers/KVSortUtils.sol';
 
 import {IInterestRateModel} from 'src/interfaces/IInterestRateModel.sol';
 
@@ -188,7 +189,7 @@ abstract contract TestWithAction is TestWithData {
       tsPoolManager.withdrawERC721(poolId, asset, tokenIds, supplyMode);
     } else {
       // fetch contract data
-      TestContractData memory dataBefore = getContractData(sender, poolId, asset, Constants.ASSET_TYPE_ERC20);
+      TestContractData memory dataBefore = getContractData(sender, poolId, asset, Constants.ASSET_TYPE_ERC721);
 
       // send tx
       if (_debugFlag) console.log('actionWithdrawERC721', 'sendtx');
@@ -197,7 +198,7 @@ abstract contract TestWithAction is TestWithData {
       uint256 txTimestamp = block.timestamp;
 
       // fetch contract data
-      TestContractData memory dataAfter = getContractData(sender, poolId, asset, Constants.ASSET_TYPE_ERC20);
+      TestContractData memory dataAfter = getContractData(sender, poolId, asset, Constants.ASSET_TYPE_ERC721);
 
       // calc expected data
       TestContractData memory dataExpected;
@@ -321,7 +322,18 @@ abstract contract TestWithAction is TestWithData {
       tsPoolManager.crossLiquidateERC20(poolId, user, collateralAsset, debtAsset, debtToCover, supplyAsCollateral);
     } else {
       // fetch contract data
+      // liquidator & collateral
       TestContractData memory dataBefore = getContractData(sender, poolId, collateralAsset, Constants.ASSET_TYPE_ERC20);
+
+      // liquidator & debt
+      dataBefore.assetData2 = getAssetData(poolId, debtAsset, Constants.ASSET_TYPE_ERC20);
+      dataBefore.userAssetData2 = getUserAssetData(sender, poolId, debtAsset, Constants.ASSET_TYPE_ERC20);
+
+      // borrower & collateral
+      dataBefore.userAssetData3 = getUserAssetData(user, poolId, collateralAsset, Constants.ASSET_TYPE_ERC20);
+
+      // borrower & debt
+      dataBefore.userAssetData4 = getUserAssetData(user, poolId, debtAsset, Constants.ASSET_TYPE_ERC20);
 
       // send tx
       if (_debugFlag) console.log('actionCrossLiquidateERC20', 'sendtx');
@@ -330,17 +342,90 @@ abstract contract TestWithAction is TestWithData {
       uint256 txTimestamp = block.timestamp;
 
       // fetch contract data
+      // liquidator & collateral
       TestContractData memory dataAfter = getContractData(sender, poolId, collateralAsset, Constants.ASSET_TYPE_ERC20);
+
+      console.log('actionCrossLiquidateERC20-111', dataAfter.assetData.totalCrossSupply);
+
+      // liquidator & debt
+      dataAfter.assetData2 = getAssetData(poolId, debtAsset, Constants.ASSET_TYPE_ERC20);
+      dataAfter.userAssetData2 = getUserAssetData(sender, poolId, debtAsset, Constants.ASSET_TYPE_ERC20);
+
+      // borrower & collateral
+      dataAfter.userAssetData3 = getUserAssetData(user, poolId, collateralAsset, Constants.ASSET_TYPE_ERC20);
+
+      // borrower & debt
+      dataAfter.userAssetData4 = getUserAssetData(user, poolId, debtAsset, Constants.ASSET_TYPE_ERC20);
 
       // calc expected data
       TestContractData memory dataExpected;
 
-      //calcExpectedAssetDataAfterCrossRepayERC20(dataBefore, dataAfter, dataExpected, groups, amounts, txTimestamp);
-      //calcExpectedUserDataAfterCrossRepayERC20(dataBefore, dataAfter, dataExpected, groups, amounts, txTimestamp);
+      uint256 colToLiq = calcExpectedCollateralFromDebtToCover(
+        dataBefore.assetData,
+        dataBefore.assetData2,
+        dataBefore.userAssetData3,
+        debtToCover
+      );
+
+      debtToCover = calcExpectedDebtToCoverFromERC20(dataBefore.assetData, dataBefore.assetData2, colToLiq);
+
+      calcExpectedCollateralAssetDataAfterCrossLiquidateERC20(
+        dataBefore,
+        dataAfter,
+        dataExpected,
+        colToLiq,
+        txTimestamp
+      );
+      calcExpectedDebtAssetDataAfterCrossLiquidateERC20(dataBefore, dataAfter, dataExpected, debtToCover, txTimestamp);
+
+      calcExpectedLiquidatorColUserDataAfterCrossLiquidateERC20(
+        dataBefore,
+        dataAfter,
+        dataExpected,
+        colToLiq,
+        txTimestamp
+      );
+      calcExpectedLiquidatorDebtUserDataAfterCrossLiquidateERC20(
+        dataBefore,
+        dataAfter,
+        dataExpected,
+        debtToCover,
+        txTimestamp
+      );
+
+      calcExpectedBorrowerColUserDataAfterCrossLiquidateERC20(
+        dataBefore,
+        dataAfter,
+        dataExpected,
+        colToLiq,
+        txTimestamp
+      );
+      calcExpectedBorrowerDebtUserDataAfterCrossLiquidateERC20(
+        dataBefore,
+        dataAfter,
+        dataExpected,
+        debtToCover,
+        txTimestamp
+      );
 
       // check the results
-      //checkAssetData(TestAction.CrossRepayERC20, dataAfter.assetData, dataExpected.assetData);
-      //checkUserAssetData(TestAction.CrossRepayERC20, dataAfter.userAssetData, dataExpected.userAssetData);
+      // liquidator & collateral
+      if (_debugFlag) console.log('actionCrossLiquidateERC20', 'check: liquidator & collateral');
+      checkAssetData(TestAction.CrossLiquidateERC20, dataAfter.assetData, dataExpected.assetData);
+      checkUserAssetData(TestAction.CrossLiquidateERC20, dataAfter.userAssetData, dataExpected.userAssetData);
+
+      // liquidator & debt
+      if (_debugFlag) console.log('actionCrossLiquidateERC20', 'check: liquidator & debt');
+      checkAssetData(TestAction.CrossLiquidateERC20, dataAfter.assetData2, dataExpected.assetData2);
+      checkUserAssetData(TestAction.CrossLiquidateERC20, dataAfter.userAssetData2, dataExpected.userAssetData2);
+
+      // borrower & collateral
+      if (_debugFlag) console.log('actionCrossLiquidateERC20', 'check: borrower & collateral');
+      checkUserAssetData(TestAction.CrossLiquidateERC20, dataAfter.userAssetData3, dataExpected.userAssetData3);
+
+      // borrower & debt
+      if (_debugFlag) console.log('actionCrossLiquidateERC20', 'check: borrower & debt');
+      checkUserAssetData(TestAction.CrossLiquidateERC20, dataAfter.userAssetData4, dataExpected.userAssetData4);
     }
     if (_debugFlag) console.log('>>>>actionCrossLiquidateERC20', 'end');
   }
@@ -362,7 +447,23 @@ abstract contract TestWithAction is TestWithData {
       tsPoolManager.crossLiquidateERC721(poolId, user, collateralAsset, tokenIds, debtAsset, supplyAsCollateral);
     } else {
       // fetch contract data
-      TestContractData memory dataBefore = getContractData(sender, poolId, collateralAsset, Constants.ASSET_TYPE_ERC20);
+      // liquidator & collateral
+      TestContractData memory dataBefore = getContractData(
+        sender,
+        poolId,
+        collateralAsset,
+        Constants.ASSET_TYPE_ERC721
+      );
+
+      // liquidator & debt
+      dataBefore.assetData2 = getAssetData(poolId, debtAsset, Constants.ASSET_TYPE_ERC20);
+      dataBefore.userAssetData2 = getUserAssetData(sender, poolId, debtAsset, Constants.ASSET_TYPE_ERC20);
+
+      // borrower & collateral
+      dataBefore.userAssetData3 = getUserAssetData(user, poolId, collateralAsset, Constants.ASSET_TYPE_ERC721);
+
+      // borrower & debt
+      dataBefore.userAssetData4 = getUserAssetData(user, poolId, debtAsset, Constants.ASSET_TYPE_ERC20);
 
       // send tx
       if (_debugFlag) console.log('actionCrossLiquidateERC721', 'sendtx');
@@ -371,17 +472,82 @@ abstract contract TestWithAction is TestWithData {
       uint256 txTimestamp = block.timestamp;
 
       // fetch contract data
-      TestContractData memory dataAfter = getContractData(sender, poolId, collateralAsset, Constants.ASSET_TYPE_ERC20);
+      // liquidator & collateral
+      TestContractData memory dataAfter = getContractData(sender, poolId, collateralAsset, Constants.ASSET_TYPE_ERC721);
+
+      // liquidator & debt
+      dataAfter.assetData2 = getAssetData(poolId, debtAsset, Constants.ASSET_TYPE_ERC20);
+      dataAfter.userAssetData2 = getUserAssetData(sender, poolId, debtAsset, Constants.ASSET_TYPE_ERC20);
+
+      // borrower & collateral
+      dataAfter.userAssetData3 = getUserAssetData(user, poolId, collateralAsset, Constants.ASSET_TYPE_ERC721);
+
+      // borrower & debt
+      dataAfter.userAssetData4 = getUserAssetData(user, poolId, debtAsset, Constants.ASSET_TYPE_ERC20);
 
       // calc expected data
       TestContractData memory dataExpected;
 
-      //calcExpectedAssetDataAfterCrossRepayERC20(dataBefore, dataAfter, dataExpected, groups, amounts, txTimestamp);
-      //calcExpectedUserDataAfterCrossRepayERC20(dataBefore, dataAfter, dataExpected, groups, amounts, txTimestamp);
+      uint256 colToLiq = tokenIds.length;
+      uint256 debtToCover = calcExpectedDebtToCoverFromERC721(dataBefore.assetData, dataBefore.assetData2, colToLiq);
+
+      calcExpectedCollateralAssetDataAfterCrossLiquidateERC721(
+        dataBefore,
+        dataAfter,
+        dataExpected,
+        colToLiq,
+        txTimestamp
+      );
+      calcExpectedDebtAssetDataAfterCrossLiquidateERC721(dataBefore, dataAfter, dataExpected, debtToCover, txTimestamp);
+
+      calcExpectedLiquidatorColUserDataAfterCrossLiquidateERC721(
+        dataBefore,
+        dataAfter,
+        dataExpected,
+        colToLiq,
+        txTimestamp
+      );
+      calcExpectedLiquidatorDebtUserDataAfterCrossLiquidateERC721(
+        dataBefore,
+        dataAfter,
+        dataExpected,
+        debtToCover,
+        txTimestamp
+      );
+
+      calcExpectedBorrowerColUserDataAfterCrossLiquidateERC721(
+        dataBefore,
+        dataAfter,
+        dataExpected,
+        colToLiq,
+        txTimestamp
+      );
+      calcExpectedBorrowerDebtUserDataAfterCrossLiquidateERC721(
+        dataBefore,
+        dataAfter,
+        dataExpected,
+        debtToCover,
+        txTimestamp
+      );
 
       // check the results
-      //checkAssetData(TestAction.CrossRepayERC20, dataAfter.assetData, dataExpected.assetData);
-      //checkUserAssetData(TestAction.CrossRepayERC20, dataAfter.userAssetData, dataExpected.userAssetData);
+      // liquidator & collateral
+      if (_debugFlag) console.log('actionCrossLiquidateERC721', 'check: liquidator & collateral');
+      checkAssetData(TestAction.CrossLiquidateERC721, dataAfter.assetData, dataExpected.assetData);
+      checkUserAssetData(TestAction.CrossLiquidateERC721, dataAfter.userAssetData, dataExpected.userAssetData);
+
+      // liquidator & debt
+      if (_debugFlag) console.log('actionCrossLiquidateERC721', 'check: liquidator & debt');
+      checkAssetData(TestAction.CrossLiquidateERC721, dataAfter.assetData2, dataExpected.assetData2);
+      checkUserAssetData(TestAction.CrossLiquidateERC721, dataAfter.userAssetData2, dataExpected.userAssetData2);
+
+      // borrower & collateral
+      if (_debugFlag) console.log('actionCrossLiquidateERC721', 'check: borrower & collateral');
+      checkUserAssetData(TestAction.CrossLiquidateERC721, dataAfter.userAssetData3, dataExpected.userAssetData3);
+
+      // borrower & debt
+      if (_debugFlag) console.log('actionCrossLiquidateERC721', 'check: borrower & debt');
+      checkUserAssetData(TestAction.CrossLiquidateERC721, dataAfter.userAssetData4, dataExpected.userAssetData4);
     }
     if (_debugFlag) console.log('>>>>actionCrossLiquidateERC721', 'end');
   }
@@ -414,6 +580,7 @@ abstract contract TestWithAction is TestWithData {
 
       assertEq(afterGroupData.totalCrossBorrow, expectedGroupData.totalCrossBorrow, 'AD:totalCrossBorrow');
       assertEq(afterGroupData.totalIsolateBorrow, expectedGroupData.totalIsolateBorrow, 'AD:totalIsolateBorrow');
+
       assertEq(afterGroupData.borrowRate, expectedGroupData.borrowRate, 'AD:borrowRate');
       assertEq(afterGroupData.borrowIndex, expectedGroupData.borrowIndex, 'AD:borrowIndex');
     }
@@ -470,6 +637,9 @@ abstract contract TestWithAction is TestWithData {
     // index
     calcExpectedInterestIndexs(dataBefore.assetData, expectedAssetData, txTimestamp);
 
+    // balances
+    calcExpectedAssetBalances(dataBefore.assetData, expectedAssetData);
+
     // supply
     expectedAssetData.totalCrossSupply = dataBefore.assetData.totalCrossSupply + amountDeposited;
     expectedAssetData.availableSupply = dataBefore.assetData.availableSupply + amountDeposited;
@@ -501,9 +671,13 @@ abstract contract TestWithAction is TestWithData {
     TestUserAssetData memory expectedUserData = copyUserAssetData(dataBefore.userAssetData);
     dataExpected.userAssetData = expectedUserData;
 
-    // supply
+    // balances
+    calcExpectedUserAssetBalances(dataExpected.assetData, dataBefore.userAssetData, dataExpected.userAssetData);
+
+    // wallet
     expectedUserData.walletBalance = dataBefore.userAssetData.walletBalance - amountDeposited;
 
+    // supply
     expectedUserData.totalCrossSupply = dataBefore.userAssetData.totalCrossSupply + amountDeposited;
 
     // borrow
@@ -526,6 +700,9 @@ abstract contract TestWithAction is TestWithData {
 
     // index
     calcExpectedInterestIndexs(dataBefore.assetData, expectedAssetData, txTimestamp);
+
+    // balances
+    calcExpectedAssetBalances(dataExpected.assetData, dataExpected.assetData);
 
     // supply
     expectedAssetData.totalCrossSupply = dataBefore.assetData.totalCrossSupply - amountWithdrawn;
@@ -558,8 +735,13 @@ abstract contract TestWithAction is TestWithData {
     TestUserAssetData memory expectedUserData = copyUserAssetData(dataBefore.userAssetData);
     dataExpected.userAssetData = expectedUserData;
 
-    // supply
+    // balances
+    calcExpectedUserAssetBalances(dataExpected.assetData, dataBefore.userAssetData, dataExpected.userAssetData);
+
+    // wallet
     expectedUserData.walletBalance = dataBefore.userAssetData.walletBalance + amountWithdrawn;
+
+    // supply
 
     expectedUserData.totalCrossSupply = dataBefore.userAssetData.totalCrossSupply - amountWithdrawn;
 
@@ -616,9 +798,13 @@ abstract contract TestWithAction is TestWithData {
     TestUserAssetData memory expectedUserData = copyUserAssetData(dataBefore.userAssetData);
     dataExpected.userAssetData = expectedUserData;
 
-    // supply
+    // balances
+    calcExpectedUserAssetBalances(dataExpected.assetData, dataBefore.userAssetData, dataExpected.userAssetData);
+
+    // wallet
     expectedUserData.walletBalance = dataBefore.userAssetData.walletBalance - amountDeposited;
 
+    // supply
     if (supplyMode == Constants.SUPPLY_MODE_CROSS) {
       expectedUserData.totalCrossSupply = dataBefore.userAssetData.totalCrossSupply + amountDeposited;
     } else if (supplyMode == Constants.SUPPLY_MODE_CROSS) {
@@ -675,6 +861,11 @@ abstract contract TestWithAction is TestWithData {
     TestUserAssetData memory expectedUserData = copyUserAssetData(dataBefore.userAssetData);
     dataExpected.userAssetData = expectedUserData;
 
+    // balances
+    calcExpectedUserAssetBalances(dataExpected.assetData, dataBefore.userAssetData, dataExpected.userAssetData);
+
+    // wallet
+
     // supply
     expectedUserData.walletBalance = dataBefore.userAssetData.walletBalance + amountWithdrawn;
 
@@ -703,24 +894,19 @@ abstract contract TestWithAction is TestWithData {
     TestAssetData memory expectedAssetData = copyAssetData(dataBefore.assetData);
     dataExpected.assetData = expectedAssetData;
 
-    // index
-    calcExpectedInterestIndexs(dataBefore.assetData, expectedAssetData, txTimestamp);
-
     uint256 totalAmountBorrowed;
     for (uint256 i = 0; i < amounts.length; i++) {
       totalAmountBorrowed += amounts[i];
     }
 
+    // index
+    calcExpectedInterestIndexs(dataBefore.assetData, expectedAssetData, txTimestamp);
+
+    // balances
+    calcExpectedAssetBalances(dataExpected.assetData, dataExpected.assetData);
+
     // supply
     expectedAssetData.availableSupply = dataBefore.assetData.availableSupply - totalAmountBorrowed;
-
-    expectedAssetData.supplyIndex = calcExpectedSupplyIndex(
-      dataBefore.assetData.utilizationRate,
-      dataBefore.assetData.supplyRate,
-      dataBefore.assetData.supplyIndex,
-      dataBefore.assetData.lastUpdateTimestamp,
-      txTimestamp
-    );
 
     // borrow
     expectedAssetData.totalCrossBorrow = dataBefore.assetData.totalCrossBorrow + totalAmountBorrowed;
@@ -762,8 +948,13 @@ abstract contract TestWithAction is TestWithData {
       totalAmountBorrowed += amounts[i];
     }
 
-    // supply
+    // balances
+    calcExpectedUserAssetBalances(dataExpected.assetData, dataBefore.userAssetData, dataExpected.userAssetData);
+
+    // wallet
     expectedUserData.walletBalance = dataBefore.userAssetData.walletBalance + totalAmountBorrowed;
+
+    // supply
 
     // borrow
     expectedUserData.totalCrossBorrow = dataBefore.userAssetData.totalCrossBorrow + totalAmountBorrowed;
@@ -789,24 +980,19 @@ abstract contract TestWithAction is TestWithData {
     TestAssetData memory expectedAssetData = copyAssetData(dataBefore.assetData);
     dataExpected.assetData = expectedAssetData;
 
-    // index
-    calcExpectedInterestIndexs(dataBefore.assetData, expectedAssetData, txTimestamp);
-
     uint256 totalAmountRepaid;
     for (uint256 i = 0; i < amounts.length; i++) {
       totalAmountRepaid += amounts[i];
     }
 
+    // index
+    calcExpectedInterestIndexs(dataBefore.assetData, expectedAssetData, txTimestamp);
+
+    // balances
+    calcExpectedAssetBalances(dataExpected.assetData, dataExpected.assetData);
+
     // supply
     expectedAssetData.availableSupply = dataBefore.assetData.availableSupply + totalAmountRepaid;
-
-    expectedAssetData.supplyIndex = calcExpectedSupplyIndex(
-      dataBefore.assetData.utilizationRate,
-      dataBefore.assetData.supplyRate,
-      dataBefore.assetData.supplyIndex,
-      dataBefore.assetData.lastUpdateTimestamp,
-      txTimestamp
-    );
 
     // borrow
     expectedAssetData.totalCrossBorrow = dataBefore.assetData.totalCrossBorrow - totalAmountRepaid;
@@ -848,6 +1034,11 @@ abstract contract TestWithAction is TestWithData {
       totalAmountRepaid += amounts[i];
     }
 
+    // balances
+    calcExpectedUserAssetBalances(dataExpected.assetData, dataBefore.userAssetData, dataExpected.userAssetData);
+
+    // wallet
+
     // supply
     expectedUserAssetData.walletBalance = dataBefore.userAssetData.walletBalance - totalAmountRepaid;
 
@@ -868,9 +1059,514 @@ abstract contract TestWithAction is TestWithData {
     if (_debugFlag) console.log('calcExpectedUserDataAfterRepayBorrowERC20', 'end');
   }
 
+  // CrossLiquidateERC20
+
+  function calcExpectedCollateralFromDebtToCover(
+    TestAssetData memory collateralAssetData,
+    TestAssetData memory debtAssetData,
+    TestUserAssetData memory borrowerAssetData,
+    uint256 debtToCover
+  ) internal view returns (uint256 colAmount) {
+    uint256 colPrice = tsPriceOracle.getAssetPrice(collateralAssetData.asset);
+    uint256 debtPrice = tsPriceOracle.getAssetPrice(debtAssetData.asset);
+
+    colAmount =
+      (debtToCover * debtPrice * (10 ** collateralAssetData.config.decimals)) /
+      ((10 ** debtAssetData.config.decimals) * colPrice);
+    colAmount = colAmount.percentMul(PercentageMath.PERCENTAGE_FACTOR + collateralAssetData.config.liquidationBonus);
+    if (colAmount > borrowerAssetData.totalCrossSupply) {
+      colAmount = borrowerAssetData.totalCrossSupply;
+    }
+
+    if (_debugFlag) console.log('calcExpectedCollateralERC20FromDebtToCover', colAmount);
+  }
+
+  function calcExpectedDebtToCoverFromERC20(
+    TestAssetData memory collateralAssetData,
+    TestAssetData memory debtAssetData,
+    uint256 colAmount
+  ) internal view returns (uint256 debtToCover) {
+    uint256 colPrice = tsPriceOracle.getAssetPrice(collateralAssetData.asset);
+    uint256 debtPrice = tsPriceOracle.getAssetPrice(debtAssetData.asset);
+
+    debtToCover =
+      (colAmount * colPrice * (10 ** debtAssetData.config.decimals)) /
+      ((10 ** collateralAssetData.config.decimals) * debtPrice);
+    debtToCover = debtToCover.percentDiv(
+      PercentageMath.PERCENTAGE_FACTOR + collateralAssetData.config.liquidationBonus
+    );
+
+    if (_debugFlag) console.log('calcExpectedDebtToCoverFromERC20', debtToCover);
+  }
+
+  function calcExpectedCollateralAssetDataAfterCrossLiquidateERC20(
+    TestContractData memory dataBefore,
+    TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
+    uint256 colToLiq,
+    uint256 txTimestamp
+  ) internal view {
+    if (_debugFlag) console.log('calcExpectedCollateralAssetDataAfterCrossLiquidateERC20', 'begin');
+    TestAssetData memory expectedAssetData = copyAssetData(dataBefore.assetData);
+    dataExpected.assetData = expectedAssetData;
+
+    // index
+    calcExpectedInterestIndexs(dataBefore.assetData, expectedAssetData, txTimestamp);
+
+    // balances
+    calcExpectedAssetBalances(dataExpected.assetData, dataExpected.assetData);
+
+    // supply
+    expectedAssetData.totalCrossSupply = dataBefore.assetData.totalCrossSupply - colToLiq;
+    expectedAssetData.availableSupply = dataBefore.assetData.availableSupply - colToLiq;
+
+    // borrow
+
+    expectedAssetData.totalLiquidity =
+      expectedAssetData.totalCrossBorrow +
+      expectedAssetData.totalIsolateBorrow +
+      expectedAssetData.availableSupply;
+    expectedAssetData.utilizationRate = calcExpectedUtilizationRate(
+      expectedAssetData.totalCrossBorrow + expectedAssetData.totalIsolateBorrow,
+      expectedAssetData.totalLiquidity
+    );
+
+    // rate
+    calcExpectedInterestRates(expectedAssetData);
+
+    if (_debugFlag) console.log('calcExpectedCollateralAssetDataAfterCrossLiquidateERC20', 'end');
+  }
+
+  function calcExpectedDebtAssetDataAfterCrossLiquidateERC20(
+    TestContractData memory dataBefore,
+    TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
+    uint256 debtToCover,
+    uint256 txTimestamp
+  ) internal view {
+    if (_debugFlag) console.log('calcExpectedDebtAssetDataAfterCrossLiquidateERC20', 'begin');
+    TestAssetData memory expectedAssetData = copyAssetData(dataBefore.assetData2);
+    dataExpected.assetData2 = expectedAssetData;
+
+    // index
+    calcExpectedInterestIndexs(dataBefore.assetData2, expectedAssetData, txTimestamp);
+
+    // balances
+    calcExpectedAssetBalances(dataExpected.assetData2, dataExpected.assetData2);
+
+    // supply
+    expectedAssetData.availableSupply = dataBefore.assetData2.availableSupply + debtToCover;
+
+    // borrow
+    expectedAssetData.totalCrossBorrow = dataBefore.assetData2.totalCrossBorrow - debtToCover;
+
+    expectedAssetData.totalLiquidity =
+      expectedAssetData.totalCrossBorrow +
+      expectedAssetData.totalIsolateBorrow +
+      expectedAssetData.availableSupply;
+    expectedAssetData.utilizationRate = calcExpectedUtilizationRate(
+      expectedAssetData.totalCrossBorrow + expectedAssetData.totalIsolateBorrow,
+      expectedAssetData.totalLiquidity
+    );
+
+    uint8[] memory sortedGroupIds = sortGroupIdByRates(dataBefore.assetData2);
+    uint256 remainDebt = debtToCover;
+    for (uint256 i = 0; i < sortedGroupIds.length; i++) {
+      TestGroupData memory expectedGroupData = expectedAssetData.groupsData[sortedGroupIds[i]];
+      if (expectedGroupData.totalCrossBorrow > remainDebt) {
+        expectedGroupData.totalCrossBorrow -= remainDebt;
+        remainDebt = 0;
+      } else {
+        remainDebt -= expectedGroupData.totalCrossBorrow;
+        expectedGroupData.totalCrossBorrow = 0;
+      }
+
+      if (remainDebt == 0) {
+        break;
+      }
+    }
+
+    // rate
+    calcExpectedInterestRates(expectedAssetData);
+
+    if (_debugFlag) console.log('calcExpectedDebtAssetDataAfterCrossLiquidateERC20', 'end');
+  }
+
+  function calcExpectedLiquidatorColUserDataAfterCrossLiquidateERC20(
+    TestContractData memory dataBefore,
+    TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
+    uint256 colToLiq,
+    uint256 /*txTimestamp*/
+  ) internal view {
+    if (_debugFlag) console.log('calcExpectedCollateralUserDataAfterCrossLiquidateERC20', 'begin');
+    TestUserAssetData memory expectedUserAssetData = copyUserAssetData(dataBefore.userAssetData);
+    dataExpected.userAssetData = expectedUserAssetData;
+
+    // balances
+    calcExpectedUserAssetBalances(dataExpected.assetData, dataBefore.userAssetData, dataExpected.userAssetData);
+
+    // wallet
+    expectedUserAssetData.walletBalance = dataBefore.userAssetData.walletBalance + colToLiq;
+
+    // supply
+
+    // borrow
+
+    if (_debugFlag) console.log('calcExpectedCollateralUserDataAfterCrossLiquidateERC20', 'end');
+  }
+
+  function calcExpectedLiquidatorDebtUserDataAfterCrossLiquidateERC20(
+    TestContractData memory dataBefore,
+    TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
+    uint256 debtToCover,
+    uint256 /*txTimestamp*/
+  ) internal view {
+    if (_debugFlag) console.log('calcExpectedDebtUserDataAfterCrossLiquidateERC20', 'begin');
+    TestUserAssetData memory expectedUserAssetData = copyUserAssetData(dataBefore.userAssetData2);
+    dataExpected.userAssetData2 = expectedUserAssetData;
+
+    // balances
+    calcExpectedUserAssetBalances(dataExpected.assetData, dataBefore.userAssetData, dataExpected.userAssetData);
+
+    // wallet
+    expectedUserAssetData.walletBalance = dataBefore.userAssetData2.walletBalance - debtToCover;
+
+    // supply
+
+    // borrow
+
+    if (_debugFlag) console.log('calcExpectedDebtUserDataAfterCrossLiquidateERC20', 'end');
+  }
+
+  function calcExpectedBorrowerColUserDataAfterCrossLiquidateERC20(
+    TestContractData memory dataBefore,
+    TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
+    uint256 colToLiq,
+    uint256 /*txTimestamp*/
+  ) internal view {
+    if (_debugFlag) console.log('calcExpectedBorrowerColUserDataAfterCrossLiquidateERC20', 'begin');
+    TestUserAssetData memory expectedUserAssetData = copyUserAssetData(dataBefore.userAssetData3);
+    dataExpected.userAssetData3 = expectedUserAssetData;
+
+    // balances
+    calcExpectedUserAssetBalances(dataExpected.assetData, dataBefore.userAssetData, dataExpected.userAssetData);
+
+    // wallet
+
+    // supply
+    expectedUserAssetData.totalCrossSupply = dataBefore.userAssetData3.totalCrossSupply - colToLiq;
+
+    // borrow
+
+    if (_debugFlag) console.log('calcExpectedBorrowerColUserDataAfterCrossLiquidateERC20', 'end');
+  }
+
+  function calcExpectedBorrowerDebtUserDataAfterCrossLiquidateERC20(
+    TestContractData memory dataBefore,
+    TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
+    uint256 debtToCover,
+    uint256 /*txTimestamp*/
+  ) internal view {
+    if (_debugFlag) console.log('calcExpectedBorrowerDebtUserDataAfterCrossLiquidateERC20', 'begin');
+    TestUserAssetData memory expectedUserAssetData = copyUserAssetData(dataBefore.userAssetData4);
+    dataExpected.userAssetData4 = expectedUserAssetData;
+
+    // balances
+    calcExpectedUserAssetBalances(dataExpected.assetData, dataBefore.userAssetData, dataExpected.userAssetData);
+
+    // wallet
+
+    // supply
+
+    // borrow
+    expectedUserAssetData.totalCrossBorrow = dataBefore.userAssetData4.totalCrossBorrow - debtToCover;
+
+    uint8[] memory sortedGroupIds = sortGroupIdByRates(dataBefore.assetData2);
+    uint256 remainDebt = debtToCover;
+    for (uint256 i = 0; i < sortedGroupIds.length; i++) {
+      TestUserGroupData memory expectedGroupData = expectedUserAssetData.groupsData[sortedGroupIds[i]];
+      if (expectedGroupData.totalCrossBorrow == 0) {
+        continue;
+      }
+
+      if (expectedGroupData.totalCrossBorrow > remainDebt) {
+        expectedGroupData.totalCrossBorrow -= remainDebt;
+        remainDebt = 0;
+      } else {
+        remainDebt -= expectedGroupData.totalCrossBorrow;
+        expectedGroupData.totalCrossBorrow = 0;
+      }
+
+      if (remainDebt == 0) {
+        break;
+      }
+    }
+
+    if (_debugFlag) console.log('calcExpectedBorrowerDebtUserDataAfterCrossLiquidateERC20', 'end');
+  }
+
+  // CrossLiquidateERC721
+
+  function calcExpectedDebtToCoverFromERC721(
+    TestAssetData memory collateralAssetData,
+    TestAssetData memory debtAssetData,
+    uint256 colAmount
+  ) internal view returns (uint256 debtToCover) {
+    uint256 colPrice = tsPriceOracle.getAssetPrice(collateralAssetData.asset);
+    uint256 debtPrice = tsPriceOracle.getAssetPrice(debtAssetData.asset);
+
+    colPrice = colPrice.percentMul(PercentageMath.PERCENTAGE_FACTOR - collateralAssetData.config.liquidationBonus);
+
+    // no decimals for erc721
+    debtToCover = (colAmount * colPrice * (10 ** debtAssetData.config.decimals)) / (debtPrice);
+
+    if (_debugFlag) console.log('calcExpectedDebtToCoverFromERC721', debtToCover);
+  }
+
+  function calcExpectedCollateralAssetDataAfterCrossLiquidateERC721(
+    TestContractData memory dataBefore,
+    TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
+    uint256 colToLiq,
+    uint256 txTimestamp
+  ) internal view {
+    if (_debugFlag) console.log('calcExpectedCollateralAssetDataAfterCrossLiquidateERC721', 'begin');
+    TestAssetData memory expectedAssetData = copyAssetData(dataBefore.assetData);
+    dataExpected.assetData = expectedAssetData;
+
+    // index, no need for erc721
+
+    // supply
+    expectedAssetData.totalCrossSupply = dataBefore.assetData.totalCrossSupply - colToLiq;
+    expectedAssetData.availableSupply = dataBefore.assetData.availableSupply - colToLiq;
+
+    // borrow
+
+    // rate, no need for erc721
+
+    if (_debugFlag) console.log('calcExpectedCollateralAssetDataAfterCrossLiquidateERC721', 'end');
+  }
+
+  function calcExpectedDebtAssetDataAfterCrossLiquidateERC721(
+    TestContractData memory dataBefore,
+    TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
+    uint256 debtToCover,
+    uint256 txTimestamp
+  ) internal view {
+    if (_debugFlag) console.log('calcExpectedDebtAssetDataAfterCrossLiquidateERC721', 'begin');
+    TestAssetData memory expectedAssetData = copyAssetData(dataBefore.assetData2);
+    dataExpected.assetData2 = expectedAssetData;
+
+    // index
+    calcExpectedInterestIndexs(dataBefore.assetData2, expectedAssetData, txTimestamp);
+
+    // balances
+    calcExpectedAssetBalances(dataExpected.assetData2, dataExpected.assetData2);
+
+    // supply
+    expectedAssetData.availableSupply = dataBefore.assetData2.availableSupply + debtToCover;
+
+    // borrow
+    expectedAssetData.totalCrossBorrow = 0;
+
+    uint8[] memory sortedGroupIds = sortGroupIdByRates(dataBefore.assetData2);
+    uint256 remainDebt = debtToCover;
+    for (uint256 i = 0; i < sortedGroupIds.length; i++) {
+      TestGroupData memory expectedGroupData = expectedAssetData.groupsData[sortedGroupIds[i]];
+      if (expectedGroupData.totalScaledCrossBorrow == 0) {
+        continue;
+      }
+      uint256 totalBorrow = expectedGroupData.totalScaledCrossBorrow.rayMul(expectedGroupData.borrowIndex);
+      uint256 curRepayAmount;
+      if (totalBorrow > remainDebt) {
+        curRepayAmount = remainDebt;
+        remainDebt = 0;
+      } else {
+        curRepayAmount = totalBorrow;
+        remainDebt -= curRepayAmount;
+      }
+      expectedGroupData.totalScaledCrossBorrow -= curRepayAmount.rayDiv(expectedGroupData.borrowIndex);
+      expectedGroupData.totalCrossBorrow = expectedGroupData.totalScaledCrossBorrow.rayMul(
+        expectedGroupData.borrowIndex
+      );
+
+      expectedAssetData.totalCrossBorrow += expectedGroupData.totalCrossBorrow;
+
+      if (remainDebt == 0) {
+        break;
+      }
+    }
+
+    expectedAssetData.totalLiquidity =
+      expectedAssetData.totalCrossBorrow +
+      expectedAssetData.totalIsolateBorrow +
+      expectedAssetData.availableSupply;
+
+    expectedAssetData.utilizationRate = calcExpectedUtilizationRate(
+      expectedAssetData.totalCrossBorrow + expectedAssetData.totalIsolateBorrow,
+      expectedAssetData.totalLiquidity
+    );
+
+    // rate
+    calcExpectedInterestRates(expectedAssetData);
+
+    if (_debugFlag) console.log('calcExpectedDebtAssetDataAfterCrossLiquidateERC721', 'end');
+  }
+
+  function calcExpectedLiquidatorColUserDataAfterCrossLiquidateERC721(
+    TestContractData memory dataBefore,
+    TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
+    uint256 colToLiq,
+    uint256 /*txTimestamp*/
+  ) internal view {
+    if (_debugFlag) console.log('calcExpectedLiquidatorColUserDataAfterCrossLiquidateERC721', 'begin');
+    TestUserAssetData memory expectedUserAssetData = copyUserAssetData(dataBefore.userAssetData);
+    dataExpected.userAssetData = expectedUserAssetData;
+
+    // balances
+    calcExpectedUserAssetBalances(dataExpected.assetData, dataBefore.userAssetData, dataExpected.userAssetData);
+
+    // wallet
+    expectedUserAssetData.walletBalance = dataBefore.userAssetData.walletBalance + colToLiq;
+
+    // supply
+
+    // borrow
+
+    if (_debugFlag) console.log('calcExpectedLiquidatorColUserDataAfterCrossLiquidateERC721', 'end');
+  }
+
+  function calcExpectedLiquidatorDebtUserDataAfterCrossLiquidateERC721(
+    TestContractData memory dataBefore,
+    TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
+    uint256 debtToCover,
+    uint256 /*txTimestamp*/
+  ) internal view {
+    if (_debugFlag) console.log('calcExpectedLiquidatorDebtUserDataAfterCrossLiquidateERC721', 'begin');
+    TestUserAssetData memory expectedUserAssetData = copyUserAssetData(dataBefore.userAssetData2);
+    dataExpected.userAssetData2 = expectedUserAssetData;
+
+    // balances
+    calcExpectedUserAssetBalances(dataExpected.assetData2, dataBefore.userAssetData2, dataExpected.userAssetData2);
+
+    // wallet
+    expectedUserAssetData.walletBalance = dataBefore.userAssetData2.walletBalance - debtToCover;
+
+    // supply
+
+    // borrow
+
+    if (_debugFlag) console.log('calcExpectedLiquidatorDebtUserDataAfterCrossLiquidateERC721', 'end');
+  }
+
+  function calcExpectedBorrowerColUserDataAfterCrossLiquidateERC721(
+    TestContractData memory dataBefore,
+    TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
+    uint256 colToLiq,
+    uint256 /*txTimestamp*/
+  ) internal view {
+    if (_debugFlag) console.log('calcExpectedBorrowerColUserDataAfterCrossLiquidateERC721', 'begin');
+    TestUserAssetData memory expectedUserAssetData = copyUserAssetData(dataBefore.userAssetData3);
+    dataExpected.userAssetData3 = expectedUserAssetData;
+
+    // balances
+    calcExpectedUserAssetBalances(dataExpected.assetData, dataBefore.userAssetData3, dataExpected.userAssetData3);
+
+    // wallet
+
+    // supply
+    expectedUserAssetData.totalCrossSupply = dataBefore.userAssetData3.totalCrossSupply - colToLiq;
+
+    // borrow
+
+    if (_debugFlag) console.log('calcExpectedBorrowerColUserDataAfterCrossLiquidateERC721', 'end');
+  }
+
+  function calcExpectedBorrowerDebtUserDataAfterCrossLiquidateERC721(
+    TestContractData memory dataBefore,
+    TestContractData memory /*dataAfter*/,
+    TestContractData memory dataExpected,
+    uint256 debtToCover,
+    uint256 /*txTimestamp*/
+  ) internal view {
+    if (_debugFlag) console.log('calcExpectedBorrowerDebtUserDataAfterCrossLiquidateERC721', 'begin');
+    TestUserAssetData memory expectedUserAssetData = copyUserAssetData(dataBefore.userAssetData4);
+    dataExpected.userAssetData4 = expectedUserAssetData;
+
+    // balances
+    calcExpectedUserAssetBalances(dataExpected.assetData2, dataBefore.userAssetData4, dataExpected.userAssetData4);
+
+    // wallet
+
+    // supply
+
+    // borrow
+    expectedUserAssetData.totalCrossBorrow = 0;
+
+    uint8[] memory sortedGroupIds = sortGroupIdByRates(dataBefore.assetData2);
+    uint256 remainDebt = debtToCover;
+    for (uint256 i = 0; i < sortedGroupIds.length; i++) {
+      TestGroupData memory expectedGroupData = dataExpected.assetData2.groupsData[sortedGroupIds[i]];
+      TestUserGroupData memory expectedUserGroupData = expectedUserAssetData.groupsData[sortedGroupIds[i]];
+      if (expectedUserGroupData.totalScaledCrossBorrow == 0) {
+        continue;
+      }
+
+      uint256 totalBorrow = expectedUserGroupData.totalScaledCrossBorrow.rayMul(expectedGroupData.borrowIndex);
+      uint256 curRepayAmount;
+      if (totalBorrow > remainDebt) {
+        curRepayAmount = remainDebt;
+        remainDebt = 0;
+      } else {
+        curRepayAmount = totalBorrow;
+        remainDebt -= curRepayAmount;
+      }
+      expectedUserGroupData.totalScaledCrossBorrow -= curRepayAmount.rayDiv(expectedGroupData.borrowIndex);
+      expectedUserGroupData.totalCrossBorrow = expectedUserGroupData.totalScaledCrossBorrow.rayMul(
+        expectedGroupData.borrowIndex
+      );
+
+      expectedUserAssetData.totalCrossBorrow += expectedUserGroupData.totalCrossBorrow;
+
+      if (remainDebt == 0) {
+        break;
+      }
+    }
+
+    // excessive debt supplied as new collateral to borrower
+    expectedUserAssetData.totalCrossSupply = dataBefore.userAssetData4.totalCrossSupply + remainDebt;
+
+    if (_debugFlag) console.log('calcExpectedBorrowerDebtUserDataAfterCrossLiquidateERC721', 'end');
+  }
+
   /****************************************************************************/
   /* Helpers for Calculations */
   /****************************************************************************/
+  function sortGroupIdByRates(TestAssetData memory assetData) internal pure returns (uint8[] memory) {
+    // sort group id from lowest interest rate to highest
+    KVSortUtils.KeyValue[] memory groupRateList = new KVSortUtils.KeyValue[](assetData.groupsData.length);
+    for (uint256 i = 0; i < assetData.groupsData.length; i++) {
+      groupRateList[i].key = assetData.groupsData[i].groupId;
+      groupRateList[i].val = assetData.groupsData[i].borrowRate;
+    }
+
+    KVSortUtils.sort(groupRateList);
+
+    uint8[] memory groupIdList = new uint8[](groupRateList.length);
+    for (uint256 i = 0; i < assetData.groupsData.length; i++) {
+      groupIdList[i] = uint8(groupRateList[i].key);
+    }
+    return groupIdList;
+  }
+
   function calcExpectedInterestIndexs(
     TestAssetData memory beforeAssetData,
     TestAssetData memory expectedAssetData,
@@ -911,6 +1607,81 @@ abstract contract TestWithAction is TestWithData {
     }
 
     if (_debugFlag) console.log('calcExpectedInterestIndexs', 'end');
+  }
+
+  function calcExpectedAssetBalances(
+    TestAssetData memory beforeAssetData,
+    TestAssetData memory expectedAssetData
+  ) internal view {
+    if (_debugFlag) console.log('calcExpectedAssetBalances', 'begin');
+
+    expectedAssetData.totalCrossSupply = beforeAssetData.totalScaledCrossSupply.rayMul(expectedAssetData.supplyIndex);
+    expectedAssetData.totalIsolateSupply = beforeAssetData.totalScaledIsolateSupply.rayMul(
+      expectedAssetData.supplyIndex
+    );
+
+    expectedAssetData.totalCrossBorrow = 0;
+    expectedAssetData.totalIsolateBorrow = 0;
+
+    for (uint256 i = 0; i < beforeAssetData.groupsData.length; i++) {
+      TestGroupData memory expectedGroupData = expectedAssetData.groupsData[i];
+      TestGroupData memory beforeGroupData = beforeAssetData.groupsData[i];
+
+      expectedGroupData.totalCrossBorrow = beforeGroupData.totalScaledCrossBorrow.rayMul(expectedGroupData.borrowIndex);
+      expectedGroupData.totalIsolateBorrow = beforeGroupData.totalScaledIsolateBorrow.rayMul(
+        expectedGroupData.borrowIndex
+      );
+
+      expectedAssetData.totalCrossBorrow += expectedGroupData.totalCrossBorrow;
+      expectedAssetData.totalIsolateBorrow += expectedGroupData.totalIsolateBorrow;
+    }
+
+    expectedAssetData.totalLiquidity =
+      expectedAssetData.totalCrossBorrow +
+      expectedAssetData.totalIsolateBorrow +
+      beforeAssetData.availableSupply;
+    if (expectedAssetData.totalLiquidity > 0) {
+      expectedAssetData.utilizationRate = (expectedAssetData.totalCrossBorrow + expectedAssetData.totalIsolateBorrow)
+        .rayDiv(expectedAssetData.totalLiquidity);
+    }
+
+    if (_debugFlag) console.log('calcExpectedAssetBalances', 'end');
+  }
+
+  function calcExpectedUserAssetBalances(
+    TestAssetData memory expectedAssetData,
+    TestUserAssetData memory beforeUserAssetData,
+    TestUserAssetData memory expectedUserAssetData
+  ) internal view {
+    if (_debugFlag) console.log('calcExpectedUserAssetBalances', 'begin');
+
+    expectedUserAssetData.totalCrossSupply = beforeUserAssetData.totalScaledCrossSupply.rayMul(
+      expectedAssetData.supplyIndex
+    );
+    expectedUserAssetData.totalIsolateSupply = beforeUserAssetData.totalScaledIsolateSupply.rayMul(
+      expectedAssetData.supplyIndex
+    );
+
+    expectedUserAssetData.totalCrossBorrow = 0;
+    expectedUserAssetData.totalIsolateBorrow = 0;
+
+    for (uint256 i = 0; i < beforeUserAssetData.groupsData.length; i++) {
+      TestGroupData memory expectedGroupData = expectedAssetData.groupsData[i];
+      TestUserGroupData memory expectedUserGroupData = expectedUserAssetData.groupsData[i];
+      TestUserGroupData memory beforeUserGroupData = beforeUserAssetData.groupsData[i];
+
+      expectedUserGroupData.totalCrossBorrow = beforeUserGroupData.totalScaledCrossBorrow.rayMul(
+        expectedGroupData.borrowIndex
+      );
+      expectedUserGroupData.totalIsolateBorrow = beforeUserGroupData.totalScaledIsolateBorrow.rayMul(
+        expectedGroupData.borrowIndex
+      );
+
+      expectedUserAssetData.totalCrossBorrow += expectedUserGroupData.totalCrossBorrow;
+      expectedUserAssetData.totalIsolateBorrow += expectedUserGroupData.totalIsolateBorrow;
+    }
+
+    if (_debugFlag) console.log('calcExpectedUserAssetBalances', 'end');
   }
 
   function calcExpectedInterestRates(TestAssetData memory expectedAssetData) internal view {

@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 
 import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import {IERC20Metadata} from '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 import {ERC721} from '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 
 import {WadRayMath} from 'src/libraries/math/WadRayMath.sol';
@@ -17,6 +18,7 @@ abstract contract TestWithData is TestWithSetup {
 
   // asset level config
   struct TestAssetConfig {
+    uint8 decimals;
     uint16 feeFactor;
     uint16 collateralFactor;
     uint16 liquidationThreshold;
@@ -25,6 +27,7 @@ abstract contract TestWithData is TestWithSetup {
 
   // asset level data
   struct TestGroupData {
+    uint8 groupId;
     // fields come from contract
     uint256 totalScaledCrossBorrow;
     uint256 totalCrossBorrow;
@@ -99,6 +102,16 @@ abstract contract TestWithData is TestWithSetup {
     TestAssetData assetData;
     TestUserAssetData userAssetData;
     TestUserAccountData accountData;
+    // following fileds to avoid stack too deep
+    TestAssetData assetData2;
+    TestUserAssetData userAssetData2;
+    TestUserAccountData accountData2;
+    TestAssetData assetData3;
+    TestUserAssetData userAssetData3;
+    TestUserAccountData accountData3;
+    TestAssetData assetData4;
+    TestUserAssetData userAssetData4;
+    TestUserAccountData accountData4;
   }
 
   function onSetUp() public virtual override {
@@ -108,8 +121,14 @@ abstract contract TestWithData is TestWithSetup {
   function getAssetData(
     uint32 poolId,
     address asset,
-    uint8 /*assetType*/
+    uint8 assetType
   ) public view returns (TestAssetData memory assetData) {
+    assetData.asset = asset;
+
+    if (assetType == Constants.ASSET_TYPE_ERC20) {
+      assetData.config.decimals = IERC20Metadata(asset).decimals();
+    }
+
     (
       assetData.config.feeFactor,
       assetData.config.collateralFactor,
@@ -134,6 +153,7 @@ abstract contract TestWithData is TestWithSetup {
     uint256[] memory groupIds = tsPoolManager.getAssetGroupList(poolId, asset);
     for (uint256 i = 0; i < groupIds.length; i++) {
       TestGroupData memory groupData = assetData.groupsData[groupIds[i]];
+      groupData.groupId = uint8(i);
       (
         groupData.totalScaledCrossBorrow,
         groupData.totalCrossBorrow,
@@ -158,8 +178,8 @@ abstract contract TestWithData is TestWithSetup {
     }
   }
 
-  function copyAssetData(TestAssetData memory assetDataOld) public view returns (TestAssetData memory assetDataNew) {
-    if (_debugFlag) console.log('copyAssetData', 'begin');
+  function copyAssetData(TestAssetData memory assetDataOld) public pure returns (TestAssetData memory assetDataNew) {
+    assetDataNew.asset = assetDataOld.asset;
 
     // just refer to the original config
     assetDataNew.config = assetDataOld.config;
@@ -193,8 +213,6 @@ abstract contract TestWithData is TestWithSetup {
     assetDataNew.totalIsolateBorrow = assetDataOld.totalIsolateBorrow;
     assetDataNew.totalLiquidity = assetDataOld.totalLiquidity;
     assetDataNew.utilizationRate = assetDataOld.utilizationRate;
-
-    if (_debugFlag) console.log('copyAssetData', 'end');
   }
 
   function getUserAccountData(uint32 poolId, address user) public view returns (TestUserAccountData memory data) {
@@ -214,6 +232,8 @@ abstract contract TestWithData is TestWithSetup {
     address asset,
     uint8 assetType
   ) public view returns (TestUserAssetData memory userAssetData) {
+    userAssetData.user = user;
+
     if (assetType == Constants.ASSET_TYPE_ERC20) {
       userAssetData.walletBalance = ERC20(asset).balanceOf(user);
     } else if (assetType == Constants.ASSET_TYPE_ERC721) {
@@ -251,8 +271,8 @@ abstract contract TestWithData is TestWithSetup {
 
   function copyUserAssetData(
     TestUserAssetData memory userAssetDataOld
-  ) public view returns (TestUserAssetData memory userAssetDataNew) {
-    if (_debugFlag) console.log('copyUserAssetData', 'begin');
+  ) public pure returns (TestUserAssetData memory userAssetDataNew) {
+    userAssetDataNew.user = userAssetDataOld.user;
 
     userAssetDataNew.walletBalance = userAssetDataOld.walletBalance;
     userAssetDataNew.totalScaledCrossSupply = userAssetDataOld.totalScaledCrossSupply;
@@ -270,8 +290,6 @@ abstract contract TestWithData is TestWithSetup {
       groupDataNew.totalScaledIsolateBorrow = groupDataOld.totalScaledIsolateBorrow;
       groupDataNew.totalIsolateBorrow = groupDataOld.totalIsolateBorrow;
     }
-
-    if (_debugFlag) console.log('copyUserAssetData', 'end');
   }
 
   function getContractData(

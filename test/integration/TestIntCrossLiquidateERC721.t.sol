@@ -60,6 +60,7 @@ contract TestIntCrossLiquidateERC721 is TestWithIntegration {
     // make some interest
     advanceTimes(365 days);
 
+    // drop down price and lower heath factor
     uint256 baycCurPrice = tsBendNFTOracle.getAssetPrice(address(tsBAYC));
     uint256 baycNewPrice = (baycCurPrice * 80) / 100;
     tsBendNFTOracle.setAssetPrice(address(tsBAYC), baycNewPrice);
