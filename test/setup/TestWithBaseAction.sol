@@ -288,6 +288,32 @@ abstract contract TestWithBaseAction is TestWithData {
     if (_debugFlag) console.log('checkAccoutData', 'end');
   }
 
+  function checkLoanData(
+    TestAction /*action*/,
+    TestLoanData[] memory afterLoansData,
+    TestLoanData[] memory expectedLoansData
+  ) internal {
+    if (_debugFlag) console.log('checkLoanData', 'begin');
+
+    for (uint256 i = 0; i < expectedLoansData.length; i++) {
+      if (_debugFlag) console.log('checkLoanData-token', expectedLoansData[i].nftTokenId);
+
+      assertEq(afterLoansData[i].reserveAsset, expectedLoansData[i].reserveAsset, 'LD:reserveAsset');
+      assertEq(afterLoansData[i].scaledAmount, expectedLoansData[i].scaledAmount, 'LD:scaledAmount');
+      assertEq(afterLoansData[i].borrowAmount, expectedLoansData[i].borrowAmount, 'LD:borrowAmount');
+      assertEq(afterLoansData[i].reserveGroup, expectedLoansData[i].reserveGroup, 'LD:reserveGroup');
+      assertEq(afterLoansData[i].loanStatus, expectedLoansData[i].loanStatus, 'LD:loanStatus');
+
+      assertEq(afterLoansData[i].bidStartTimestamp, expectedLoansData[i].bidStartTimestamp, 'LD:bidStartTimestamp');
+      //assertEq(afterLoansData[i].bidEndTimestamp, expectedLoansData[i].bidEndTimestamp, 'LD:bidEndTimestamp');
+      assertEq(afterLoansData[i].firstBidder, expectedLoansData[i].firstBidder, 'LD:firstBidder');
+      assertEq(afterLoansData[i].lastBidder, expectedLoansData[i].lastBidder, 'LD:lastBidder');
+      assertEq(afterLoansData[i].bidAmount, expectedLoansData[i].bidAmount, 'LD:bidAmount');
+    }
+
+    if (_debugFlag) console.log('checkLoanData', 'end');
+  }
+
   /****************************************************************************/
   /* Calculations */
   /****************************************************************************/
@@ -469,7 +495,6 @@ abstract contract TestWithBaseAction is TestWithData {
     dataExpected.userAssetData = expectedUserData;
 
     // balances
-    calcExpectedUserAssetBalances(dataExpected.assetData, dataBefore.userAssetData, dataExpected.userAssetData);
 
     // wallet
     expectedUserData.walletBalance = dataBefore.userAssetData.walletBalance - amountDeposited;
@@ -532,7 +557,6 @@ abstract contract TestWithBaseAction is TestWithData {
     dataExpected.userAssetData = expectedUserData;
 
     // balances
-    calcExpectedUserAssetBalances(dataExpected.assetData, dataBefore.userAssetData, dataExpected.userAssetData);
 
     // wallet
 
@@ -577,6 +601,8 @@ abstract contract TestWithBaseAction is TestWithData {
   ) internal view {
     if (_debugFlag) console.log('calcExpectedInterestIndexs', 'begin');
 
+    require(beforeAssetData.assetType == Constants.ASSET_TYPE_ERC20, 'asset not erc20');
+
     expectedAssetData.supplyIndex = calcExpectedSupplyIndex(
       beforeAssetData.utilizationRate,
       beforeAssetData.supplyRate,
@@ -618,6 +644,8 @@ abstract contract TestWithBaseAction is TestWithData {
   ) internal view {
     if (_debugFlag) console.log('calcExpectedAssetBalances', 'begin');
 
+    require(beforeAssetData.assetType == Constants.ASSET_TYPE_ERC20, 'asset not erc20');
+
     expectedAssetData.totalCrossSupply = beforeAssetData.totalScaledCrossSupply.rayMul(expectedAssetData.supplyIndex);
     expectedAssetData.totalIsolateSupply = beforeAssetData.totalScaledIsolateSupply.rayMul(
       expectedAssetData.supplyIndex
@@ -658,6 +686,8 @@ abstract contract TestWithBaseAction is TestWithData {
   ) internal view {
     if (_debugFlag) console.log('calcExpectedUserAssetBalances', 'begin');
 
+    require(expectedAssetData.assetType == Constants.ASSET_TYPE_ERC20, 'asset not erc20');
+
     expectedUserAssetData.totalCrossSupply = beforeUserAssetData.totalScaledCrossSupply.rayMul(
       expectedAssetData.supplyIndex
     );
@@ -689,6 +719,9 @@ abstract contract TestWithBaseAction is TestWithData {
 
   function calcExpectedInterestRates(TestAssetData memory expectedAssetData) internal view {
     if (_debugFlag) console.log('calcExpectedInterestRates', 'begin');
+
+    require(expectedAssetData.assetType == Constants.ASSET_TYPE_ERC20, 'asset not erc20');
+
     uint256 totalBorrowRate;
     uint256 totalBorrowInAsset = expectedAssetData.totalCrossBorrow + expectedAssetData.totalIsolateBorrow;
     for (uint256 i = 0; i < expectedAssetData.groupsData.length; i++) {

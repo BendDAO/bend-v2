@@ -908,7 +908,6 @@ abstract contract TestWithCrossAction is TestWithBaseAction {
     dataExpected.userAssetData = expectedUserAssetData;
 
     // balances
-    calcExpectedUserAssetBalances(dataExpected.assetData, dataBefore.userAssetData, dataExpected.userAssetData);
 
     // wallet
     expectedUserAssetData.walletBalance = dataBefore.userAssetData.walletBalance + colToLiq;
@@ -956,7 +955,6 @@ abstract contract TestWithCrossAction is TestWithBaseAction {
     dataExpected.userAssetData3 = expectedUserAssetData;
 
     // balances
-    calcExpectedUserAssetBalances(dataExpected.assetData, dataBefore.userAssetData3, dataExpected.userAssetData3);
 
     // wallet
 

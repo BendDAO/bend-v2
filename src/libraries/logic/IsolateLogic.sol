@@ -96,7 +96,7 @@ library IsolateLogic {
   struct ExecuteIsolateRepayVars {
     uint256 totalRepayAmount;
     uint256 nidx;
-    uint256 amountScaled;
+    uint256 scaledRepayAmount;
     bool isFullRepay;
   }
 
@@ -125,20 +125,20 @@ library IsolateLogic {
       ValidateLogic.validateIsolateRepayLoan(params, debtGroupData, loanData);
 
       vars.isFullRepay = false;
-      vars.amountScaled = params.amounts[vars.nidx].rayDiv(debtGroupData.borrowIndex);
-      if (vars.amountScaled > loanData.scaledAmount) {
-        vars.amountScaled = loanData.scaledAmount;
-        params.amounts[vars.nidx] = vars.amountScaled.rayMul(debtGroupData.borrowIndex);
+      vars.scaledRepayAmount = params.amounts[vars.nidx].rayDiv(debtGroupData.borrowIndex);
+      if (vars.scaledRepayAmount >= loanData.scaledAmount) {
+        vars.scaledRepayAmount = loanData.scaledAmount;
+        params.amounts[vars.nidx] = vars.scaledRepayAmount.rayMul(debtGroupData.borrowIndex);
         vars.isFullRepay = true;
       }
 
       if (vars.isFullRepay) {
         delete poolData.loanLookup[params.nftAsset][params.nftTokenIds[vars.nidx]];
       } else {
-        loanData.scaledAmount -= vars.amountScaled;
+        loanData.scaledAmount -= vars.scaledRepayAmount;
       }
 
-      VaultLogic.erc20DecreaseIsolateScaledBorrow(debtGroupData, msg.sender, vars.amountScaled);
+      VaultLogic.erc20DecreaseIsolateScaledBorrow(debtGroupData, msg.sender, vars.scaledRepayAmount);
 
       vars.totalRepayAmount += params.amounts[vars.nidx];
     }

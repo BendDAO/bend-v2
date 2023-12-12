@@ -19,6 +19,7 @@ abstract contract TestWithData is TestWithSetup {
   // asset level config
   struct TestAssetConfig {
     uint8 decimals;
+    uint8 classGroup;
     uint16 feeFactor;
     uint16 collateralFactor;
     uint16 liquidationThreshold;
@@ -41,6 +42,7 @@ abstract contract TestWithData is TestWithSetup {
 
   struct TestAssetData {
     address asset;
+    uint8 assetType;
     TestAssetConfig config;
     // fields come from contract
     uint256 totalScaledCrossSupply;
@@ -98,10 +100,29 @@ abstract contract TestWithData is TestWithSetup {
     // fields not come from contract
   }
 
+  struct TestLoanData {
+    address nftAsset;
+    uint256 nftTokenId;
+    // basic fields from contract
+    address reserveAsset;
+    uint256 scaledAmount;
+    uint256 borrowAmount;
+    uint8 reserveGroup;
+    uint8 loanStatus;
+    // bid fields from contract
+    uint40 bidStartTimestamp;
+    uint40 bidEndTimestamp;
+    address firstBidder;
+    address lastBidder;
+    uint256 bidAmount;
+    // fields not come from contract
+  }
+
   struct TestContractData {
     TestAssetData assetData;
     TestUserAssetData userAssetData;
     TestUserAccountData accountData;
+    TestLoanData[] loansData;
     // following fileds to avoid stack too deep
     TestAssetData assetData2;
     TestUserAssetData userAssetData2;
@@ -124,12 +145,14 @@ abstract contract TestWithData is TestWithSetup {
     uint8 assetType
   ) public view returns (TestAssetData memory assetData) {
     assetData.asset = asset;
+    assetData.assetType = assetType;
 
     if (assetType == Constants.ASSET_TYPE_ERC20) {
       assetData.config.decimals = IERC20Metadata(asset).decimals();
     }
 
     (
+      assetData.config.classGroup,
       assetData.config.feeFactor,
       assetData.config.collateralFactor,
       assetData.config.liquidationThreshold,
@@ -180,6 +203,7 @@ abstract contract TestWithData is TestWithSetup {
 
   function copyAssetData(TestAssetData memory assetDataOld) public pure returns (TestAssetData memory assetDataNew) {
     assetDataNew.asset = assetDataOld.asset;
+    assetDataNew.assetType = assetDataOld.assetType;
 
     // just refer to the original config
     assetDataNew.config = assetDataOld.config;
@@ -289,6 +313,58 @@ abstract contract TestWithData is TestWithSetup {
       groupDataNew.totalCrossBorrow = groupDataOld.totalCrossBorrow;
       groupDataNew.totalScaledIsolateBorrow = groupDataOld.totalScaledIsolateBorrow;
       groupDataNew.totalIsolateBorrow = groupDataOld.totalIsolateBorrow;
+    }
+  }
+
+  function getIsolateLoanData(
+    uint32 poolId,
+    address nftAsset,
+    uint256[] memory nftTokenIds
+  ) internal view returns (TestLoanData[] memory loansData) {
+    loansData = new TestLoanData[](nftTokenIds.length);
+
+    for (uint256 i = 0; i < nftTokenIds.length; i++) {
+      loansData[i] = getIsolateLoanData(poolId, nftAsset, nftTokenIds[i]);
+    }
+  }
+
+  function getIsolateLoanData(
+    uint32 poolId,
+    address nftAsset,
+    uint256 nftTokenId
+  ) internal view returns (TestLoanData memory data) {
+    data.nftAsset = nftAsset;
+    data.nftTokenId = nftTokenId;
+
+    (data.reserveAsset, data.scaledAmount, data.borrowAmount, data.reserveGroup, data.loanStatus) = tsPoolManager
+      .getIsolateLoanData(poolId, nftAsset, nftTokenId);
+
+    (data.bidStartTimestamp, data.bidEndTimestamp, data.firstBidder, data.lastBidder, data.bidAmount) = tsPoolManager
+      .getIsolateAuctionData(poolId, nftAsset, nftTokenId);
+  }
+
+  function copyLoanData(TestLoanData memory loanDataOld) public pure returns (TestLoanData memory loanDataNew) {
+    loanDataNew.nftAsset = loanDataOld.nftAsset;
+    loanDataNew.nftTokenId = loanDataOld.nftTokenId;
+
+    loanDataNew.reserveAsset = loanDataOld.reserveAsset;
+    loanDataNew.scaledAmount = loanDataOld.scaledAmount;
+    loanDataNew.borrowAmount = loanDataOld.borrowAmount;
+    loanDataNew.reserveGroup = loanDataOld.reserveGroup;
+    loanDataNew.loanStatus = loanDataOld.loanStatus;
+
+    loanDataNew.bidStartTimestamp = loanDataOld.bidStartTimestamp;
+    loanDataNew.bidEndTimestamp = loanDataOld.bidEndTimestamp;
+    loanDataNew.firstBidder = loanDataOld.firstBidder;
+    loanDataNew.lastBidder = loanDataOld.lastBidder;
+    loanDataNew.bidAmount = loanDataOld.bidAmount;
+  }
+
+  function copyLoanData(TestLoanData[] memory loansDataOld) public pure returns (TestLoanData[] memory loansDataNew) {
+    loansDataNew = new TestLoanData[](loansDataOld.length);
+
+    for (uint256 i = 0; i < loansDataOld.length; i++) {
+      loansDataNew[i] = copyLoanData(loansDataOld[i]);
     }
   }
 

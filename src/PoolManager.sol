@@ -491,13 +491,20 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   )
     public
     view
-    returns (uint16 feeFactor, uint16 collateralFactor, uint16 liquidationThreshold, uint16 liquidationBonus)
+    returns (
+      uint8 classGroup,
+      uint16 feeFactor,
+      uint16 collateralFactor,
+      uint16 liquidationThreshold,
+      uint16 liquidationBonus
+    )
   {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
     return (
+      assetData.classGroup,
       assetData.feeFactor,
       assetData.collateralFactor,
       assetData.liquidationThreshold,
@@ -772,6 +779,65 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
         result.allGroupsAvgLtv[i]
       );
     }
+  }
+
+  function getIsolateLoanData(
+    uint32 poolId,
+    address nftAsset,
+    uint256 tokenId
+  )
+    public
+    view
+    returns (address reserveAsset, uint256 scaledAmount, uint256 borrowAmount, uint8 reserveGroup, uint8 loanStatus)
+  {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+
+    DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[nftAsset][tokenId];
+    if (loanData.reserveAsset == address(0)) {
+      return (address(0), 0, 0, 0, 0);
+    }
+
+    DataTypes.AssetData storage assetData = poolData.assetLookup[loanData.reserveAsset];
+    DataTypes.GroupData storage groupData = assetData.groupLookup[loanData.reserveGroup];
+
+    reserveAsset = loanData.reserveAsset;
+    scaledAmount = loanData.scaledAmount;
+    borrowAmount = scaledAmount.rayMul(InterestLogic.getNormalizedBorrowDebt(assetData, groupData));
+    reserveGroup = loanData.reserveGroup;
+    loanStatus = loanData.loanStatus;
+  }
+
+  function getIsolateAuctionData(
+    uint32 poolId,
+    address nftAsset,
+    uint256 tokenId
+  )
+    public
+    view
+    returns (
+      uint40 bidStartTimestamp,
+      uint40 bidEndTimestamp,
+      address firstBidder,
+      address lastBidder,
+      uint256 bidAmount
+    )
+  {
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+
+    DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[nftAsset][tokenId];
+    if (loanData.loanStatus != Constants.LOAN_STATUS_AUCTION) {
+      return (0, 0, address(0), address(0), 0);
+    }
+
+    DataTypes.AssetData storage assetData = poolData.assetLookup[loanData.reserveAsset];
+
+    bidStartTimestamp = loanData.bidStartTimestamp;
+    bidEndTimestamp = loanData.bidStartTimestamp + assetData.auctionDuration;
+    firstBidder = loanData.firstBidder;
+    lastBidder = loanData.lastBidder;
+    bidAmount = loanData.bidAmount;
   }
 
   function getYieldERC20BorrowBalance(uint32 poolId, address asset, address staker) public view returns (uint256) {
