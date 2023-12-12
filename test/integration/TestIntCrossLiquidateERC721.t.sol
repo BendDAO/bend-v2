@@ -4,11 +4,13 @@ pragma solidity ^0.8.19;
 import 'src/libraries/helpers/Constants.sol';
 
 import 'test/helpers/TestUser.sol';
-import 'test/integration/TestWithIntegration.sol';
+import 'test/setup/TestWithCrossAction.sol';
 
-contract TestIntCrossLiquidateERC721 is TestWithIntegration {
+contract TestIntCrossLiquidateERC721 is TestWithCrossAction {
   function onSetUp() public virtual override {
     super.onSetUp();
+
+    initCommonPools();
   }
 
   function prepareUSDT(TestUser user) internal {

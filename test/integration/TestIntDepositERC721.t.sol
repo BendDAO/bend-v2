@@ -3,11 +3,13 @@ pragma solidity ^0.8.19;
 
 import 'src/libraries/helpers/Constants.sol';
 
-import './TestWithIntegration.sol';
+import 'test/setup/TestWithBaseAction.sol';
 
-contract TestIntDepositERC721 is TestWithIntegration {
+contract TestIntDepositERC721 is TestWithBaseAction {
   function onSetUp() public virtual override {
     super.onSetUp();
+
+    initCommonPools();
   }
 
   function test_RevertIf_InsufficientAllowance() public {

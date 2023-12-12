@@ -4,11 +4,13 @@ pragma solidity ^0.8.19;
 import 'src/libraries/helpers/Constants.sol';
 import 'src/libraries/helpers/Errors.sol';
 
-import './TestWithIntegration.sol';
+import 'test/setup/TestWithBaseAction.sol';
 
-contract TestIntWithdrawERC721 is TestWithIntegration {
+contract TestIntWithdrawERC721 is TestWithBaseAction {
   function onSetUp() public virtual override {
     super.onSetUp();
+
+    initCommonPools();
   }
 
   function test_RevertIf_ListEmpty() public {
