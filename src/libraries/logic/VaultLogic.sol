@@ -124,22 +124,22 @@ library VaultLogic {
     DataTypes.AssetData storage assetData,
     uint256 index
   ) internal view returns (uint256) {
-    return assetData.totalScaledCrossSupplied.rayMul(index);
+    return assetData.totalScaledCrossSupply.rayMul(index);
   }
 
   function erc20GetTotalIsolateSupply(
     DataTypes.AssetData storage assetData,
     uint256 index
   ) internal view returns (uint256) {
-    return assetData.totalScaledIsolateSupplied.rayMul(index);
+    return assetData.totalScaledIsolateSupply.rayMul(index);
   }
 
   function erc20GetTotalScaledCrossSupply(DataTypes.AssetData storage assetData) internal view returns (uint256) {
-    return assetData.totalScaledCrossSupplied;
+    return assetData.totalScaledCrossSupply;
   }
 
   function erc20GetTotalScaledIsolateSupply(DataTypes.AssetData storage assetData) internal view returns (uint256) {
-    return assetData.totalScaledIsolateSupplied;
+    return assetData.totalScaledIsolateSupply;
   }
 
   /**
@@ -149,7 +149,7 @@ library VaultLogic {
     DataTypes.AssetData storage assetData,
     address account
   ) internal view returns (uint256) {
-    return assetData.userScaledCrossSupplied[account];
+    return assetData.userScaledCrossSupply[account];
   }
 
   /**
@@ -160,7 +160,7 @@ library VaultLogic {
     address account,
     uint256 index
   ) internal view returns (uint256) {
-    return assetData.userScaledIsolateSupplied[account].rayMul(index);
+    return assetData.userScaledIsolateSupply[account].rayMul(index);
   }
 
   /**
@@ -170,7 +170,7 @@ library VaultLogic {
     DataTypes.AssetData storage assetData,
     address account
   ) internal view returns (uint256) {
-    return assetData.userScaledIsolateSupplied[account];
+    return assetData.userScaledIsolateSupply[account];
   }
 
   /**
@@ -181,7 +181,7 @@ library VaultLogic {
     address account,
     uint256 index
   ) internal view returns (uint256) {
-    return assetData.userScaledCrossSupplied[account].rayMul(index);
+    return assetData.userScaledCrossSupply[account].rayMul(index);
   }
 
   /**
@@ -191,8 +191,8 @@ library VaultLogic {
     uint256 amountScaled = amount.rayDiv(assetData.supplyIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
-    assetData.totalScaledCrossSupplied += amountScaled;
-    assetData.userScaledCrossSupplied[account] += amountScaled;
+    assetData.totalScaledCrossSupply += amountScaled;
+    assetData.userScaledCrossSupply[account] += amountScaled;
   }
 
   /**
@@ -202,8 +202,8 @@ library VaultLogic {
     uint256 amountScaled = amount.rayDiv(assetData.supplyIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
-    assetData.totalScaledCrossSupplied -= amountScaled;
-    assetData.userScaledCrossSupplied[account] -= amountScaled;
+    assetData.totalScaledCrossSupply -= amountScaled;
+    assetData.userScaledCrossSupply[account] -= amountScaled;
   }
 
   /**
@@ -218,8 +218,8 @@ library VaultLogic {
     uint256 amountScaled = amount.rayDiv(assetData.supplyIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
-    assetData.userScaledCrossSupplied[from] -= amountScaled;
-    assetData.userScaledCrossSupplied[to] += amountScaled;
+    assetData.userScaledCrossSupply[from] -= amountScaled;
+    assetData.userScaledCrossSupply[to] += amountScaled;
   }
 
   /**
@@ -229,13 +229,13 @@ library VaultLogic {
     DataTypes.GroupData storage groupData,
     uint256 index
   ) internal view returns (uint256) {
-    return groupData.totalScaledCrossBorrowed.rayMul(index);
+    return groupData.totalScaledCrossBorrow.rayMul(index);
   }
 
   function erc20GetTotalScaledCrossBorrowInGroup(
     DataTypes.GroupData storage groupData
   ) internal view returns (uint256) {
-    return groupData.totalScaledCrossBorrowed;
+    return groupData.totalScaledCrossBorrow;
   }
 
   /**
@@ -245,13 +245,13 @@ library VaultLogic {
     DataTypes.GroupData storage groupData,
     uint256 index
   ) internal view returns (uint256) {
-    return groupData.totalScaledIsolateBorrowed.rayMul(index);
+    return groupData.totalScaledIsolateBorrow.rayMul(index);
   }
 
   function erc20GetTotalScaledIsolateBorrowInGroup(
     DataTypes.GroupData storage groupData
   ) internal view returns (uint256) {
-    return groupData.totalScaledIsolateBorrowed;
+    return groupData.totalScaledIsolateBorrow;
   }
 
   /**
@@ -261,7 +261,7 @@ library VaultLogic {
     DataTypes.GroupData storage groupData,
     address account
   ) internal view returns (uint256) {
-    return groupData.userScaledCrossBorrowed[account];
+    return groupData.userScaledCrossBorrow[account];
   }
 
   /**
@@ -278,7 +278,7 @@ library VaultLogic {
     for (uint256 i = 0; i < groupIds.length; i++) {
       DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(groupIds[i])];
 
-      uint256 amountScaled = groupData.userScaledCrossBorrowed[account];
+      uint256 amountScaled = groupData.userScaledCrossBorrow[account];
       totalScaledBorrow += amountScaled;
     }
 
@@ -293,7 +293,7 @@ library VaultLogic {
     address account,
     uint256 index
   ) internal view returns (uint256) {
-    return groupData.userScaledCrossBorrowed[account].rayMul(index);
+    return groupData.userScaledCrossBorrow[account].rayMul(index);
   }
 
   /**
@@ -309,7 +309,7 @@ library VaultLogic {
     uint256[] memory groupIds = assetData.groupList.values();
     for (uint256 i = 0; i < groupIds.length; i++) {
       DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(groupIds[i])];
-      totalBorrow += groupData.userScaledCrossBorrowed[account].rayMul(groupData.borrowIndex);
+      totalBorrow += groupData.userScaledCrossBorrow[account].rayMul(groupData.borrowIndex);
     }
 
     return totalBorrow;
@@ -319,7 +319,7 @@ library VaultLogic {
     DataTypes.GroupData storage groupData,
     address account
   ) internal view returns (uint256) {
-    return groupData.userScaledIsolateBorrowed[account];
+    return groupData.userScaledIsolateBorrow[account];
   }
 
   function erc20GetUserIsolateBorrowInGroup(
@@ -327,7 +327,7 @@ library VaultLogic {
     address account,
     uint256 index
   ) internal view returns (uint256) {
-    return groupData.userScaledIsolateBorrowed[account].rayMul(index);
+    return groupData.userScaledIsolateBorrow[account].rayMul(index);
   }
 
   /**
@@ -337,16 +337,16 @@ library VaultLogic {
     uint256 amountScaled = amount.rayDiv(groupData.borrowIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
-    groupData.totalScaledCrossBorrowed += amountScaled;
-    groupData.userScaledCrossBorrowed[account] += amountScaled;
+    groupData.totalScaledCrossBorrow += amountScaled;
+    groupData.userScaledCrossBorrow[account] += amountScaled;
   }
 
   function erc20IncreaseIsolateBorrow(DataTypes.GroupData storage groupData, address account, uint256 amount) internal {
     uint256 amountScaled = amount.rayDiv(groupData.borrowIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
-    groupData.totalScaledIsolateBorrowed += amountScaled;
-    groupData.userScaledIsolateBorrowed[account] += amountScaled;
+    groupData.totalScaledIsolateBorrow += amountScaled;
+    groupData.userScaledIsolateBorrow[account] += amountScaled;
   }
 
   function erc20IncreaseIsolateScaledBorrow(
@@ -354,8 +354,8 @@ library VaultLogic {
     address account,
     uint256 amountScaled
   ) internal {
-    groupData.totalScaledIsolateBorrowed += amountScaled;
-    groupData.userScaledIsolateBorrowed[account] += amountScaled;
+    groupData.totalScaledIsolateBorrow += amountScaled;
+    groupData.userScaledIsolateBorrow[account] += amountScaled;
   }
 
   /**
@@ -365,16 +365,16 @@ library VaultLogic {
     uint256 amountScaled = amount.rayDiv(groupData.borrowIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
-    groupData.totalScaledCrossBorrowed -= amountScaled;
-    groupData.userScaledCrossBorrowed[account] -= amountScaled;
+    groupData.totalScaledCrossBorrow -= amountScaled;
+    groupData.userScaledCrossBorrow[account] -= amountScaled;
   }
 
   function erc20DecreaseIsolateBorrow(DataTypes.GroupData storage groupData, address account, uint256 amount) internal {
     uint256 amountScaled = amount.rayDiv(groupData.borrowIndex);
     require(amountScaled != 0, Errors.INVALID_SCALED_AMOUNT);
 
-    groupData.totalScaledIsolateBorrowed -= amountScaled;
-    groupData.userScaledIsolateBorrowed[account] -= amountScaled;
+    groupData.totalScaledIsolateBorrow -= amountScaled;
+    groupData.userScaledIsolateBorrow[account] -= amountScaled;
   }
 
   function erc20DecreaseIsolateScaledBorrow(
@@ -382,8 +382,8 @@ library VaultLogic {
     address account,
     uint256 amountScaled
   ) internal {
-    groupData.totalScaledIsolateBorrowed -= amountScaled;
-    groupData.userScaledIsolateBorrowed[account] -= amountScaled;
+    groupData.totalScaledIsolateBorrow -= amountScaled;
+    groupData.userScaledIsolateBorrow[account] -= amountScaled;
   }
 
   function erc20TransferInLiquidity(DataTypes.AssetData storage assetData, address from, uint256 amount) internal {
@@ -466,11 +466,11 @@ library VaultLogic {
    * @dev Get total supply balance in the asset, there's no index for erc721.
    */
   function erc721GetTotalCrossSupply(DataTypes.AssetData storage assetData) internal view returns (uint256) {
-    return assetData.totalScaledCrossSupplied;
+    return assetData.totalScaledCrossSupply;
   }
 
   function erc721GetTotalIsolateSupply(DataTypes.AssetData storage assetData) internal view returns (uint256) {
-    return assetData.totalScaledIsolateSupplied;
+    return assetData.totalScaledIsolateSupply;
   }
 
   /**
@@ -480,14 +480,14 @@ library VaultLogic {
     DataTypes.AssetData storage assetData,
     address user
   ) internal view returns (uint256) {
-    return assetData.userScaledCrossSupplied[user];
+    return assetData.userScaledCrossSupply[user];
   }
 
   function erc721GetUserIsolateSupply(
     DataTypes.AssetData storage assetData,
     address user
   ) internal view returns (uint256) {
-    return assetData.userScaledIsolateSupplied[user];
+    return assetData.userScaledIsolateSupply[user];
   }
 
   function erc721GetTokenOwnerAndMode(
@@ -509,8 +509,8 @@ library VaultLogic {
       tokenData.supplyMode = Constants.SUPPLY_MODE_CROSS;
     }
 
-    assetData.totalScaledCrossSupplied += tokenIds.length;
-    assetData.userScaledCrossSupplied[user] += tokenIds.length;
+    assetData.totalScaledCrossSupply += tokenIds.length;
+    assetData.userScaledCrossSupply[user] += tokenIds.length;
   }
 
   function erc721IncreaseIsolateSupply(
@@ -524,8 +524,8 @@ library VaultLogic {
       tokenData.supplyMode = Constants.SUPPLY_MODE_ISOLATE;
     }
 
-    assetData.totalScaledIsolateSupplied += tokenIds.length;
-    assetData.userScaledIsolateSupplied[user] += tokenIds.length;
+    assetData.totalScaledIsolateSupply += tokenIds.length;
+    assetData.userScaledIsolateSupply[user] += tokenIds.length;
   }
 
   function erc721DecreaseCrossSupply(
@@ -541,8 +541,8 @@ library VaultLogic {
       tokenData.supplyMode = 0;
     }
 
-    assetData.totalScaledCrossSupplied -= tokenIds.length;
-    assetData.userScaledCrossSupplied[user] -= tokenIds.length;
+    assetData.totalScaledCrossSupply -= tokenIds.length;
+    assetData.userScaledCrossSupply[user] -= tokenIds.length;
   }
 
   function erc721DecreaseIsolateSupply(
@@ -558,8 +558,8 @@ library VaultLogic {
       tokenData.supplyMode = 0;
     }
 
-    assetData.totalScaledIsolateSupplied -= tokenIds.length;
-    assetData.userScaledIsolateSupplied[user] -= tokenIds.length;
+    assetData.totalScaledIsolateSupply -= tokenIds.length;
+    assetData.userScaledIsolateSupply[user] -= tokenIds.length;
   }
 
   /**
@@ -578,8 +578,8 @@ library VaultLogic {
       tokenData.owner = to;
     }
 
-    assetData.userScaledCrossSupplied[from] -= tokenIds.length;
-    assetData.userScaledCrossSupplied[to] += tokenIds.length;
+    assetData.userScaledCrossSupply[from] -= tokenIds.length;
+    assetData.userScaledCrossSupply[to] += tokenIds.length;
   }
 
   function erc721TransferIsolateSupply(
@@ -595,8 +595,8 @@ library VaultLogic {
       tokenData.owner = to;
     }
 
-    assetData.userScaledIsolateSupplied[from] -= tokenIds.length;
-    assetData.userScaledIsolateSupplied[to] += tokenIds.length;
+    assetData.userScaledIsolateSupply[from] -= tokenIds.length;
+    assetData.userScaledIsolateSupply[to] += tokenIds.length;
   }
 
   function erc721TransferInLiquidity(
@@ -647,8 +647,8 @@ library VaultLogic {
     DataTypes.PoolData storage /*poolData*/,
     DataTypes.AssetData storage assetData
   ) internal view {
-    require(assetData.totalScaledCrossSupplied == 0, Errors.CROSS_SUPPLY_NOT_EMPTY);
-    require(assetData.totalScaledIsolateSupplied == 0, Errors.ISOLATE_SUPPLY_NOT_EMPTY);
+    require(assetData.totalScaledCrossSupply == 0, Errors.CROSS_SUPPLY_NOT_EMPTY);
+    require(assetData.totalScaledIsolateSupply == 0, Errors.ISOLATE_SUPPLY_NOT_EMPTY);
 
     uint256[] memory assetGroupIds = assetData.groupList.values();
     for (uint256 gidx = 0; gidx < assetGroupIds.length; gidx++) {
@@ -659,7 +659,7 @@ library VaultLogic {
   }
 
   function checkGroupHasEmptyLiquidity(DataTypes.GroupData storage groupData) internal view {
-    require(groupData.totalScaledCrossBorrowed == 0, Errors.CROSS_BORROW_NOT_EMPTY);
-    require(groupData.totalScaledIsolateBorrowed == 0, Errors.ISOLATE_BORROW_NOT_EMPTY);
+    require(groupData.totalScaledCrossBorrow == 0, Errors.CROSS_BORROW_NOT_EMPTY);
+    require(groupData.totalScaledIsolateBorrow == 0, Errors.ISOLATE_BORROW_NOT_EMPTY);
   }
 }

@@ -169,7 +169,7 @@ library InterestLogic {
     for (vars.i = 0; vars.i < vars.assetGroupIds.length; vars.i++) {
       vars.loopGroupId = uint8(vars.assetGroupIds[vars.i]);
       DataTypes.GroupData storage loopGroupData = assetData.groupLookup[vars.loopGroupId];
-      vars.loopGroupScaledDebt = loopGroupData.totalScaledCrossBorrowed + loopGroupData.totalScaledIsolateBorrowed;
+      vars.loopGroupScaledDebt = loopGroupData.totalScaledCrossBorrow + loopGroupData.totalScaledIsolateBorrow;
       vars.loopGroupDebt = vars.loopGroupScaledDebt.rayMul(loopGroupData.borrowIndex);
       vars.allGroupDebtList[vars.i] = vars.loopGroupDebt;
 
@@ -247,7 +247,7 @@ library InterestLogic {
       return;
     }
 
-    vars.totalScaledVariableDebt = groupData.totalScaledCrossBorrowed + groupData.totalScaledIsolateBorrowed;
+    vars.totalScaledVariableDebt = groupData.totalScaledCrossBorrow + groupData.totalScaledIsolateBorrow;
 
     //calculate the total variable debt at moment of the last interaction
     vars.prevTotalVariableDebt = vars.totalScaledVariableDebt.rayMul(prevGroupBorrowIndex);
@@ -290,7 +290,7 @@ library InterestLogic {
     // groupData.borrowRate != 0 is not a correct validation,
     // because a positive base variable rate can be stored on
     // groupData.borrowRate, but the index should not increase
-    if ((groupData.totalScaledCrossBorrowed != 0) || (groupData.totalScaledIsolateBorrowed != 0)) {
+    if ((groupData.totalScaledCrossBorrow != 0) || (groupData.totalScaledIsolateBorrow != 0)) {
       uint256 cumulatedBorrowInterest = MathUtils.calculateCompoundedInterest(
         groupData.borrowRate,
         assetData.lastUpdateTimestamp

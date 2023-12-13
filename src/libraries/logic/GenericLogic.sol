@@ -415,7 +415,7 @@ library GenericLogic {
     uint256 assetPrice
   ) private view returns (uint256) {
     // fetching variable debt
-    uint256 userTotalDebt = groupData.userScaledCrossBorrowed[userAccount];
+    uint256 userTotalDebt = groupData.userScaledCrossBorrow[userAccount];
     if (userTotalDebt != 0) {
       uint256 normalizedIndex = InterestLogic.getNormalizedBorrowDebt(assetData, groupData);
       userTotalDebt = userTotalDebt.rayMul(normalizedIndex);
@@ -434,7 +434,7 @@ library GenericLogic {
     DataTypes.AssetData storage assetData,
     uint256 assetPrice
   ) private view returns (uint256) {
-    uint256 userTotalBalance = assetData.userScaledCrossSupplied[userAccount];
+    uint256 userTotalBalance = assetData.userScaledCrossSupply[userAccount];
     if (userTotalBalance != 0) {
       uint256 normalizedIndex = InterestLogic.getNormalizedSupplyIncome(assetData);
       userTotalBalance = userTotalBalance.rayMul(normalizedIndex);
@@ -449,7 +449,7 @@ library GenericLogic {
     DataTypes.AssetData storage assetData,
     uint256 assetPrice
   ) private view returns (uint256) {
-    uint256 userTotalBalance = assetData.userScaledCrossSupplied[userAccount];
+    uint256 userTotalBalance = assetData.userScaledCrossSupply[userAccount];
     if (userTotalBalance != 0) {
       userTotalBalance = assetPrice * userTotalBalance;
     }
