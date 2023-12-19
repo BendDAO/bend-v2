@@ -25,11 +25,19 @@ abstract contract TestWithUtils is Test {
   }
 
   function testEquality(uint256 _firstValue, uint256 _secondValue) internal {
-    assertApproxEqAbs(_firstValue, _secondValue, 20);
+    assertApproxEqAbs(_firstValue, _secondValue, 1);
   }
 
   function testEquality(uint256 _firstValue, uint256 _secondValue, string memory err) internal {
-    assertApproxEqAbs(_firstValue, _secondValue, 20, err);
+    assertApproxEqAbs(_firstValue, _secondValue, 1, err);
+  }
+
+  function approxMinus(uint256 a, uint256 b, uint256 maxDelta) internal pure returns (uint256) {
+    if (a < b) {
+      require((b - a) <= maxDelta, 'delta exceed maxDelta');
+      return 0;
+    }
+    return a - b;
   }
 
   function bytes32ToAddress(bytes32 _bytes) internal pure returns (address) {

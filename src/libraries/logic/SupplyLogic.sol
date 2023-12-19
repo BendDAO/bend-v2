@@ -129,7 +129,7 @@ library SupplyLogic {
 
     if (params.supplyMode == Constants.SUPPLY_MODE_CROSS) {
       for (uint256 i = 0; i < params.tokenIds.length; i++) {
-        DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[params.tokenIds[i]];
+        DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(assetData, params.tokenIds[i]);
         require(tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.ASSET_NOT_ISOLATE_MODE);
 
         DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[params.asset][params.tokenIds[i]];
@@ -143,7 +143,7 @@ library SupplyLogic {
       VaultLogic.erc721IncreaseCrossSupply(assetData, msg.sender, params.tokenIds);
     } else if (params.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
       for (uint256 i = 0; i < params.tokenIds.length; i++) {
-        DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[params.tokenIds[i]];
+        DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(assetData, params.tokenIds[i]);
         require(tokenData.supplyMode == Constants.SUPPLY_MODE_CROSS, Errors.ASSET_NOT_CROSS_MODE);
 
         DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[params.asset][params.tokenIds[i]];

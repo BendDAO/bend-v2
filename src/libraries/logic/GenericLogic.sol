@@ -230,8 +230,6 @@ library GenericLogic {
   }
 
   struct CalculateNftLoanDataVars {
-    uint256 debtAssetPriceInBaseCurrency;
-    uint256 nftAssetPriceInBaseCurrency;
     uint256 normalizedIndex;
     uint256 loanDebtAmount;
   }
@@ -250,18 +248,18 @@ library GenericLogic {
     CalculateNftLoanDataVars memory vars;
 
     // query debt asset and nft price fromo oracle
-    vars.debtAssetPriceInBaseCurrency = IPriceOracleGetter(oracle).getAssetPrice(debtAssetData.underlyingAsset);
-    vars.nftAssetPriceInBaseCurrency = IPriceOracleGetter(oracle).getAssetPrice(nftAssetData.underlyingAsset);
+    result.debtAssetPriceInBaseCurrency = IPriceOracleGetter(oracle).getAssetPrice(debtAssetData.underlyingAsset);
+    result.nftAssetPriceInBaseCurrency = IPriceOracleGetter(oracle).getAssetPrice(nftAssetData.underlyingAsset);
 
     // calculate total collateral balance for the nft
-    result.totalCollateralInBaseCurrency = vars.nftAssetPriceInBaseCurrency;
+    result.totalCollateralInBaseCurrency = result.nftAssetPriceInBaseCurrency;
 
     // calculate total borrow balance for the loan
     result.totalDebtInBaseCurrency = _getNftLoanDebtInBaseCurrency(
       debtAssetData,
       debtGroupData,
       nftLoanData,
-      vars.debtAssetPriceInBaseCurrency
+      result.debtAssetPriceInBaseCurrency
     );
 
     // calculate health by borrow and collateral

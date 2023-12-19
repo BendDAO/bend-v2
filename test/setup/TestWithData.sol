@@ -103,7 +103,12 @@ abstract contract TestWithData is TestWithSetup {
   struct TestLoanData {
     address nftAsset;
     uint256 nftTokenId;
-    // basic fields from contract
+    // collateral fields from contract
+    uint256 totalCollateral;
+    uint256 totalBorrow;
+    uint256 availableBorrow;
+    uint256 healthFactor;
+    // loan fields from contract
     address reserveAsset;
     uint256 scaledAmount;
     uint256 borrowAmount;
@@ -341,6 +346,24 @@ abstract contract TestWithData is TestWithSetup {
 
     (data.bidStartTimestamp, data.bidEndTimestamp, data.firstBidder, data.lastBidder, data.bidAmount) = tsPoolManager
       .getIsolateAuctionData(poolId, nftAsset, nftTokenId);
+
+    if (data.reserveAsset != address(0)) {
+      (data.totalCollateral, data.totalBorrow, data.availableBorrow, data.healthFactor) = tsPoolManager
+        .getIsolateCollateralData(poolId, nftAsset, nftTokenId, data.reserveAsset);
+    }
+  }
+
+  function getIsolateCollateralData(
+    uint32 poolId,
+    address nftAsset,
+    uint256 nftTokenId,
+    address debtAsset
+  ) internal view returns (TestLoanData memory data) {
+    data.nftAsset = nftAsset;
+    data.nftTokenId = nftTokenId;
+
+    (data.totalCollateral, data.totalBorrow, data.availableBorrow, data.healthFactor) = tsPoolManager
+      .getIsolateCollateralData(poolId, nftAsset, nftTokenId, debtAsset);
   }
 
   function copyLoanData(TestLoanData memory loanDataOld) public pure returns (TestLoanData memory loanDataNew) {

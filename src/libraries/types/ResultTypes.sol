@@ -21,5 +21,7 @@ library ResultTypes {
       uint256 totalCollateralInBaseCurrency;
       uint256 totalDebtInBaseCurrency;
       uint256 healthFactor;
+      uint256 debtAssetPriceInBaseCurrency;
+      uint256 nftAssetPriceInBaseCurrency;
     }
 }

@@ -367,7 +367,10 @@ library IsolateLogic {
     for (vars.nidx = 0; vars.nidx < params.nftTokenIds.length; vars.nidx++) {
       DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[params.nftAsset][params.nftTokenIds[vars.nidx]];
       DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[loanData.reserveGroup];
-      DataTypes.ERC721TokenData storage tokenData = nftAssetData.erc721TokenData[params.nftTokenIds[vars.nidx]];
+      DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(
+        nftAssetData,
+        params.nftTokenIds[vars.nidx]
+      );
 
       ValidateLogic.validateIsolateLiquidateLoan(params, debtGroupData, loanData);
 

@@ -235,9 +235,9 @@ abstract contract TestWithBaseAction is TestWithData {
     TestAssetData memory expectedAssetData
   ) internal {
     if (_debugFlag) console.log('checkAssetData', 'begin');
-    assertEq(afterAssetData.totalCrossSupply, expectedAssetData.totalCrossSupply, 'AD:totalCrossSupply');
-    assertEq(afterAssetData.totalIsolateSupply, expectedAssetData.totalIsolateSupply, 'AD:totalIsolateSupply');
-    assertEq(afterAssetData.availableSupply, expectedAssetData.availableSupply, 'AD:availableSupply');
+    testEquality(afterAssetData.totalCrossSupply, expectedAssetData.totalCrossSupply, 'AD:totalCrossSupply');
+    testEquality(afterAssetData.totalIsolateSupply, expectedAssetData.totalIsolateSupply, 'AD:totalIsolateSupply');
+    testEquality(afterAssetData.availableSupply, expectedAssetData.availableSupply, 'AD:availableSupply');
     assertEq(afterAssetData.utilizationRate, expectedAssetData.utilizationRate, 'AD:utilizationRate');
 
     assertEq(afterAssetData.supplyRate, expectedAssetData.supplyRate, 'AD:supplyRate');
@@ -248,8 +248,8 @@ abstract contract TestWithBaseAction is TestWithData {
       TestGroupData memory afterGroupData = afterAssetData.groupsData[i];
       TestGroupData memory expectedGroupData = expectedAssetData.groupsData[i];
 
-      assertEq(afterGroupData.totalCrossBorrow, expectedGroupData.totalCrossBorrow, 'AD:totalCrossBorrow');
-      assertEq(afterGroupData.totalIsolateBorrow, expectedGroupData.totalIsolateBorrow, 'AD:totalIsolateBorrow');
+      testEquality(afterGroupData.totalCrossBorrow, expectedGroupData.totalCrossBorrow, 'AD:totalCrossBorrow');
+      testEquality(afterGroupData.totalIsolateBorrow, expectedGroupData.totalIsolateBorrow, 'AD:totalIsolateBorrow');
 
       assertEq(afterGroupData.borrowRate, expectedGroupData.borrowRate, 'AD:borrowRate');
       assertEq(afterGroupData.borrowIndex, expectedGroupData.borrowIndex, 'AD:borrowIndex');
@@ -263,18 +263,18 @@ abstract contract TestWithBaseAction is TestWithData {
     TestUserAssetData memory expectedUserData
   ) internal {
     if (_debugFlag) console.log('checkUserAssetData', 'begin');
-    assertEq(afterUserData.walletBalance, expectedUserData.walletBalance, 'UAD:walletBalance');
+    testEquality(afterUserData.walletBalance, expectedUserData.walletBalance, 'UAD:walletBalance');
 
-    assertEq(afterUserData.totalCrossSupply, expectedUserData.totalCrossSupply, 'UAD:totalCrossSupply');
-    assertEq(afterUserData.totalIsolateSupply, expectedUserData.totalIsolateSupply, 'UAD:walletBalance');
+    testEquality(afterUserData.totalCrossSupply, expectedUserData.totalCrossSupply, 'UAD:totalCrossSupply');
+    testEquality(afterUserData.totalIsolateSupply, expectedUserData.totalIsolateSupply, 'UAD:walletBalance');
 
     for (uint256 i = 0; i < afterUserData.groupsData.length; i++) {
       if (_debugFlag) console.log('checkUserAssetData', 'group', i);
       TestUserGroupData memory afterGroupData = afterUserData.groupsData[i];
       TestUserGroupData memory expectedGroupData = expectedUserData.groupsData[i];
 
-      assertEq(afterGroupData.totalCrossBorrow, expectedGroupData.totalCrossBorrow, 'UAD:totalCrossBorrow');
-      assertEq(afterGroupData.totalIsolateBorrow, expectedGroupData.totalIsolateBorrow, 'UAD:totalIsolateBorrow');
+      testEquality(afterGroupData.totalCrossBorrow, expectedGroupData.totalCrossBorrow, 'UAD:totalCrossBorrow');
+      testEquality(afterGroupData.totalIsolateBorrow, expectedGroupData.totalIsolateBorrow, 'UAD:totalIsolateBorrow');
     }
     if (_debugFlag) console.log('checkUserAssetData', 'end');
   }
@@ -299,8 +299,8 @@ abstract contract TestWithBaseAction is TestWithData {
       if (_debugFlag) console.log('checkLoanData-token', expectedLoansData[i].nftTokenId);
 
       assertEq(afterLoansData[i].reserveAsset, expectedLoansData[i].reserveAsset, 'LD:reserveAsset');
-      assertEq(afterLoansData[i].scaledAmount, expectedLoansData[i].scaledAmount, 'LD:scaledAmount');
-      assertEq(afterLoansData[i].borrowAmount, expectedLoansData[i].borrowAmount, 'LD:borrowAmount');
+      testEquality(afterLoansData[i].scaledAmount, expectedLoansData[i].scaledAmount, 'LD:scaledAmount');
+      testEquality(afterLoansData[i].borrowAmount, expectedLoansData[i].borrowAmount, 'LD:borrowAmount');
       assertEq(afterLoansData[i].reserveGroup, expectedLoansData[i].reserveGroup, 'LD:reserveGroup');
       assertEq(afterLoansData[i].loanStatus, expectedLoansData[i].loanStatus, 'LD:loanStatus');
 

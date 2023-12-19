@@ -781,6 +781,45 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     }
   }
 
+  function getIsolateCollateralData(
+    uint32 poolId,
+    address nftAsset,
+    uint256 tokenId,
+    address debtAsset
+  ) public view returns (uint256 totalCollateral, uint256 totalBorrow, uint256 availableBorrow, uint256 healthFactor) {
+    DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+
+    DataTypes.AssetData storage nftAssetData = poolData.assetLookup[nftAsset];
+    DataTypes.AssetData storage debtAssetData = poolData.assetLookup[debtAsset];
+    DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[nftAssetData.classGroup];
+    DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[nftAsset][tokenId];
+
+    ResultTypes.NftLoanResult memory nftLoanResult = GenericLogic.calculateNftLoanData(
+      poolData,
+      debtAssetData,
+      debtGroupData,
+      nftAssetData,
+      loanData,
+      cs.priceOracle
+    );
+
+    totalCollateral =
+      (nftLoanResult.totalCollateralInBaseCurrency * (10 ** debtAssetData.underlyingDecimals)) /
+      nftLoanResult.debtAssetPriceInBaseCurrency;
+    totalBorrow =
+      (nftLoanResult.totalDebtInBaseCurrency * (10 ** debtAssetData.underlyingDecimals)) /
+      nftLoanResult.debtAssetPriceInBaseCurrency;
+    availableBorrow = GenericLogic.calculateAvailableBorrows(
+      totalCollateral,
+      totalBorrow,
+      nftAssetData.collateralFactor
+    );
+
+    healthFactor = nftLoanResult.healthFactor;
+  }
+
   function getIsolateLoanData(
     uint32 poolId,
     address nftAsset,

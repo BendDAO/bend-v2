@@ -105,7 +105,7 @@ library ValidateLogic {
     );
 
     for (uint256 i = 0; i < inputParams.tokenIds.length; i++) {
-      DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[inputParams.tokenIds[i]];
+      DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(assetData, inputParams.tokenIds[i]);
       require(tokenData.owner == msg.sender, Errors.INVALID_CALLER);
       require(tokenData.supplyMode == inputParams.supplyMode, Errors.INVALID_SUPPLY_MODE);
 
@@ -115,6 +115,7 @@ library ValidateLogic {
 
   struct ValidateCrossBorrowERC20Vars {
     uint256 gidx;
+    uint256 assetPrice;
     uint256 totalBorrowAmount;
     uint256 amountInBaseCurrency;
     uint256 collateralNeededInBaseCurrency;
@@ -155,6 +156,8 @@ library ValidateLogic {
       Errors.HEALTH_FACTOR_BELOW_LIQUIDATION_THRESHOLD
     );
 
+    vars.assetPrice = IPriceOracleGetter(priceOracle).getAssetPrice(inputParams.asset);
+
     for (vars.gidx = 0; vars.gidx < inputParams.groups.length; vars.gidx++) {
       require(inputParams.amounts[vars.gidx] > 0, Errors.INVALID_AMOUNT);
       require(inputParams.groups[vars.gidx] >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
@@ -167,9 +170,8 @@ library ValidateLogic {
       require(userAccountResult.allGroupsAvgLtv[inputParams.groups[vars.gidx]] > 0, Errors.LTV_VALIDATION_FAILED);
 
       vars.amountInBaseCurrency =
-        IPriceOracleGetter(priceOracle).getAssetPrice(inputParams.asset) *
-        inputParams.amounts[vars.gidx];
-      vars.amountInBaseCurrency = vars.amountInBaseCurrency / (10 ** assetData.underlyingDecimals);
+        (vars.assetPrice * inputParams.amounts[vars.gidx]) /
+        (10 ** assetData.underlyingDecimals);
 
       //add the current already borrowed amount to the amount requested to calculate the total collateral needed.
       //LTV is calculated in percentage
@@ -341,9 +343,14 @@ library ValidateLogic {
 
     require(nftLoanResult.totalCollateralInBaseCurrency > 0, Errors.COLLATERAL_BALANCE_IS_ZERO);
 
+    uint256 assetPrice = IPriceOracleGetter(priceOracle).getAssetPrice(inputParams.asset);
+    uint256 amountInBaseCurrency = (assetPrice * inputParams.amounts[nftIndex]) /
+      (10 ** debtAssetData.underlyingDecimals);
+
     //add the current already borrowed amount to the amount requested to calculate the total collateral needed.
-    uint256 collateralNeededInBaseCurrency = (nftLoanResult.totalDebtInBaseCurrency + inputParams.amounts[nftIndex])
-      .percentDiv(nftAssetData.collateralFactor);
+    uint256 collateralNeededInBaseCurrency = (nftLoanResult.totalDebtInBaseCurrency + amountInBaseCurrency).percentDiv(
+      nftAssetData.collateralFactor
+    );
     require(
       collateralNeededInBaseCurrency <= nftLoanResult.totalCollateralInBaseCurrency,
       Errors.COLLATERAL_CANNOT_COVER_NEW_BORROW

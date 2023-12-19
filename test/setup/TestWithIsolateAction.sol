@@ -350,7 +350,7 @@ abstract contract TestWithIsolateAction is TestWithBaseAction {
     TestLoanData[] memory expectedLoansData = copyLoanData(dataBefore.loansData);
     dataExpected.loansData = expectedLoansData;
 
-    TestGroupData memory groupData = dataBefore.assetData2.groupsData[dataBefore.assetData.config.classGroup];
+    TestGroupData memory expectedGroupData = dataExpected.assetData2.groupsData[dataBefore.assetData.config.classGroup];
 
     for (uint256 i = 0; i < tokenIds.length; i++) {
       if (_debugFlag) console.log('calcExpectedLoanDataAfterIsolateRepay-loan', tokenIds[i]);
@@ -361,9 +361,9 @@ abstract contract TestWithIsolateAction is TestWithBaseAction {
 
       expectedLoansData[i].scaledAmount =
         dataBefore.loansData[i].scaledAmount -
-        amounts[i].rayDiv(groupData.borrowIndex);
+        amounts[i].rayDiv(expectedGroupData.borrowIndex);
       expectedLoansData[i].borrowAmount =
-        dataBefore.loansData[i].scaledAmount.rayMul(groupData.borrowIndex) -
+        dataBefore.loansData[i].scaledAmount.rayMul(expectedGroupData.borrowIndex) -
         amounts[i];
 
       if (expectedLoansData[i].scaledAmount == 0) {
@@ -424,7 +424,7 @@ abstract contract TestWithIsolateAction is TestWithBaseAction {
     expectedAssetData.availableSupply = beforeAssetData.availableSupply + totalAmountRepaid;
 
     // borrow
-    expectedAssetData.totalIsolateBorrow = expectedAssetData.totalIsolateBorrow - totalAmountRepaid;
+    expectedAssetData.totalIsolateBorrow = approxMinus(expectedAssetData.totalIsolateBorrow, totalAmountRepaid, 1);
 
     expectedAssetData.totalLiquidity =
       expectedAssetData.totalCrossBorrow +
@@ -436,7 +436,7 @@ abstract contract TestWithIsolateAction is TestWithBaseAction {
     );
 
     TestGroupData memory expectedGroupData = expectedAssetData.groupsData[beforeAssetData.config.classGroup];
-    expectedGroupData.totalIsolateBorrow = expectedGroupData.totalIsolateBorrow - totalAmountRepaid;
+    expectedGroupData.totalIsolateBorrow = approxMinus(expectedGroupData.totalIsolateBorrow, totalAmountRepaid, 1);
 
     // rate
     calcExpectedInterestRates(expectedAssetData);
@@ -488,10 +488,10 @@ abstract contract TestWithIsolateAction is TestWithBaseAction {
     // supply
 
     // borrow
-    expectedUserData.totalIsolateBorrow = expectedUserData.totalIsolateBorrow - totalAmountRepaid;
+    expectedUserData.totalIsolateBorrow = approxMinus(expectedUserData.totalIsolateBorrow, totalAmountRepaid, 1);
 
     TestUserGroupData memory expectedGroupData = expectedUserData.groupsData[dataBefore.assetData2.config.classGroup];
-    expectedGroupData.totalIsolateBorrow = expectedGroupData.totalIsolateBorrow - totalAmountRepaid;
+    expectedGroupData.totalIsolateBorrow = approxMinus(expectedGroupData.totalIsolateBorrow, totalAmountRepaid, 1);
 
     if (_debugFlag) console.log('calcExpectedDebtUserDataAfterIsolateRepay', 'end');
   }
