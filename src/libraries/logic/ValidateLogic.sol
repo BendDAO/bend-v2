@@ -108,6 +108,8 @@ library ValidateLogic {
       DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[inputParams.tokenIds[i]];
       require(tokenData.owner == msg.sender, Errors.INVALID_CALLER);
       require(tokenData.supplyMode == inputParams.supplyMode, Errors.INVALID_SUPPLY_MODE);
+
+      require(tokenData.lockFlag == 0, Errors.ASSET_LOCK_FLAG_NOT_EMPTY);
     }
   }
 
@@ -240,12 +242,12 @@ library ValidateLogic {
     require(inputParams.collateralTokenIds.length > 0, Errors.INVALID_ID_LIST);
 
     for (uint256 i = 0; i < inputParams.collateralTokenIds.length; i++) {
-      (address owner, uint8 supplyMode) = VaultLogic.erc721GetTokenOwnerAndMode(
+      DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(
         collateralAssetData,
         inputParams.collateralTokenIds[i]
       );
-      require(owner == inputParams.user, Errors.INVALID_TOKEN_OWNER);
-      require(supplyMode == Constants.SUPPLY_MODE_CROSS, Errors.ASSET_NOT_CROSS_MODE);
+      require(tokenData.owner == inputParams.user, Errors.INVALID_TOKEN_OWNER);
+      require(tokenData.supplyMode == Constants.SUPPLY_MODE_CROSS, Errors.ASSET_NOT_CROSS_MODE);
     }
   }
 
@@ -294,12 +296,12 @@ library ValidateLogic {
       require(inputParams.amounts[i] > 0, Errors.INVALID_AMOUNT);
       totalBorrowAmount += inputParams.amounts[i];
 
-      (address owner, uint8 supplyMode) = VaultLogic.erc721GetTokenOwnerAndMode(
+      DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(
         nftAssetData,
         inputParams.nftTokenIds[i]
       );
-      require(owner == user, Errors.ISOLATE_LOAN_OWNER_NOT_MATCH);
-      require(supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.ASSET_NOT_ISOLATE_MODE);
+      require(tokenData.owner == user, Errors.ISOLATE_LOAN_OWNER_NOT_MATCH);
+      require(tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.ASSET_NOT_ISOLATE_MODE);
     }
 
     require(totalBorrowAmount <= debtAssetData.availableLiquidity, Errors.ASSET_INSUFFICIENT_LIQUIDITY);

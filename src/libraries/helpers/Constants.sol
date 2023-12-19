@@ -27,6 +27,11 @@ library Constants {
   uint8 public constant SUPPLY_MODE_ISOLATE = 2;
   uint8 public constant SUPPLY_MODE_YIELD = 3;
 
+  // Asset Lock Flag
+  uint16 public constant ASSET_LOCK_FLAG_CROSS = 0x0001; // not used
+  uint16 public constant ASSET_LOCK_FLAG_ISOLATE = 0x0002; // not used
+  uint16 public constant ASSET_LOCK_FLAG_YIELD = 0x0004;
+
   // Loan Status
   uint8 public constant LOAN_STATUS_ACTIVE = 1;
   uint8 public constant LOAN_STATUS_REPAID = 2;

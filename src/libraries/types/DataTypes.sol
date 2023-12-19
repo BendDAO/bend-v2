@@ -63,6 +63,7 @@ library DataTypes {
   struct ERC721TokenData {
     address owner;
     uint8 supplyMode; // 0=cross margin, 1=isolate
+    uint16 lockFlag;
   }
 
   struct StakerData {

@@ -490,12 +490,30 @@ library VaultLogic {
     return assetData.userScaledIsolateSupply[user];
   }
 
-  function erc721GetTokenOwnerAndMode(
+  function erc721GetTokenData(
     DataTypes.AssetData storage assetData,
-    uint256 tokenid
-  ) internal view returns (address, uint8) {
-    DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenid];
-    return (tokenData.owner, tokenData.supplyMode);
+    uint256 tokenId
+  ) internal view returns (DataTypes.ERC721TokenData storage data) {
+    return assetData.erc721TokenData[tokenId];
+  }
+
+  function erc721SetTokenLockFlag(DataTypes.AssetData storage assetData, uint256 tokenId, uint16 lockFlag) internal {
+    DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenId];
+    tokenData.lockFlag = tokenData.lockFlag | lockFlag;
+  }
+
+  function erc721ResetTokenLockFlag(DataTypes.AssetData storage assetData, uint256 tokenId, uint16 lockFlag) internal {
+    DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenId];
+    tokenData.lockFlag = tokenData.lockFlag & ~lockFlag;
+  }
+
+  function erc721HasTokenLockFlag(
+    DataTypes.AssetData storage assetData,
+    uint256 tokenId,
+    uint16 lockFlag
+  ) internal view returns (bool) {
+    DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenId];
+    return (tokenData.lockFlag & lockFlag) != 0;
   }
 
   function erc721IncreaseCrossSupply(
