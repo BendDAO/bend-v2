@@ -147,8 +147,6 @@ abstract contract TestWithCrossAction is TestWithBaseAction {
       // liquidator & collateral
       TestContractData memory dataAfter = getContractData(sender, poolId, collateralAsset, Constants.ASSET_TYPE_ERC20);
 
-      console.log('actionCrossLiquidateERC20-111', dataAfter.assetData.totalCrossSupply);
-
       // liquidator & debt
       dataAfter.assetData2 = getAssetData(poolId, debtAsset, Constants.ASSET_TYPE_ERC20);
       dataAfter.userAssetData2 = getUserAssetData(sender, poolId, debtAsset, Constants.ASSET_TYPE_ERC20);

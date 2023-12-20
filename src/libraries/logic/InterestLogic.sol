@@ -128,7 +128,7 @@ library InterestLogic {
       DataTypes.GroupData storage loopGroupData = assetData.groupLookup[vars.loopGroupId];
       vars.prevGroupBorrowIndex = loopGroupData.borrowIndex;
       _updateBorrowIndex(assetData, loopGroupData);
-      _accrueToTreasury(assetData, loopGroupData, vars.prevGroupBorrowIndex);
+      _accrueFeeToTreasury(assetData, loopGroupData, vars.prevGroupBorrowIndex);
     }
 
     // save updating time
@@ -236,7 +236,7 @@ library InterestLogic {
    * @notice Mints part of the repaid interest to the reserve treasury as a function of the reserve factor for the
    * specific asset.
    */
-  function _accrueToTreasury(
+  function _accrueFeeToTreasury(
     DataTypes.AssetData storage assetData,
     DataTypes.GroupData storage groupData,
     uint256 prevGroupBorrowIndex

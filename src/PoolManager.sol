@@ -155,6 +155,24 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     );
   }
 
+  function setAssetAuctionParams(
+    uint32 poolId,
+    address asset,
+    uint16 redeemThreshold,
+    uint16 bidFineFactor,
+    uint16 minBidFineFactor,
+    uint40 auctionDuration
+  ) public nonReentrant {
+    ConfigureLogic.executeSetAssetAuctionParams(
+      poolId,
+      asset,
+      redeemThreshold,
+      bidFineFactor,
+      minBidFineFactor,
+      auctionDuration
+    );
+  }
+
   function setAssetProtocolFee(uint32 poolId, address asset, uint16 feeFactor) public nonReentrant {
     ConfigureLogic.executeSetAssetProtocolFee(poolId, asset, feeFactor);
   }
@@ -381,14 +399,16 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     uint32 poolId,
     address nftAsset,
     uint256[] calldata nftTokenIds,
-    address asset
+    address asset,
+    bool supplyAsCollateral
   ) public whenNotPaused nonReentrant {
     IsolateLogic.executeIsolateLiquidate(
       InputTypes.ExecuteIsolateLiquidateParams({
         poolId: poolId,
         nftAsset: nftAsset,
         nftTokenIds: nftTokenIds,
-        asset: asset
+        asset: asset,
+        supplyAsCollateral: supplyAsCollateral
       })
     );
   }

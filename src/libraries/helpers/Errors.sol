@@ -94,6 +94,6 @@ library Errors {
   string public constant ISOLATE_BID_PRICE_LESS_THAN_HIGHEST_PRICE = '606';
   string public constant ISOLATE_BID_AUCTION_DURATION_HAS_END = '607';
   string public constant ISOLATE_BID_AUCTION_DURATION_NOT_END = '608';
-  string public constant ISOLATE_LOAN_BORROW_AMOUNT_NOT_MATCH = '609';
+  string public constant ISOLATE_LOAN_BORROW_AMOUNT_NOT_COVER = '609';
   string public constant ISOLATE_LOAN_EXISTS = '610';
 }

@@ -107,6 +107,7 @@ library InputTypes {
     address nftAsset;
     uint256[] nftTokenIds;
     address asset;
+    bool supplyAsCollateral;
   }
 
   // Yield

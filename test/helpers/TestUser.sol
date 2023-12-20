@@ -77,4 +77,48 @@ contract TestUser is ERC721Holder {
   function withdrawERC721(uint32 poolId, address asset, uint256[] calldata tokenIds, uint8 supplyMode) public {
     _poolManager.withdrawERC721(poolId, asset, tokenIds, supplyMode);
   }
+
+  function isolateBorrow(
+    uint32 poolId,
+    address nftAsset,
+    uint256[] calldata nftTokenIds,
+    address asset,
+    uint256[] calldata amounts
+  ) public {
+    _poolManager.isolateBorrow(poolId, nftAsset, nftTokenIds, asset, amounts);
+  }
+
+  function isolateRepay(
+    uint32 poolId,
+    address nftAsset,
+    uint256[] calldata nftTokenIds,
+    address asset,
+    uint256[] calldata amounts
+  ) public {
+    _poolManager.isolateRepay(poolId, nftAsset, nftTokenIds, asset, amounts);
+  }
+
+  function isolateAuction(
+    uint32 poolId,
+    address nftAsset,
+    uint256[] calldata nftTokenIds,
+    address asset,
+    uint256[] calldata amounts
+  ) public {
+    _poolManager.isolateAuction(poolId, nftAsset, nftTokenIds, asset, amounts);
+  }
+
+  function isolateRedeem(uint32 poolId, address nftAsset, uint256[] calldata nftTokenIds, address asset) public {
+    _poolManager.isolateRedeem(poolId, nftAsset, nftTokenIds, asset);
+  }
+
+  function isolateLiquidate(
+    uint32 poolId,
+    address nftAsset,
+    uint256[] calldata nftTokenIds,
+    address asset,
+    bool supplyAsCollateral
+  ) public {
+    _poolManager.isolateLiquidate(poolId, nftAsset, nftTokenIds, asset, supplyAsCollateral);
+  }
 }

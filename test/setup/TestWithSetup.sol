@@ -306,11 +306,13 @@ abstract contract TestWithSetup is TestWithUtils {
     // add some nft assets
     tsPoolManager.addAssetERC721(tsCommonPoolId, address(tsBAYC));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsBAYC), 6000, 8000, 1000);
+    tsPoolManager.setAssetAuctionParams(tsCommonPoolId, address(tsBAYC), 5000, 500, 2000, 1 days);
     tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsBAYC), tsLowRateGroupId);
     tsPoolManager.setAssetActive(tsCommonPoolId, address(tsBAYC), true);
 
     tsPoolManager.addAssetERC721(tsCommonPoolId, address(tsMAYC));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsMAYC), 5000, 8000, 1000);
+    tsPoolManager.setAssetAuctionParams(tsCommonPoolId, address(tsBAYC), 5000, 500, 2000, 1 days);
     tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsMAYC), tsHighRateGroupId);
     tsPoolManager.setAssetActive(tsCommonPoolId, address(tsMAYC), true);
   }

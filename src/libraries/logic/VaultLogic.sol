@@ -417,12 +417,12 @@ library VaultLogic {
   function erc20TransferBetweenWallets(address asset, address from, address to, uint amount) internal {
     require(to != address(0), Errors.INVALID_TO_ADDRESS);
 
-    uint256 poolSizeBefore = IERC20Upgradeable(asset).balanceOf(to);
+    uint256 userSizeBefore = IERC20Upgradeable(asset).balanceOf(to);
 
     IERC20Upgradeable(asset).safeTransferFrom(from, to, amount);
 
-    uint poolSizeAfter = IERC20Upgradeable(asset).balanceOf(to);
-    require(poolSizeBefore == (poolSizeAfter + amount), Errors.INVALID_TRANSFER_AMOUNT);
+    uint userSizeAfter = IERC20Upgradeable(asset).balanceOf(to);
+    require(userSizeAfter == (userSizeBefore + amount), Errors.INVALID_TRANSFER_AMOUNT);
   }
 
   function erc20TransferInBidAmount(DataTypes.AssetData storage assetData, address from, uint256 amount) internal {
@@ -580,6 +580,23 @@ library VaultLogic {
     assetData.userScaledIsolateSupply[user] -= tokenIds.length;
   }
 
+  function erc721DecreaseIsolateSupplyOnLiquidate(
+    DataTypes.AssetData storage assetData,
+    uint256[] memory tokenIds
+  ) internal {
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
+      require(tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.INVALID_SUPPLY_MODE);
+
+      assetData.userScaledIsolateSupply[tokenData.owner] -= 1;
+
+      tokenData.owner = address(0);
+      tokenData.supplyMode = 0;
+    }
+
+    assetData.totalScaledIsolateSupply -= tokenIds.length;
+  }
+
   /**
    * @dev Transfer user supply balance.
    */
@@ -609,12 +626,29 @@ library VaultLogic {
     for (uint256 i = 0; i < tokenIds.length; i++) {
       DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
       require(tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.INVALID_SUPPLY_MODE);
+      require(tokenData.owner == from, Errors.INVALID_TOKEN_OWNER);
 
       tokenData.owner = to;
     }
 
     assetData.userScaledIsolateSupply[from] -= tokenIds.length;
     assetData.userScaledIsolateSupply[to] += tokenIds.length;
+  }
+
+  function erc721TransferIsolateSupplyOnLiquidate(
+    DataTypes.AssetData storage assetData,
+    address to,
+    uint256[] memory tokenIds
+  ) internal {
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
+      require(tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.INVALID_SUPPLY_MODE);
+
+      assetData.userScaledIsolateSupply[tokenData.owner] -= 1;
+      assetData.userScaledIsolateSupply[to] += 1;
+
+      tokenData.owner = to;
+    }
   }
 
   function erc721TransferInLiquidity(

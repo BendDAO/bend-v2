@@ -46,6 +46,12 @@ abstract contract TestWithBaseAction is TestWithData {
   /* Actions */
   /****************************************************************************/
 
+  function actionSetNftPrice(address nftAsset, uint256 percentage) internal {
+    uint256 oldPrice = tsBendNFTOracle.getAssetPrice(nftAsset);
+    uint256 newPrice = (oldPrice * percentage) / 1e4;
+    tsBendNFTOracle.setAssetPrice(nftAsset, newPrice);
+  }
+
   // Supply
 
   function actionDepositERC20(
@@ -57,7 +63,7 @@ abstract contract TestWithBaseAction is TestWithData {
   ) internal {
     if (_debugFlag) console.log('<<<<actionDepositERC20', 'begin');
     if (revertMessage.length > 0) {
-      vm.expectRevert(revertMessage);
+      tsHEVM.expectRevert(revertMessage);
       tsHEVM.prank(sender);
       tsPoolManager.depositERC20(poolId, asset, amount);
     } else {

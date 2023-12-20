@@ -40,6 +40,14 @@ library Events {
     uint16 liquidationThreshold,
     uint16 liquidationBonus
   );
+  event SetAssetAuctionParams(
+    uint32 indexed poolId,
+    address indexed asset,
+    uint16 redeemThreshold,
+    uint16 bidFineFactor,
+    uint16 minBidFineFactor,
+    uint40 auctionDuration
+  );
   event SetAssetProtocolFee(uint32 indexed poolId, address indexed asset, uint16 feeFactor);
   event SetAssetLendingRate(uint32 indexed poolId, address indexed asset, uint8 groupId, address rateModel);
 
@@ -96,7 +104,7 @@ library Events {
     uint256 indexed poolId,
     address nftAsset,
     uint256[] tokenIds,
-    address indexed asset,
+    address indexed debtAsset,
     uint256[] amounts
   );
 
@@ -105,7 +113,7 @@ library Events {
     uint256 indexed poolId,
     address nftAsset,
     uint256[] tokenIds,
-    address indexed asset,
+    address indexed debtAsset,
     uint256[] amounts
   );
 
@@ -114,8 +122,8 @@ library Events {
     uint256 indexed poolId,
     address nftAsset,
     uint256[] tokenIds,
-    address indexed asset,
-    uint256[] amounts
+    address indexed debtAsset,
+    uint256[] bidAmounts
   );
 
   event IsolateRedeem(
@@ -123,7 +131,9 @@ library Events {
     uint256 indexed poolId,
     address nftAsset,
     uint256[] tokenIds,
-    address indexed asset
+    address indexed debtAsset,
+    uint256[] redeemAmounts,
+    uint256[] bidFines
   );
 
   event IsolateLiquidate(
@@ -131,7 +141,9 @@ library Events {
     uint256 indexed poolId,
     address nftAsset,
     uint256[] tokenIds,
-    address indexed asset
+    address indexed debtAsset,
+    uint256[] extraAmounts,
+    uint256[] remainAmounts
   );
 
   /* Yield Events */

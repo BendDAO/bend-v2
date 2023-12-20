@@ -418,6 +418,35 @@ library ConfigureLogic {
     emit Events.SetAssetCollateralParams(poolId, asset, collateralFactor, liquidationThreshold, liquidationBonus);
   }
 
+  function executeSetAssetAuctionParams(
+    uint32 poolId,
+    address asset,
+    uint16 redeemThreshold,
+    uint16 bidFineFactor,
+    uint16 minBidFineFactor,
+    uint40 auctionDuration
+  ) public {
+    require(redeemThreshold <= Constants.MAX_REDEEM_THRESHOLD, Errors.INVALID_ASSET_PARAMS);
+    require(bidFineFactor <= Constants.MAX_BIDFINE_FACTOR, Errors.INVALID_ASSET_PARAMS);
+    require(minBidFineFactor <= Constants.MAX_MIN_BIDFINE_FACTOR, Errors.INVALID_ASSET_PARAMS);
+    require(auctionDuration <= Constants.MAX_AUCTION_DUARATION, Errors.INVALID_ASSET_PARAMS);
+
+    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    _validateOwnerAndPool(poolData);
+
+    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+    require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
+
+    assetData.redeemThreshold = redeemThreshold;
+    assetData.bidFineFactor = bidFineFactor;
+    assetData.minBidFineFactor = minBidFineFactor;
+    assetData.auctionDuration = auctionDuration;
+
+    emit Events.SetAssetAuctionParams(poolId, asset, redeemThreshold, bidFineFactor, minBidFineFactor, auctionDuration);
+  }
+
   function executeSetAssetProtocolFee(uint32 poolId, address asset, uint16 feeFactor) public {
     require(feeFactor <= Constants.MAX_FEE_FACTOR, Errors.INVALID_ASSET_PARAMS);
 
