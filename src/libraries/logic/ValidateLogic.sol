@@ -1,11 +1,13 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
+import {EnumerableSetUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol';
 import {IPriceOracleGetter} from '../../interfaces/IPriceOracleGetter.sol';
 
 import {Constants} from '../helpers/Constants.sol';
 import {Errors} from '../helpers/Errors.sol';
 
+import {WadRayMath} from '../math/WadRayMath.sol';
 import {PercentageMath} from '../math/PercentageMath.sol';
 import {DataTypes} from '../types/DataTypes.sol';
 import {ResultTypes} from '../types/ResultTypes.sol';
@@ -15,7 +17,11 @@ import {GenericLogic} from './GenericLogic.sol';
 import {VaultLogic} from './VaultLogic.sol';
 
 library ValidateLogic {
+  using WadRayMath for uint256;
   using PercentageMath for uint256;
+
+  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
+  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
 
   function validatePoolBasic(DataTypes.PoolData storage poolData) internal view {
     require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
@@ -52,6 +58,12 @@ library ValidateLogic {
     require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
 
     require(!assetData.isFrozen, Errors.ASSET_IS_FROZEN);
+
+    if (assetData.supplyCap != 0) {
+      uint256 totalScaledSupply = VaultLogic.erc20GetTotalScaledCrossSupply(assetData);
+      uint256 totalSupplyWithFee = (totalScaledSupply + assetData.accruedFee).rayMul(assetData.supplyIndex);
+      require((inputParams.amount + totalSupplyWithFee) <= assetData.supplyCap, Errors.ASSET_SUPPLY_CAP_EXCEEDED);
+    }
   }
 
   function validateWithdrawERC20(
@@ -115,10 +127,12 @@ library ValidateLogic {
 
   struct ValidateCrossBorrowERC20Vars {
     uint256 gidx;
+    uint256[] groupIds;
     uint256 assetPrice;
-    uint256 totalBorrowAmount;
+    uint256 totalNewBorrowAmount;
     uint256 amountInBaseCurrency;
     uint256 collateralNeededInBaseCurrency;
+    uint256 totalAssetBorrowAmount;
   }
 
   function validateCrossBorrowERC20Basic(
@@ -126,6 +140,8 @@ library ValidateLogic {
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage assetData
   ) internal view {
+    ValidateCrossBorrowERC20Vars memory vars;
+
     validatePoolBasic(poolData);
     validateAssetBasic(assetData);
 
@@ -134,6 +150,19 @@ library ValidateLogic {
     require(assetData.isBorrowingEnabled, Errors.ASSET_IS_BORROW_DISABLED);
 
     require(inputParams.groups.length > 0, Errors.GROUP_LIST_IS_EMPTY);
+
+    if (assetData.borrowCap != 0) {
+      vars.totalAssetBorrowAmount = VaultLogic.erc20GetTotalCrossBorrowInAsset(assetData);
+
+      for (vars.gidx = 0; vars.gidx < inputParams.groups.length; vars.gidx++) {
+        vars.totalNewBorrowAmount += inputParams.amounts[vars.gidx];
+      }
+
+      require(
+        (vars.totalAssetBorrowAmount + vars.totalNewBorrowAmount) <= assetData.borrowCap,
+        Errors.ASSET_BORROW_CAP_EXCEEDED
+      );
+    }
   }
 
   function validateCrossBorrowERC20Account(
@@ -185,10 +214,10 @@ library ValidateLogic {
         Errors.COLLATERAL_CANNOT_COVER_NEW_BORROW
       );
 
-      vars.totalBorrowAmount += inputParams.amounts[vars.gidx];
+      vars.totalNewBorrowAmount += inputParams.amounts[vars.gidx];
     }
 
-    require(vars.totalBorrowAmount <= assetData.availableLiquidity, Errors.ASSET_INSUFFICIENT_LIQUIDITY);
+    require(vars.totalNewBorrowAmount <= assetData.availableLiquidity, Errors.ASSET_INSUFFICIENT_LIQUIDITY);
   }
 
   function validateCrossRepayERC20Basic(
@@ -272,6 +301,12 @@ library ValidateLogic {
     return (userAccountResult.healthFactor);
   }
 
+  struct ValidateIsolateBorrowVars {
+    uint256 i;
+    uint256 totalNewBorrowAmount;
+    uint256 totalAssetBorrowAmount;
+  }
+
   function validateIsolateBorrowBasic(
     InputTypes.ExecuteIsolateBorrowParams memory inputParams,
     DataTypes.PoolData storage poolData,
@@ -279,6 +314,8 @@ library ValidateLogic {
     DataTypes.AssetData storage nftAssetData,
     address user
   ) internal view {
+    ValidateIsolateBorrowVars memory vars;
+
     validatePoolBasic(poolData);
 
     validateAssetBasic(debtAssetData);
@@ -293,20 +330,28 @@ library ValidateLogic {
     require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
     require(inputParams.nftTokenIds.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGH);
 
-    uint256 totalBorrowAmount;
-    for (uint256 i = 0; i < inputParams.nftTokenIds.length; i++) {
-      require(inputParams.amounts[i] > 0, Errors.INVALID_AMOUNT);
-      totalBorrowAmount += inputParams.amounts[i];
+    for (vars.i = 0; vars.i < inputParams.nftTokenIds.length; vars.i++) {
+      require(inputParams.amounts[vars.i] > 0, Errors.INVALID_AMOUNT);
+      vars.totalNewBorrowAmount += inputParams.amounts[vars.i];
 
       DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(
         nftAssetData,
-        inputParams.nftTokenIds[i]
+        inputParams.nftTokenIds[vars.i]
       );
       require(tokenData.owner == user, Errors.ISOLATE_LOAN_OWNER_NOT_MATCH);
       require(tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.ASSET_NOT_ISOLATE_MODE);
     }
 
-    require(totalBorrowAmount <= debtAssetData.availableLiquidity, Errors.ASSET_INSUFFICIENT_LIQUIDITY);
+    require(vars.totalNewBorrowAmount <= debtAssetData.availableLiquidity, Errors.ASSET_INSUFFICIENT_LIQUIDITY);
+
+    if (debtAssetData.borrowCap != 0) {
+      vars.totalAssetBorrowAmount = VaultLogic.erc20GetTotalCrossBorrowInAsset(debtAssetData);
+
+      require(
+        (vars.totalAssetBorrowAmount + vars.totalNewBorrowAmount) <= debtAssetData.borrowCap,
+        Errors.ASSET_BORROW_CAP_EXCEEDED
+      );
+    }
   }
 
   function validateIsolateBorrowLoan(

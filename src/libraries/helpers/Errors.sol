@@ -69,6 +69,8 @@ library Errors {
   string public constant ASSET_INSUFFICIENT_LIQUIDITY = '357';
   string public constant ASSET_INSUFFICIENT_BIDAMOUNT = '358';
   string public constant ASSET_LOCK_FLAG_NOT_EMPTY = '359';
+  string public constant ASSET_SUPPLY_CAP_EXCEEDED = '360';
+  string public constant ASSET_BORROW_CAP_EXCEEDED = '361';
 
   string public constant HEALTH_FACTOR_BELOW_LIQUIDATION_THRESHOLD = '400';
   string public constant HEALTH_FACTOR_NOT_BELOW_LIQUIDATION_THRESHOLD = '401';

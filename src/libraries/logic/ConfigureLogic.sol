@@ -119,6 +119,9 @@ library ConfigureLogic {
 
       poolData.isYieldEnabled = true;
       poolData.yieldGroup = Constants.GROUP_ID_YIELD;
+
+      bool isAddOk = poolData.groupList.add(Constants.GROUP_ID_YIELD);
+      require(isAddOk, Errors.ENUM_SET_ADD_FAILED);
     } else {
       require(poolData.isYieldEnabled, Errors.POOL_YIELD_NOT_ENABLE);
 
@@ -134,6 +137,9 @@ library ConfigureLogic {
 
       poolData.isYieldEnabled = false;
       poolData.yieldGroup = Constants.GROUP_ID_INVALID;
+
+      bool isDelOk = poolData.groupList.remove(Constants.GROUP_ID_YIELD);
+      require(isDelOk, Errors.ENUM_SET_REMOVE_FAILED);
     }
 
     emit Events.SetPoolYieldEnable(poolId, isEnable);
@@ -379,6 +385,9 @@ library ConfigureLogic {
   function executeSetAssetClassGroup(uint32 poolId, address asset, uint8 classGroup) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
 
+    require(classGroup >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
+    require(classGroup <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
+
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
 
@@ -438,6 +447,7 @@ library ConfigureLogic {
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
 
     assetData.redeemThreshold = redeemThreshold;
     assetData.bidFineFactor = bidFineFactor;
@@ -457,6 +467,7 @@ library ConfigureLogic {
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
     assetData.feeFactor = feeFactor;
 
@@ -505,11 +516,15 @@ library ConfigureLogic {
       groupData.groupId = poolData.yieldGroup;
 
       InterestLogic.initGroupData(groupData);
+
+      assetData.groupList.add(poolData.yieldGroup);
     } else {
       require(assetData.isYieldEnabled, Errors.ASSET_YIELD_NOT_ENABLE);
 
       DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
       VaultLogic.checkGroupHasEmptyLiquidity(groupData);
+
+      assetData.groupList.remove(poolData.yieldGroup);
 
       delete assetData.groupLookup[poolData.yieldGroup];
 
@@ -536,6 +551,8 @@ library ConfigureLogic {
 
   function executeSetAssetYieldCap(uint32 poolId, address asset, uint256 newCap) public {
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+
+    require(newCap <= Constants.MAX_YIELD_CAP_FACTOR, Errors.INVALID_ASSET_PARAMS);
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);

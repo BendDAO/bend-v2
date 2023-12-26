@@ -13,6 +13,7 @@ library Constants {
   uint16 public constant MAX_BIDFINE_FACTOR = 10000;
   uint16 public constant MAX_MIN_BIDFINE_FACTOR = 10000;
   uint40 public constant MAX_AUCTION_DUARATION = 7 days;
+  uint40 public constant MAX_YIELD_CAP_FACTOR = 10000;
 
   uint16 public constant MAX_NUMBER_OF_ASSET = 256;
 

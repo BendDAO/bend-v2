@@ -238,6 +238,16 @@ library VaultLogic {
     return groupData.totalScaledCrossBorrow;
   }
 
+  function erc20GetTotalCrossBorrowInAsset(DataTypes.AssetData storage assetData) internal view returns (uint256) {
+    uint256 totalBorrow;
+    uint256[] memory groupIds = assetData.groupList.values();
+    for (uint256 i = 0; i < groupIds.length; i++) {
+      DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(groupIds[i])];
+      totalBorrow += groupData.totalScaledCrossBorrow.rayMul(groupData.borrowIndex);
+    }
+    return totalBorrow;
+  }
+
   /**
    * @dev Get total borrow balance in the group, make sure the index already updated.
    */
@@ -252,6 +262,16 @@ library VaultLogic {
     DataTypes.GroupData storage groupData
   ) internal view returns (uint256) {
     return groupData.totalScaledIsolateBorrow;
+  }
+
+  function erc20GetTotalIsolateBorrowInAsset(DataTypes.AssetData storage assetData) internal view returns (uint256) {
+    uint256 totalBorrow;
+    uint256[] memory groupIds = assetData.groupList.values();
+    for (uint256 i = 0; i < groupIds.length; i++) {
+      DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(groupIds[i])];
+      totalBorrow += groupData.totalScaledIsolateBorrow.rayMul(groupData.borrowIndex);
+    }
+    return totalBorrow;
   }
 
   /**
@@ -277,9 +297,7 @@ library VaultLogic {
     uint256[] memory groupIds = assetData.groupList.values();
     for (uint256 i = 0; i < groupIds.length; i++) {
       DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(groupIds[i])];
-
-      uint256 amountScaled = groupData.userScaledCrossBorrow[account];
-      totalScaledBorrow += amountScaled;
+      totalScaledBorrow += groupData.userScaledCrossBorrow[account];
     }
 
     return totalScaledBorrow;

@@ -418,13 +418,13 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   /****************************************************************************/
   function yieldBorrowERC20(uint32 poolId, address asset, uint256 amount) public whenNotPaused nonReentrant {
     YieldLogic.executeYieldBorrowERC20(
-      InputTypes.ExecuteYieldBorrowERC20Params({poolId: poolId, asset: asset, amount: amount})
+      InputTypes.ExecuteYieldBorrowERC20Params({poolId: poolId, asset: asset, amount: amount, isExternalCaller: true})
     );
   }
 
   function yieldRepayERC20(uint32 poolId, address asset, uint256 amount) public whenNotPaused nonReentrant {
     YieldLogic.executeYieldRepayERC20(
-      InputTypes.ExecuteYieldRepayERC20Params({poolId: poolId, asset: asset, amount: amount})
+      InputTypes.ExecuteYieldRepayERC20Params({poolId: poolId, asset: asset, amount: amount, isExternalCaller: true})
     );
   }
 

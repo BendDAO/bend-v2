@@ -121,4 +121,12 @@ contract TestUser is ERC721Holder {
   ) public {
     _poolManager.isolateLiquidate(poolId, nftAsset, nftTokenIds, asset, supplyAsCollateral);
   }
+
+  function yieldBorrowERC20(uint32 poolId, address asset, uint256 amount) public {
+    _poolManager.yieldBorrowERC20(poolId, asset, amount);
+  }
+
+  function yieldRepayERC20(uint32 poolId, address asset, uint256 amount) public {
+    _poolManager.yieldRepayERC20(poolId, asset, amount);
+  }
 }

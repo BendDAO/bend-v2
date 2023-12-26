@@ -55,6 +55,7 @@ abstract contract TestWithSetup is TestWithUtils {
   uint8 public tsMiddleRateGroupId;
   uint8 public tsHighRateGroupId;
 
+  DefaultInterestRateModel public tsYieldRateIRM;
   DefaultInterestRateModel public tsLowRateIRM;
   DefaultInterestRateModel public tsMiddleRateIRM;
   DefaultInterestRateModel public tsHighRateIRM;
@@ -73,6 +74,11 @@ abstract contract TestWithSetup is TestWithUtils {
   TestUser public tsLiquidator2;
   TestUser public tsLiquidator3;
   TestUser[] public tsLiquidators;
+
+  TestUser public tsStaker1;
+  TestUser public tsStaker2;
+  TestUser public tsStaker3;
+  TestUser[] public tsStakers;
 
   uint256[] public tsD1TokenIds;
   uint256[] public tsD2TokenIds;
@@ -142,6 +148,12 @@ abstract contract TestWithSetup is TestWithUtils {
     //tsPoolManager.initialize(address(aclManager), address(tsPriceOracle));
 
     // Interest Rate Model
+    tsYieldRateIRM = new DefaultInterestRateModel(
+      (65 * WadRayMath.RAY) / 100,
+      (2 * WadRayMath.RAY) / 100,
+      (1 * WadRayMath.RAY) / 100,
+      (20 * WadRayMath.RAY) / 100
+    );
     tsLowRateIRM = new DefaultInterestRateModel(
       (65 * WadRayMath.RAY) / 100,
       (10 * WadRayMath.RAY) / 100,
@@ -215,6 +227,17 @@ abstract contract TestWithSetup is TestWithUtils {
     tsLiquidator1 = tsLiquidators[0];
     tsLiquidator2 = tsLiquidators[1];
     tsLiquidator3 = tsLiquidators[2];
+
+    // stakers
+    for (uint256 i = 0; i < 3; i++) {
+      uint256 uid = ((i + 10) * 100);
+      tsStakers.push(new TestUser(tsPoolManager, uid));
+      tsHEVM.label(address(tsStakers[i]), string(abi.encodePacked('Staker', Strings.toString(i + 4))));
+      fillUserBalances(tsStakers[i]);
+    }
+    tsStaker1 = tsStakers[0];
+    tsStaker2 = tsStakers[1];
+    tsStaker3 = tsStakers[2];
   }
 
   function fillUserBalances(TestUser user) internal {
@@ -315,5 +338,20 @@ abstract contract TestWithSetup is TestWithUtils {
     tsPoolManager.setAssetAuctionParams(tsCommonPoolId, address(tsBAYC), 5000, 500, 2000, 1 days);
     tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsMAYC), tsHighRateGroupId);
     tsPoolManager.setAssetActive(tsCommonPoolId, address(tsMAYC), true);
+
+    // yield
+    tsPoolManager.setPoolYieldEnable(tsCommonPoolId, true);
+
+    tsPoolManager.setAssetYieldEnable(tsCommonPoolId, address(tsWETH), true);
+    tsPoolManager.setAssetYieldCap(tsCommonPoolId, address(tsWETH), 2000);
+    tsPoolManager.setAssetYieldRate(tsCommonPoolId, address(tsWETH), address(tsYieldRateIRM));
+    tsPoolManager.setStakerYieldCap(tsCommonPoolId, address(tsPoolManager), address(tsWETH), 2000);
+    tsPoolManager.setStakerYieldCap(tsCommonPoolId, address(tsStaker1), address(tsWETH), 2000);
+
+    tsPoolManager.setAssetYieldEnable(tsCommonPoolId, address(tsDAI), true);
+    tsPoolManager.setAssetYieldCap(tsCommonPoolId, address(tsDAI), 2000);
+    tsPoolManager.setAssetYieldRate(tsCommonPoolId, address(tsDAI), address(tsYieldRateIRM));
+    tsPoolManager.setStakerYieldCap(tsCommonPoolId, address(tsPoolManager), address(tsDAI), 2000);
+    tsPoolManager.setStakerYieldCap(tsCommonPoolId, address(tsStaker2), address(tsDAI), 2000);
   }
 }

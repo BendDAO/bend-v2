@@ -116,12 +116,14 @@ library InputTypes {
     uint32 poolId;
     address asset;
     uint256 amount;
+    bool isExternalCaller;
   }
 
   struct ExecuteYieldRepayERC20Params {
     uint32 poolId;
     address asset;
     uint256 amount;
+    bool isExternalCaller;
   }
 
   // Misc
