@@ -120,6 +120,8 @@ abstract contract TestWithData is TestWithSetup {
     address firstBidder;
     address lastBidder;
     uint256 bidAmount;
+    uint256 bidFine;
+    uint256 redeemAmount;
     // fields not come from contract
   }
 
@@ -344,8 +346,15 @@ abstract contract TestWithData is TestWithSetup {
     (data.reserveAsset, data.scaledAmount, data.borrowAmount, data.reserveGroup, data.loanStatus) = tsPoolManager
       .getIsolateLoanData(poolId, nftAsset, nftTokenId);
 
-    (data.bidStartTimestamp, data.bidEndTimestamp, data.firstBidder, data.lastBidder, data.bidAmount) = tsPoolManager
-      .getIsolateAuctionData(poolId, nftAsset, nftTokenId);
+    (
+      data.bidStartTimestamp,
+      data.bidEndTimestamp,
+      data.firstBidder,
+      data.lastBidder,
+      data.bidAmount,
+      data.bidFine,
+      data.redeemAmount
+    ) = tsPoolManager.getIsolateAuctionData(poolId, nftAsset, nftTokenId);
 
     if (data.reserveAsset != address(0)) {
       (data.totalCollateral, data.totalBorrow, data.availableBorrow, data.healthFactor) = tsPoolManager

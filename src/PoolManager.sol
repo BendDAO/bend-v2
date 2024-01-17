@@ -31,6 +31,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
   using WadRayMath for uint256;
+  using PercentageMath for uint256;
 
   modifier onlyEmergencyAdmin() {
     _onlyEmergencyAdmin();
@@ -879,24 +880,42 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       uint40 bidEndTimestamp,
       address firstBidder,
       address lastBidder,
-      uint256 bidAmount
+      uint256 bidAmount,
+      uint256 bidFine,
+      uint256 redeemAmount
     )
   {
+    DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
     DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
 
     DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[nftAsset][tokenId];
     if (loanData.loanStatus != Constants.LOAN_STATUS_AUCTION) {
-      return (0, 0, address(0), address(0), 0);
+      return (0, 0, address(0), address(0), 0, 0, 0);
     }
 
-    DataTypes.AssetData storage assetData = poolData.assetLookup[loanData.reserveAsset];
+    DataTypes.AssetData storage nftAssetData = poolData.assetLookup[nftAsset];
+    DataTypes.AssetData storage debtAssetData = poolData.assetLookup[loanData.reserveAsset];
+    DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[loanData.reserveGroup];
 
     bidStartTimestamp = loanData.bidStartTimestamp;
-    bidEndTimestamp = loanData.bidStartTimestamp + assetData.auctionDuration;
+    bidEndTimestamp = loanData.bidStartTimestamp + nftAssetData.auctionDuration;
     firstBidder = loanData.firstBidder;
     lastBidder = loanData.lastBidder;
     bidAmount = loanData.bidAmount;
+
+    (, bidFine) = GenericLogic.calculateNftLoanBidFine(
+      poolData,
+      debtAssetData,
+      debtGroupData,
+      nftAssetData,
+      loanData,
+      cs.priceOracle
+    );
+
+    uint256 normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtAssetData, debtGroupData);
+    uint256 borrowAmount = loanData.scaledAmount.rayMul(normalizedIndex);
+    redeemAmount = borrowAmount.percentMul(nftAssetData.redeemThreshold);
   }
 
   function getYieldERC20BorrowBalance(uint32 poolId, address asset, address staker) public view returns (uint256) {

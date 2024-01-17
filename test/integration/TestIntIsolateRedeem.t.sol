@@ -8,6 +8,20 @@ import 'test/helpers/TestUser.sol';
 import 'test/setup/TestWithIsolateAction.sol';
 
 contract TestIntIsolateRedeem is TestWithIsolateAction {
+  struct TestCaseLocalVars {
+    // 1 - liquidator, 2 - borrower
+    uint256 walletBalanceBefore1;
+    uint256 walletBalanceBefore2;
+    uint256 walletBalanceAfter1;
+    uint256 walletBalanceAfter2;
+    TestLoanData[] loanDataBefore;
+    TestLoanData[] loanDataAfter;
+    uint256 txAuctionTimestamp;
+    uint256 totalBidAmount;
+    uint256 totalBidFine;
+    uint256 totalRedeemAmount;
+  }
+
   function onSetUp() public virtual override {
     super.onSetUp();
 
@@ -38,7 +52,67 @@ contract TestIntIsolateRedeem is TestWithIsolateAction {
     user.isolateAuction(tsCommonPoolId, nftAsset, tokenIds, debtAsset, bidAmounts);
   }
 
+  function test_Should_RedeemWETH() public {
+    TestCaseLocalVars memory testVars;
+
+    // deposit
+    prepareWETH(tsDepositor1);
+    uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
+
+    // borrow
+    prepareBorrow(tsBorrower1, address(tsBAYC), tokenIds, address(tsWETH));
+
+    // make some interest
+    advanceTimes(365 days);
+
+    // drop down nft price
+    actionSetNftPrice(address(tsBAYC), 5000);
+
+    // auction
+    prepareAuction(tsLiquidator1, address(tsBAYC), tokenIds, address(tsWETH));
+
+    testVars.loanDataBefore = getIsolateLoanData(tsCommonPoolId, address(tsBAYC), tokenIds);
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      testVars.totalBidAmount += testVars.loanDataBefore[i].bidAmount;
+      testVars.totalBidFine += testVars.loanDataBefore[i].bidFine;
+      testVars.totalRedeemAmount += testVars.loanDataBefore[i].redeemAmount;
+    }
+
+    testVars.walletBalanceBefore1 = tsWETH.balanceOf(address(tsLiquidator1));
+    testVars.walletBalanceBefore2 = tsWETH.balanceOf(address(tsBorrower1));
+
+    // redeem
+    tsBorrower1.approveERC20(address(tsWETH), type(uint256).max);
+    tsBorrower1.isolateRedeem(tsCommonPoolId, address(tsBAYC), tokenIds, address(tsWETH));
+    testVars.txAuctionTimestamp = block.timestamp;
+
+    // check results
+    testVars.loanDataAfter = getIsolateLoanData(tsCommonPoolId, address(tsBAYC), tokenIds);
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      assertEq(testVars.loanDataAfter[i].bidStartTimestamp, 0, 'bidStartTimestamp');
+      assertEq(testVars.loanDataAfter[i].firstBidder, address(0), 'firstBidder');
+      assertEq(testVars.loanDataAfter[i].lastBidder, address(0), 'lastBidder');
+      assertEq(testVars.loanDataAfter[i].bidAmount, 0, 'bidAmount');
+    }
+
+    testVars.walletBalanceAfter1 = tsWETH.balanceOf(address(tsLiquidator1));
+    assertEq(
+      testVars.walletBalanceAfter1,
+      (testVars.walletBalanceBefore1 + testVars.totalBidAmount + testVars.totalBidFine),
+      'tsLiquidator1 balance'
+    );
+
+    testVars.walletBalanceAfter2 = tsWETH.balanceOf(address(tsBorrower1));
+    assertEq(
+      testVars.walletBalanceAfter2,
+      (testVars.walletBalanceBefore2 - testVars.totalRedeemAmount - testVars.totalBidFine),
+      'tsBorrower1 balance'
+    );
+  }
+
   function test_Should_RedeemUSDT() public {
+    TestCaseLocalVars memory testVars;
+
     // deposit
     prepareUSDT(tsDepositor1);
     uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
@@ -55,8 +129,42 @@ contract TestIntIsolateRedeem is TestWithIsolateAction {
     // auction
     prepareAuction(tsLiquidator1, address(tsBAYC), tokenIds, address(tsUSDT));
 
+    testVars.loanDataBefore = getIsolateLoanData(tsCommonPoolId, address(tsBAYC), tokenIds);
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      testVars.totalBidAmount += testVars.loanDataBefore[i].bidAmount;
+      testVars.totalBidFine += testVars.loanDataBefore[i].bidFine;
+      testVars.totalRedeemAmount += testVars.loanDataBefore[i].redeemAmount;
+    }
+
+    testVars.walletBalanceBefore1 = tsUSDT.balanceOf(address(tsLiquidator1));
+    testVars.walletBalanceBefore2 = tsUSDT.balanceOf(address(tsBorrower1));
+
     // redeem
     tsBorrower1.approveERC20(address(tsUSDT), type(uint256).max);
     tsBorrower1.isolateRedeem(tsCommonPoolId, address(tsBAYC), tokenIds, address(tsUSDT));
+    testVars.txAuctionTimestamp = block.timestamp;
+
+    // check results
+    testVars.loanDataAfter = getIsolateLoanData(tsCommonPoolId, address(tsBAYC), tokenIds);
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      assertEq(testVars.loanDataAfter[i].bidStartTimestamp, 0, 'bidStartTimestamp');
+      assertEq(testVars.loanDataAfter[i].firstBidder, address(0), 'firstBidder');
+      assertEq(testVars.loanDataAfter[i].lastBidder, address(0), 'lastBidder');
+      assertEq(testVars.loanDataAfter[i].bidAmount, 0, 'bidAmount');
+    }
+
+    testVars.walletBalanceAfter1 = tsUSDT.balanceOf(address(tsLiquidator1));
+    assertEq(
+      testVars.walletBalanceAfter1,
+      (testVars.walletBalanceBefore1 + testVars.totalBidAmount + testVars.totalBidFine),
+      'tsLiquidator1 balance'
+    );
+
+    testVars.walletBalanceAfter2 = tsUSDT.balanceOf(address(tsBorrower1));
+    assertEq(
+      testVars.walletBalanceAfter2,
+      (testVars.walletBalanceBefore2 - testVars.totalRedeemAmount - testVars.totalBidFine),
+      'tsBorrower1 balance'
+    );
   }
 }
