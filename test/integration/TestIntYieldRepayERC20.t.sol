@@ -13,18 +13,6 @@ contract TestIntYieldRepayERC20 is TestWithBaseAction {
     initCommonPools();
   }
 
-  function prepareUSDT(TestUser user) internal {
-    uint256 depositAmount = 500_000 * (10 ** tsUSDT.decimals());
-    user.approveERC20(address(tsUSDT), type(uint256).max);
-    user.depositERC20(tsCommonPoolId, address(tsUSDT), depositAmount);
-  }
-
-  function prepareWETH(TestUser user) internal {
-    uint256 depositAmount = 100 ether;
-    user.approveERC20(address(tsWETH), type(uint256).max);
-    user.depositERC20(tsCommonPoolId, address(tsWETH), depositAmount);
-  }
-
   function test_Should_RepayWETH() public {
     prepareWETH(tsDepositor1);
 

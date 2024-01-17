@@ -13,19 +13,17 @@ contract TestIntCrossLiquidateERC20 is TestWithCrossAction {
     initCommonPools();
   }
 
-  function prepareUSDT(TestUser user) internal {
+  function prepareUSDT(TestUser user) internal override {
     uint256 depositAmount = 100_000 * (10 ** tsUSDT.decimals());
-    user.approveERC20(address(tsUSDT), type(uint256).max);
-    user.depositERC20(tsCommonPoolId, address(tsUSDT), depositAmount);
+    prepareERC20(user, address(tsUSDT), depositAmount);
   }
 
-  function prepareWETH(TestUser user) internal {
+  function prepareWETH(TestUser user) internal override {
     uint256 depositAmount = 10 ether;
-    user.approveERC20(address(tsWETH), type(uint256).max);
-    user.depositERC20(tsCommonPoolId, address(tsWETH), depositAmount);
+    prepareERC20(user, address(tsWETH), depositAmount);
   }
 
-  function test_Should_RepayUSDT_HasWETH() public {
+  function test_Should_LiquidateUSDT_HasWETH() public {
     prepareUSDT(tsDepositor1);
 
     prepareWETH(tsBorrower1);

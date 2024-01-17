@@ -13,30 +13,10 @@ contract TestIntCrossLiquidateERC721 is TestWithCrossAction {
     initCommonPools();
   }
 
-  function prepareUSDT(TestUser user) internal {
-    uint256 depositAmount = 500_000 * (10 ** tsUSDT.decimals());
-    user.approveERC20(address(tsUSDT), type(uint256).max);
-    user.depositERC20(tsCommonPoolId, address(tsUSDT), depositAmount);
-  }
-
-  function prepareWETH(TestUser user) internal {
-    uint256 depositAmount = 500 ether;
-    user.approveERC20(address(tsWETH), type(uint256).max);
-    user.depositERC20(tsCommonPoolId, address(tsWETH), depositAmount);
-  }
-
-  function prepareBAYC(TestUser user) internal returns (uint256[] memory) {
-    uint256[] memory tokenIds = user.getTokenIds();
-    user.setApprovalForAllERC721(address(tsBAYC), true);
-    user.depositERC721(tsCommonPoolId, address(tsBAYC), tokenIds, Constants.SUPPLY_MODE_CROSS);
-
-    return tokenIds;
-  }
-
   function test_Should_RepayUSDT_HasBAYC() public {
     prepareUSDT(tsDepositor1);
 
-    uint256[] memory depTokenIds = prepareBAYC(tsBorrower1);
+    uint256[] memory depTokenIds = prepareCrossBAYC(tsBorrower1);
 
     TestUserAccountData memory accountDataBeforeBorrow = getUserAccountData(tsCommonPoolId, address(tsBorrower1));
 

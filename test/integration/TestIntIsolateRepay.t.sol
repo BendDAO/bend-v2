@@ -13,22 +13,10 @@ contract TestIntIsolateRepay is TestWithIsolateAction {
     initCommonPools();
   }
 
-  function prepareUSDT(TestUser user) internal {
-    uint256 depositAmount = 500_000 * (10 ** tsUSDT.decimals());
-    user.approveERC20(address(tsUSDT), type(uint256).max);
-    user.depositERC20(tsCommonPoolId, address(tsUSDT), depositAmount);
-  }
-
-  function prepareBAYC(TestUser user) internal returns (uint256[] memory tokenIds) {
-    tokenIds = user.getTokenIds();
-    user.setApprovalForAllERC721(address(tsBAYC), true);
-    user.depositERC721(tsCommonPoolId, address(tsBAYC), tokenIds, Constants.SUPPLY_MODE_ISOLATE);
-  }
-
   function test_Should_RepayUSDT_HasBAYC_Full() public {
     prepareUSDT(tsDepositor1);
 
-    uint256[] memory tokenIds = prepareBAYC(tsBorrower1);
+    uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
 
     TestLoanData memory loanDataBeforeBorrow = getIsolateCollateralData(
       tsCommonPoolId,
@@ -79,7 +67,7 @@ contract TestIntIsolateRepay is TestWithIsolateAction {
   function test_Should_RepayUSDT_HasBAYC_Part() public {
     prepareUSDT(tsDepositor1);
 
-    uint256[] memory tokenIds = prepareBAYC(tsBorrower1);
+    uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
 
     TestLoanData memory loanDataBeforeBorrow = getIsolateCollateralData(
       tsCommonPoolId,

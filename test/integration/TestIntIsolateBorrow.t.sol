@@ -13,28 +13,10 @@ contract TestIntIsolateBorrow is TestWithIsolateAction {
     initCommonPools();
   }
 
-  function prepareUSDT(TestUser user) internal {
-    uint256 depositAmount = 500_000 * (10 ** tsUSDT.decimals());
-    user.approveERC20(address(tsUSDT), type(uint256).max);
-    user.depositERC20(tsCommonPoolId, address(tsUSDT), depositAmount);
-  }
-
-  function prepareWETH(TestUser user) internal {
-    uint256 depositAmount = 500 ether;
-    user.approveERC20(address(tsWETH), type(uint256).max);
-    user.depositERC20(tsCommonPoolId, address(tsWETH), depositAmount);
-  }
-
-  function prepareBAYC(TestUser user) internal returns (uint256[] memory tokenIds) {
-    tokenIds = user.getTokenIds();
-    user.setApprovalForAllERC721(address(tsBAYC), true);
-    user.depositERC721(tsCommonPoolId, address(tsBAYC), tokenIds, Constants.SUPPLY_MODE_ISOLATE);
-  }
-
   function test_Should_BorrowUSDT_HasBAYC_Full() public {
     prepareUSDT(tsDepositor1);
 
-    uint256[] memory tokenIds = prepareBAYC(tsBorrower1);
+    uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
 
     // borrow full
     TestLoanData memory loanDataBeforeBorrow = getIsolateCollateralData(
@@ -63,7 +45,7 @@ contract TestIntIsolateBorrow is TestWithIsolateAction {
   function test_Should_BorrowUSDT_HasBAYC_More() public {
     prepareUSDT(tsDepositor1);
 
-    uint256[] memory tokenIds = prepareBAYC(tsBorrower1);
+    uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
 
     // borrow part
     uint256[] memory borrowAmounts1 = new uint256[](tokenIds.length);
@@ -113,7 +95,7 @@ contract TestIntIsolateBorrow is TestWithIsolateAction {
   function test_Should_BorrowWETH_HasBAYC_Full() public {
     prepareWETH(tsDepositor1);
 
-    uint256[] memory tokenIds = prepareBAYC(tsBorrower1);
+    uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
 
     // borrow full
     TestLoanData memory loanDataBeforeBorrow = getIsolateCollateralData(
@@ -142,7 +124,7 @@ contract TestIntIsolateBorrow is TestWithIsolateAction {
   function test_Should_BorrowWETH_HasBAYC_More() public {
     prepareWETH(tsDepositor1);
 
-    uint256[] memory tokenIds = prepareBAYC(tsBorrower1);
+    uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
 
     // borrow part
     uint256[] memory borrowAmounts1 = new uint256[](tokenIds.length);

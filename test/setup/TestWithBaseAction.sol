@@ -14,11 +14,11 @@ import {KVSortUtils} from 'src/libraries/helpers/KVSortUtils.sol';
 
 import {IInterestRateModel} from 'src/interfaces/IInterestRateModel.sol';
 
-import {TestWithData} from './TestWithData.sol';
+import {TestWithPrepare} from './TestWithPrepare.sol';
 
 import 'forge-std/Test.sol';
 
-abstract contract TestWithBaseAction is TestWithData {
+abstract contract TestWithBaseAction is TestWithPrepare {
   using WadRayMath for uint256;
   using PercentageMath for uint256;
 
