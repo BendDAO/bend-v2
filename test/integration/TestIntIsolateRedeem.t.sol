@@ -9,6 +9,8 @@ import 'test/setup/TestWithIsolateAction.sol';
 
 contract TestIntIsolateRedeem is TestWithIsolateAction {
   struct TestCaseLocalVars {
+    uint256 poolBalanceBefore;
+    uint256 poolBalanceAfter;
     // 1 - liquidator, 2 - borrower
     uint256 walletBalanceBefore1;
     uint256 walletBalanceBefore2;
@@ -78,6 +80,7 @@ contract TestIntIsolateRedeem is TestWithIsolateAction {
       testVars.totalRedeemAmount += testVars.loanDataBefore[i].redeemAmount;
     }
 
+    testVars.poolBalanceBefore = tsWETH.balanceOf(address(tsPoolManager));
     testVars.walletBalanceBefore1 = tsWETH.balanceOf(address(tsLiquidator1));
     testVars.walletBalanceBefore2 = tsWETH.balanceOf(address(tsBorrower1));
 
@@ -94,6 +97,13 @@ contract TestIntIsolateRedeem is TestWithIsolateAction {
       assertEq(testVars.loanDataAfter[i].lastBidder, address(0), 'lastBidder');
       assertEq(testVars.loanDataAfter[i].bidAmount, 0, 'bidAmount');
     }
+
+    testVars.poolBalanceAfter = tsWETH.balanceOf(address(tsPoolManager));
+    assertEq(
+      testVars.poolBalanceAfter,
+      testVars.poolBalanceBefore - testVars.totalBidAmount + testVars.totalRedeemAmount,
+      'tsPoolManager balance'
+    );
 
     testVars.walletBalanceAfter1 = tsWETH.balanceOf(address(tsLiquidator1));
     assertEq(
@@ -136,6 +146,7 @@ contract TestIntIsolateRedeem is TestWithIsolateAction {
       testVars.totalRedeemAmount += testVars.loanDataBefore[i].redeemAmount;
     }
 
+    testVars.poolBalanceBefore = tsUSDT.balanceOf(address(tsPoolManager));
     testVars.walletBalanceBefore1 = tsUSDT.balanceOf(address(tsLiquidator1));
     testVars.walletBalanceBefore2 = tsUSDT.balanceOf(address(tsBorrower1));
 
@@ -152,6 +163,13 @@ contract TestIntIsolateRedeem is TestWithIsolateAction {
       assertEq(testVars.loanDataAfter[i].lastBidder, address(0), 'lastBidder');
       assertEq(testVars.loanDataAfter[i].bidAmount, 0, 'bidAmount');
     }
+
+    testVars.poolBalanceAfter = tsUSDT.balanceOf(address(tsPoolManager));
+    assertEq(
+      testVars.poolBalanceAfter,
+      testVars.poolBalanceBefore - testVars.totalBidAmount + testVars.totalRedeemAmount,
+      'tsPoolManager balance'
+    );
 
     testVars.walletBalanceAfter1 = tsUSDT.balanceOf(address(tsLiquidator1));
     assertEq(
