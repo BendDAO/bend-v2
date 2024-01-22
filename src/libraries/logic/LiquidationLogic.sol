@@ -49,8 +49,7 @@ library LiquidationLogic {
   function executeCrossLiquidateERC20(InputTypes.ExecuteCrossLiquidateERC20Params memory params) external {
     LiquidateERC20LocalVars memory vars;
 
-    DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage collateralAssetData = poolData.assetLookup[params.collateralAsset];
@@ -69,7 +68,7 @@ library LiquidationLogic {
       poolData,
       params.user,
       params.collateralAsset,
-      cs.priceOracle
+      ps.priceOracle
     );
 
     require(
@@ -96,7 +95,7 @@ library LiquidationLogic {
       debtAssetData,
       vars.actualDebtToLiquidate,
       vars.userCollateralBalance,
-      IPriceOracleGetter(cs.priceOracle)
+      IPriceOracleGetter(ps.priceOracle)
     );
 
     vars.remainDebtToLiquidate = _repayUserERC20Debt(poolData, debtAssetData, params.user, vars.actualDebtToLiquidate);
@@ -147,8 +146,7 @@ library LiquidationLogic {
   function executeCrossLiquidateERC721(InputTypes.ExecuteCrossLiquidateERC721Params memory params) external {
     LiquidateERC721LocalVars memory vars;
 
-    DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage collateralAssetData = poolData.assetLookup[params.collateralAsset];
@@ -168,7 +166,7 @@ library LiquidationLogic {
       poolData,
       params.user,
       params.collateralAsset,
-      cs.priceOracle
+      ps.priceOracle
     );
 
     require(
@@ -184,7 +182,7 @@ library LiquidationLogic {
       debtAssetData,
       params,
       vars,
-      IPriceOracleGetter(cs.priceOracle)
+      IPriceOracleGetter(ps.priceOracle)
     );
 
     // try to repay debt for the user, the liquidated debt amount may less than user total debt

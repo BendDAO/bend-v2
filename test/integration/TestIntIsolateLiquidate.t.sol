@@ -111,11 +111,7 @@ contract TestIntIsolateLiquidate is TestWithIsolateAction {
     );
 
     testVars.walletBalanceAfter1 = tsUSDT.balanceOf(address(tsLiquidator1));
-    assertEq(
-      testVars.walletBalanceAfter1,
-      testVars.walletBalanceBefore1,
-      'tsLiquidator1 balance'
-    );
+    assertEq(testVars.walletBalanceAfter1, testVars.walletBalanceBefore1, 'tsLiquidator1 balance');
 
     testVars.walletBalanceAfter2 = tsUSDT.balanceOf(address(tsBorrower1));
     assertEq(

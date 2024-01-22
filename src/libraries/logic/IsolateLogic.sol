@@ -34,8 +34,7 @@ library IsolateLogic {
   function executeIsolateBorrow(InputTypes.ExecuteIsolateBorrowParams memory params) public {
     ExecuteIsolateBorrowVars memory vars;
 
-    DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.asset];
@@ -61,7 +60,7 @@ library IsolateLogic {
         debtGroupData,
         nftAssetData,
         loanData,
-        cs.priceOracle
+        ps.priceOracle
       );
 
       vars.amountScaled = params.amounts[vars.nidx].rayDiv(debtGroupData.borrowIndex);
@@ -108,7 +107,7 @@ library IsolateLogic {
   function executeIsolateRepay(InputTypes.ExecuteIsolateRepayParams memory params) public {
     ExecuteIsolateRepayVars memory vars;
 
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.asset];
@@ -178,8 +177,7 @@ library IsolateLogic {
   function executeIsolateAuction(InputTypes.ExecuteIsolateAuctionParams memory params) public {
     ExecuteIsolateAuctionVars memory vars;
 
-    DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.asset];
@@ -202,7 +200,7 @@ library IsolateLogic {
         debtGroupData,
         nftAssetData,
         loanData,
-        cs.priceOracle
+        ps.priceOracle
       );
 
       vars.oldLastBidder = loanData.lastBidder;
@@ -280,8 +278,7 @@ library IsolateLogic {
   function executeIsolateRedeem(InputTypes.ExecuteIsolateRedeemParams memory params) public {
     ExecuteIsolateRedeemVars memory vars;
 
-    DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.asset];
@@ -314,7 +311,7 @@ library IsolateLogic {
         debtGroupData,
         nftAssetData,
         loanData,
-        cs.priceOracle
+        ps.priceOracle
       );
 
       // check the minimum debt repay amount, use redeem threshold in config
@@ -381,7 +378,7 @@ library IsolateLogic {
   function executeIsolateLiquidate(InputTypes.ExecuteIsolateLiquidateParams memory params) public {
     ExecuteIsolateLiquidateVars memory vars;
 
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.asset];

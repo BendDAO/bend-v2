@@ -21,8 +21,7 @@ library BorrowLogic {
   using PercentageMath for uint256;
 
   function executeCrossBorrowERC20(InputTypes.ExecuteCrossBorrowERC20Params memory params) public {
-    DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
@@ -34,7 +33,7 @@ library BorrowLogic {
     InterestLogic.updateInterestIndexs(poolData, assetData);
 
     // check the user account
-    ValidateLogic.validateCrossBorrowERC20Account(params, poolData, assetData, msg.sender, cs.priceOracle);
+    ValidateLogic.validateCrossBorrowERC20Account(params, poolData, assetData, msg.sender, ps.priceOracle);
 
     // update debt state
     uint256 totalBorrowAmount;
@@ -56,7 +55,7 @@ library BorrowLogic {
   }
 
   function executeCrossRepayERC20(InputTypes.ExecuteCrossRepayERC20Params memory params) public {
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];

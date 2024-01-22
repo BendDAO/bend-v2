@@ -5,15 +5,6 @@ import {EnumerableSetUpgradeable} from '@openzeppelin/contracts-upgradeable/util
 
 library DataTypes {
   /****************************************************************************/
-  /* Data Types for Common */
-
-  struct CommonStorage {
-    address nativeWrappedToken; // WETH
-    address aclManager; // ACLManager
-    address priceOracle; // PriceOracle
-  }
-
-  /****************************************************************************/
   /* Data Types for Pool Lending */
   struct PoolData {
     uint32 poolId;
@@ -128,22 +119,18 @@ library DataTypes {
     uint256 bidAmount;
   }
 
-  struct PoolLendingStorage {
+  /****************************************************************************/
+  /* Data Types for Storage */
+  struct PoolStorage {
+    // common fileds
+    address nativeWrappedToken; // WETH
+    address aclManager; // ACLManager
+    address priceOracle; // PriceOracle
+
+    // pool fields
     uint32 nextPoolId;
     mapping(uint32 => PoolData) poolLookup;
-  }
 
-  /****************************************************************************/
-  /* Data Types for Pool Yield */
-
-  struct PoolYieldStorage {
-    uint256 reserve;
-  }
-
-  /****************************************************************************/
-  /* Data Types for P2P Lending */
-
-  struct P2PLendingStorage {
-    uint256 reserve;
+    // yield fields
   }
 }

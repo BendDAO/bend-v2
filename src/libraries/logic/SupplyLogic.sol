@@ -17,7 +17,7 @@ import 'forge-std/console.sol';
 
 library SupplyLogic {
   function executeDepositERC20(InputTypes.ExecuteDepositERC20Params memory params) external {
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
@@ -38,8 +38,7 @@ library SupplyLogic {
   }
 
   function executeWithdrawERC20(InputTypes.ExecuteWithdrawERC20Params memory params) public {
-    DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
@@ -63,13 +62,13 @@ library SupplyLogic {
     VaultLogic.erc20TransferOutLiquidity(assetData, msg.sender, params.amount);
 
     // check the HF still greater than 1.0
-    ValidateLogic.validateHealthFactor(poolData, msg.sender, cs.priceOracle);
+    ValidateLogic.validateHealthFactor(poolData, msg.sender, ps.priceOracle);
 
     emit Events.WithdrawERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
 
   function executeDepositERC721(InputTypes.ExecuteDepositERC721Params memory params) public {
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
@@ -90,8 +89,7 @@ library SupplyLogic {
   }
 
   function executeWithdrawERC721(InputTypes.ExecuteWithdrawERC721Params memory params) public {
-    DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
@@ -105,7 +103,7 @@ library SupplyLogic {
 
       VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, msg.sender);
 
-      ValidateLogic.validateHealthFactor(poolData, msg.sender, cs.priceOracle);
+      ValidateLogic.validateHealthFactor(poolData, msg.sender, ps.priceOracle);
     } else if (params.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
       for (uint256 i = 0; i < params.tokenIds.length; i++) {
         DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[params.asset][params.tokenIds[i]];
@@ -121,8 +119,7 @@ library SupplyLogic {
   }
 
   function executeSetERC721SupplyMode(InputTypes.ExecuteSetERC721SupplyModeParams memory params) public {
-    DataTypes.CommonStorage storage cs = StorageSlot.getCommonStorage();
-    DataTypes.PoolLendingStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
@@ -159,6 +156,6 @@ library SupplyLogic {
 
     VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, msg.sender);
 
-    ValidateLogic.validateHealthFactor(poolData, msg.sender, cs.priceOracle);
+    ValidateLogic.validateHealthFactor(poolData, msg.sender, ps.priceOracle);
   }
 }
