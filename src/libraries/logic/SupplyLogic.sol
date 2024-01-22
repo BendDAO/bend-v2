@@ -17,7 +17,7 @@ import 'forge-std/console.sol';
 
 library SupplyLogic {
   function executeDepositERC20(InputTypes.ExecuteDepositERC20Params memory params) external {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
@@ -38,7 +38,7 @@ library SupplyLogic {
   }
 
   function executeWithdrawERC20(InputTypes.ExecuteWithdrawERC20Params memory params) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
@@ -68,7 +68,7 @@ library SupplyLogic {
   }
 
   function executeDepositERC721(InputTypes.ExecuteDepositERC721Params memory params) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
@@ -89,7 +89,7 @@ library SupplyLogic {
   }
 
   function executeWithdrawERC721(InputTypes.ExecuteWithdrawERC721Params memory params) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
@@ -119,7 +119,7 @@ library SupplyLogic {
   }
 
   function executeSetERC721SupplyMode(InputTypes.ExecuteSetERC721SupplyModeParams memory params) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];

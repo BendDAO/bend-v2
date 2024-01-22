@@ -34,7 +34,7 @@ library IsolateLogic {
   function executeIsolateBorrow(InputTypes.ExecuteIsolateBorrowParams memory params) public {
     ExecuteIsolateBorrowVars memory vars;
 
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.asset];
@@ -107,7 +107,7 @@ library IsolateLogic {
   function executeIsolateRepay(InputTypes.ExecuteIsolateRepayParams memory params) public {
     ExecuteIsolateRepayVars memory vars;
 
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.asset];
@@ -177,7 +177,7 @@ library IsolateLogic {
   function executeIsolateAuction(InputTypes.ExecuteIsolateAuctionParams memory params) public {
     ExecuteIsolateAuctionVars memory vars;
 
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.asset];
@@ -278,7 +278,7 @@ library IsolateLogic {
   function executeIsolateRedeem(InputTypes.ExecuteIsolateRedeemParams memory params) public {
     ExecuteIsolateRedeemVars memory vars;
 
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.asset];
@@ -378,7 +378,7 @@ library IsolateLogic {
   function executeIsolateLiquidate(InputTypes.ExecuteIsolateLiquidateParams memory params) public {
     ExecuteIsolateLiquidateVars memory vars;
 
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.asset];

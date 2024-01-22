@@ -35,7 +35,7 @@ library ConfigureLogic {
   }
 
   function executeCreatePool(string memory name) public returns (uint32 poolId) {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     require(ps.nextPoolId > 0, Errors.INVALID_POOL_ID);
 
@@ -51,7 +51,7 @@ library ConfigureLogic {
   }
 
   function executeDeletePool(uint32 poolId) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -64,7 +64,7 @@ library ConfigureLogic {
   }
 
   function executeAddPoolGroup(uint32 poolId, uint8 groupId) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -82,7 +82,7 @@ library ConfigureLogic {
   }
 
   function executeRemovePoolGroup(uint32 poolId, uint8 groupId) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -109,7 +109,7 @@ library ConfigureLogic {
   }
 
   function executeSetPoolYieldEnable(uint32 poolId, bool isEnable) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -146,7 +146,7 @@ library ConfigureLogic {
   }
 
   function executeSetPoolYieldPause(uint32 poolId, bool isPause) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -157,7 +157,7 @@ library ConfigureLogic {
   }
 
   function executeAddAssetERC20(uint32 poolId, address asset) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -180,7 +180,7 @@ library ConfigureLogic {
   }
 
   function executeRemoveAssetERC20(uint32 poolId, address asset) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -193,7 +193,7 @@ library ConfigureLogic {
   }
 
   function executeAddAssetERC721(uint32 poolId, address asset) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -213,7 +213,7 @@ library ConfigureLogic {
   }
 
   function executeRemoveAssetERC721(uint32 poolId, address asset) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -238,7 +238,7 @@ library ConfigureLogic {
   }
 
   function executeAddAssetGroup(uint32 poolId, address asset, uint8 groupId, address rateModel_) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     require(groupId >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
     require(groupId <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
@@ -266,7 +266,7 @@ library ConfigureLogic {
   }
 
   function executeRemoveAssetGroup(uint32 poolId, address asset, uint8 groupId) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     require(groupId >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
     require(groupId <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
@@ -296,7 +296,7 @@ library ConfigureLogic {
   /****************************************************************************/
 
   function executeSetAssetActive(uint32 poolId, address asset, bool isActive) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -310,7 +310,7 @@ library ConfigureLogic {
   }
 
   function executeSetAssetFrozen(uint32 poolId, address asset, bool isFrozen) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -324,7 +324,7 @@ library ConfigureLogic {
   }
 
   function executeSetAssetPause(uint32 poolId, address asset, bool isPause) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -338,7 +338,7 @@ library ConfigureLogic {
   }
 
   function executeSetAssetBorrowing(uint32 poolId, address asset, bool isEnable) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -353,7 +353,7 @@ library ConfigureLogic {
   }
 
   function executeSetAssetSupplyCap(uint32 poolId, address asset, uint256 newCap) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -368,7 +368,7 @@ library ConfigureLogic {
   }
 
   function executeSetAssetBorrowCap(uint32 poolId, address asset, uint256 newCap) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -383,7 +383,7 @@ library ConfigureLogic {
   }
 
   function executeSetAssetClassGroup(uint32 poolId, address asset, uint8 classGroup) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     require(classGroup >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
     require(classGroup <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
@@ -412,7 +412,7 @@ library ConfigureLogic {
 
     require(collateralFactor <= liquidationThreshold, Errors.INVALID_ASSET_PARAMS);
 
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -440,7 +440,7 @@ library ConfigureLogic {
     require(minBidFineFactor <= Constants.MAX_MIN_BIDFINE_FACTOR, Errors.INVALID_ASSET_PARAMS);
     require(auctionDuration <= Constants.MAX_AUCTION_DUARATION, Errors.INVALID_ASSET_PARAMS);
 
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -460,7 +460,7 @@ library ConfigureLogic {
   function executeSetAssetProtocolFee(uint32 poolId, address asset, uint16 feeFactor) public {
     require(feeFactor <= Constants.MAX_FEE_FACTOR, Errors.INVALID_ASSET_PARAMS);
 
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -475,7 +475,7 @@ library ConfigureLogic {
   }
 
   function executeSetAssetLendingRate(uint32 poolId, address asset, uint8 groupId, address rateModel_) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     require(groupId >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
     require(groupId <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
@@ -497,7 +497,7 @@ library ConfigureLogic {
   }
 
   function executeSetAssetYieldEnable(uint32 poolId, address asset, bool isEnable) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -535,7 +535,7 @@ library ConfigureLogic {
   }
 
   function executeSetAssetYieldPause(uint32 poolId, address asset, bool isPause) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);
@@ -550,7 +550,7 @@ library ConfigureLogic {
   }
 
   function executeSetAssetYieldCap(uint32 poolId, address asset, uint256 newCap) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     require(newCap <= Constants.MAX_YIELD_CAP_FACTOR, Errors.INVALID_ASSET_PARAMS);
 
@@ -569,7 +569,7 @@ library ConfigureLogic {
   }
 
   function executeSetAssetYieldRate(uint32 poolId, address asset, address rateModel_) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     require(rateModel_ != address(0), Errors.INVALID_ADDRESS);
 
@@ -589,7 +589,7 @@ library ConfigureLogic {
   }
 
   function executeSetStakerYieldCap(uint32 poolId, address staker, address asset, uint256 newCap) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateOwnerAndPool(poolData);

@@ -49,7 +49,7 @@ library LiquidationLogic {
   function executeCrossLiquidateERC20(InputTypes.ExecuteCrossLiquidateERC20Params memory params) external {
     LiquidateERC20LocalVars memory vars;
 
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage collateralAssetData = poolData.assetLookup[params.collateralAsset];
@@ -146,7 +146,7 @@ library LiquidationLogic {
   function executeCrossLiquidateERC721(InputTypes.ExecuteCrossLiquidateERC721Params memory params) external {
     LiquidateERC721LocalVars memory vars;
 
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage collateralAssetData = poolData.assetLookup[params.collateralAsset];

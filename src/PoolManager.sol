@@ -39,7 +39,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   }
 
   function _onlyEmergencyAdmin() internal view {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     IACLManager aclManager = IACLManager(ps.aclManager);
     require(aclManager.isEmergencyAdmin(msg.sender), Errors.CALLER_NOT_EMERGENCY_ADMIN);
   }
@@ -52,7 +52,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     __Pausable_init();
     __ReentrancyGuard_init();
 
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     ps.aclManager = aclManager_;
     ps.priceOracle = priceOracle_;
     ps.nextPoolId = Constants.INITIAL_POOL_ID;
@@ -443,21 +443,21 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   }
 
   function getPoolGroupList(uint32 poolId) public view returns (uint256[] memory) {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
 
     return poolData.groupList.values();
   }
 
   function getPoolAssetList(uint32 poolId) public view returns (address[] memory) {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
 
     return poolData.assetList.values();
   }
 
   function getAssetGroupList(uint32 poolId, address asset) public view returns (uint256[] memory) {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
@@ -479,7 +479,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       bool isYieldPaused
     )
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
@@ -497,7 +497,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     uint32 poolId,
     address asset
   ) public view returns (uint256 supplyCap, uint256 borrowCap, uint256 yieldCap) {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
@@ -518,7 +518,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       uint16 liquidationBonus
     )
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
@@ -539,7 +539,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     view
     returns (uint16 redeemThreshold, uint16 bidFineFactor, uint16 minBidFineFactor, uint40 auctionDuration)
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
@@ -563,7 +563,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       uint256 lastUpdateTimestamp
     )
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
@@ -602,7 +602,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       address rateModel
     )
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[group];
@@ -636,7 +636,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       uint256 healthFactor
     )
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
 
     ResultTypes.UserAccountResult memory result = GenericLogic.calculateUserAccountDataForHeathFactor(
@@ -677,7 +677,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   {
     GetUserAssetDataLocalVars memory vars;
 
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
@@ -715,7 +715,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   {
     GetUserAssetDataLocalVars memory vars;
 
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
@@ -750,7 +750,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       uint256 totalIsolateBorrow
     )
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
@@ -775,7 +775,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       uint256[] memory groupsAvailableBorrowInBase
     )
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
 
     ResultTypes.UserAccountResult memory result = GenericLogic.calculateUserAccountDataForHeathFactor(
@@ -804,7 +804,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     uint256 tokenId,
     address debtAsset
   ) public view returns (uint256 totalCollateral, uint256 totalBorrow, uint256 availableBorrow, uint256 healthFactor) {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
 
     DataTypes.AssetData storage nftAssetData = poolData.assetLookup[nftAsset];
@@ -845,7 +845,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     view
     returns (address reserveAsset, uint256 scaledAmount, uint256 borrowAmount, uint8 reserveGroup, uint8 loanStatus)
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
 
     DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[nftAsset][tokenId];
@@ -880,7 +880,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       uint256 redeemAmount
     )
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
 
     DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[nftAsset][tokenId];
@@ -913,7 +913,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   }
 
   function getYieldERC20BorrowBalance(uint32 poolId, address asset, address staker) public view returns (uint256) {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
@@ -938,7 +938,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
    * @dev Pauses or unpauses all the assets in the pool.
    */
   function setPoolPause(uint32 poolId, bool paused) public onlyEmergencyAdmin {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolLendingStorage();
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
 
     address[] memory assets = poolData.assetList.values();
