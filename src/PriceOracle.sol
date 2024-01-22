@@ -88,6 +88,7 @@ contract PriceOracle is IPriceOracle, Initializable {
     return getAssetPriceFromBendNFTOracle(asset);
   }
 
+  /// @notice Query the price of asset from chainlink oracle
   function getAssetPriceFromChainlink(address asset) public view returns (uint256) {
     uint256 price;
 
@@ -105,8 +106,10 @@ contract PriceOracle is IPriceOracle, Initializable {
     return price;
   }
 
+  /// @notice Query the price of asset from benddao nft oracle
   function getAssetPriceFromBendNFTOracle(address asset) public view returns (uint256) {
     uint256 nftPriceInNftBase = bendNFTOracle.getAssetPrice(asset);
+    require(nftPriceInNftBase > 0, Errors.ASSET_PRICE_IS_ZERO);
 
     // nft oracle use the same currency with protocol
     if (NFT_BASE_CURRENCY == BASE_CURRENCY) {

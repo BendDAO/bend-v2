@@ -26,6 +26,7 @@ import './libraries/logic/BorrowLogic.sol';
 import './libraries/logic/LiquidationLogic.sol';
 import './libraries/logic/IsolateLogic.sol';
 import './libraries/logic/YieldLogic.sol';
+import './libraries/logic/FlashLoanLogic.sol';
 
 contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721HolderUpgradeable {
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
@@ -124,6 +125,10 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
 
   function setAssetBorrowing(uint32 poolId, address asset, bool isEnable) public nonReentrant {
     ConfigureLogic.executeSetAssetBorrowing(poolId, asset, isEnable);
+  }
+
+  function setAssetFlashLoan(uint32 poolId, address asset, bool isEnable) public nonReentrant {
+    ConfigureLogic.executeSetAssetFlashLoan(poolId, asset, isEnable);
   }
 
   function setAssetSupplyCap(uint32 poolId, address asset, uint256 newCap) public nonReentrant {
@@ -430,6 +435,23 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   /****************************************************************************/
   /* Misc Features */
   /****************************************************************************/
+  function flashLoanERC721(
+    uint32 poolId,
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    address receiverAddress,
+    bytes calldata params
+  ) public whenNotPaused nonReentrant {
+    FlashLoanLogic.executeFlashLoanERC721(
+      InputTypes.ExecuteFlashLoanERC721Params({
+        poolId: poolId,
+        nftAssets: nftAssets,
+        nftTokenIds: nftTokenIds,
+        receiverAddress: receiverAddress,
+        params: params
+      })
+    );
+  }
 
   /****************************************************************************/
   /* Pool Query */

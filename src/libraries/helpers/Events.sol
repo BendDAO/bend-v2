@@ -30,6 +30,7 @@ library Events {
   event SetAssetFrozen(uint32 indexed poolId, address indexed asset, bool isFrozen);
   event SetAssetPause(uint32 indexed poolId, address indexed asset, bool isPause);
   event SetAssetBorrowing(uint32 indexed poolId, address indexed asset, bool isEnable);
+  event SetAssetFlashLoan(uint32 indexed poolId, address indexed asset, bool isEnable);
   event SetAssetSupplyCap(uint32 indexed poolId, address indexed asset, uint256 newCap);
   event SetAssetBorrowCap(uint32 indexed poolId, address indexed asset, uint256 newCap);
   event SetAssetClassGroup(uint32 indexed poolId, address indexed asset, uint8 groupId);
@@ -150,4 +151,12 @@ library Events {
   event YieldBorrowERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
 
   event YieldRepayERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
+
+  // Misc Events
+  event FlashLoanERC721(
+    address indexed sender,
+    address[] nftAssets,
+    uint256[] nftTokenIds,
+    address indexed receiverAddress
+  );
 }

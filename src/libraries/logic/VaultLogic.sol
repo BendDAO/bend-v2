@@ -710,6 +710,20 @@ library VaultLogic {
     require(poolSizeBefore == (poolSizeAfter + tokenIds.length), Errors.INVALID_TRANSFER_AMOUNT);
   }
 
+  function erc721TransferInOnFlashLoan(address from, address[] memory nftAssets, uint256[] memory tokenIds) internal {
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      IERC721Upgradeable(nftAssets[i]).safeTransferFrom(from, address(this), tokenIds[i]);
+    }
+  }
+
+  function erc721TransferOutOnFlashLoan(address to, address[] memory nftAssets, uint256[] memory tokenIds) internal {
+    require(to != address(0), Errors.INVALID_TO_ADDRESS);
+
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      IERC721Upgradeable(nftAssets[i]).safeTransferFrom(address(this), to, tokenIds[i]);
+    }
+  }
+
   //////////////////////////////////////////////////////////////////////////////
   // Misc methods
   //////////////////////////////////////////////////////////////////////////////

@@ -231,7 +231,7 @@ library ValidateLogic {
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
     require(inputParams.groups.length > 0, Errors.GROUP_LIST_IS_EMPTY);
-    require(inputParams.groups.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGH);
+    require(inputParams.groups.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGTH);
 
     for (uint256 gidx = 0; gidx < inputParams.groups.length; gidx++) {
       require(inputParams.amounts[gidx] > 0, Errors.INVALID_AMOUNT);
@@ -328,7 +328,7 @@ library ValidateLogic {
     require(!nftAssetData.isFrozen, Errors.ASSET_IS_FROZEN);
 
     require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
-    require(inputParams.nftTokenIds.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGH);
+    require(inputParams.nftTokenIds.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGTH);
 
     for (vars.i = 0; vars.i < inputParams.nftTokenIds.length; vars.i++) {
       require(inputParams.amounts[vars.i] > 0, Errors.INVALID_AMOUNT);
@@ -417,7 +417,7 @@ library ValidateLogic {
     require(nftAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
 
     require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
-    require(inputParams.nftTokenIds.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGH);
+    require(inputParams.nftTokenIds.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGTH);
 
     for (uint256 i = 0; i < inputParams.amounts.length; i++) {
       require(inputParams.amounts[i] > 0, Errors.INVALID_AMOUNT);
@@ -450,7 +450,7 @@ library ValidateLogic {
     require(nftAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
 
     require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
-    require(inputParams.nftTokenIds.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGH);
+    require(inputParams.nftTokenIds.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGTH);
 
     for (uint256 i = 0; i < inputParams.amounts.length; i++) {
       require(inputParams.amounts[i] > 0, Errors.INVALID_AMOUNT);
@@ -565,5 +565,17 @@ library ValidateLogic {
     validateGroupBasic(groupData);
 
     require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
+  }
+
+  function validateFlashLoanERC721Basic(
+    InputTypes.ExecuteFlashLoanERC721Params memory inputParams,
+    DataTypes.PoolData storage poolData
+  ) internal view {
+    validatePoolBasic(poolData);
+
+    require(inputParams.nftAssets.length == inputParams.nftTokenIds.length, Errors.INCONSISTENT_PARAMS_LENGTH);
+    require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
+
+    require(inputParams.receiverAddress != address(0), Errors.INVALID_ADDRESS);
   }
 }

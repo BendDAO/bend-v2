@@ -22,7 +22,7 @@ library Errors {
   string public constant INVALID_BORROW_AMOUNT = '116';
   string public constant INVALID_TOKEN_OWNER = '117';
   string public constant INVALID_YIELD_STAKER = '118';
-  string public constant INCONSISTENT_PARAMS_LENGH = '119';
+  string public constant INCONSISTENT_PARAMS_LENGTH = '119';
   string public constant INVALID_LOAN_STATUS = '120';
 
   string public constant ENUM_SET_ADD_FAILED = '150';
@@ -32,9 +32,9 @@ library Errors {
   string public constant ACL_MANAGER_CANNOT_BE_ZERO = '201';
   string public constant OWNER_CANNOT_BE_ZERO = '202';
   string public constant CALLER_NOT_ORACLE_ADMIN = '203';
-  string public constant INCONSISTENT_PARAMS_LENGTH = '204';
-  string public constant INVALID_ASSET_PARAMS = '205';
-  string public constant CALLER_NOT_EMERGENCY_ADMIN = '206';
+  string public constant INVALID_ASSET_PARAMS = '204';
+  string public constant CALLER_NOT_EMERGENCY_ADMIN = '205';
+  string public constant FLASH_LOAN_EXEC_FAILED = '206';
 
   string public constant POOL_ALREADY_EXISTS = '300';
   string public constant POOL_NOT_EXISTS = '301';
@@ -71,6 +71,7 @@ library Errors {
   string public constant ASSET_LOCK_FLAG_NOT_EMPTY = '359';
   string public constant ASSET_SUPPLY_CAP_EXCEEDED = '360';
   string public constant ASSET_BORROW_CAP_EXCEEDED = '361';
+  string public constant ASSET_IS_FLASHLOAN_DISABLED = '362';
 
   string public constant HEALTH_FACTOR_BELOW_LIQUIDATION_THRESHOLD = '400';
   string public constant HEALTH_FACTOR_NOT_BELOW_LIQUIDATION_THRESHOLD = '401';

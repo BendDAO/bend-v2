@@ -127,4 +127,11 @@ library InputTypes {
   }
 
   // Misc
+  struct ExecuteFlashLoanERC721Params {
+    uint32 poolId;
+    address[] nftAssets;
+    uint256[] nftTokenIds;
+    address receiverAddress;
+    bytes params;
+  }
 }

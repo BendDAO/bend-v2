@@ -352,6 +352,21 @@ library ConfigureLogic {
     emit Events.SetAssetBorrowing(poolId, asset, isEnable);
   }
 
+  function executeSetAssetFlashLoan(uint32 poolId, address asset, bool isEnable) public {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    _validateOwnerAndPool(poolData);
+
+    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+    require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+
+    assetData.isFlashLoanEnabled = isEnable;
+
+    emit Events.SetAssetFlashLoan(poolId, asset, isEnable);
+  }
+
   function executeSetAssetSupplyCap(uint32 poolId, address asset, uint256 newCap) public {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 

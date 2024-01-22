@@ -71,6 +71,7 @@ library DataTypes {
     bool isFrozen;
     bool isPaused;
     bool isBorrowingEnabled;
+    bool isFlashLoanEnabled;
     bool isYieldEnabled;
     bool isYieldPaused;
     uint16 feeFactor;
