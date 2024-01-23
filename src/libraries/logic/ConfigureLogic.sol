@@ -360,7 +360,7 @@ library ConfigureLogic {
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
-    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
 
     assetData.isFlashLoanEnabled = isEnable;
 

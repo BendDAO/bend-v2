@@ -50,8 +50,18 @@ abstract contract TestWithPrepare is TestWithData {
     prepareIsolateERC721(user, address(tsBAYC), tokenIds);
   }
 
+  function prepareIsolateMAYC(TestUser user) internal virtual returns (uint256[] memory tokenIds) {
+    tokenIds = user.getTokenIds();
+    prepareIsolateERC721(user, address(tsMAYC), tokenIds);
+  }
+
   function prepareCrossBAYC(TestUser user) internal virtual returns (uint256[] memory tokenIds) {
     tokenIds = user.getTokenIds();
     prepareCrossERC721(user, address(tsBAYC), tokenIds);
+  }
+
+  function prepareCrossMAYC(TestUser user) internal virtual returns (uint256[] memory tokenIds) {
+    tokenIds = user.getTokenIds();
+    prepareCrossERC721(user, address(tsMAYC), tokenIds);
   }
 }

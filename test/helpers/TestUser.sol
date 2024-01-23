@@ -129,4 +129,14 @@ contract TestUser is ERC721Holder {
   function yieldRepayERC20(uint32 poolId, address asset, uint256 amount) public {
     _poolManager.yieldRepayERC20(poolId, asset, amount);
   }
+
+  function flashLoanERC721(
+    uint32 poolId,
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    address receiverAddress,
+    bytes calldata params
+  ) public {
+    _poolManager.flashLoanERC721(poolId, nftAssets, nftTokenIds, receiverAddress, params);
+  }
 }

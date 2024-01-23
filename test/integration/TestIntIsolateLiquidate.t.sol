@@ -55,6 +55,72 @@ contract TestIntIsolateLiquidate is TestWithIsolateAction {
     user.isolateAuction(tsCommonPoolId, nftAsset, tokenIds, debtAsset, bidAmounts);
   }
 
+  function test_Should_LiquidateWETH() public {
+    TestCaseLocalVars memory testVars;
+
+    // deposit
+    prepareWETH(tsDepositor1);
+    uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
+
+    // borrow
+    prepareBorrow(tsBorrower1, address(tsBAYC), tokenIds, address(tsWETH));
+
+    // make some interest
+    advanceTimes(365 days);
+
+    // drop down nft price
+    actionSetNftPrice(address(tsBAYC), 5000);
+
+    // auction
+    prepareAuction(tsLiquidator1, address(tsBAYC), tokenIds, address(tsWETH));
+
+    // end the auction
+    advanceTimes(25 hours);
+
+    testVars.loanDataBefore = getIsolateLoanData(tsCommonPoolId, address(tsBAYC), tokenIds);
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      testVars.totalBidAmount += testVars.loanDataBefore[i].bidAmount;
+      testVars.totalBidFine += testVars.loanDataBefore[i].bidFine;
+      testVars.totalRedeemAmount += testVars.loanDataBefore[i].redeemAmount;
+      testVars.totalBorrowAmount += testVars.loanDataBefore[i].borrowAmount;
+    }
+
+    testVars.poolBalanceBefore = tsWETH.balanceOf(address(tsPoolManager));
+    testVars.walletBalanceBefore1 = tsWETH.balanceOf(address(tsLiquidator1));
+    testVars.walletBalanceBefore2 = tsWETH.balanceOf(address(tsBorrower1));
+
+    // liquidate
+    tsLiquidator1.isolateLiquidate(tsCommonPoolId, address(tsBAYC), tokenIds, address(tsWETH), false);
+    testVars.txAuctionTimestamp = block.timestamp;
+
+    // check results
+    testVars.loanDataAfter = getIsolateLoanData(tsCommonPoolId, address(tsBAYC), tokenIds);
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      assertEq(testVars.loanDataAfter[i].bidStartTimestamp, 0, 'bidStartTimestamp');
+      assertEq(testVars.loanDataAfter[i].firstBidder, address(0), 'firstBidder');
+      assertEq(testVars.loanDataAfter[i].lastBidder, address(0), 'lastBidder');
+      assertEq(testVars.loanDataAfter[i].bidAmount, 0, 'bidAmount');
+      assertEq(testVars.loanDataAfter[i].borrowAmount, 0, 'borrowAmount');
+    }
+
+    testVars.poolBalanceAfter = tsWETH.balanceOf(address(tsPoolManager));
+    assertEq(
+      testVars.poolBalanceAfter,
+      testVars.poolBalanceBefore - (testVars.totalBidAmount - testVars.totalBorrowAmount),
+      'tsPoolManager balance'
+    );
+
+    testVars.walletBalanceAfter1 = tsWETH.balanceOf(address(tsLiquidator1));
+    assertEq(testVars.walletBalanceAfter1, testVars.walletBalanceBefore1, 'tsLiquidator1 balance');
+
+    testVars.walletBalanceAfter2 = tsWETH.balanceOf(address(tsBorrower1));
+    assertEq(
+      testVars.walletBalanceAfter2,
+      (testVars.walletBalanceBefore2 + (testVars.totalBidAmount - testVars.totalBorrowAmount)),
+      'tsBorrower1 balance'
+    );
+  }
+
   function test_Should_LiquidateUSDT() public {
     TestCaseLocalVars memory testVars;
 
