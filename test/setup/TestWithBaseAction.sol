@@ -285,15 +285,6 @@ abstract contract TestWithBaseAction is TestWithPrepare {
     if (_debugFlag) console.log('checkUserAssetData', 'end');
   }
 
-  function checkAccoutData(
-    TestAction /*action*/,
-    TestUserAccountData memory afterAccoutData,
-    TestUserAccountData memory expectedAccoutData
-  ) internal {
-    if (_debugFlag) console.log('checkAccoutData', 'begin');
-    if (_debugFlag) console.log('checkAccoutData', 'end');
-  }
-
   function checkLoanData(
     TestAction /*action*/,
     TestLoanData[] memory afterLoansData,

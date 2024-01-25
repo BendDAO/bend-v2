@@ -16,6 +16,8 @@ import {InputTypes} from '../types/InputTypes.sol';
 import {GenericLogic} from './GenericLogic.sol';
 import {VaultLogic} from './VaultLogic.sol';
 
+import 'forge-std/console.sol';
+
 library ValidateLogic {
   using WadRayMath for uint256;
   using PercentageMath for uint256;

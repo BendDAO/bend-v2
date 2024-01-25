@@ -229,11 +229,6 @@ library GenericLogic {
     console.log('healthFactor', result.healthFactor);*/
   }
 
-  struct CalculateNftLoanDataVars {
-    uint256 normalizedIndex;
-    uint256 loanDebtAmount;
-  }
-
   /**
    * @dev Calculates the nft loan data.
    **/
@@ -245,8 +240,6 @@ library GenericLogic {
     DataTypes.IsolateLoanData storage nftLoanData,
     address oracle
   ) internal view returns (ResultTypes.NftLoanResult memory result) {
-    CalculateNftLoanDataVars memory vars;
-
     // query debt asset and nft price fromo oracle
     result.debtAssetPriceInBaseCurrency = IPriceOracleGetter(oracle).getAssetPrice(debtAssetData.underlyingAsset);
     result.nftAssetPriceInBaseCurrency = IPriceOracleGetter(oracle).getAssetPrice(nftAssetData.underlyingAsset);
