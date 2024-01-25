@@ -462,7 +462,7 @@ abstract contract TestWithBaseAction is TestWithPrepare {
     // supply
     if (supplyMode == Constants.SUPPLY_MODE_CROSS) {
       expectedAssetData.totalCrossSupply = dataBefore.assetData.totalCrossSupply + amountDeposited;
-    } else if (supplyMode == Constants.SUPPLY_MODE_CROSS) {
+    } else if (supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
       expectedAssetData.totalIsolateSupply = dataBefore.assetData.totalIsolateSupply + amountDeposited;
     }
     expectedAssetData.availableSupply = dataBefore.assetData.availableSupply + amountDeposited;
@@ -499,7 +499,7 @@ abstract contract TestWithBaseAction is TestWithPrepare {
     // supply
     if (supplyMode == Constants.SUPPLY_MODE_CROSS) {
       expectedUserData.totalCrossSupply = dataBefore.userAssetData.totalCrossSupply + amountDeposited;
-    } else if (supplyMode == Constants.SUPPLY_MODE_CROSS) {
+    } else if (supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
       expectedUserData.totalIsolateSupply = dataBefore.userAssetData.totalIsolateSupply + amountDeposited;
     }
 

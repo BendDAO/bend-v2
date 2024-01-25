@@ -2,47 +2,18 @@
 pragma solidity ^0.8.19;
 
 import 'src/libraries/helpers/Constants.sol';
+import 'src/libraries/helpers/Errors.sol';
 
 import 'test/setup/TestWithBaseAction.sol';
 
-contract TestIntDepositERC721 is TestWithBaseAction {
+contract TestIntSetERC721SupplyMode is TestWithBaseAction {
   function onSetUp() public virtual override {
     super.onSetUp();
 
     initCommonPools();
   }
 
-  function test_RevertIf_InsufficientAllowance() public {
-    uint256[] memory tokenIds = tsDepositor1.getTokenIds();
-
-    tsDepositor1.setApprovalForAllERC721(address(tsBAYC), false);
-
-    actionDepositERC721(
-      address(tsDepositor1),
-      tsCommonPoolId,
-      address(tsBAYC),
-      tokenIds,
-      Constants.SUPPLY_MODE_CROSS,
-      bytes('ERC721: caller is not token owner or approved')
-    );
-  }
-
-  function test_RevertIf_NotOwner() public {
-    uint256[] memory tokenIds = tsDepositor2.getTokenIds();
-
-    tsDepositor1.setApprovalForAllERC721(address(tsBAYC), true);
-
-    actionDepositERC721(
-      address(tsDepositor1),
-      tsCommonPoolId,
-      address(tsBAYC),
-      tokenIds,
-      Constants.SUPPLY_MODE_CROSS,
-      bytes('ERC721: caller is not token owner or approved')
-    );
-  }
-
-  function test_Should_Deposit_Cross() public {
+  function test_Should_SetMode_Cross2Isolate() public {
     uint256[] memory tokenIds = tsDepositor1.getTokenIds();
 
     tsDepositor1.setApprovalForAllERC721(address(tsBAYC), true);
@@ -55,9 +26,20 @@ contract TestIntDepositERC721 is TestWithBaseAction {
       Constants.SUPPLY_MODE_CROSS,
       new bytes(0)
     );
+
+    tsDepositor1.setERC721SupplyMode(tsCommonPoolId, address(tsBAYC), tokenIds, Constants.SUPPLY_MODE_ISOLATE);
+
+    actionWithdrawERC721(
+      address(tsDepositor1),
+      tsCommonPoolId,
+      address(tsBAYC),
+      tokenIds,
+      Constants.SUPPLY_MODE_ISOLATE,
+      new bytes(0)
+    );
   }
 
-  function test_Should_Deposit_Isolate() public {
+  function test_Should_SetMode_Isolate2Cross() public {
     uint256[] memory tokenIds = tsDepositor1.getTokenIds();
 
     tsDepositor1.setApprovalForAllERC721(address(tsBAYC), true);
@@ -68,6 +50,17 @@ contract TestIntDepositERC721 is TestWithBaseAction {
       address(tsBAYC),
       tokenIds,
       Constants.SUPPLY_MODE_ISOLATE,
+      new bytes(0)
+    );
+
+    tsDepositor1.setERC721SupplyMode(tsCommonPoolId, address(tsBAYC), tokenIds, Constants.SUPPLY_MODE_CROSS);
+
+    actionWithdrawERC721(
+      address(tsDepositor1),
+      tsCommonPoolId,
+      address(tsBAYC),
+      tokenIds,
+      Constants.SUPPLY_MODE_CROSS,
       new bytes(0)
     );
   }

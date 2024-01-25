@@ -124,15 +124,17 @@ library SupplyLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
 
+    ValidateLogic.validatePoolBasic(poolData);
+    ValidateLogic.validateAssetBasic(assetData);
+
     if (params.supplyMode == Constants.SUPPLY_MODE_CROSS) {
       for (uint256 i = 0; i < params.tokenIds.length; i++) {
         DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(assetData, params.tokenIds[i]);
+        require(tokenData.owner == msg.sender, Errors.INVALID_TOKEN_OWNER);
         require(tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.ASSET_NOT_ISOLATE_MODE);
 
         DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[params.asset][params.tokenIds[i]];
         require(loanData.loanStatus == 0, Errors.ISOLATE_LOAN_EXISTS);
-
-        tokenData.supplyMode = params.supplyMode;
       }
 
       VaultLogic.erc721DecreaseIsolateSupply(assetData, msg.sender, params.tokenIds);
@@ -141,6 +143,7 @@ library SupplyLogic {
     } else if (params.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
       for (uint256 i = 0; i < params.tokenIds.length; i++) {
         DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(assetData, params.tokenIds[i]);
+        require(tokenData.owner == msg.sender, Errors.INVALID_TOKEN_OWNER);
         require(tokenData.supplyMode == Constants.SUPPLY_MODE_CROSS, Errors.ASSET_NOT_CROSS_MODE);
 
         DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[params.asset][params.tokenIds[i]];

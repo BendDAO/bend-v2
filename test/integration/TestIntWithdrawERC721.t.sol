@@ -26,7 +26,7 @@ contract TestIntWithdrawERC721 is TestWithBaseAction {
     );
   }
 
-  function test_Should_Withdraw_BAYC() public {
+  function test_Should_Withdraw_Cross() public {
     uint256[] memory tokenIds = tsDepositor1.getTokenIds();
 
     tsDepositor1.setApprovalForAllERC721(address(tsBAYC), true);
@@ -46,6 +46,30 @@ contract TestIntWithdrawERC721 is TestWithBaseAction {
       address(tsBAYC),
       tokenIds,
       Constants.SUPPLY_MODE_CROSS,
+      new bytes(0)
+    );
+  }
+
+  function test_Should_Withdraw_Isolate() public {
+    uint256[] memory tokenIds = tsDepositor1.getTokenIds();
+
+    tsDepositor1.setApprovalForAllERC721(address(tsBAYC), true);
+
+    actionDepositERC721(
+      address(tsDepositor1),
+      tsCommonPoolId,
+      address(tsBAYC),
+      tokenIds,
+      Constants.SUPPLY_MODE_ISOLATE,
+      new bytes(0)
+    );
+
+    actionWithdrawERC721(
+      address(tsDepositor1),
+      tsCommonPoolId,
+      address(tsBAYC),
+      tokenIds,
+      Constants.SUPPLY_MODE_ISOLATE,
       new bytes(0)
     );
   }
