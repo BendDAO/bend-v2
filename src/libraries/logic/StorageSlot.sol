@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
-import '../types/DataTypes.sol';
+import {DataTypes} from '../types/DataTypes.sol';
 
 library StorageSlot {
   bytes32 constant STORAGE_POSITION_POOL = bytes32(uint256(keccak256('benddao.proxy.pool.storage')) - 1);

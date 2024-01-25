@@ -11,21 +11,24 @@ import {IERC721Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC7
 import {IACLManager} from './interfaces/IACLManager.sol';
 import {IWETH} from './interfaces/IWETH.sol';
 
-import './libraries/helpers/Constants.sol';
-import './libraries/helpers/Errors.sol';
-import './libraries/types/DataTypes.sol';
-import './libraries/types/InputTypes.sol';
-import './libraries/types/ResultTypes.sol';
+import {Constants} from './libraries/helpers/Constants.sol';
+import {Errors} from './libraries/helpers/Errors.sol';
+import {DataTypes} from './libraries/types/DataTypes.sol';
+import {InputTypes} from './libraries/types/InputTypes.sol';
+import {ResultTypes} from './libraries/types/ResultTypes.sol';
 
-import './libraries/logic/StorageSlot.sol';
-import './libraries/logic/ConfigureLogic.sol';
-import './libraries/logic/SupplyLogic.sol';
-import './libraries/logic/BorrowLogic.sol';
-import './libraries/logic/LiquidationLogic.sol';
-import './libraries/logic/IsolateLogic.sol';
-import './libraries/logic/YieldLogic.sol';
-import './libraries/logic/FlashLoanLogic.sol';
-import './libraries/logic/QueryLogic.sol';
+import {WadRayMath} from './libraries/math/WadRayMath.sol';
+import {PercentageMath} from './libraries/math/PercentageMath.sol';
+
+import {StorageSlot} from './libraries/logic/StorageSlot.sol';
+import {ConfigureLogic} from './libraries/logic/ConfigureLogic.sol';
+import {SupplyLogic} from './libraries/logic/SupplyLogic.sol';
+import {BorrowLogic} from './libraries/logic/BorrowLogic.sol';
+import {LiquidationLogic} from './libraries/logic/LiquidationLogic.sol';
+import {IsolateLogic} from './libraries/logic/IsolateLogic.sol';
+import {YieldLogic} from './libraries/logic/YieldLogic.sol';
+import {FlashLoanLogic} from './libraries/logic/FlashLoanLogic.sol';
+import {QueryLogic} from './libraries/logic/QueryLogic.sol';
 
 contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721HolderUpgradeable {
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;

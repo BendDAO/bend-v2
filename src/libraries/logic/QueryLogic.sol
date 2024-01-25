@@ -9,12 +9,15 @@ import {Events} from '../helpers/Events.sol';
 
 import {InputTypes} from '../types/InputTypes.sol';
 import {DataTypes} from '../types/DataTypes.sol';
-import '../types/ResultTypes.sol';
+import {ResultTypes} from '../types/ResultTypes.sol';
 
-import './StorageSlot.sol';
-import './VaultLogic.sol';
-import './GenericLogic.sol';
-import './InterestLogic.sol';
+import {WadRayMath} from '../math/WadRayMath.sol';
+import {PercentageMath} from '../math/PercentageMath.sol';
+
+import {StorageSlot} from './StorageSlot.sol';
+import {VaultLogic} from './VaultLogic.sol';
+import {GenericLogic} from './GenericLogic.sol';
+import {InterestLogic} from './InterestLogic.sol';
 
 library QueryLogic {
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
