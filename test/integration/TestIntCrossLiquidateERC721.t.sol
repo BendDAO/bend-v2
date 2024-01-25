@@ -18,7 +18,7 @@ contract TestIntCrossLiquidateERC721 is TestWithCrossAction {
 
     uint256[] memory depTokenIds = prepareCrossBAYC(tsBorrower1);
 
-    TestUserAccountData memory accountDataBeforeBorrow = getUserAccountData(tsCommonPoolId, address(tsBorrower1));
+    TestUserAccountData memory accountDataBeforeBorrow = getUserAccountData(address(tsBorrower1), tsCommonPoolId);
 
     // borrow some eth
     uint8[] memory borrowGroups = new uint8[](1);
@@ -47,7 +47,7 @@ contract TestIntCrossLiquidateERC721 is TestWithCrossAction {
     uint256 baycNewPrice = (baycCurPrice * 80) / 100;
     tsBendNFTOracle.setAssetPrice(address(tsBAYC), baycNewPrice);
 
-    TestUserAccountData memory accountDataAfterBorrow = getUserAccountData(tsCommonPoolId, address(tsBorrower1));
+    TestUserAccountData memory accountDataAfterBorrow = getUserAccountData(address(tsBorrower1), tsCommonPoolId);
     assertLt(accountDataAfterBorrow.healthFactor, 1e18, 'ACC:healthFactor');
 
     // liquidate some eth

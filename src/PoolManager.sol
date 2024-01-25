@@ -18,15 +18,14 @@ import './libraries/types/InputTypes.sol';
 import './libraries/types/ResultTypes.sol';
 
 import './libraries/logic/StorageSlot.sol';
-import './libraries/logic/GenericLogic.sol';
 import './libraries/logic/ConfigureLogic.sol';
-import './libraries/logic/VaultLogic.sol';
 import './libraries/logic/SupplyLogic.sol';
 import './libraries/logic/BorrowLogic.sol';
 import './libraries/logic/LiquidationLogic.sol';
 import './libraries/logic/IsolateLogic.sol';
 import './libraries/logic/YieldLogic.sol';
 import './libraries/logic/FlashLoanLogic.sol';
+import './libraries/logic/QueryLogic.sol';
 
 contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721HolderUpgradeable {
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
@@ -457,33 +456,23 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   /* Pool Query */
   /****************************************************************************/
   function getPoolMaxAssetNumber() public pure returns (uint256) {
-    return Constants.MAX_NUMBER_OF_ASSET;
+    return QueryLogic.getPoolMaxAssetNumber();
   }
 
   function getPoolMaxGroupNumber() public pure returns (uint256) {
-    return Constants.MAX_NUMBER_OF_GROUP;
+    return QueryLogic.getPoolMaxGroupNumber();
   }
 
   function getPoolGroupList(uint32 poolId) public view returns (uint256[] memory) {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-
-    return poolData.groupList.values();
+    return QueryLogic.getPoolGroupList(poolId);
   }
 
   function getPoolAssetList(uint32 poolId) public view returns (address[] memory) {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-
-    return poolData.assetList.values();
+    return QueryLogic.getPoolAssetList(poolId);
   }
 
   function getAssetGroupList(uint32 poolId, address asset) public view returns (uint256[] memory) {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-
-    return assetData.groupList.values();
+    return QueryLogic.getAssetGroupList(poolId, asset);
   }
 
   function getAssetConfigFlag(
@@ -501,29 +490,14 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       bool isYieldPaused
     )
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-
-    return (
-      assetData.isActive,
-      assetData.isFrozen,
-      assetData.isPaused,
-      assetData.isBorrowingEnabled,
-      assetData.isYieldEnabled,
-      assetData.isYieldPaused
-    );
+    return QueryLogic.getAssetConfigFlag(poolId, asset);
   }
 
   function getAssetConfigCap(
     uint32 poolId,
     address asset
   ) public view returns (uint256 supplyCap, uint256 borrowCap, uint256 yieldCap) {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-
-    return (assetData.supplyCap, assetData.borrowCap, assetData.yieldCap);
+    return QueryLogic.getAssetConfigCap(poolId, asset);
   }
 
   function getAssetLendingConfig(
@@ -540,17 +514,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       uint16 liquidationBonus
     )
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-
-    return (
-      assetData.classGroup,
-      assetData.feeFactor,
-      assetData.collateralFactor,
-      assetData.liquidationThreshold,
-      assetData.liquidationBonus
-    );
+    return QueryLogic.getAssetLendingConfig(poolId, asset);
   }
 
   function getAssetAuctionConfig(
@@ -561,11 +525,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     view
     returns (uint16 redeemThreshold, uint16 bidFineFactor, uint16 minBidFineFactor, uint40 auctionDuration)
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-
-    return (assetData.redeemThreshold, assetData.bidFineFactor, assetData.minBidFineFactor, assetData.auctionDuration);
+    return QueryLogic.getAssetAuctionConfig(poolId, asset);
   }
 
   function getAssetSupplyData(
@@ -585,26 +545,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       uint256 lastUpdateTimestamp
     )
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-
-    if (assetData.assetType == Constants.ASSET_TYPE_ERC20) {
-      totalScaledCrossSupply = VaultLogic.erc20GetTotalScaledCrossSupply(assetData);
-      totalScaledIsolateSupply = VaultLogic.erc20GetTotalScaledIsolateSupply(assetData);
-
-      uint256 index = InterestLogic.getNormalizedSupplyIncome(assetData);
-      totalCrossSupply = VaultLogic.erc20GetTotalCrossSupply(assetData, index);
-      totalIsolateSupply = VaultLogic.erc20GetTotalIsolateSupply(assetData, index);
-    } else if (assetData.assetType == Constants.ASSET_TYPE_ERC721) {
-      totalScaledCrossSupply = totalCrossSupply = VaultLogic.erc721GetTotalCrossSupply(assetData);
-      totalScaledIsolateSupply = totalIsolateSupply = VaultLogic.erc721GetTotalIsolateSupply(assetData);
-    }
-
-    availableSupply = assetData.availableLiquidity;
-    supplyRate = assetData.supplyRate;
-    supplyIndex = assetData.supplyIndex;
-    lastUpdateTimestamp = assetData.lastUpdateTimestamp;
+    return QueryLogic.getAssetSupplyData(poolId, asset);
   }
 
   function getAssetGroupData(
@@ -624,28 +565,12 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       address rateModel
     )
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-    DataTypes.GroupData storage groupData = assetData.groupLookup[group];
-
-    if (assetData.assetType == Constants.ASSET_TYPE_ERC20) {
-      totalScaledCrossBorrow = VaultLogic.erc20GetTotalScaledCrossBorrowInGroup(groupData);
-      totalScaledIsolateBorrow = VaultLogic.erc20GetTotalScaledIsolateBorrowInGroup(groupData);
-
-      uint256 index = InterestLogic.getNormalizedBorrowDebt(assetData, groupData);
-      totalCrossBorrow = VaultLogic.erc20GetTotalCrossBorrowInGroup(groupData, index);
-      totalIsolateBorrow = VaultLogic.erc20GetTotalIsolateBorrowInGroup(groupData, index);
-
-      borrowRate = groupData.borrowRate;
-      borrowIndex = groupData.borrowIndex;
-      rateModel = groupData.rateModel;
-    }
+    return QueryLogic.getAssetGroupData(poolId, asset, group);
   }
 
   function getUserAccountData(
-    uint32 poolId,
-    address user
+    address user,
+    uint32 poolId
   )
     public
     view
@@ -658,34 +583,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       uint256 healthFactor
     )
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-
-    ResultTypes.UserAccountResult memory result = GenericLogic.calculateUserAccountDataForHeathFactor(
-      poolData,
-      user,
-      ps.priceOracle
-    );
-
-    totalCollateralInBase = result.totalCollateralInBaseCurrency;
-    totalBorrowInBase = result.totalDebtInBaseCurrency;
-
-    availableBorrowInBase = GenericLogic.calculateAvailableBorrows(
-      totalCollateralInBase,
-      totalBorrowInBase,
-      result.avgLtv
-    );
-
-    currentCollateralFactor = result.avgLtv;
-    currentLiquidationThreshold = result.avgLiquidationThreshold;
-    healthFactor = result.healthFactor;
-  }
-
-  struct GetUserAssetDataLocalVars {
-    uint256 aidx;
-    uint256 gidx;
-    uint256[] assetGroupIds;
-    uint256 index;
+    return QueryLogic.getUserAccountData(user, poolId);
   }
 
   function getUserAssetData(
@@ -697,28 +595,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     view
     returns (uint256 totalCrossSupply, uint256 totalIsolateSupply, uint256 totalCrossBorrow, uint256 totalIsolateBorrow)
   {
-    GetUserAssetDataLocalVars memory vars;
-
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-
-    vars.assetGroupIds = assetData.groupList.values();
-
-    if (assetData.assetType == Constants.ASSET_TYPE_ERC20) {
-      vars.index = InterestLogic.getNormalizedSupplyIncome(assetData);
-      totalCrossSupply = VaultLogic.erc20GetUserCrossSupply(assetData, user, vars.index);
-
-      for (vars.gidx = 0; vars.gidx < vars.assetGroupIds.length; vars.gidx++) {
-        DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(vars.assetGroupIds[vars.gidx])];
-        vars.index = InterestLogic.getNormalizedBorrowDebt(assetData, groupData);
-        totalCrossBorrow += VaultLogic.erc20GetUserCrossBorrowInGroup(groupData, user, vars.index);
-        totalIsolateBorrow += VaultLogic.erc20GetUserIsolateBorrowInGroup(groupData, user, vars.index);
-      }
-    } else if (assetData.assetType == Constants.ASSET_TYPE_ERC721) {
-      totalCrossSupply = VaultLogic.erc721GetUserCrossSupply(assetData, user);
-      totalIsolateSupply = VaultLogic.erc721GetUserIsolateSupply(assetData, user);
-    }
+    return QueryLogic.getUserAssetData(user, poolId, asset);
   }
 
   function getUserAssetScaledData(
@@ -735,26 +612,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       uint256 totalScaledIsolateBorrow
     )
   {
-    GetUserAssetDataLocalVars memory vars;
-
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-
-    vars.assetGroupIds = assetData.groupList.values();
-
-    if (assetData.assetType == Constants.ASSET_TYPE_ERC20) {
-      totalScaledCrossSupply = VaultLogic.erc20GetUserScaledCrossSupply(assetData, user);
-
-      for (vars.gidx = 0; vars.gidx < vars.assetGroupIds.length; vars.gidx++) {
-        DataTypes.GroupData storage groupData = assetData.groupLookup[uint8(vars.assetGroupIds[vars.gidx])];
-        totalScaledCrossBorrow += VaultLogic.erc20GetUserScaledCrossBorrowInGroup(groupData, user);
-        totalScaledIsolateBorrow += VaultLogic.erc20GetUserScaledIsolateBorrowInGroup(groupData, user);
-      }
-    } else if (assetData.assetType == Constants.ASSET_TYPE_ERC721) {
-      totalScaledCrossSupply = VaultLogic.erc721GetUserCrossSupply(assetData, user);
-      totalScaledIsolateSupply = VaultLogic.erc721GetUserIsolateSupply(assetData, user);
-    }
+    return QueryLogic.getUserAssetScaledData(user, poolId, asset);
   }
 
   function getUserAssetGroupData(
@@ -772,17 +630,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       uint256 totalIsolateBorrow
     )
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-    DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
-
-    totalScaledCrossBorrow = VaultLogic.erc20GetUserScaledCrossBorrowInGroup(groupData, user);
-    totalScaledIsolateBorrow = VaultLogic.erc20GetUserScaledIsolateBorrowInGroup(groupData, user);
-
-    uint256 index = InterestLogic.getNormalizedBorrowDebt(assetData, groupData);
-    totalCrossBorrow = VaultLogic.erc20GetUserCrossBorrowInGroup(groupData, user, index);
-    totalIsolateBorrow = VaultLogic.erc20GetUserIsolateBorrowInGroup(groupData, user, index);
+    return QueryLogic.getUserAssetGroupData(user, poolId, asset, groupId);
   }
 
   function getUserAccountDebtData(
@@ -797,27 +645,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       uint256[] memory groupsAvailableBorrowInBase
     )
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-
-    ResultTypes.UserAccountResult memory result = GenericLogic.calculateUserAccountDataForHeathFactor(
-      poolData,
-      user,
-      ps.priceOracle
-    );
-
-    groupsCollateralInBase = result.allGroupsCollateralInBaseCurrency;
-    groupsBorrowInBase = result.allGroupsDebtInBaseCurrency;
-
-    groupsAvailableBorrowInBase = new uint256[](result.allGroupsCollateralInBaseCurrency.length);
-
-    for (uint256 i = 0; i < result.allGroupsCollateralInBaseCurrency.length; i++) {
-      groupsAvailableBorrowInBase[i] = GenericLogic.calculateAvailableBorrows(
-        result.allGroupsCollateralInBaseCurrency[i],
-        result.allGroupsDebtInBaseCurrency[i],
-        result.allGroupsAvgLtv[i]
-      );
-    }
+    return QueryLogic.getUserAccountDebtData(user, poolId);
   }
 
   function getIsolateCollateralData(
@@ -826,36 +654,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     uint256 tokenId,
     address debtAsset
   ) public view returns (uint256 totalCollateral, uint256 totalBorrow, uint256 availableBorrow, uint256 healthFactor) {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-
-    DataTypes.AssetData storage nftAssetData = poolData.assetLookup[nftAsset];
-    DataTypes.AssetData storage debtAssetData = poolData.assetLookup[debtAsset];
-    DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[nftAssetData.classGroup];
-    DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[nftAsset][tokenId];
-
-    ResultTypes.NftLoanResult memory nftLoanResult = GenericLogic.calculateNftLoanData(
-      poolData,
-      debtAssetData,
-      debtGroupData,
-      nftAssetData,
-      loanData,
-      ps.priceOracle
-    );
-
-    totalCollateral =
-      (nftLoanResult.totalCollateralInBaseCurrency * (10 ** debtAssetData.underlyingDecimals)) /
-      nftLoanResult.debtAssetPriceInBaseCurrency;
-    totalBorrow =
-      (nftLoanResult.totalDebtInBaseCurrency * (10 ** debtAssetData.underlyingDecimals)) /
-      nftLoanResult.debtAssetPriceInBaseCurrency;
-    availableBorrow = GenericLogic.calculateAvailableBorrows(
-      totalCollateral,
-      totalBorrow,
-      nftAssetData.collateralFactor
-    );
-
-    healthFactor = nftLoanResult.healthFactor;
+    return QueryLogic.getIsolateCollateralData(poolId, nftAsset, tokenId, debtAsset);
   }
 
   function getIsolateLoanData(
@@ -867,22 +666,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     view
     returns (address reserveAsset, uint256 scaledAmount, uint256 borrowAmount, uint8 reserveGroup, uint8 loanStatus)
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-
-    DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[nftAsset][tokenId];
-    if (loanData.reserveAsset == address(0)) {
-      return (address(0), 0, 0, 0, 0);
-    }
-
-    DataTypes.AssetData storage assetData = poolData.assetLookup[loanData.reserveAsset];
-    DataTypes.GroupData storage groupData = assetData.groupLookup[loanData.reserveGroup];
-
-    reserveAsset = loanData.reserveAsset;
-    scaledAmount = loanData.scaledAmount;
-    borrowAmount = scaledAmount.rayMul(InterestLogic.getNormalizedBorrowDebt(assetData, groupData));
-    reserveGroup = loanData.reserveGroup;
-    loanStatus = loanData.loanStatus;
+    return QueryLogic.getIsolateLoanData(poolId, nftAsset, tokenId);
   }
 
   function getIsolateAuctionData(
@@ -902,46 +686,11 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
       uint256 redeemAmount
     )
   {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-
-    DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[nftAsset][tokenId];
-    if (loanData.loanStatus != Constants.LOAN_STATUS_AUCTION) {
-      return (0, 0, address(0), address(0), 0, 0, 0);
-    }
-
-    DataTypes.AssetData storage nftAssetData = poolData.assetLookup[nftAsset];
-    DataTypes.AssetData storage debtAssetData = poolData.assetLookup[loanData.reserveAsset];
-    DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[loanData.reserveGroup];
-
-    bidStartTimestamp = loanData.bidStartTimestamp;
-    bidEndTimestamp = loanData.bidStartTimestamp + nftAssetData.auctionDuration;
-    firstBidder = loanData.firstBidder;
-    lastBidder = loanData.lastBidder;
-    bidAmount = loanData.bidAmount;
-
-    (, bidFine) = GenericLogic.calculateNftLoanBidFine(
-      poolData,
-      debtAssetData,
-      debtGroupData,
-      nftAssetData,
-      loanData,
-      ps.priceOracle
-    );
-
-    uint256 normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtAssetData, debtGroupData);
-    uint256 borrowAmount = loanData.scaledAmount.rayMul(normalizedIndex);
-    redeemAmount = borrowAmount.percentMul(nftAssetData.redeemThreshold);
+    return QueryLogic.getIsolateAuctionData(poolId, nftAsset, tokenId);
   }
 
   function getYieldERC20BorrowBalance(uint32 poolId, address asset, address staker) public view returns (uint256) {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
-    DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
-
-    uint256 scaledBalance = VaultLogic.erc20GetUserScaledCrossBorrowInGroup(groupData, staker);
-    return scaledBalance.rayMul(InterestLogic.getNormalizedBorrowDebt(assetData, groupData));
+    return QueryLogic.getYieldERC20BorrowBalance(poolId, asset, staker);
   }
 
   // Pool Admin
@@ -970,13 +719,5 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
         setAssetPause(poolId, assets[i], paused);
       }
     }
-  }
-
-  /**
-   * @dev transfer ETH to an address, revert if it fails.
-   */
-  function _safeTransferETH(address to, uint256 value) internal {
-    (bool success, ) = to.call{value: value}(new bytes(0));
-    require(success, 'ETH_TRANSFER_FAILED');
   }
 }

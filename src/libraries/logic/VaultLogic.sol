@@ -746,4 +746,12 @@ library VaultLogic {
     require(groupData.totalScaledCrossBorrow == 0, Errors.CROSS_BORROW_NOT_EMPTY);
     require(groupData.totalScaledIsolateBorrow == 0, Errors.ISOLATE_BORROW_NOT_EMPTY);
   }
+
+  /**
+   * @dev transfer ETH to an address, revert if it fails.
+   */
+  function safeTransferETH(address to, uint256 value) internal {
+    (bool success, ) = to.call{value: value}(new bytes(0));
+    require(success, 'ETH_TRANSFER_FAILED');
+  }
 }

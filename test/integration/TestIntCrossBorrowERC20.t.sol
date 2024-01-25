@@ -62,14 +62,13 @@ contract TestIntCrossBorrowERC20 is TestWithCrossAction {
     prepareWETH(tsBorrower1);
     prepareCrossBAYC(tsBorrower1);
 
-    ( 
-      ,
-      ,
-      uint256[] memory groupsAvailableBorrowInBase
-    ) = tsPoolManager.getUserAccountDebtData(address(tsBorrower1), tsCommonPoolId);
+    (, , uint256[] memory groupsAvailableBorrowInBase) = tsPoolManager.getUserAccountDebtData(
+      address(tsBorrower1),
+      tsCommonPoolId
+    );
 
     uint256 groupNum = 0;
-    for (uint256 groupId=0; groupId<groupsAvailableBorrowInBase.length; groupId++) {
+    for (uint256 groupId = 0; groupId < groupsAvailableBorrowInBase.length; groupId++) {
       if (groupsAvailableBorrowInBase[groupId] > 0) {
         groupNum++;
       }
@@ -81,19 +80,14 @@ contract TestIntCrossBorrowERC20 is TestWithCrossAction {
     uint256[] memory borrowAmounts = new uint256[](1);
 
     uint256 grpIdx = 0;
-    for (uint256 groupId=0; groupId<groupsAvailableBorrowInBase.length; groupId++) {
+    for (uint256 groupId = 0; groupId < groupsAvailableBorrowInBase.length; groupId++) {
       if (groupsAvailableBorrowInBase[groupId] > 0) {
         borrowGroups[grpIdx] = uint8(groupId);
-        borrowAmounts[grpIdx] = groupsAvailableBorrowInBase[groupId] * (10 ** tsUSDT.decimals()) / usdtPrice;
+        borrowAmounts[grpIdx] = (groupsAvailableBorrowInBase[groupId] * (10 ** tsUSDT.decimals())) / usdtPrice;
         grpIdx++;
       }
     }
 
-    tsBorrower1.crossBorrowERC20(
-      tsCommonPoolId,
-      address(tsUSDT),
-      borrowGroups,
-      borrowAmounts
-    );
+    tsBorrower1.crossBorrowERC20(tsCommonPoolId, address(tsUSDT), borrowGroups, borrowAmounts);
   }
 }

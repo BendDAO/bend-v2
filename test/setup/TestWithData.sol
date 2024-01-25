@@ -246,7 +246,7 @@ abstract contract TestWithData is TestWithSetup {
     assetDataNew.utilizationRate = assetDataOld.utilizationRate;
   }
 
-  function getUserAccountData(uint32 poolId, address user) public view returns (TestUserAccountData memory data) {
+  function getUserAccountData(address user, uint32 poolId) public view returns (TestUserAccountData memory data) {
     (
       data.totalCollateralInBase,
       data.totalBorrowInBase,
@@ -254,7 +254,7 @@ abstract contract TestWithData is TestWithSetup {
       data.currentCollateralFactor,
       data.currentLiquidationThreshold,
       data.healthFactor
-    ) = tsPoolManager.getUserAccountData(poolId, user);
+    ) = tsPoolManager.getUserAccountData(user, poolId);
   }
 
   function getUserAssetData(
@@ -418,6 +418,6 @@ abstract contract TestWithData is TestWithSetup {
   ) internal view returns (TestContractData memory data) {
     data.assetData = getAssetData(poolId, asset, assetType);
     data.userAssetData = getUserAssetData(user, poolId, asset, assetType);
-    data.accountData = getUserAccountData(poolId, user);
+    data.accountData = getUserAccountData(user, poolId);
   }
 }

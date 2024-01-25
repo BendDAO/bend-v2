@@ -4,7 +4,6 @@
   "description": "BendDAO Protocol v2 smart contracts",
   "main": "index.js",
   "scripts": {
-    "size": "npm run compile && npm run hardhat size-contracts",
     "run-env": "npm i && tail -f /dev/null",
     "hardhat": "hardhat",
     "clean": "npm run ci:clean",
@@ -15,6 +14,7 @@
     "compile:hardhat:clean": "npm run ci:clean && npm run compile",
     "prettier:check": "prettier -c --plugin=prettier-plugin-solidity .",
     "prettier:write": "prettier -w --plugin=prettier-plugin-solidity .",
+    "gas-report": "forge test --gas-report",
     "coverage": "npm run coverage:html",
     "coverage:forge": "forge coverage --report lcov && lcov --remove lcov.info -o lcov.info 'test/*'",
     "coverage:html": "npm run coverage:forge && genhtml lcov.info -o coverage",

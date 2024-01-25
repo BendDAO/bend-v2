@@ -78,21 +78,11 @@ contract TestUser is ERC721Holder {
     _poolManager.withdrawERC721(poolId, asset, tokenIds, supplyMode);
   }
 
-  function crossBorrowERC20(
-    uint32 poolId,
-    address asset,
-    uint8[] calldata groups,
-    uint256[] calldata amounts
-  ) public {
+  function crossBorrowERC20(uint32 poolId, address asset, uint8[] calldata groups, uint256[] calldata amounts) public {
     _poolManager.crossBorrowERC20(poolId, asset, groups, amounts);
   }
 
-  function crossRepayERC20(
-    uint32 poolId,
-    address asset,
-    uint8[] calldata groups,
-    uint256[] calldata amounts
-  ) public {
+  function crossRepayERC20(uint32 poolId, address asset, uint8[] calldata groups, uint256[] calldata amounts) public {
     _poolManager.crossRepayERC20(poolId, asset, groups, amounts);
   }
 
