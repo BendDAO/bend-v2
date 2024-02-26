@@ -3,7 +3,67 @@ pragma solidity ^0.8.19;
 
 import {EnumerableSetUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol';
 
+import {IPoolManager} from "../../interfaces/IPoolManager.sol";
+import {IStETH} from "../../interfaces/IStETH.sol";
+import {IWstETH} from "../../interfaces/IWstETH.sol";
+import {IUnsetETH} from "../../interfaces/IUnsetETH.sol";
+import {IWETH} from "../../interfaces/IWETH.sol";
+import {IPriceOracleGetter} from "../../interfaces/IPriceOracleGetter.sol";
+
 library DataTypes {
+
+  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
+
+  /****************************************************************************/
+  /* Data Types for lido staking */
+  struct StakePoolStorage {
+      IPoolManager poolManager;
+      IStETH stETH;
+      IWstETH wstETH;
+      IUnsetETH unsetETH;
+      IWETH wETH;
+      IPriceOracleGetter priceOracle;
+      address bot;
+      uint32 poolId;
+      mapping(address => NftConfig) nftConfigs;
+      // nft => token_id => stakeDetail
+      mapping(address => mapping(uint256 => StakeDetail)) stakeDetails;
+      // user => nft => token_ids
+      mapping(address => mapping(address => EnumerableSetUpgradeable.UintSet)) stakedTokens;
+      // user => requests
+      mapping(address => EnumerableSetUpgradeable.UintSet) withdrawRequestIds;
+      uint256 fines;
+      uint256 totalYieldShare;
+      uint256 totalDebtShare;
+  }
+
+  enum StakeState {
+      None,
+      Active,
+      Unstaking
+  }
+
+  struct StakeDetail {
+      address staker;
+      StakeState state;
+      address nft;
+      uint256 tokenId;
+      // wEth debt shares
+      uint256 debtShare;
+      // stEth shares
+      uint256 yieldShare;
+      // unstake
+      uint256 unstakeFine;
+      // repay
+      uint256 repayRequestId;
+  }
+
+  struct NftConfig {
+      bool active;
+      uint256 maxUnstakeFine;
+      uint256 hfThreshold;
+      uint256 unstakeHf; //  eg: unstakeHf = 1.2
+  }
   /****************************************************************************/
   /* Data Types for Pool Lending */
   struct PoolData {
@@ -134,4 +194,5 @@ library DataTypes {
 
     // yield fields
   }
+
 }

@@ -83,4 +83,6 @@ interface IPoolManager {
   function yieldBorrowERC20(uint32 poolId, address asset, uint256 amount) external;
 
   function yieldRepayERC20(uint32 poolId, address asset, uint256 amount) external;
+
+  function getYieldERC20BorrowBalance(uint32 poolId, address asset, address staker) external view returns (uint256);
 }
