@@ -19,12 +19,6 @@ interface IACLManager {
   function EMERGENCY_ADMIN_ROLE() external view returns (bytes32);
 
   /**
-   * @notice Returns the identifier of the RiskAdmin role
-   * @return The id of the RiskAdmin role
-   */
-  function RISK_ADMIN_ROLE() external view returns (bytes32);
-
-  /**
    * @notice Returns the identifier of the OracleAdmin role
    * @return The id of the OracleAdmin role
    */
@@ -75,25 +69,6 @@ interface IACLManager {
    * @return True if the given address is EmergencyAdmin, false otherwise
    */
   function isEmergencyAdmin(address admin) external view returns (bool);
-
-  /**
-   * @notice Adds a new admin as RiskAdmin
-   * @param admin The address of the new admin
-   */
-  function addRiskAdmin(address admin) external;
-
-  /**
-   * @notice Removes an admin as RiskAdmin
-   * @param admin The address of the admin to remove
-   */
-  function removeRiskAdmin(address admin) external;
-
-  /**
-   * @notice Returns true if the address is RiskAdmin, false otherwise
-   * @param admin The address to check
-   * @return True if the given address is RiskAdmin, false otherwise
-   */
-  function isRiskAdmin(address admin) external view returns (bool);
 
   /**
    * @notice Adds a new admin as OracleAdmin

@@ -12,7 +12,6 @@ import {Errors} from './libraries/helpers/Errors.sol';
 contract ACLManager is AccessControlUpgradeable, IACLManager {
   bytes32 public constant override POOL_ADMIN_ROLE = keccak256('POOL_ADMIN');
   bytes32 public constant override EMERGENCY_ADMIN_ROLE = keccak256('EMERGENCY_ADMIN');
-  bytes32 public constant override RISK_ADMIN_ROLE = keccak256('RISK_ADMIN');
   bytes32 public constant override ORACLE_ADMIN_ROLE = keccak256('ORACLE_ADMIN');
 
   constructor() {
@@ -62,21 +61,6 @@ contract ACLManager is AccessControlUpgradeable, IACLManager {
   /// @inheritdoc IACLManager
   function isEmergencyAdmin(address admin) public view override returns (bool) {
     return hasRole(EMERGENCY_ADMIN_ROLE, admin);
-  }
-
-  /// @inheritdoc IACLManager
-  function addRiskAdmin(address admin) public override {
-    grantRole(RISK_ADMIN_ROLE, admin);
-  }
-
-  /// @inheritdoc IACLManager
-  function removeRiskAdmin(address admin) public override {
-    revokeRole(RISK_ADMIN_ROLE, admin);
-  }
-
-  /// @inheritdoc IACLManager
-  function isRiskAdmin(address admin) public view override returns (bool) {
-    return hasRole(RISK_ADMIN_ROLE, admin);
   }
 
   /// @inheritdoc IACLManager

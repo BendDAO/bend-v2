@@ -9,7 +9,6 @@ library DataTypes {
   struct PoolData {
     uint32 poolId;
     string name;
-    address governanceAdmin;
 
     // group
     mapping(uint8 => bool) enabledGroups;

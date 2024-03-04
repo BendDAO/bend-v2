@@ -21,6 +21,7 @@ import {InputTypes} from '../types/InputTypes.sol';
 import {StorageSlot} from './StorageSlot.sol';
 import {InterestLogic} from './InterestLogic.sol';
 import {VaultLogic} from './VaultLogic.sol';
+import {PoolLogic} from './PoolLogic.sol';
 
 /**
  * @title ConfigureLogic library
@@ -30,12 +31,10 @@ library ConfigureLogic {
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
 
-  function _onlyPoolGovernanceAdmin(DataTypes.PoolData storage poolData) private view {
-    require(poolData.governanceAdmin == msg.sender, Errors.INVALID_CALLER);
-  }
-
   function executeCreatePool(string memory name) public returns (uint32 poolId) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+
+    PoolLogic.checkCallerIsPoolAdmin(ps);
 
     require(ps.nextPoolId > 0, Errors.INVALID_POOL_ID);
 
@@ -45,7 +44,6 @@ library ConfigureLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     poolData.poolId = poolId;
     poolData.name = name;
-    poolData.governanceAdmin = msg.sender;
 
     emit Events.CreatePool(msg.sender, poolId, name);
   }
@@ -54,7 +52,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     require(poolData.assetList.length() == 0, Errors.ASSET_LIST_NOT_EMPTY);
 
@@ -67,7 +65,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     require(groupId >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
     require(groupId <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
@@ -85,7 +83,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     require(groupId >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
     require(groupId <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
@@ -112,7 +110,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     if (isEnable) {
       require(!poolData.isYieldEnabled, Errors.POOL_YIELD_ALREADY_ENABLE);
@@ -149,7 +147,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     poolData.isYieldPaused = isPause;
 
@@ -160,7 +158,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.assetType == 0, Errors.ASSET_ALREADY_EXISTS);
@@ -183,7 +181,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
@@ -196,7 +194,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     require(poolData.assetList.length() <= Constants.MAX_NUMBER_OF_ASSET, Errors.ASSET_NUMBER_EXCEED_MAX_LIMIT);
 
@@ -216,7 +214,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     _removeAsset(poolData, assetData, asset);
@@ -245,7 +243,7 @@ library ConfigureLogic {
     require(rateModel_ != address(0), Errors.INVALID_ADDRESS);
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     require(poolData.enabledGroups[groupId] == true, Errors.GROUP_NOT_EXISTS);
 
@@ -272,7 +270,7 @@ library ConfigureLogic {
     require(groupId <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
@@ -299,7 +297,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -313,7 +311,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -327,7 +325,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -341,7 +339,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -356,7 +354,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -371,7 +369,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -386,7 +384,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -404,7 +402,7 @@ library ConfigureLogic {
     require(classGroup <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -430,7 +428,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -458,7 +456,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -478,7 +476,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -497,7 +495,7 @@ library ConfigureLogic {
     require(rateModel_ != address(0), Errors.INVALID_ADDRESS);
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -515,7 +513,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     require(poolData.isYieldEnabled, Errors.POOL_YIELD_NOT_ENABLE);
 
@@ -553,7 +551,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -570,7 +568,7 @@ library ConfigureLogic {
     require(newCap <= Constants.MAX_YIELD_CAP_FACTOR, Errors.INVALID_ASSET_PARAMS);
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
     require(poolData.isYieldEnabled, Errors.POOL_YIELD_NOT_ENABLE);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
@@ -589,7 +587,7 @@ library ConfigureLogic {
     require(rateModel_ != address(0), Errors.INVALID_ADDRESS);
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
     require(poolData.isYieldEnabled, Errors.POOL_YIELD_NOT_ENABLE);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
@@ -607,7 +605,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateOwnerAndPool(poolData);
+    _validateCallerAndPool(ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -619,8 +617,9 @@ library ConfigureLogic {
     stakerData.yieldCap = newCap;
   }
 
-  function _validateOwnerAndPool(DataTypes.PoolData storage poolData) private view {
+  function _validateCallerAndPool(DataTypes.PoolStorage storage ps, DataTypes.PoolData storage poolData) internal view {
+    PoolLogic.checkCallerIsPoolAdmin(ps);
+
     require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
-    _onlyPoolGovernanceAdmin(poolData);
   }
 }

@@ -30,11 +30,12 @@ library Errors {
 
   string public constant ACL_ADMIN_CANNOT_BE_ZERO = '200';
   string public constant ACL_MANAGER_CANNOT_BE_ZERO = '201';
-  string public constant OWNER_CANNOT_BE_ZERO = '202';
-  string public constant CALLER_NOT_ORACLE_ADMIN = '203';
-  string public constant INVALID_ASSET_PARAMS = '204';
-  string public constant CALLER_NOT_EMERGENCY_ADMIN = '205';
-  string public constant FLASH_LOAN_EXEC_FAILED = '206';
+  string public constant CALLER_NOT_ORACLE_ADMIN = '202';
+  string public constant CALLER_NOT_POOL_ADMIN = '203';
+  string public constant CALLER_NOT_EMERGENCY_ADMIN = '204';
+  string public constant OWNER_CANNOT_BE_ZERO = '205';
+  string public constant INVALID_ASSET_PARAMS = '206';
+  string public constant FLASH_LOAN_EXEC_FAILED = '207';
 
   string public constant POOL_ALREADY_EXISTS = '300';
   string public constant POOL_NOT_EXISTS = '301';

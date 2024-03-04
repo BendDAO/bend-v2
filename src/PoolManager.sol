@@ -29,23 +29,13 @@ import {IsolateLogic} from './libraries/logic/IsolateLogic.sol';
 import {YieldLogic} from './libraries/logic/YieldLogic.sol';
 import {FlashLoanLogic} from './libraries/logic/FlashLoanLogic.sol';
 import {QueryLogic} from './libraries/logic/QueryLogic.sol';
+import {PoolLogic} from './libraries/logic/PoolLogic.sol';
 
 contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721HolderUpgradeable {
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
   using WadRayMath for uint256;
   using PercentageMath for uint256;
-
-  modifier onlyEmergencyAdmin() {
-    _onlyEmergencyAdmin();
-    _;
-  }
-
-  function _onlyEmergencyAdmin() internal view {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    IACLManager aclManager = IACLManager(ps.aclManager);
-    require(aclManager.isEmergencyAdmin(msg.sender), Errors.CALLER_NOT_EMERGENCY_ADMIN);
-  }
 
   constructor() {
     _disableInitializers();
@@ -700,7 +690,11 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   /**
    * @dev Pauses or unpauses the whole protocol.
    */
-  function setGlobalPause(bool paused) public onlyEmergencyAdmin {
+  function setGlobalPause(bool paused) public {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+
+    PoolLogic.checkCallerIsEmergencyAdmin(ps);
+
     if (paused) {
       _pause();
     } else {
@@ -711,9 +705,11 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   /**
    * @dev Pauses or unpauses all the assets in the pool.
    */
-  function setPoolPause(uint32 poolId, bool paused) public onlyEmergencyAdmin {
+  function setPoolPause(uint32 poolId, bool paused) public {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+
+    PoolLogic.checkCallerIsEmergencyAdmin(ps);
 
     address[] memory assets = poolData.assetList.values();
 

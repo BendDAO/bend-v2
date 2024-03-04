@@ -9,4 +9,21 @@ import {InputTypes} from '../types/InputTypes.sol';
 import {DataTypes} from '../types/DataTypes.sol';
 import {StorageSlot} from './StorageSlot.sol';
 
-library PoolLogic {}
+import {IACLManager} from '../../interfaces/IACLManager.sol';
+
+library PoolLogic {
+  function checkCallerIsPoolAdmin(DataTypes.PoolStorage storage ps) internal view {
+    IACLManager aclManager = IACLManager(ps.aclManager);
+    require(aclManager.isPoolAdmin(msg.sender), Errors.CALLER_NOT_POOL_ADMIN);
+  }
+
+  function checkCallerIsEmergencyAdmin(DataTypes.PoolStorage storage ps) internal view {
+    IACLManager aclManager = IACLManager(ps.aclManager);
+    require(aclManager.isEmergencyAdmin(msg.sender), Errors.CALLER_NOT_EMERGENCY_ADMIN);
+  }
+
+  function checkCallerIsOracleAdmin(DataTypes.PoolStorage storage ps) internal view {
+    IACLManager aclManager = IACLManager(ps.aclManager);
+    require(aclManager.isOracleAdmin(msg.sender), Errors.CALLER_NOT_ORACLE_ADMIN);
+  }
+}

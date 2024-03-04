@@ -32,6 +32,8 @@ abstract contract TestWithSetup is TestWithUtils {
 
   address public tsDeployer;
   address public tsAclAdmin;
+  address public tsPoolAdmin;
+  address public tsEmergencyAdmin;
 
   MockFaucet public tsFaucet;
   MockERC20 public tsWETH;
@@ -90,6 +92,8 @@ abstract contract TestWithSetup is TestWithUtils {
   function setUp() public {
     tsDeployer = address(this);
     tsAclAdmin = address(this);
+    tsPoolAdmin = address(this);
+    tsEmergencyAdmin = address(this);
 
     initTokens();
 
@@ -168,7 +172,9 @@ abstract contract TestWithSetup is TestWithUtils {
     );
 
     // do some common init
-    tsAclManager.addOracleAdmin(tsAclAdmin);
+    tsAclManager.addPoolAdmin(tsPoolAdmin);
+    tsAclManager.addEmergencyAdmin(tsEmergencyAdmin);
+    tsAclManager.addOracleAdmin(tsPoolAdmin);
 
     tsPriceOracle.setBendNFTOracle(address(tsBendNFTOracle));
 
@@ -285,6 +291,8 @@ abstract contract TestWithSetup is TestWithUtils {
   }
 
   function initCommonPools() internal {
+    tsHEVM.startPrank(tsPoolAdmin);
+
     tsCommonPoolId = tsPoolManager.createPool('Common Pool');
 
     tsLowRateGroupId = 1;
@@ -353,5 +361,7 @@ abstract contract TestWithSetup is TestWithUtils {
     tsPoolManager.setAssetYieldRate(tsCommonPoolId, address(tsDAI), address(tsYieldRateIRM));
     tsPoolManager.setStakerYieldCap(tsCommonPoolId, address(tsPoolManager), address(tsDAI), 2000);
     tsPoolManager.setStakerYieldCap(tsCommonPoolId, address(tsStaker2), address(tsDAI), 2000);
+
+    tsHEVM.stopPrank();
   }
 }
