@@ -29,11 +29,6 @@ contract ACLManager is AccessControlUpgradeable, IACLManager {
   }
 
   /// @inheritdoc IACLManager
-  function setRoleAdmin(bytes32 role, bytes32 adminRole) public override onlyRole(DEFAULT_ADMIN_ROLE) {
-    _setRoleAdmin(role, adminRole);
-  }
-
-  /// @inheritdoc IACLManager
   function addPoolAdmin(address admin) public override {
     grantRole(POOL_ADMIN_ROLE, admin);
   }
