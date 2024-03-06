@@ -15,8 +15,6 @@ import {VaultLogic} from './VaultLogic.sol';
 import {InterestLogic} from './InterestLogic.sol';
 import {ValidateLogic} from './ValidateLogic.sol';
 
-import 'forge-std/console.sol';
-
 library BorrowLogic {
   using PercentageMath for uint256;
 

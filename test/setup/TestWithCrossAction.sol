@@ -16,7 +16,7 @@ import {IInterestRateModel} from 'src/interfaces/IInterestRateModel.sol';
 
 import {TestWithBaseAction} from './TestWithBaseAction.sol';
 
-import 'forge-std/Test.sol';
+import '@forge-std/Test.sol';
 
 abstract contract TestWithCrossAction is TestWithBaseAction {
   using WadRayMath for uint256;

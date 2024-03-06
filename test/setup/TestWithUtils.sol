@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
-import 'forge-std/Test.sol';
+import '@forge-std/Test.sol';
 
 abstract contract TestWithUtils is Test {
   uint256 internal constant BLOCK_TIME = 12;

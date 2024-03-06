@@ -23,7 +23,7 @@ import {MockChainlinkAggregator} from 'test/mocks/MockChainlinkAggregator.sol';
 import {TestUser} from '../helpers/TestUser.sol';
 import {TestWithUtils} from './TestWithUtils.sol';
 
-import 'forge-std/Test.sol';
+import '@forge-std/Test.sol';
 
 abstract contract TestWithSetup is TestWithUtils {
   Vm public tsHEVM = Vm(HEVM_ADDRESS);

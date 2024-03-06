@@ -13,8 +13,6 @@ import {DataTypes} from '../types/DataTypes.sol';
 import {StorageSlot} from './StorageSlot.sol';
 import {WadRayMath} from '../math/WadRayMath.sol';
 
-import 'forge-std/console.sol';
-
 library VaultLogic {
   using SafeERC20Upgradeable for IERC20Upgradeable;
   using WadRayMath for uint256;

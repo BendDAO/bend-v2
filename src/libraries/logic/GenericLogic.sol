@@ -15,8 +15,6 @@ import {Errors} from '../helpers/Errors.sol';
 import {VaultLogic} from './VaultLogic.sol';
 import {InterestLogic} from './InterestLogic.sol';
 
-import 'forge-std/console.sol';
-
 /**
  * @title GenericLogic library
  * @notice Implements protocol-level logic to calculate and validate the state of a user

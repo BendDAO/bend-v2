@@ -16,7 +16,7 @@ import {IInterestRateModel} from 'src/interfaces/IInterestRateModel.sol';
 
 import {TestWithPrepare} from './TestWithPrepare.sol';
 
-import 'forge-std/Test.sol';
+import '@forge-std/Test.sol';
 
 abstract contract TestWithBaseAction is TestWithPrepare {
   using WadRayMath for uint256;

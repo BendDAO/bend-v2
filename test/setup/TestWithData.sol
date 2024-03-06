@@ -11,7 +11,7 @@ import {Constants} from 'src/libraries/helpers/Constants.sol';
 
 import {TestWithSetup} from './TestWithSetup.sol';
 
-import 'forge-std/Test.sol';
+import '@forge-std/Test.sol';
 
 abstract contract TestWithData is TestWithSetup {
   using WadRayMath for uint256;

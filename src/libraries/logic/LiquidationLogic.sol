@@ -23,8 +23,6 @@ import {InterestLogic} from './InterestLogic.sol';
 import {GenericLogic} from './GenericLogic.sol';
 import {ValidateLogic} from './ValidateLogic.sol';
 
-import 'forge-std/console.sol';
-
 library LiquidationLogic {
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;

@@ -8,7 +8,7 @@ import {Constants} from 'src/libraries/helpers/Constants.sol';
 import {TestUser} from '../helpers/TestUser.sol';
 import {TestWithData} from './TestWithData.sol';
 
-import 'forge-std/Test.sol';
+import '@forge-std/Test.sol';
 
 abstract contract TestWithPrepare is TestWithData {
   function onSetUp() public virtual override {

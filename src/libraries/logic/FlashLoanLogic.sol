@@ -16,8 +16,6 @@ import {StorageSlot} from './StorageSlot.sol';
 import {VaultLogic} from './VaultLogic.sol';
 import {ValidateLogic} from './ValidateLogic.sol';
 
-import 'forge-std/console.sol';
-
 library FlashLoanLogic {
   function executeFlashLoanERC721(InputTypes.ExecuteFlashLoanERC721Params memory inputParams) public {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();

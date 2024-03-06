@@ -16,8 +16,6 @@ import {GenericLogic} from './GenericLogic.sol';
 import {InterestLogic} from './InterestLogic.sol';
 import {ValidateLogic} from './ValidateLogic.sol';
 
-import 'forge-std/console.sol';
-
 library IsolateLogic {
   using WadRayMath for uint256;
   using PercentageMath for uint256;

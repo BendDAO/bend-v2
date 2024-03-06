@@ -13,6 +13,12 @@ revert_strings = "default"
 names = true
 sizes = true
 gas_reports = ["PoolManager"]
+fs_permissions = [{ access = "read", path = "./"}]
+
+[rpc_endpoints]
+mainnet = "https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_KEY}"
+sepolia = "https://eth-sepolia.g.alchemy.com/v2/${ALCHEMY_KEY}"
+tenderly = "https://rpc.tenderly.co/fork/${TENDERLY_FORK_ID}"
 
 [profile.default.fuzz]
 runs = 1024

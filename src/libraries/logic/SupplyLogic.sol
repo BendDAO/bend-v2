@@ -13,8 +13,6 @@ import {VaultLogic} from './VaultLogic.sol';
 import {InterestLogic} from './InterestLogic.sol';
 import {ValidateLogic} from './ValidateLogic.sol';
 
-import 'forge-std/console.sol';
-
 library SupplyLogic {
   function executeDepositERC20(InputTypes.ExecuteDepositERC20Params memory params) external {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
