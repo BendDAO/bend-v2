@@ -26,4 +26,14 @@ library PoolLogic {
     IACLManager aclManager = IACLManager(ps.aclManager);
     require(aclManager.isOracleAdmin(msg.sender), Errors.CALLER_NOT_ORACLE_ADMIN);
   }
+
+  function setPoolPause(uint32 poolId, bool paused) public {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+
+    checkCallerIsEmergencyAdmin(ps);
+
+    poolData.isPaused = paused;
+    emit Events.SetPoolPause(poolId, paused);
+  }
 }

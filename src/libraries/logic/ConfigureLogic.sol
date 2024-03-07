@@ -95,8 +95,10 @@ library ConfigureLogic {
       DataTypes.AssetData storage assetData = poolData.assetLookup[allAssets[i]];
       require(assetData.classGroup != groupId, Errors.GROUP_USDED_BY_ASSET);
 
+      require(!assetData.groupList.contains(groupId), Errors.GROUP_USDED_BY_ASSET);
+
       DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
-      VaultLogic.checkGroupHasEmptyLiquidity(groupData);
+      require((groupData.groupId == 0) && (groupData.rateModel == address(0)), Errors.GROUP_USDED_BY_ASSET);
     }
 
     poolData.enabledGroups[groupId] = false;
@@ -130,7 +132,7 @@ library ConfigureLogic {
         require(!assetData.isYieldEnabled, Errors.ASSET_YIELD_ALREADY_ENABLE);
 
         DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
-        VaultLogic.checkGroupHasEmptyLiquidity(groupData);
+        require((groupData.groupId == 0) && (groupData.rateModel == address(0)), Errors.GROUP_USDED_BY_ASSET);
       }
 
       poolData.isYieldEnabled = false;
@@ -569,12 +571,10 @@ library ConfigureLogic {
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateCallerAndPool(ps, poolData);
-    require(poolData.isYieldEnabled, Errors.POOL_YIELD_NOT_ENABLE);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
-    require(assetData.isYieldEnabled, Errors.ASSET_YIELD_NOT_ENABLE);
 
     assetData.yieldCap = newCap;
 
@@ -588,12 +588,10 @@ library ConfigureLogic {
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateCallerAndPool(ps, poolData);
-    require(poolData.isYieldEnabled, Errors.POOL_YIELD_NOT_ENABLE);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
-    require(assetData.isYieldEnabled, Errors.ASSET_YIELD_NOT_ENABLE);
 
     DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
     groupData.rateModel = rateModel_;
@@ -610,7 +608,6 @@ library ConfigureLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
-    require(assetData.isYieldEnabled, Errors.ASSET_YIELD_NOT_ENABLE);
     require(newCap <= assetData.yieldCap, Errors.YIELD_EXCEED_ASSET_CAP_LIMIT);
 
     DataTypes.StakerData storage stakerData = assetData.stakerLookup[staker];

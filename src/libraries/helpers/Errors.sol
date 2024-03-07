@@ -39,6 +39,7 @@ library Errors {
 
   string public constant POOL_ALREADY_EXISTS = '300';
   string public constant POOL_NOT_EXISTS = '301';
+  string public constant POOL_IS_PAUSED = '302';
   string public constant POOL_YIELD_ALREADY_ENABLE = '303';
   string public constant POOL_YIELD_NOT_ENABLE = '304';
   string public constant POOL_YIELD_IS_PAUSED = '305';

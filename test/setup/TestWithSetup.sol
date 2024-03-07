@@ -39,6 +39,7 @@ abstract contract TestWithSetup is TestWithUtils {
   MockERC20 public tsWETH;
   MockERC20 public tsDAI;
   MockERC20 public tsUSDT;
+  MockERC721 public tsWPUNK;
   MockERC721 public tsBAYC;
   MockERC721 public tsMAYC;
 
@@ -161,6 +162,12 @@ abstract contract TestWithSetup is TestWithUtils {
       (1 * WadRayMath.RAY) / 100,
       (20 * WadRayMath.RAY) / 100
     );
+    tsMiddleRateIRM = new DefaultInterestRateModel(
+      (65 * WadRayMath.RAY) / 100,
+      (5 * WadRayMath.RAY) / 100,
+      (5 * WadRayMath.RAY) / 100,
+      (100 * WadRayMath.RAY) / 100
+    );
     tsLowRateIRM = new DefaultInterestRateModel(
       (65 * WadRayMath.RAY) / 100,
       (10 * WadRayMath.RAY) / 100,
@@ -199,6 +206,7 @@ abstract contract TestWithSetup is TestWithUtils {
     tsDAI = MockERC20(tsFaucet.createMockERC20('MockDAI', 'DAI', 18));
     tsUSDT = MockERC20(tsFaucet.createMockERC20('MockUSDT', 'USDT', 6));
 
+    tsWPUNK = MockERC721(tsFaucet.createMockERC721('MockWPUNK', 'WPUNK'));
     tsBAYC = MockERC721(tsFaucet.createMockERC721('MockBAYC', 'BAYC'));
     tsMAYC = MockERC721(tsFaucet.createMockERC721('MockMAYC', 'MAYC'));
   }
@@ -271,6 +279,7 @@ abstract contract TestWithSetup is TestWithUtils {
     tsFaucet.privateMintERC20(address(tsUSDT), address(user), TS_INITIAL_BALANCE * 1e6);
 
     uint256[] memory tokenIds = user.getTokenIds();
+    tsFaucet.privateMintERC721(address(tsWPUNK), address(user), tokenIds);
     tsFaucet.privateMintERC721(address(tsBAYC), address(user), tokenIds);
     tsFaucet.privateMintERC721(address(tsMAYC), address(user), tokenIds);
   }
@@ -290,6 +299,7 @@ abstract contract TestWithSetup is TestWithUtils {
 
     tsBendNFTOracle = new MockBendNFTOracle();
     tsHEVM.label(address(tsBendNFTOracle), 'MockBendNFTOracle');
+    tsBendNFTOracle.setAssetPrice(address(tsWPUNK), 58155486904761904761);
     tsBendNFTOracle.setAssetPrice(address(tsBAYC), 30919141261229331011);
     tsBendNFTOracle.setAssetPrice(address(tsMAYC), 5950381013403414953);
   }
@@ -298,6 +308,7 @@ abstract contract TestWithSetup is TestWithUtils {
     tsHEVM.label(address(tsWETH), 'WETH');
     tsHEVM.label(address(tsDAI), 'DAI');
     tsHEVM.label(address(tsUSDT), 'USDT');
+    tsHEVM.label(address(tsWPUNK), 'WPUNK');
     tsHEVM.label(address(tsBAYC), 'BAYC');
     tsHEVM.label(address(tsMAYC), 'MAYC');
 
@@ -354,6 +365,12 @@ abstract contract TestWithSetup is TestWithUtils {
     tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsUSDT), tsHighRateGroupId, address(tsHighRateIRM));
 
     // add some nft assets
+    tsPoolManager.addAssetERC721(tsCommonPoolId, address(tsWPUNK));
+    tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsWPUNK), 6000, 8000, 1000);
+    tsPoolManager.setAssetAuctionParams(tsCommonPoolId, address(tsWPUNK), 5000, 500, 2000, 1 days);
+    tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsWPUNK), tsLowRateGroupId);
+    tsPoolManager.setAssetActive(tsCommonPoolId, address(tsWPUNK), true);
+
     tsPoolManager.addAssetERC721(tsCommonPoolId, address(tsBAYC));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsBAYC), 6000, 8000, 1000);
     tsPoolManager.setAssetAuctionParams(tsCommonPoolId, address(tsBAYC), 5000, 500, 2000, 1 days);
@@ -362,7 +379,7 @@ abstract contract TestWithSetup is TestWithUtils {
 
     tsPoolManager.addAssetERC721(tsCommonPoolId, address(tsMAYC));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsMAYC), 5000, 8000, 1000);
-    tsPoolManager.setAssetAuctionParams(tsCommonPoolId, address(tsBAYC), 5000, 500, 2000, 1 days);
+    tsPoolManager.setAssetAuctionParams(tsCommonPoolId, address(tsMAYC), 5000, 500, 2000, 1 days);
     tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsMAYC), tsHighRateGroupId);
     tsPoolManager.setAssetActive(tsCommonPoolId, address(tsMAYC), true);
 

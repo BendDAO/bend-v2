@@ -456,6 +456,16 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     return QueryLogic.getPoolMaxGroupNumber();
   }
 
+  function getPoolName(uint32 poolId) public view returns (string memory) {
+    return QueryLogic.getPoolName(poolId);
+  }
+
+  function getPoolConfigFlag(
+    uint32 poolId
+  ) public view returns (bool isPaused, bool isYieldEnabled, bool isYieldPaused, uint8 yieldGroup) {
+    return QueryLogic.getPoolConfigFlag(poolId);
+  }
+
   function getPoolGroupList(uint32 poolId) public view returns (uint256[] memory) {
     return QueryLogic.getPoolGroupList(poolId);
   }
@@ -702,21 +712,14 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     }
   }
 
+  function getGlobalPause() public view returns (bool) {
+    return paused();
+  }
+
   /**
    * @dev Pauses or unpauses all the assets in the pool.
    */
   function setPoolPause(uint32 poolId, bool paused) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-
-    PoolLogic.checkCallerIsEmergencyAdmin(ps);
-
-    address[] memory assets = poolData.assetList.values();
-
-    for (uint256 i = 0; i < assets.length; i++) {
-      if (assets[i] != address(0)) {
-        setAssetPause(poolId, assets[i], paused);
-      }
-    }
+    PoolLogic.setPoolPause(poolId, paused);
   }
 }

@@ -33,6 +33,21 @@ library QueryLogic {
     return Constants.MAX_NUMBER_OF_GROUP;
   }
 
+  function getPoolName(uint32 poolId) public view returns (string memory) {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    return poolData.name;
+  }
+
+  function getPoolConfigFlag(
+    uint32 poolId
+  ) public view returns (bool isPaused, bool isYieldEnabled, bool isYieldPaused, uint8 yieldGroup) {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+
+    return (poolData.isPaused, poolData.isYieldEnabled, poolData.isYieldPaused, poolData.yieldGroup);
+  }
+
   function getPoolGroupList(uint32 poolId) public view returns (uint256[] memory) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];

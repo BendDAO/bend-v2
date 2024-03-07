@@ -25,6 +25,7 @@ library ValidateLogic {
 
   function validatePoolBasic(DataTypes.PoolData storage poolData) internal view {
     require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
+    require(!poolData.isPaused, Errors.POOL_IS_PAUSED);
   }
 
   function validateAssetBasic(DataTypes.AssetData storage assetData) internal view {

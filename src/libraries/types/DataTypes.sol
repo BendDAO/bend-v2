@@ -9,6 +9,7 @@ library DataTypes {
   struct PoolData {
     uint32 poolId;
     string name;
+    bool isPaused;
 
     // group
     mapping(uint8 => bool) enabledGroups;

@@ -13,6 +13,8 @@ library Events {
   event AddPoolGroup(uint32 indexed poolId, uint8 groupId);
   event RemovePoolGroup(uint32 indexed poolId, uint8 groupId);
 
+  event SetPoolPause(uint32 indexed poolId, bool isPause);
+
   event SetPoolYieldEnable(uint32 indexed poolId, bool isEnable);
   event SetPoolYieldPause(uint32 indexed poolId, bool isPause);
 
