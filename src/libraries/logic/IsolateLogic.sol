@@ -29,7 +29,7 @@ library IsolateLogic {
   /**
    * @notice Implements the borrow for isolate lending.
    */
-  function executeIsolateBorrow(InputTypes.ExecuteIsolateBorrowParams memory params) public {
+  function executeIsolateBorrow(InputTypes.ExecuteIsolateBorrowParams memory params) public returns (uint256) {
     ExecuteIsolateBorrowVars memory vars;
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
@@ -90,6 +90,8 @@ library IsolateLogic {
       params.asset,
       params.amounts
     );
+
+    return vars.totalBorrowAmount;
   }
 
   struct ExecuteIsolateRepayVars {
@@ -102,7 +104,7 @@ library IsolateLogic {
   /**
    * @notice Implements the repay for isolate lending.
    */
-  function executeIsolateRepay(InputTypes.ExecuteIsolateRepayParams memory params) public {
+  function executeIsolateRepay(InputTypes.ExecuteIsolateRepayParams memory params) public returns (uint256) {
     ExecuteIsolateRepayVars memory vars;
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
@@ -155,6 +157,8 @@ library IsolateLogic {
       params.asset,
       params.amounts
     );
+
+    return vars.totalRepayAmount;
   }
 
   struct ExecuteIsolateAuctionVars {

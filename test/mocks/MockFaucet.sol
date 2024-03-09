@@ -5,6 +5,7 @@ import {Ownable2Step} from '@openzeppelin/contracts/access/Ownable2Step.sol';
 import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 
 import {MockERC20} from './MockERC20.sol';
+import {MockWETH} from './MockWETH.sol';
 import {MockERC721} from './MockERC721.sol';
 
 contract MockFaucet is Ownable2Step {
@@ -69,7 +70,13 @@ contract MockFaucet is Ownable2Step {
   ) public onlyOwner returns (address) {
     require(symbolToERC20s[symbol_] == address(0), 'MockFaucet: symbol already exist');
 
-    MockERC20 token = new MockERC20(name_, symbol_, decimals_);
+    MockERC20 token;
+    if (keccak256(abi.encodePacked(symbol_)) == keccak256(abi.encodePacked('WETH'))) {
+      MockWETH weth = new MockWETH();
+      token = MockERC20(address(weth));
+    } else {
+      token = new MockERC20(name_, symbol_, decimals_);
+    }
 
     symbolToERC20s[symbol_] = address(token);
     mockERC20Set.add(address(token));

@@ -124,7 +124,7 @@ library DataTypes {
   /* Data Types for Storage */
   struct PoolStorage {
     // common fileds
-    address nativeWrappedToken; // WETH
+    address wrappedNativeToken; // WETH
     address aclManager; // ACLManager
     address priceOracle; // PriceOracle
 

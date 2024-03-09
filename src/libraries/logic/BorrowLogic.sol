@@ -18,7 +18,7 @@ import {ValidateLogic} from './ValidateLogic.sol';
 library BorrowLogic {
   using PercentageMath for uint256;
 
-  function executeCrossBorrowERC20(InputTypes.ExecuteCrossBorrowERC20Params memory params) public {
+  function executeCrossBorrowERC20(InputTypes.ExecuteCrossBorrowERC20Params memory params) public returns (uint256) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
@@ -50,9 +50,11 @@ library BorrowLogic {
     VaultLogic.erc20TransferOutLiquidity(assetData, msg.sender, totalBorrowAmount);
 
     emit Events.CrossBorrowERC20(msg.sender, params.poolId, params.asset, params.groups, params.amounts);
+
+    return totalBorrowAmount;
   }
 
-  function executeCrossRepayERC20(InputTypes.ExecuteCrossRepayERC20Params memory params) public {
+  function executeCrossRepayERC20(InputTypes.ExecuteCrossRepayERC20Params memory params) public returns (uint256) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
@@ -89,5 +91,7 @@ library BorrowLogic {
     VaultLogic.erc20TransferInLiquidity(assetData, msg.sender, totalRepayAmount);
 
     emit Events.CrossRepayERC20(msg.sender, params.poolId, params.asset, params.groups, params.amounts);
+
+    return totalRepayAmount;
   }
 }

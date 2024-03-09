@@ -3,6 +3,8 @@ pragma solidity ^0.8.19;
 
 library Errors {
   string public constant OK = '0';
+  string public constant ETH_TRANSFER_FAILED = '1';
+
   string public constant INVALID_AMOUNT = '100';
   string public constant INVALID_SCALED_AMOUNT = '101';
   string public constant INVALID_TRANSFER_AMOUNT = '102';

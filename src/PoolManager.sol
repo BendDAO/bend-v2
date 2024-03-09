@@ -21,6 +21,7 @@ import {WadRayMath} from './libraries/math/WadRayMath.sol';
 import {PercentageMath} from './libraries/math/PercentageMath.sol';
 
 import {StorageSlot} from './libraries/logic/StorageSlot.sol';
+import {VaultLogic} from './libraries/logic/VaultLogic.sol';
 import {ConfigureLogic} from './libraries/logic/ConfigureLogic.sol';
 import {SupplyLogic} from './libraries/logic/SupplyLogic.sol';
 import {BorrowLogic} from './libraries/logic/BorrowLogic.sol';
@@ -41,11 +42,16 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     _disableInitializers();
   }
 
-  function initialize(address aclManager_, address priceOracle_) public initializer {
+  function initialize(address wrappedNativeToken_, address aclManager_, address priceOracle_) public initializer {
+    require(wrappedNativeToken_ != address(0), Errors.INVALID_ADDRESS);
+    require(aclManager_ != address(0), Errors.INVALID_ADDRESS);
+    require(priceOracle_ != address(0), Errors.INVALID_ADDRESS);
+
     __Pausable_init();
     __ReentrancyGuard_init();
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    ps.wrappedNativeToken = wrappedNativeToken_;
     ps.aclManager = aclManager_;
     ps.priceOracle = priceOracle_;
     ps.nextPoolId = Constants.INITIAL_POOL_ID;
@@ -61,6 +67,10 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
 
   function deletePool(uint32 poolId) public nonReentrant {
     ConfigureLogic.executeDeletePool(poolId);
+  }
+
+  function setPoolPause(uint32 poolId, bool paused) public nonReentrant {
+    ConfigureLogic.setPoolPause(poolId, paused);
   }
 
   function addPoolGroup(uint32 poolId, uint8 groupId) public nonReentrant {
@@ -200,17 +210,34 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   /****************************************************************************/
   /* Supply */
   /****************************************************************************/
+  function depositERC20(uint32 poolId, address asset, uint256 amount) public payable whenNotPaused nonReentrant {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
+      asset = ps.wrappedNativeToken;
+      amount = msg.value;
+      VaultLogic.wrapNativeTokenInWallet(asset, msg.sender, amount);
+    }
 
-  function depositERC20(uint32 poolId, address asset, uint256 amount) public whenNotPaused nonReentrant {
     SupplyLogic.executeDepositERC20(
       InputTypes.ExecuteDepositERC20Params({poolId: poolId, asset: asset, amount: amount})
     );
   }
 
   function withdrawERC20(uint32 poolId, address asset, uint256 amount) public whenNotPaused nonReentrant {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    bool isNative;
+    if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
+      isNative = true;
+      asset = ps.wrappedNativeToken;
+    }
+
     SupplyLogic.executeWithdrawERC20(
       InputTypes.ExecuteWithdrawERC20Params({poolId: poolId, asset: asset, amount: amount})
     );
+
+    if (isNative) {
+      VaultLogic.unwrapNativeTokenInWallet(asset, msg.sender, amount);
+    }
   }
 
   function depositERC721(
@@ -261,9 +288,20 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     uint8[] calldata groups,
     uint256[] calldata amounts
   ) public whenNotPaused nonReentrant {
-    BorrowLogic.executeCrossBorrowERC20(
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    bool isNative;
+    if (asset == address(Constants.NATIVE_TOKEN_ADDRESS)) {
+      isNative = true;
+      asset = ps.wrappedNativeToken;
+    }
+
+    uint256 totalBorrowAmount = BorrowLogic.executeCrossBorrowERC20(
       InputTypes.ExecuteCrossBorrowERC20Params({poolId: poolId, asset: asset, groups: groups, amounts: amounts})
     );
+
+    if (isNative) {
+      VaultLogic.unwrapNativeTokenInWallet(asset, msg.sender, totalBorrowAmount);
+    }
   }
 
   function crossRepayERC20(
@@ -271,7 +309,13 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     address asset,
     uint8[] calldata groups,
     uint256[] calldata amounts
-  ) public whenNotPaused nonReentrant {
+  ) public payable whenNotPaused nonReentrant {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
+      asset = ps.wrappedNativeToken;
+      VaultLogic.wrapNativeTokenInWallet(asset, msg.sender, msg.value);
+    }
+
     BorrowLogic.executeCrossRepayERC20(
       InputTypes.ExecuteCrossRepayERC20Params({poolId: poolId, asset: asset, groups: groups, amounts: amounts})
     );
@@ -284,8 +328,20 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     address debtAsset,
     uint256 debtToCover,
     bool supplyAsCollateral
-  ) public whenNotPaused nonReentrant {
-    LiquidationLogic.executeCrossLiquidateERC20(
+  ) public payable whenNotPaused nonReentrant {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    if (debtAsset == Constants.NATIVE_TOKEN_ADDRESS) {
+      debtAsset = ps.wrappedNativeToken;
+      VaultLogic.wrapNativeTokenInWallet(debtAsset, msg.sender, msg.value);
+    }
+
+    bool isCollateralNative;
+    if (collateralAsset == Constants.NATIVE_TOKEN_ADDRESS) {
+      isCollateralNative = true;
+      collateralAsset = ps.wrappedNativeToken;
+    }
+
+    (uint256 actualCollateralToLiquidate, ) = LiquidationLogic.executeCrossLiquidateERC20(
       InputTypes.ExecuteCrossLiquidateERC20Params({
         poolId: poolId,
         user: user,
@@ -295,6 +351,10 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
         supplyAsCollateral: supplyAsCollateral
       })
     );
+
+    if (isCollateralNative && !supplyAsCollateral) {
+      VaultLogic.unwrapNativeTokenInWallet(collateralAsset, msg.sender, actualCollateralToLiquidate);
+    }
   }
 
   function crossLiquidateERC721(
@@ -304,7 +364,13 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     uint256[] calldata collateralTokenIds,
     address debtAsset,
     bool supplyAsCollateral
-  ) public whenNotPaused nonReentrant {
+  ) public payable whenNotPaused nonReentrant {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    if (debtAsset == Constants.NATIVE_TOKEN_ADDRESS) {
+      debtAsset = ps.wrappedNativeToken;
+      VaultLogic.wrapNativeTokenInWallet(debtAsset, msg.sender, msg.value);
+    }
+
     LiquidationLogic.executeCrossLiquidateERC721(
       InputTypes.ExecuteCrossLiquidateERC721Params({
         poolId: poolId,
@@ -328,7 +394,14 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     address asset,
     uint256[] calldata amounts
   ) public whenNotPaused nonReentrant {
-    IsolateLogic.executeIsolateBorrow(
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    bool isNative;
+    if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
+      isNative = true;
+      asset = ps.wrappedNativeToken;
+    }
+
+    uint256 totalBorrowAmount = IsolateLogic.executeIsolateBorrow(
       InputTypes.ExecuteIsolateBorrowParams({
         poolId: poolId,
         nftAsset: nftAsset,
@@ -337,6 +410,10 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
         amounts: amounts
       })
     );
+
+    if (isNative) {
+      VaultLogic.unwrapNativeTokenInWallet(asset, msg.sender, totalBorrowAmount);
+    }
   }
 
   function isolateRepay(
@@ -345,7 +422,13 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     uint256[] calldata nftTokenIds,
     address asset,
     uint256[] calldata amounts
-  ) public whenNotPaused nonReentrant {
+  ) public payable whenNotPaused nonReentrant {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
+      asset = ps.wrappedNativeToken;
+      VaultLogic.wrapNativeTokenInWallet(asset, msg.sender, msg.value);
+    }
+
     IsolateLogic.executeIsolateRepay(
       InputTypes.ExecuteIsolateRepayParams({
         poolId: poolId,
@@ -363,7 +446,13 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     uint256[] calldata nftTokenIds,
     address asset,
     uint256[] calldata amounts
-  ) public whenNotPaused nonReentrant {
+  ) public payable whenNotPaused nonReentrant {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
+      asset = ps.wrappedNativeToken;
+      VaultLogic.wrapNativeTokenInWallet(asset, msg.sender, msg.value);
+    }
+
     IsolateLogic.executeIsolateAuction(
       InputTypes.ExecuteIsolateAuctionParams({
         poolId: poolId,
@@ -380,7 +469,13 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     address nftAsset,
     uint256[] calldata nftTokenIds,
     address asset
-  ) public whenNotPaused nonReentrant {
+  ) public payable whenNotPaused nonReentrant {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
+      asset = ps.wrappedNativeToken;
+      VaultLogic.wrapNativeTokenInWallet(asset, msg.sender, msg.value);
+    }
+
     IsolateLogic.executeIsolateRedeem(
       InputTypes.ExecuteIsolateRedeemParams({
         poolId: poolId,
@@ -397,7 +492,13 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     uint256[] calldata nftTokenIds,
     address asset,
     bool supplyAsCollateral
-  ) public whenNotPaused nonReentrant {
+  ) public payable whenNotPaused nonReentrant {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
+      asset = ps.wrappedNativeToken;
+      VaultLogic.wrapNativeTokenInWallet(asset, msg.sender, msg.value);
+    }
+
     IsolateLogic.executeIsolateLiquidate(
       InputTypes.ExecuteIsolateLiquidateParams({
         poolId: poolId,
@@ -714,12 +815,5 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
 
   function getGlobalPause() public view returns (bool) {
     return paused();
-  }
-
-  /**
-   * @dev Pauses or unpauses all the assets in the pool.
-   */
-  function setPoolPause(uint32 poolId, bool paused) public {
-    PoolLogic.setPoolPause(poolId, paused);
   }
 }

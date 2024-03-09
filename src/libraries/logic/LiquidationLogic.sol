@@ -44,7 +44,9 @@ library LiquidationLogic {
    * covers `debtToCover` amount of debt of the user getting liquidated, and receives
    * a proportional amount of the `collateralAsset` plus a bonus to cover market risk
    */
-  function executeCrossLiquidateERC20(InputTypes.ExecuteCrossLiquidateERC20Params memory params) external {
+  function executeCrossLiquidateERC20(
+    InputTypes.ExecuteCrossLiquidateERC20Params memory params
+  ) external returns (uint256, uint256) {
     LiquidateERC20LocalVars memory vars;
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
@@ -127,12 +129,15 @@ library LiquidationLogic {
       vars.actualCollateralToLiquidate,
       params.supplyAsCollateral
     );
+
+    return (vars.actualCollateralToLiquidate, vars.actualDebtToLiquidate);
   }
 
   struct LiquidateERC721LocalVars {
     uint256 gidx;
     uint256[] assetGroupIds;
     uint256 userCollateralBalance;
+    uint256 actualCollateralToLiquidate;
     uint256 actualDebtToLiquidate;
     uint256 remainDebtToLiquidate;
     ResultTypes.UserAccountResult userAccountResult;
@@ -141,7 +146,9 @@ library LiquidationLogic {
   /**
    * @notice Function to liquidate a ERC721 collateral if its Health Factor drops below 1.
    */
-  function executeCrossLiquidateERC721(InputTypes.ExecuteCrossLiquidateERC721Params memory params) external {
+  function executeCrossLiquidateERC721(
+    InputTypes.ExecuteCrossLiquidateERC721Params memory params
+  ) external returns (uint256, uint256) {
     LiquidateERC721LocalVars memory vars;
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
@@ -175,7 +182,7 @@ library LiquidationLogic {
     vars.userCollateralBalance = VaultLogic.erc721GetUserCrossSupply(collateralAssetData, params.user);
 
     // the liquidated debt amount will be decided by the liquidated collateral
-    vars.actualDebtToLiquidate = _calculateDebtAmountFromERC721Collateral(
+    (vars.actualCollateralToLiquidate, vars.actualDebtToLiquidate) = _calculateDebtAmountFromERC721Collateral(
       collateralAssetData,
       debtAssetData,
       params,
@@ -218,6 +225,8 @@ library LiquidationLogic {
       params.collateralTokenIds,
       params.supplyAsCollateral
     );
+
+    return (vars.actualCollateralToLiquidate, vars.actualDebtToLiquidate);
   }
 
   /**
@@ -417,6 +426,7 @@ library LiquidationLogic {
     uint256 collateralPrice;
     uint256 collateralBonusPrice;
     uint256 collateralLiquidatePrice;
+    uint256 collateralTotalValue;
     uint256 collateralTotalDebtToCover;
     uint256 collateralItemDebtToCover;
     uint256 debtAssetPrice;
@@ -433,7 +443,7 @@ library LiquidationLogic {
     InputTypes.ExecuteCrossLiquidateERC721Params memory params,
     LiquidateERC721LocalVars memory liqVars,
     IPriceOracleGetter oracle
-  ) internal view returns (uint256) {
+  ) internal view returns (uint256, uint256) {
     CalculateDebtAmountFromERC721CollateralLocalVars memory vars;
 
     // in this function, all prices are in base currency
@@ -459,10 +469,9 @@ library LiquidationLogic {
       vars.collateralLiquidatePrice = vars.collateralItemDebtToCover;
     }
 
-    vars.debtAmountNeeded =
-      (vars.collateralLiquidatePrice * params.collateralTokenIds.length * vars.debtAssetUnit) /
-      vars.debtAssetPrice;
+    vars.collateralTotalValue = vars.collateralLiquidatePrice * params.collateralTokenIds.length;
+    vars.debtAmountNeeded = (vars.collateralTotalValue * vars.debtAssetUnit) / vars.debtAssetPrice;
 
-    return (vars.debtAmountNeeded);
+    return (vars.collateralTotalValue, vars.debtAmountNeeded);
   }
 }

@@ -150,10 +150,15 @@ abstract contract TestWithSetup is TestWithUtils {
     TransparentUpgradeableProxy poolManagerProxy = new TransparentUpgradeableProxy(
       address(poolManagerImpl),
       address(tsProxyAdmin),
-      abi.encodeWithSelector(poolManagerImpl.initialize.selector, address(tsAclManager), address(tsPriceOracle))
+      abi.encodeWithSelector(
+        poolManagerImpl.initialize.selector,
+        address(tsWETH),
+        address(tsAclManager),
+        address(tsPriceOracle)
+      )
     );
     tsPoolManager = PoolManager(payable(address(poolManagerProxy)));
-    //tsPoolManager.initialize(address(aclManager), address(tsPriceOracle));
+    //tsPoolManager.initialize(address(tsWETH), address(aclManager), address(tsPriceOracle));
 
     // Interest Rate Model
     tsYieldRateIRM = new DefaultInterestRateModel(

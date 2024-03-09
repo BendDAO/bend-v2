@@ -10,8 +10,10 @@ import {DataTypes} from '../types/DataTypes.sol';
 import {StorageSlot} from './StorageSlot.sol';
 
 import {IACLManager} from '../../interfaces/IACLManager.sol';
+import {IWETH} from '../../interfaces/IWETH.sol';
 
 library PoolLogic {
+  // check caller's permission
   function checkCallerIsPoolAdmin(DataTypes.PoolStorage storage ps) internal view {
     IACLManager aclManager = IACLManager(ps.aclManager);
     require(aclManager.isPoolAdmin(msg.sender), Errors.CALLER_NOT_POOL_ADMIN);
@@ -27,13 +29,14 @@ library PoolLogic {
     require(aclManager.isOracleAdmin(msg.sender), Errors.CALLER_NOT_ORACLE_ADMIN);
   }
 
-  function setPoolPause(uint32 poolId, bool paused) public {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+  // native token
+  function wrapNativeToken(DataTypes.PoolStorage storage ps) internal {
+    IWETH(ps.wrappedNativeToken).deposit{value: msg.value}();
+    IWETH(ps.wrappedNativeToken).transferFrom(address(this), msg.sender, msg.value);
+  }
 
-    checkCallerIsEmergencyAdmin(ps);
-
-    poolData.isPaused = paused;
-    emit Events.SetPoolPause(poolId, paused);
+  function unwrapNativeToken(DataTypes.PoolStorage storage ps, uint256 amount) internal {
+    IWETH(ps.wrappedNativeToken).transferFrom(msg.sender, address(this), amount);
+    IWETH(ps.wrappedNativeToken).withdraw(amount);
   }
 }

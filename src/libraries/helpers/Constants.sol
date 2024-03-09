@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 library Constants {
+  address public constant NATIVE_TOKEN_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
   uint32 public constant INITIAL_POOL_ID = 1;
 
   // Asset params

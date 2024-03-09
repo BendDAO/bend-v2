@@ -13,6 +13,8 @@ import {DataTypes} from '../types/DataTypes.sol';
 import {StorageSlot} from './StorageSlot.sol';
 import {WadRayMath} from '../math/WadRayMath.sol';
 
+import {IWETH} from '../../interfaces/IWETH.sol';
+
 library VaultLogic {
   using SafeERC20Upgradeable for IERC20Upgradeable;
   using WadRayMath for uint256;
@@ -748,8 +750,23 @@ library VaultLogic {
   /**
    * @dev transfer ETH to an address, revert if it fails.
    */
-  function safeTransferETH(address to, uint256 value) internal {
-    (bool success, ) = to.call{value: value}(new bytes(0));
-    require(success, 'ETH_TRANSFER_FAILED');
+  function safeTransferNativeToken(address to, uint256 amount) internal {
+    (bool success, ) = to.call{value: amount}(new bytes(0));
+    require(success, Errors.ETH_TRANSFER_FAILED);
+  }
+
+  function wrapNativeTokenInWallet(address wrappedNativeToken, address user, uint256 amount) internal {
+    require(amount > 0, Errors.INVALID_AMOUNT);
+    IWETH(wrappedNativeToken).deposit{value: amount}();
+    IWETH(wrappedNativeToken).transferFrom(address(this), user, amount);
+  }
+
+  function unwrapNativeTokenInWallet(address wrappedNativeToken, address user, uint256 amount) internal {
+    require(amount > 0, Errors.INVALID_AMOUNT);
+    IWETH(wrappedNativeToken).transferFrom(user, address(this), amount);
+    IWETH(wrappedNativeToken).withdraw(amount);
+
+    (bool success, ) = user.call{value: amount}(new bytes(0));
+    require(success, Errors.ETH_TRANSFER_FAILED);
   }
 }
