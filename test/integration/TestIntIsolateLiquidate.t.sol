@@ -77,6 +77,7 @@ contract TestIntIsolateLiquidate is TestWithIsolateAction {
     // end the auction
     advanceTimes(25 hours);
 
+    uint256[] memory liquidateAmounts = new uint256[](tokenIds.length);
     testVars.loanDataBefore = getIsolateLoanData(tsCommonPoolId, address(tsBAYC), tokenIds);
     for (uint256 i = 0; i < tokenIds.length; i++) {
       testVars.totalBidAmount += testVars.loanDataBefore[i].bidAmount;
@@ -90,7 +91,7 @@ contract TestIntIsolateLiquidate is TestWithIsolateAction {
     testVars.walletBalanceBefore2 = tsWETH.balanceOf(address(tsBorrower1));
 
     // liquidate
-    tsLiquidator1.isolateLiquidate(tsCommonPoolId, address(tsBAYC), tokenIds, address(tsWETH), false);
+    tsLiquidator1.isolateLiquidate(tsCommonPoolId, address(tsBAYC), tokenIds, address(tsWETH), liquidateAmounts, false);
     testVars.txAuctionTimestamp = block.timestamp;
 
     // check results
@@ -143,6 +144,7 @@ contract TestIntIsolateLiquidate is TestWithIsolateAction {
     // end the auction
     advanceTimes(25 hours);
 
+    uint256[] memory liquidateAmounts = new uint256[](tokenIds.length);
     testVars.loanDataBefore = getIsolateLoanData(tsCommonPoolId, address(tsBAYC), tokenIds);
     for (uint256 i = 0; i < tokenIds.length; i++) {
       testVars.totalBidAmount += testVars.loanDataBefore[i].bidAmount;
@@ -156,7 +158,7 @@ contract TestIntIsolateLiquidate is TestWithIsolateAction {
     testVars.walletBalanceBefore2 = tsUSDT.balanceOf(address(tsBorrower1));
 
     // liquidate
-    tsLiquidator1.isolateLiquidate(tsCommonPoolId, address(tsBAYC), tokenIds, address(tsUSDT), false);
+    tsLiquidator1.isolateLiquidate(tsCommonPoolId, address(tsBAYC), tokenIds, address(tsUSDT), liquidateAmounts, false);
     testVars.txAuctionTimestamp = block.timestamp;
 
     // check results

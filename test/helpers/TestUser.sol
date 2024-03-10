@@ -8,6 +8,8 @@ import {ERC721Holder} from '@openzeppelin/contracts/token/ERC721/utils/ERC721Hol
 
 import 'src/PoolManager.sol';
 
+import '@forge-std/console.sol';
+
 contract TestUser is ERC721Holder {
   using SafeERC20 for ERC20;
 
@@ -32,6 +34,10 @@ contract TestUser is ERC721Holder {
 
   function getTokenIds() public view returns (uint256[] memory) {
     return _tokenIds;
+  }
+
+  function balanceOfNative() public view returns (uint256) {
+    return address(this).balance;
   }
 
   function balanceOf(address token) public view returns (uint256) {
@@ -63,7 +69,12 @@ contract TestUser is ERC721Holder {
   }
 
   function depositERC20(uint32 poolId, address asset, uint256 amount) public {
-    _poolManager.depositERC20(poolId, asset, amount);
+    if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
+      uint256 sendVal = amount;
+      _poolManager.depositERC20{value: sendVal}(poolId, asset, amount);
+    } else {
+      _poolManager.depositERC20(poolId, asset, amount);
+    }
   }
 
   function withdrawERC20(uint32 poolId, address asset, uint256 amount) public {
@@ -87,7 +98,15 @@ contract TestUser is ERC721Holder {
   }
 
   function crossRepayERC20(uint32 poolId, address asset, uint8[] calldata groups, uint256[] calldata amounts) public {
-    _poolManager.crossRepayERC20(poolId, asset, groups, amounts);
+    if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
+      uint256 sendVal;
+      for (uint i = 0; i < amounts.length; i++) {
+        sendVal += amounts[i];
+      }
+      _poolManager.crossRepayERC20{value: sendVal}(poolId, asset, groups, amounts);
+    } else {
+      _poolManager.crossRepayERC20(poolId, asset, groups, amounts);
+    }
   }
 
   function isolateBorrow(
@@ -107,7 +126,15 @@ contract TestUser is ERC721Holder {
     address asset,
     uint256[] calldata amounts
   ) public {
-    _poolManager.isolateRepay(poolId, nftAsset, nftTokenIds, asset, amounts);
+    if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
+      uint256 sendVal;
+      for (uint i = 0; i < amounts.length; i++) {
+        sendVal += amounts[i];
+      }
+      _poolManager.isolateRepay{value: sendVal}(poolId, nftAsset, nftTokenIds, asset, amounts);
+    } else {
+      _poolManager.isolateRepay(poolId, nftAsset, nftTokenIds, asset, amounts);
+    }
   }
 
   function isolateAuction(
@@ -117,11 +144,33 @@ contract TestUser is ERC721Holder {
     address asset,
     uint256[] calldata amounts
   ) public {
-    _poolManager.isolateAuction(poolId, nftAsset, nftTokenIds, asset, amounts);
+    if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
+      uint256 sendVal;
+      for (uint i = 0; i < amounts.length; i++) {
+        sendVal += amounts[i];
+      }
+      _poolManager.isolateAuction{value: sendVal}(poolId, nftAsset, nftTokenIds, asset, amounts);
+    } else {
+      _poolManager.isolateAuction(poolId, nftAsset, nftTokenIds, asset, amounts);
+    }
   }
 
-  function isolateRedeem(uint32 poolId, address nftAsset, uint256[] calldata nftTokenIds, address asset) public {
-    _poolManager.isolateRedeem(poolId, nftAsset, nftTokenIds, asset);
+  function isolateRedeem(
+    uint32 poolId,
+    address nftAsset,
+    uint256[] calldata nftTokenIds,
+    address asset,
+    uint256[] calldata amounts
+  ) public {
+    if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
+      uint256 sendVal;
+      for (uint i = 0; i < amounts.length; i++) {
+        sendVal += amounts[i];
+      }
+      _poolManager.isolateRedeem{value: sendVal}(poolId, nftAsset, nftTokenIds, asset, amounts);
+    } else {
+      _poolManager.isolateRedeem(poolId, nftAsset, nftTokenIds, asset, amounts);
+    }
   }
 
   function isolateLiquidate(
@@ -129,9 +178,18 @@ contract TestUser is ERC721Holder {
     address nftAsset,
     uint256[] calldata nftTokenIds,
     address asset,
+    uint256[] calldata amounts,
     bool supplyAsCollateral
   ) public {
-    _poolManager.isolateLiquidate(poolId, nftAsset, nftTokenIds, asset, supplyAsCollateral);
+    if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
+      uint256 sendVal;
+      for (uint i = 0; i < amounts.length; i++) {
+        sendVal += amounts[i];
+      }
+      _poolManager.isolateLiquidate{value: sendVal}(poolId, nftAsset, nftTokenIds, asset, amounts, supplyAsCollateral);
+    } else {
+      _poolManager.isolateLiquidate(poolId, nftAsset, nftTokenIds, asset, amounts, supplyAsCollateral);
+    }
   }
 
   function yieldBorrowERC20(uint32 poolId, address asset, uint256 amount) public {

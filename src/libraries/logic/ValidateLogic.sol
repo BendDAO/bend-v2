@@ -16,6 +16,8 @@ import {InputTypes} from '../types/InputTypes.sol';
 import {GenericLogic} from './GenericLogic.sol';
 import {VaultLogic} from './VaultLogic.sol';
 
+import '@forge-std/console.sol';
+
 library ValidateLogic {
   using WadRayMath for uint256;
   using PercentageMath for uint256;
@@ -217,6 +219,8 @@ library ValidateLogic {
 
       vars.totalNewBorrowAmount += inputParams.amounts[vars.gidx];
     }
+
+    console.log('validateCrossBorrowERC20Account', vars.totalNewBorrowAmount, assetData.availableLiquidity);
 
     require(vars.totalNewBorrowAmount <= assetData.availableLiquidity, Errors.ASSET_INSUFFICIENT_LIQUIDITY);
   }

@@ -33,7 +33,7 @@ contract MockWETH is Ownable2Step {
   }
 
   function withdraw(uint wad) public {
-    require(balanceOf[msg.sender] >= wad);
+    require(balanceOf[msg.sender] >= wad, 'ERC20: withdraw amount exceeds balance');
     balanceOf[msg.sender] -= wad;
     payable(msg.sender).transfer(wad);
     emit Withdrawal(msg.sender, wad);
@@ -54,10 +54,10 @@ contract MockWETH is Ownable2Step {
   }
 
   function transferFrom(address src, address dst, uint wad) public returns (bool) {
-    require(balanceOf[src] >= wad);
+    require(balanceOf[src] >= wad, 'ERC20: transfer amount exceeds balance');
 
     if (src != msg.sender && allowance[src][msg.sender] != type(uint).max) {
-      require(allowance[src][msg.sender] >= wad);
+      require(allowance[src][msg.sender] >= wad, 'ERC20: insufficient allowance');
       allowance[src][msg.sender] -= wad;
     }
 

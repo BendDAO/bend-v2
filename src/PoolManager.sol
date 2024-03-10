@@ -468,7 +468,8 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     uint32 poolId,
     address nftAsset,
     uint256[] calldata nftTokenIds,
-    address asset
+    address asset,
+    uint256[] calldata /*amounts*/
   ) public payable whenNotPaused nonReentrant {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
@@ -491,6 +492,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     address nftAsset,
     uint256[] calldata nftTokenIds,
     address asset,
+    uint256[] calldata /*amounts*/,
     bool supplyAsCollateral
   ) public payable whenNotPaused nonReentrant {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
@@ -815,5 +817,20 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
 
   function getGlobalPause() public view returns (bool) {
     return paused();
+  }
+
+  /**
+   * @dev Only WETH contract is allowed to transfer ETH here. Prevent other addresses to send Ether to this contract.
+   */
+  receive() external payable {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    require(msg.sender == ps.wrappedNativeToken, 'Receive not allowed');
+  }
+
+  /**
+   * @dev Revert fallback calls
+   */
+  fallback() external payable {
+    revert('Fallback not allowed');
   }
 }

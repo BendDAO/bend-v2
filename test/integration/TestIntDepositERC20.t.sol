@@ -29,7 +29,7 @@ contract TestIntDepositERC20 is TestWithBaseAction {
       tsCommonPoolId,
       address(tsWETH),
       amount,
-      bytes('SafeERC20: low-level call failed')
+      bytes('ERC20: insufficient allowance')
     );
   }
 
@@ -42,7 +42,7 @@ contract TestIntDepositERC20 is TestWithBaseAction {
       tsCommonPoolId,
       address(tsWETH),
       amount,
-      bytes('SafeERC20: low-level call failed')
+      bytes('ERC20: transfer amount exceeds balance')
     );
   }
 

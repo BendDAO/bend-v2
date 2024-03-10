@@ -73,11 +73,13 @@ contract TestIntIsolateRedeem is TestWithIsolateAction {
     // auction
     prepareAuction(tsLiquidator1, address(tsBAYC), tokenIds, address(tsWETH));
 
+    uint256[] memory redeemAmounts = new uint256[](tokenIds.length);
     testVars.loanDataBefore = getIsolateLoanData(tsCommonPoolId, address(tsBAYC), tokenIds);
     for (uint256 i = 0; i < tokenIds.length; i++) {
       testVars.totalBidAmount += testVars.loanDataBefore[i].bidAmount;
       testVars.totalBidFine += testVars.loanDataBefore[i].bidFine;
       testVars.totalRedeemAmount += testVars.loanDataBefore[i].redeemAmount;
+      redeemAmounts[i] = testVars.loanDataBefore[i].redeemAmount;
     }
 
     testVars.poolBalanceBefore = tsWETH.balanceOf(address(tsPoolManager));
@@ -86,7 +88,7 @@ contract TestIntIsolateRedeem is TestWithIsolateAction {
 
     // redeem
     tsBorrower1.approveERC20(address(tsWETH), type(uint256).max);
-    tsBorrower1.isolateRedeem(tsCommonPoolId, address(tsBAYC), tokenIds, address(tsWETH));
+    tsBorrower1.isolateRedeem(tsCommonPoolId, address(tsBAYC), tokenIds, address(tsWETH), redeemAmounts);
     testVars.txAuctionTimestamp = block.timestamp;
 
     // check results
@@ -139,11 +141,13 @@ contract TestIntIsolateRedeem is TestWithIsolateAction {
     // auction
     prepareAuction(tsLiquidator1, address(tsBAYC), tokenIds, address(tsUSDT));
 
+    uint256[] memory redeemAmounts = new uint256[](tokenIds.length);
     testVars.loanDataBefore = getIsolateLoanData(tsCommonPoolId, address(tsBAYC), tokenIds);
     for (uint256 i = 0; i < tokenIds.length; i++) {
       testVars.totalBidAmount += testVars.loanDataBefore[i].bidAmount;
       testVars.totalBidFine += testVars.loanDataBefore[i].bidFine;
       testVars.totalRedeemAmount += testVars.loanDataBefore[i].redeemAmount;
+      redeemAmounts[i] = testVars.loanDataBefore[i].redeemAmount;
     }
 
     testVars.poolBalanceBefore = tsUSDT.balanceOf(address(tsPoolManager));
@@ -152,7 +156,7 @@ contract TestIntIsolateRedeem is TestWithIsolateAction {
 
     // redeem
     tsBorrower1.approveERC20(address(tsUSDT), type(uint256).max);
-    tsBorrower1.isolateRedeem(tsCommonPoolId, address(tsBAYC), tokenIds, address(tsUSDT));
+    tsBorrower1.isolateRedeem(tsCommonPoolId, address(tsBAYC), tokenIds, address(tsUSDT), redeemAmounts);
     testVars.txAuctionTimestamp = block.timestamp;
 
     // check results

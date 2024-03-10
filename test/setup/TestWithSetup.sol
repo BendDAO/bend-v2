@@ -8,6 +8,7 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import {WadRayMath} from 'src/libraries/math/WadRayMath.sol';
 
+import {IWETH} from 'src/interfaces/IWETH.sol';
 import {ACLManager} from 'src/ACLManager.sol';
 import {PriceOracle} from 'src/PriceOracle.sol';
 import {DefaultInterestRateModel} from 'src/irm/DefaultInterestRateModel.sol';
@@ -279,7 +280,12 @@ abstract contract TestWithSetup is TestWithUtils {
   }
 
   function fillUserBalances(TestUser user) internal {
-    tsFaucet.privateMintERC20(address(tsWETH), address(user), TS_INITIAL_BALANCE * 1e18);
+    tsHEVM.deal(address(user), 2_000_000 ether);
+
+    tsHEVM.prank(address(user));
+    IWETH(address(tsWETH)).deposit{value: TS_INITIAL_BALANCE * 1e18}();
+    //tsFaucet.privateMintERC20(address(tsWETH), address(user), TS_INITIAL_BALANCE * 1e18);
+
     tsFaucet.privateMintERC20(address(tsDAI), address(user), TS_INITIAL_BALANCE * 1e18);
     tsFaucet.privateMintERC20(address(tsUSDT), address(user), TS_INITIAL_BALANCE * 1e6);
 
