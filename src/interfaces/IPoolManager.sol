@@ -83,4 +83,15 @@ interface IPoolManager {
   function yieldBorrowERC20(uint32 poolId, address asset, uint256 amount) external;
 
   function yieldRepayERC20(uint32 poolId, address asset, uint256 amount) external;
+
+  // Misc
+  function flashLoanERC721(
+    uint32 poolId,
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    address receiverAddress,
+    bytes calldata params
+  ) external;
+
+  function collectFeeToTreasury(uint32 poolId, address[] calldata assets) external;
 }

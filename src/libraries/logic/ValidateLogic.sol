@@ -220,8 +220,6 @@ library ValidateLogic {
       vars.totalNewBorrowAmount += inputParams.amounts[vars.gidx];
     }
 
-    console.log('validateCrossBorrowERC20Account', vars.totalNewBorrowAmount, assetData.availableLiquidity);
-
     require(vars.totalNewBorrowAmount <= assetData.availableLiquidity, Errors.ASSET_INSUFFICIENT_LIQUIDITY);
   }
 

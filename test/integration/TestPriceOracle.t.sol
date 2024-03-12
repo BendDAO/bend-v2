@@ -51,6 +51,7 @@ contract TestPriceOracle is TestWithSetup {
   }
 
   function test_Should_SetAggregators() public {
+    tsHEVM.prank(tsOracleAdmin);
     tsPriceOracle.setAssetChainlinkAggregators(mockAssetAddrs, mockClAggAddrs);
 
     address[] memory retAggs = tsPriceOracle.getAssetChainlinkAggregators(mockAssetAddrs);
@@ -59,6 +60,7 @@ contract TestPriceOracle is TestWithSetup {
   }
 
   function test_Should_SetNftOracle() public {
+    tsHEVM.prank(tsOracleAdmin);
     tsPriceOracle.setBendNFTOracle(address(mockNftOracle));
 
     address retNftOracle = tsPriceOracle.getBendNFTOracle();
@@ -68,6 +70,7 @@ contract TestPriceOracle is TestWithSetup {
   function test_Should_GetAssetPriceFromChainlink() public {
     IPriceOracle oracle = IPriceOracle(tsPriceOracle);
 
+    tsHEVM.prank(tsOracleAdmin);
     tsPriceOracle.setAssetChainlinkAggregators(mockAssetAddrs, mockClAggAddrs);
 
     uint256 retPrice0 = tsPriceOracle.getAssetPrice(oracle.BASE_CURRENCY());
@@ -85,7 +88,9 @@ contract TestPriceOracle is TestWithSetup {
   function test_Should_getAssetPriceFromBendNFTOracle() public {
     IPriceOracle oracle = IPriceOracle(tsPriceOracle);
 
+    tsHEVM.prank(tsOracleAdmin);
     tsPriceOracle.setBendNFTOracle(address(mockNftOracle));
+
     mockNftOracle.setAssetPrice(oracle.NFT_BASE_CURRENCY(), oracle.NFT_BASE_CURRENCY_UNIT());
 
     uint256 nftBaseCurrencyInBase = tsPriceOracle.getAssetPrice(oracle.NFT_BASE_CURRENCY());

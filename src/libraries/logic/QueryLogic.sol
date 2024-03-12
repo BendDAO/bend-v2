@@ -227,6 +227,20 @@ library QueryLogic {
     }
   }
 
+  function getAssetFeeData(
+    uint32 poolId,
+    address asset
+  ) public view returns (uint256 feeFactor, uint256 accruedFee, uint256 normAccruedFee) {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+
+    uint256 index = InterestLogic.getNormalizedSupplyIncome(assetData);
+    accruedFee = assetData.accruedFee;
+    normAccruedFee = accruedFee.rayMul(index);
+    return (assetData.feeFactor, accruedFee, normAccruedFee);
+  }
+
   function getUserAccountData(
     address user,
     uint32 poolId

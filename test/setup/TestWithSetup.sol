@@ -35,6 +35,8 @@ abstract contract TestWithSetup is TestWithUtils {
   address public tsAclAdmin;
   address public tsPoolAdmin;
   address public tsEmergencyAdmin;
+  address public tsOracleAdmin;
+  address public tsTreasury;
 
   MockFaucet public tsFaucet;
   MockERC20 public tsWETH;
@@ -96,9 +98,11 @@ abstract contract TestWithSetup is TestWithUtils {
 
   function setUp() public {
     tsDeployer = address(this);
-    tsAclAdmin = address(this);
-    tsPoolAdmin = address(this);
-    tsEmergencyAdmin = address(this);
+    tsAclAdmin = makeAddr('tsAclAdmin');
+    tsPoolAdmin = makeAddr('tsPoolAdmin');
+    tsEmergencyAdmin = makeAddr('tsEmergencyAdmin');
+    tsOracleAdmin = makeAddr('tsOracleAdmin');
+    tsTreasury = makeAddr('tsTreasury');
 
     initTokens();
 
@@ -155,11 +159,12 @@ abstract contract TestWithSetup is TestWithUtils {
         poolManagerImpl.initialize.selector,
         address(tsWETH),
         address(tsAclManager),
-        address(tsPriceOracle)
+        address(tsPriceOracle),
+        tsTreasury
       )
     );
     tsPoolManager = PoolManager(payable(address(poolManagerProxy)));
-    //tsPoolManager.initialize(address(tsWETH), address(aclManager), address(tsPriceOracle));
+    //tsPoolManager.initialize(address(tsWETH), address(aclManager), address(tsPriceOracle), tsTreasury);
 
     // Interest Rate Model
     tsYieldRateIRM = new DefaultInterestRateModel(
@@ -187,11 +192,15 @@ abstract contract TestWithSetup is TestWithUtils {
       (200 * WadRayMath.RAY) / 100
     );
 
-    // do some common init
+    // set acl mananger
+    tsHEVM.startPrank(tsAclAdmin);
     tsAclManager.addPoolAdmin(tsPoolAdmin);
     tsAclManager.addEmergencyAdmin(tsEmergencyAdmin);
-    tsAclManager.addOracleAdmin(tsPoolAdmin);
+    tsAclManager.addOracleAdmin(tsOracleAdmin);
+    tsHEVM.stopPrank();
 
+    // set price oracle
+    tsHEVM.startPrank(tsOracleAdmin);
     tsPriceOracle.setBendNFTOracle(address(tsBendNFTOracle));
 
     address[] memory oracleAssets = new address[](3);
@@ -203,6 +212,7 @@ abstract contract TestWithSetup is TestWithUtils {
     oracleAggs[1] = address(tsCLAggregatorDAI);
     oracleAggs[2] = address(tsCLAggregatorUSDT);
     tsPriceOracle.setAssetChainlinkAggregators(oracleAssets, oracleAggs);
+    tsHEVM.stopPrank();
   }
 
   function initTokens() internal {
@@ -346,21 +356,21 @@ abstract contract TestWithSetup is TestWithUtils {
     // asset some erc20 assets
     tsPoolManager.addAssetERC20(tsCommonPoolId, address(tsWETH));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsWETH), 8050, 8300, 500);
-    tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsWETH), 3000);
+    tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsWETH), 2000);
     tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsWETH), tsLowRateGroupId);
     tsPoolManager.setAssetActive(tsCommonPoolId, address(tsWETH), true);
     tsPoolManager.setAssetBorrowing(tsCommonPoolId, address(tsWETH), true);
 
     tsPoolManager.addAssetERC20(tsCommonPoolId, address(tsDAI));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsDAI), 7700, 8000, 500);
-    tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsDAI), 3000);
+    tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsDAI), 2000);
     tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsDAI), tsLowRateGroupId);
     tsPoolManager.setAssetActive(tsCommonPoolId, address(tsDAI), true);
     tsPoolManager.setAssetBorrowing(tsCommonPoolId, address(tsDAI), true);
 
     tsPoolManager.addAssetERC20(tsCommonPoolId, address(tsUSDT));
     tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsUSDT), 7400, 7600, 450);
-    tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsUSDT), 3000);
+    tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsUSDT), 2000);
     tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsUSDT), tsLowRateGroupId);
     tsPoolManager.setAssetActive(tsCommonPoolId, address(tsUSDT), true);
     tsPoolManager.setAssetBorrowing(tsCommonPoolId, address(tsUSDT), true);

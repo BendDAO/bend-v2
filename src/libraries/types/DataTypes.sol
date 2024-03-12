@@ -102,7 +102,7 @@ library DataTypes {
     // asset interest state
     uint128 supplyRate;
     uint128 supplyIndex;
-    uint256 accruedFee;
+    uint256 accruedFee; // as treasury supplied balance in cross mode
     uint40 lastUpdateTimestamp;
 
     // yield state
@@ -127,6 +127,7 @@ library DataTypes {
     address wrappedNativeToken; // WETH
     address aclManager; // ACLManager
     address priceOracle; // PriceOracle
+    address treasury;
 
     // pool fields
     uint32 nextPoolId;

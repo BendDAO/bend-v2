@@ -17,6 +17,8 @@ import {Events} from '../helpers/Events.sol';
 import {DataTypes} from '../types/DataTypes.sol';
 import {InputTypes} from '../types/InputTypes.sol';
 
+import '@forge-std/console.sol';
+
 /**
  * @title InterestLogic library
  * @notice Implements the logic to update the interest state
@@ -224,9 +226,9 @@ library InterestLogic {
   }
 
   struct AccrueToTreasuryLocalVars {
-    uint256 totalScaledVariableDebt;
-    uint256 prevTotalVariableDebt;
-    uint256 currTotalVariableDebt;
+    uint256 totalScaledBorrow;
+    uint256 prevTotalBorrow;
+    uint256 currTotalBorrow;
     uint256 totalDebtAccrued;
     uint256 amountToMint;
   }
@@ -246,16 +248,16 @@ library InterestLogic {
       return;
     }
 
-    vars.totalScaledVariableDebt = groupData.totalScaledCrossBorrow + groupData.totalScaledIsolateBorrow;
+    vars.totalScaledBorrow = groupData.totalScaledCrossBorrow + groupData.totalScaledIsolateBorrow;
 
-    //calculate the total variable debt at moment of the last interaction
-    vars.prevTotalVariableDebt = vars.totalScaledVariableDebt.rayMul(prevGroupBorrowIndex);
+    //calculate the total debt at moment of the last interaction
+    vars.prevTotalBorrow = vars.totalScaledBorrow.rayMul(prevGroupBorrowIndex);
 
-    //calculate the new total variable debt after accumulation of the interest on the index
-    vars.currTotalVariableDebt = vars.totalScaledVariableDebt.rayMul(groupData.borrowIndex);
+    //calculate the new total debt after accumulation of the interest on the index
+    vars.currTotalBorrow = vars.totalScaledBorrow.rayMul(groupData.borrowIndex);
 
     //debt accrued is the sum of the current debt minus the sum of the debt at the last update
-    vars.totalDebtAccrued = vars.currTotalVariableDebt - vars.prevTotalVariableDebt;
+    vars.totalDebtAccrued = vars.currTotalBorrow - vars.prevTotalBorrow;
 
     vars.amountToMint = vars.totalDebtAccrued.percentMul(assetData.feeFactor);
 

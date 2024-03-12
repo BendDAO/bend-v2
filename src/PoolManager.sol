@@ -42,18 +42,25 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     _disableInitializers();
   }
 
-  function initialize(address wrappedNativeToken_, address aclManager_, address priceOracle_) public initializer {
+  function initialize(
+    address wrappedNativeToken_,
+    address aclManager_,
+    address priceOracle_,
+    address treasury_
+  ) public initializer {
     require(wrappedNativeToken_ != address(0), Errors.INVALID_ADDRESS);
-    require(aclManager_ != address(0), Errors.INVALID_ADDRESS);
-    require(priceOracle_ != address(0), Errors.INVALID_ADDRESS);
+    require(aclManager_ != address(0), Errors.ACL_MANAGER_CANNOT_BE_ZERO);
+    require(priceOracle_ != address(0), Errors.PRICE_ORACLE_CANNOT_BE_ZERO);
 
     __Pausable_init();
     __ReentrancyGuard_init();
+    __ERC721Holder_init();
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     ps.wrappedNativeToken = wrappedNativeToken_;
     ps.aclManager = aclManager_;
     ps.priceOracle = priceOracle_;
+    ps.treasury = treasury_;
     ps.nextPoolId = Constants.INITIAL_POOL_ID;
   }
 
@@ -70,7 +77,7 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
   }
 
   function setPoolPause(uint32 poolId, bool paused) public nonReentrant {
-    ConfigureLogic.setPoolPause(poolId, paused);
+    ConfigureLogic.executeSetPoolPause(poolId, paused);
   }
 
   function addPoolGroup(uint32 poolId, uint8 groupId) public nonReentrant {
@@ -548,6 +555,10 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     );
   }
 
+  function collectFeeToTreasury(uint32 poolId, address[] calldata assets) public whenNotPaused nonReentrant {
+    PoolLogic.executeCollectFeeToTreasury(poolId, assets);
+  }
+
   /****************************************************************************/
   /* Pool Query */
   /****************************************************************************/
@@ -672,6 +683,13 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     )
   {
     return QueryLogic.getAssetGroupData(poolId, asset, group);
+  }
+
+  function getAssetFeeData(
+    uint32 poolId,
+    address asset
+  ) public view returns (uint256 feeFactor, uint256 accruedFee, uint256 normAccruedFee) {
+    return QueryLogic.getAssetFeeData(poolId, asset);
   }
 
   function getUserAccountData(
@@ -817,6 +835,45 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
 
   function getGlobalPause() public view returns (bool) {
     return paused();
+  }
+
+  function setACLManager(address newAcl) public {
+    require(newAcl != address(0), Errors.ACL_MANAGER_CANNOT_BE_ZERO);
+
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    PoolLogic.checkCallerIsPoolAdmin(ps);
+    ps.aclManager = newAcl;
+  }
+
+  function getACLManager() public view returns (address) {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    return ps.aclManager;
+  }
+
+  function setPriceOracle(address newOracle) public {
+    require(newOracle != address(0), Errors.TREASURY_CANNOT_BE_ZERO);
+
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    PoolLogic.checkCallerIsPoolAdmin(ps);
+    ps.priceOracle = newOracle;
+  }
+
+  function getPriceOracle() public view returns (address) {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    return ps.priceOracle;
+  }
+
+  function setTreasury(address newTreasury) public {
+    require(newTreasury != address(0), Errors.TREASURY_CANNOT_BE_ZERO);
+
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    PoolLogic.checkCallerIsPoolAdmin(ps);
+    ps.treasury = newTreasury;
+  }
+
+  function getTreasury() public view returns (address) {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    return ps.treasury;
   }
 
   /**

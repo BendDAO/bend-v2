@@ -78,8 +78,10 @@ contract TestIntFlashLoanERC721 is TestWithBaseAction {
   function test_RevertIf_InvalidTokenOwner() public {
     TestCaseLocalVars memory testVars;
 
+    tsHEVM.startPrank(tsPoolAdmin);
     tsPoolManager.setAssetFlashLoan(tsCommonPoolId, address(tsBAYC), true);
     tsPoolManager.setAssetFlashLoan(tsCommonPoolId, address(tsMAYC), true);
+    tsHEVM.stopPrank();
 
     prepareNftTokens(testVars, false);
 
@@ -90,8 +92,10 @@ contract TestIntFlashLoanERC721 is TestWithBaseAction {
   function test_Should_FlashLoan_CrossTokens() public {
     TestCaseLocalVars memory testVars;
 
+    tsHEVM.startPrank(tsPoolAdmin);
     tsPoolManager.setAssetFlashLoan(tsCommonPoolId, address(tsBAYC), true);
     tsPoolManager.setAssetFlashLoan(tsCommonPoolId, address(tsMAYC), true);
+    tsHEVM.stopPrank();
 
     prepareNftTokens(testVars, false);
 
@@ -108,8 +112,10 @@ contract TestIntFlashLoanERC721 is TestWithBaseAction {
   function test_Should_FlashLoan_IsolateTokens() public {
     TestCaseLocalVars memory testVars;
 
+    tsHEVM.startPrank(tsPoolAdmin);
     tsPoolManager.setAssetFlashLoan(tsCommonPoolId, address(tsBAYC), true);
     tsPoolManager.setAssetFlashLoan(tsCommonPoolId, address(tsMAYC), true);
+    tsHEVM.stopPrank();
 
     prepareNftTokens(testVars, true);
 

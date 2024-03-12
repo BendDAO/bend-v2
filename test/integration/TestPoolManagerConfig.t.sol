@@ -32,7 +32,7 @@ contract TestPoolManagerConfig is TestWithSetup {
 
   // Global Configs
   function test_Should_ManagerGlobalStatus() public {
-    tsHEVM.startPrank(address(tsPoolAdmin));
+    tsHEVM.startPrank(address(tsEmergencyAdmin));
 
     tsPoolManager.setGlobalPause(true);
 
@@ -62,21 +62,20 @@ contract TestPoolManagerConfig is TestWithSetup {
   }
 
   function test_Should_ManagerPoolStatus() public {
-    tsHEVM.startPrank(address(tsPoolAdmin));
-
+    tsHEVM.prank(address(tsPoolAdmin));
     uint32 poolId = tsPoolManager.createPool('test 1');
 
+    tsHEVM.prank(address(tsEmergencyAdmin));
     tsPoolManager.setPoolPause(poolId, true);
 
     (bool isPaused1, , , ) = tsPoolManager.getPoolConfigFlag(poolId);
     assertEq(isPaused1, true, 'isPaused1 not match');
 
+    tsHEVM.prank(address(tsEmergencyAdmin));
     tsPoolManager.setPoolPause(poolId, false);
 
     (bool isPaused2, , , ) = tsPoolManager.getPoolConfigFlag(poolId);
     assertEq(isPaused2, false, 'isPaused2 not match');
-
-    tsHEVM.stopPrank();
   }
 
   function test_Should_CreateAndDeletePoolGroup() public {

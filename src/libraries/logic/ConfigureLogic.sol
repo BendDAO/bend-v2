@@ -61,7 +61,7 @@ library ConfigureLogic {
     emit Events.DeletePool(msg.sender, poolId);
   }
 
-  function setPoolPause(uint32 poolId, bool paused) public {
+  function executeSetPoolPause(uint32 poolId, bool paused) public {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
 
