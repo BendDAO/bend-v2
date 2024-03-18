@@ -13,6 +13,39 @@ contract TestIntCrossBorrowERC20 is TestWithCrossAction {
     initCommonPools();
   }
 
+  function test_RevertIf_BorrowUSDT_InvalidParams() public {
+    uint8[] memory borrowGroups1;
+    uint256[] memory borrowAmounts1;
+
+    // empty id list
+    tsHEVM.expectRevert(bytes(Errors.GROUP_LIST_IS_EMPTY));
+    tsBorrower1.crossBorrowERC20(tsCommonPoolId, Constants.NATIVE_TOKEN_ADDRESS, borrowGroups1, borrowAmounts1);
+
+    // inconsistent length
+    borrowGroups1 = new uint8[](2);
+    borrowAmounts1 = new uint256[](3);
+    tsHEVM.expectRevert(bytes(Errors.INCONSISTENT_PARAMS_LENGTH));
+    tsBorrower1.crossBorrowERC20(tsCommonPoolId, Constants.NATIVE_TOKEN_ADDRESS, borrowGroups1, borrowAmounts1);
+
+    // dup ids
+    borrowGroups1 = new uint8[](3);
+    borrowGroups1[0] = tsLowRateGroupId;
+    borrowGroups1[1] = tsMiddleRateGroupId;
+    borrowGroups1[2] = tsLowRateGroupId;
+    borrowAmounts1 = new uint256[](3);
+
+    tsHEVM.expectRevert(bytes(Errors.ARRAY_HAS_DUP_ELEMENT));
+    tsBorrower1.crossBorrowERC20(tsCommonPoolId, Constants.NATIVE_TOKEN_ADDRESS, borrowGroups1, borrowAmounts1);
+
+    // invalid amount
+    borrowGroups1 = new uint8[](1);
+    borrowGroups1[0] = tsLowRateGroupId;
+    borrowAmounts1 = new uint256[](1);
+    borrowAmounts1[0] = 0;
+    tsHEVM.expectRevert(bytes(Errors.INVALID_AMOUNT));
+    tsBorrower1.crossBorrowERC20(tsCommonPoolId, Constants.NATIVE_TOKEN_ADDRESS, borrowGroups1, borrowAmounts1);
+  }
+
   function test_Should_BorrowUSDT_HasWETH() public {
     prepareUSDT(tsDepositor1);
 

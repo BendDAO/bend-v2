@@ -26,6 +26,7 @@ library Errors {
   string public constant INVALID_YIELD_STAKER = '118';
   string public constant INCONSISTENT_PARAMS_LENGTH = '119';
   string public constant INVALID_LOAN_STATUS = '120';
+  string public constant ARRAY_HAS_DUP_ELEMENT = '121';
 
   string public constant ENUM_SET_ADD_FAILED = '150';
   string public constant ENUM_SET_REMOVE_FAILED = '151';

@@ -48,6 +48,22 @@ library ValidateLogic {
     require(groupData.rateModel != address(0), Errors.INVALID_IRM_ADDRESS);
   }
 
+  function validateArrayDuplicateUInt8(uint8[] memory values) internal view {
+    for (uint i = 0; i < values.length; i++) {
+      for (uint j = i + 1; j < values.length; j++) {
+        require(values[i] != values[j], Errors.ARRAY_HAS_DUP_ELEMENT);
+      }
+    }
+  }
+
+  function validateArrayDuplicateUInt256(uint256[] memory values) internal view {
+    for (uint i = 0; i < values.length; i++) {
+      for (uint j = i + 1; j < values.length; j++) {
+        require(values[i] != values[j], Errors.ARRAY_HAS_DUP_ELEMENT);
+      }
+    }
+  }
+
   function validateDepositERC20(
     InputTypes.ExecuteDepositERC20Params memory inputParams,
     DataTypes.PoolData storage poolData,
@@ -95,6 +111,8 @@ library ValidateLogic {
 
     require(assetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
     require(inputParams.tokenIds.length > 0, Errors.INVALID_ID_LIST);
+    validateArrayDuplicateUInt256(inputParams.tokenIds);
+
     require(
       inputParams.supplyMode == Constants.SUPPLY_MODE_CROSS || inputParams.supplyMode == Constants.SUPPLY_MODE_ISOLATE,
       Errors.INVALID_SUPPLY_MODE
@@ -114,10 +132,9 @@ library ValidateLogic {
 
     require(assetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
     require(inputParams.tokenIds.length > 0, Errors.INVALID_ID_LIST);
-    require(
-      inputParams.supplyMode == Constants.SUPPLY_MODE_CROSS || inputParams.supplyMode == Constants.SUPPLY_MODE_ISOLATE,
-      Errors.INVALID_SUPPLY_MODE
-    );
+    validateArrayDuplicateUInt256(inputParams.tokenIds);
+
+    require(inputParams.supplyMode != 0, Errors.INVALID_SUPPLY_MODE);
 
     for (uint256 i = 0; i < inputParams.tokenIds.length; i++) {
       DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(assetData, inputParams.tokenIds[i]);
@@ -153,6 +170,8 @@ library ValidateLogic {
     require(assetData.isBorrowingEnabled, Errors.ASSET_IS_BORROW_DISABLED);
 
     require(inputParams.groups.length > 0, Errors.GROUP_LIST_IS_EMPTY);
+    require(inputParams.groups.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGTH);
+    validateArrayDuplicateUInt8(inputParams.groups);
 
     if (assetData.borrowCap != 0) {
       vars.totalAssetBorrowAmount = VaultLogic.erc20GetTotalCrossBorrowInAsset(assetData);
@@ -235,6 +254,7 @@ library ValidateLogic {
 
     require(inputParams.groups.length > 0, Errors.GROUP_LIST_IS_EMPTY);
     require(inputParams.groups.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGTH);
+    validateArrayDuplicateUInt8(inputParams.groups);
 
     for (uint256 gidx = 0; gidx < inputParams.groups.length; gidx++) {
       require(inputParams.amounts[gidx] > 0, Errors.INVALID_AMOUNT);
@@ -274,6 +294,7 @@ library ValidateLogic {
     require(debtAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
     require(inputParams.collateralTokenIds.length > 0, Errors.INVALID_ID_LIST);
+    validateArrayDuplicateUInt256(inputParams.collateralTokenIds);
 
     for (uint256 i = 0; i < inputParams.collateralTokenIds.length; i++) {
       DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(
@@ -332,6 +353,7 @@ library ValidateLogic {
 
     require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
     require(inputParams.nftTokenIds.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGTH);
+    validateArrayDuplicateUInt256(inputParams.nftTokenIds);
 
     for (vars.i = 0; vars.i < inputParams.nftTokenIds.length; vars.i++) {
       require(inputParams.amounts[vars.i] > 0, Errors.INVALID_AMOUNT);
@@ -421,6 +443,7 @@ library ValidateLogic {
 
     require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
     require(inputParams.nftTokenIds.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGTH);
+    validateArrayDuplicateUInt256(inputParams.nftTokenIds);
 
     for (uint256 i = 0; i < inputParams.amounts.length; i++) {
       require(inputParams.amounts[i] > 0, Errors.INVALID_AMOUNT);
@@ -454,6 +477,7 @@ library ValidateLogic {
 
     require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
     require(inputParams.nftTokenIds.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGTH);
+    validateArrayDuplicateUInt256(inputParams.nftTokenIds);
 
     for (uint256 i = 0; i < inputParams.amounts.length; i++) {
       require(inputParams.amounts[i] > 0, Errors.INVALID_AMOUNT);
@@ -489,6 +513,7 @@ library ValidateLogic {
     require(nftAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
 
     require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
+    validateArrayDuplicateUInt256(inputParams.nftTokenIds);
   }
 
   function validateIsolateRedeemLoan(
@@ -517,6 +542,7 @@ library ValidateLogic {
     require(nftAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
 
     require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
+    validateArrayDuplicateUInt256(inputParams.nftTokenIds);
   }
 
   function validateIsolateLiquidateLoan(
@@ -578,6 +604,7 @@ library ValidateLogic {
 
     require(inputParams.nftAssets.length == inputParams.nftTokenIds.length, Errors.INCONSISTENT_PARAMS_LENGTH);
     require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
+    // no need to check dup ids, cos the id may same for diff collection
 
     require(inputParams.receiverAddress != address(0), Errors.INVALID_ADDRESS);
   }

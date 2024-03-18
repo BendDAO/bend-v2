@@ -68,6 +68,8 @@ contract PriceOracle is IPriceOracle, Initializable {
   ) public onlyOracleAdmin {
     require(assets.length == aggregators.length, Errors.INCONSISTENT_PARAMS_LENGTH);
     for (uint256 i = 0; i < assets.length; i++) {
+      require(assets[i] != address(0), Errors.INVALID_ADDRESS);
+      require(aggregators[i] != address(0), Errors.INVALID_ADDRESS);
       assetChainlinkAggregators[assets[i]] = AggregatorV2V3Interface(aggregators[i]);
       emit Events.AssetAggregatorUpdated(assets[i], aggregators[i]);
     }
@@ -82,6 +84,7 @@ contract PriceOracle is IPriceOracle, Initializable {
 
   /// @notice Set the global BendDAO NFT Oracle
   function setBendNFTOracle(address bendNFTOracle_) public onlyOracleAdmin {
+    require(bendNFTOracle_ != address(0), Errors.INVALID_ADDRESS);
     bendNFTOracle = IBendNFTOracle(bendNFTOracle_);
     emit Events.BendNFTOracleUpdated(bendNFTOracle_);
   }
