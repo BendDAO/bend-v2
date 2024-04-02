@@ -83,7 +83,7 @@ library SupplyLogic {
 
     VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, msg.sender);
 
-    emit Events.DepositERC721(msg.sender, params.poolId, params.asset, params.tokenIds);
+    emit Events.DepositERC721(msg.sender, params.poolId, params.asset, params.tokenIds, params.supplyMode);
   }
 
   function executeWithdrawERC721(InputTypes.ExecuteWithdrawERC721Params memory params) public {

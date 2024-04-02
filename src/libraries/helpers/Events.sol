@@ -64,7 +64,13 @@ library Events {
   event DepositERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
   event WithdrawERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
 
-  event DepositERC721(address indexed sender, uint256 indexed poolId, address indexed asset, uint256[] tokenIds);
+  event DepositERC721(
+    address indexed sender,
+    uint256 indexed poolId,
+    address indexed asset,
+    uint256[] tokenIds,
+    uint8 supplyMode
+  );
   event WithdrawERC721(address indexed sender, uint256 indexed poolId, address indexed asset, uint256[] tokenIds);
 
   // Cross Lending Events

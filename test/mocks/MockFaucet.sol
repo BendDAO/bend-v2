@@ -7,6 +7,8 @@ import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet
 import {MockERC20} from './MockERC20.sol';
 import {MockWETH} from './MockWETH.sol';
 import {MockERC721} from './MockERC721.sol';
+import {MockStETH} from './MockStETH.sol';
+import {MockUnstETH} from './MockUnstETH.sol';
 
 contract MockFaucet is Ownable2Step {
   using EnumerableSet for EnumerableSet.AddressSet;
@@ -82,6 +84,28 @@ contract MockFaucet is Ownable2Step {
     mockERC20Set.add(address(token));
 
     return address(token);
+  }
+
+  function createMockStETH() public onlyOwner returns (address) {
+    require(symbolToERC20s['stETH'] == address(0), 'MockFaucet: symbol already exist');
+
+    MockStETH stETH = new MockStETH('stETH', 'stETH', 18);
+
+    symbolToERC20s['stETH'] = address(stETH);
+    mockERC20Set.add(address(stETH));
+
+    return address(stETH);
+  }
+
+  function createMockUnstETH(address stETH) public onlyOwner returns (address) {
+    require(symbolToERC20s['unstETH'] == address(0), 'MockFaucet: symbol already exist');
+
+    MockUnstETH unstETH = new MockUnstETH('unstETH', 'unstETH', 18, stETH);
+
+    symbolToERC20s['unstETH'] = address(unstETH);
+    mockERC20Set.add(address(unstETH));
+
+    return address(unstETH);
   }
 
   function createMockERC721(string memory name_, string memory symbol_) public onlyOwner returns (address) {

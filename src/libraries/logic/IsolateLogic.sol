@@ -68,6 +68,8 @@ library IsolateLogic {
         loanData.reserveGroup = nftAssetData.classGroup;
         loanData.scaledAmount = vars.amountScaled;
         loanData.loanStatus = Constants.LOAN_STATUS_ACTIVE;
+
+        VaultLogic.erc721SetTokenLockerAddr(nftAssetData, params.nftTokenIds[vars.nidx], address(this));
       } else {
         loanData.scaledAmount += vars.amountScaled;
       }

@@ -515,23 +515,13 @@ library VaultLogic {
     return assetData.erc721TokenData[tokenId];
   }
 
-  function erc721SetTokenLockFlag(DataTypes.AssetData storage assetData, uint256 tokenId, uint16 lockFlag) internal {
-    DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenId];
-    tokenData.lockFlag = tokenData.lockFlag | lockFlag;
-  }
-
-  function erc721ResetTokenLockFlag(DataTypes.AssetData storage assetData, uint256 tokenId, uint16 lockFlag) internal {
-    DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenId];
-    tokenData.lockFlag = tokenData.lockFlag & ~lockFlag;
-  }
-
-  function erc721HasTokenLockFlag(
+  function erc721SetTokenLockerAddr(
     DataTypes.AssetData storage assetData,
     uint256 tokenId,
-    uint16 lockFlag
-  ) internal view returns (bool) {
+    address lockerAddr
+  ) internal {
     DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenId];
-    return (tokenData.lockFlag & lockFlag) != 0;
+    tokenData.lockerAddr = lockerAddr;
   }
 
   function erc721IncreaseCrossSupply(

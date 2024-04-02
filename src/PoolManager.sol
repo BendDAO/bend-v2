@@ -534,6 +534,25 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
     );
   }
 
+  function yieldSetERC721TokenData(
+    uint32 poolId,
+    address nftAsset,
+    uint256 tokenId,
+    bool isLock,
+    address debtAsset
+  ) public whenNotPaused nonReentrant {
+    YieldLogic.executeYieldSetERC721TokenData(
+      InputTypes.ExecuteYieldSetERC721TokenDataParams({
+        poolId: poolId,
+        nftAsset: nftAsset,
+        tokenId: tokenId,
+        isLock: isLock,
+        debtAsset: debtAsset,
+        isExternalCaller: true
+      })
+    );
+  }
+
   /****************************************************************************/
   /* Misc Features */
   /****************************************************************************/
@@ -815,6 +834,14 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
 
   function getYieldERC20BorrowBalance(uint32 poolId, address asset, address staker) public view returns (uint256) {
     return QueryLogic.getYieldERC20BorrowBalance(poolId, asset, staker);
+  }
+
+  function getERC721TokenData(
+    uint32 poolId,
+    address asset,
+    uint256 tokenId
+  ) public view returns (address, uint8, address) {
+    return QueryLogic.getERC721TokenData(poolId, asset, tokenId);
   }
 
   // Pool Admin

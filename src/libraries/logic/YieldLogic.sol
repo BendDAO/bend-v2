@@ -115,4 +115,32 @@ library YieldLogic {
 
     emit Events.YieldRepayERC20(vars.stakerAddr, params.poolId, params.asset, params.amount);
   }
+
+  function executeYieldSetERC721TokenData(InputTypes.ExecuteYieldSetERC721TokenDataParams memory params) public {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
+    DataTypes.AssetData storage nftAssetData = poolData.assetLookup[params.nftAsset];
+    DataTypes.ERC721TokenData storage tokenData = nftAssetData.erc721TokenData[params.tokenId];
+
+    ValidateLogic.validateYieldSetERC721TokenData(params, poolData, nftAssetData, tokenData);
+
+    DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.debtAsset];
+    require(debtAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+
+    address lockerAddr;
+    if (params.isExternalCaller) {
+      lockerAddr = msg.sender;
+    } else {
+      lockerAddr = address(this);
+    }
+
+    DataTypes.StakerData storage stakerData = debtAssetData.stakerLookup[lockerAddr];
+    require(stakerData.yieldCap > 0, Errors.YIELD_EXCEED_STAKER_CAP_LIMIT);
+
+    if (params.isLock) {
+      VaultLogic.erc721SetTokenLockerAddr(nftAssetData, params.tokenId, lockerAddr);
+    } else {
+      VaultLogic.erc721SetTokenLockerAddr(nftAssetData, params.tokenId, address(0));
+    }
+  }
 }

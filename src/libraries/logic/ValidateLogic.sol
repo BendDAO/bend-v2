@@ -48,7 +48,7 @@ library ValidateLogic {
     require(groupData.rateModel != address(0), Errors.INVALID_IRM_ADDRESS);
   }
 
-  function validateArrayDuplicateUInt8(uint8[] memory values) internal view {
+  function validateArrayDuplicateUInt8(uint8[] memory values) internal pure {
     for (uint i = 0; i < values.length; i++) {
       for (uint j = i + 1; j < values.length; j++) {
         require(values[i] != values[j], Errors.ARRAY_HAS_DUP_ELEMENT);
@@ -56,7 +56,7 @@ library ValidateLogic {
     }
   }
 
-  function validateArrayDuplicateUInt256(uint256[] memory values) internal view {
+  function validateArrayDuplicateUInt256(uint256[] memory values) internal pure {
     for (uint i = 0; i < values.length; i++) {
       for (uint j = i + 1; j < values.length; j++) {
         require(values[i] != values[j], Errors.ARRAY_HAS_DUP_ELEMENT);
@@ -141,7 +141,7 @@ library ValidateLogic {
       require(tokenData.owner == msg.sender, Errors.INVALID_CALLER);
       require(tokenData.supplyMode == inputParams.supplyMode, Errors.INVALID_SUPPLY_MODE);
 
-      require(tokenData.lockFlag == 0, Errors.ASSET_LOCK_FLAG_NOT_EMPTY);
+      require(tokenData.lockerAddr == address(0), Errors.ASSET_ALREADY_LOCKED_IN_USE);
     }
   }
 
@@ -365,6 +365,10 @@ library ValidateLogic {
       );
       require(tokenData.owner == user, Errors.ISOLATE_LOAN_OWNER_NOT_MATCH);
       require(tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.ASSET_NOT_ISOLATE_MODE);
+      require(
+        tokenData.lockerAddr == address(this) || tokenData.lockerAddr == address(0),
+        Errors.ASSET_ALREADY_LOCKED_IN_USE
+      );
     }
 
     require(vars.totalNewBorrowAmount <= debtAssetData.availableLiquidity, Errors.ASSET_INSUFFICIENT_LIQUIDITY);
@@ -594,6 +598,28 @@ library ValidateLogic {
     validateGroupBasic(groupData);
 
     require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
+  }
+
+  function validateYieldSetERC721TokenData(
+    InputTypes.ExecuteYieldSetERC721TokenDataParams memory /* inputParams */,
+    DataTypes.PoolData storage poolData,
+    DataTypes.AssetData storage assetData,
+    DataTypes.ERC721TokenData storage tokenData
+  ) internal view {
+    validatePoolBasic(poolData);
+    require(poolData.isYieldEnabled, Errors.POOL_YIELD_NOT_ENABLE);
+    require(!poolData.isYieldPaused, Errors.POOL_YIELD_IS_PAUSED);
+
+    validateAssetBasic(assetData);
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
+    require(!assetData.isYieldPaused, Errors.ASSET_YIELD_IS_PAUSED);
+
+    require(tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.ASSET_NOT_ISOLATE_MODE);
+
+    require(
+      tokenData.lockerAddr == msg.sender || tokenData.lockerAddr == address(0),
+      Errors.ASSET_ALREADY_LOCKED_IN_USE
+    );
   }
 
   function validateFlashLoanERC721Basic(

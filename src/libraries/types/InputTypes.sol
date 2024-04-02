@@ -126,6 +126,15 @@ library InputTypes {
     bool isExternalCaller;
   }
 
+  struct ExecuteYieldSetERC721TokenDataParams {
+    uint32 poolId;
+    address nftAsset;
+    uint256 tokenId;
+    bool isLock;
+    address debtAsset;
+    bool isExternalCaller;
+  }
+
   // Misc
   struct ExecuteFlashLoanERC721Params {
     uint32 poolId;

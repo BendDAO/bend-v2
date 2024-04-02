@@ -84,6 +84,22 @@ interface IPoolManager {
 
   function yieldRepayERC20(uint32 poolId, address asset, uint256 amount) external;
 
+  function getYieldERC20BorrowBalance(uint32 poolId, address asset, address staker) external view returns (uint256);
+
+  function yieldSetERC721TokenData(
+    uint32 poolId,
+    address nftAsset,
+    uint256 tokenId,
+    bool isLock,
+    address debtAsset
+  ) external;
+
+  function getERC721TokenData(
+    uint32 poolId,
+    address asset,
+    uint256 tokenId
+  ) external view returns (address, uint8, address);
+
   // Misc
   function flashLoanERC721(
     uint32 poolId,
@@ -94,4 +110,10 @@ interface IPoolManager {
   ) external;
 
   function collectFeeToTreasury(uint32 poolId, address[] calldata assets) external;
+
+  function getACLManager() external view returns (address);
+
+  function getPriceOracle() external view returns (address);
+
+  function getTreasury() external view returns (address);
 }

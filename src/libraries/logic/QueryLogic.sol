@@ -541,4 +541,17 @@ library QueryLogic {
     uint256 scaledBalance = VaultLogic.erc20GetUserScaledCrossBorrowInGroup(groupData, staker);
     return scaledBalance.rayMul(InterestLogic.getNormalizedBorrowDebt(assetData, groupData));
   }
+
+  function getERC721TokenData(
+    uint32 poolId,
+    address asset,
+    uint256 tokenId
+  ) public view returns (address, uint8, address) {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+
+    DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(assetData, tokenId);
+    return (tokenData.owner, tokenData.supplyMode, tokenData.lockerAddr);
+  }
 }

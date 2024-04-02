@@ -75,7 +75,7 @@ library Errors {
   string public constant ASSET_YIELD_IS_PAUSED = '356';
   string public constant ASSET_INSUFFICIENT_LIQUIDITY = '357';
   string public constant ASSET_INSUFFICIENT_BIDAMOUNT = '358';
-  string public constant ASSET_LOCK_FLAG_NOT_EMPTY = '359';
+  string public constant ASSET_ALREADY_LOCKED_IN_USE = '359';
   string public constant ASSET_SUPPLY_CAP_EXCEEDED = '360';
   string public constant ASSET_BORROW_CAP_EXCEEDED = '361';
   string public constant ASSET_IS_FLASHLOAN_DISABLED = '362';
@@ -94,6 +94,7 @@ library Errors {
 
   string public constant YIELD_EXCEED_ASSET_CAP_LIMIT = '500';
   string public constant YIELD_EXCEED_STAKER_CAP_LIMIT = '501';
+  string public constant YIELD_TOKEN_ALREADY_LOCKED = '502';
 
   string public constant ISOLATE_LOAN_ASSET_NOT_MATCH = '600';
   string public constant ISOLATE_LOAN_GROUP_NOT_MATCH = '601';
@@ -106,4 +107,17 @@ library Errors {
   string public constant ISOLATE_BID_AUCTION_DURATION_NOT_END = '608';
   string public constant ISOLATE_LOAN_BORROW_AMOUNT_NOT_COVER = '609';
   string public constant ISOLATE_LOAN_EXISTS = '610';
+
+  // Yield ETH Staking
+  string public constant YIELD_ETH_NFT_NOT_ACTIVE = '1000';
+  string public constant YIELD_ETH_POOL_NOT_SAME = '1001';
+  string public constant YIELD_ETH_STATUS_NOT_ACTIVE = '1002';
+  string public constant YIELD_ETH_STATUS_NOT_UNSTAKE = '1003';
+  string public constant YIELD_ETH_LOCKER_EXIST = '1004';
+  string public constant YIELD_ETH_LOCKER_NOT_SAME = '1005';
+  string public constant YIELD_ETH_EXCEED_MAX_BORROWABLE = '1006';
+  string public constant YIELD_ETH_HEATH_FACTOR_TOO_LOW = '1007';
+  string public constant YIELD_ETH_HEATH_FACTOR_TOO_HIGH = '1008';
+  string public constant YIELD_ETH_EXCEED_MAX_FINE = '1009';
+  string public constant YIELD_ETH_STETH_WITHDRAW_NOT_READY = '1010';
 }

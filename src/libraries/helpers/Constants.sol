@@ -31,7 +31,6 @@ library Constants {
   // Supply Mode
   uint8 public constant SUPPLY_MODE_CROSS = 1;
   uint8 public constant SUPPLY_MODE_ISOLATE = 2;
-  uint8 public constant SUPPLY_MODE_YIELD = 3;
 
   // Asset Lock Flag
   uint16 public constant ASSET_LOCK_FLAG_CROSS = 0x0001; // not used
@@ -74,4 +73,9 @@ library Constants {
    * A value of 0.95e18 results in 0.95
    */
   uint256 public constant CLOSE_FACTOR_HF_THRESHOLD = 0.95e18;
+
+  // Yield Status
+  uint8 public constant YIELD_STATUS_ACTIVE = 1;
+  uint8 public constant YIELD_STATUS_UNSTAKE = 2;
+  uint8 public constant YIELD_STATUS_REPAID = 3;
 }

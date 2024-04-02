@@ -12,7 +12,7 @@ via_ir = false
 revert_strings = "default"
 names = true
 sizes = true
-gas_reports = ["PoolManager"]
+gas_reports = ["PoolManager", "YieldEthStaking"]
 fs_permissions = [{ access = "read", path = "./"}]
 
 [rpc_endpoints]
