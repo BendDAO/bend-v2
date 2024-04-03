@@ -12,12 +12,12 @@ contract Configured is StdChains {
 
   Config internal config;
 
-  address internal dai;
-  address internal usdc;
+  address internal wNative;
   address internal usdt;
   address internal wbtc;
   address internal weth;
-  address internal wNative;
+  address internal stETH;
+  address internal unstETH;
   address[] internal allUnderlyings;
 
   function _network() internal view virtual returns (string memory) {
@@ -44,13 +44,13 @@ contract Configured is StdChains {
   }
 
   function _loadConfig() internal virtual {
-    dai = config.getAddress('DAI');
-    usdc = config.getAddress('USDC');
+    wNative = config.getWrappedNative();
     usdt = config.getAddress('USDT');
     wbtc = config.getAddress('WBTC');
     weth = config.getAddress('WETH');
-    wNative = config.getWrappedNative();
+    stETH = config.getAddress('stETH');
+    unstETH = config.getAddress('unstETH');
 
-    allUnderlyings = [dai, usdc, usdt, wbtc, weth];
+    allUnderlyings = [usdt, wbtc, weth];
   }
 }
