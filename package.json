@@ -15,6 +15,7 @@
     "prettier:check": "prettier -c --plugin=prettier-plugin-solidity .",
     "prettier:write": "prettier -w --plugin=prettier-plugin-solidity .",
     "gas-report": "forge test --gas-report",
+    "size": "forge build --sizes",
     "coverage": "npm run coverage:html",
     "coverage:forge": "forge coverage --report lcov && lcov --remove lcov.info -o lcov.info 'test/*'",
     "coverage:html": "npm run coverage:forge && genhtml lcov.info -o coverage",

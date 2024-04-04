@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
+import {IAddressProvider} from '../../interfaces/IAddressProvider.sol';
+
 import {Constants} from '../helpers/Constants.sol';
 import {Errors} from '../helpers/Errors.sol';
 import {Events} from '../helpers/Events.sol';
@@ -21,6 +23,7 @@ library IsolateLogic {
   using PercentageMath for uint256;
 
   struct ExecuteIsolateBorrowVars {
+    address priceOracle;
     uint256 totalBorrowAmount;
     uint256 nidx;
     uint256 amountScaled;
@@ -33,6 +36,7 @@ library IsolateLogic {
     ExecuteIsolateBorrowVars memory vars;
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    vars.priceOracle = IAddressProvider(ps.addressProvider).getPriceOracle();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.asset];
@@ -58,7 +62,7 @@ library IsolateLogic {
         debtGroupData,
         nftAssetData,
         loanData,
-        ps.priceOracle
+        vars.priceOracle
       );
 
       vars.amountScaled = params.amounts[vars.nidx].rayDiv(debtGroupData.borrowIndex);
@@ -164,6 +168,7 @@ library IsolateLogic {
   }
 
   struct ExecuteIsolateAuctionVars {
+    address priceOracle;
     uint256 nidx;
     address oldLastBidder;
     uint256 oldBidAmount;
@@ -182,6 +187,7 @@ library IsolateLogic {
     ExecuteIsolateAuctionVars memory vars;
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    vars.priceOracle = IAddressProvider(ps.addressProvider).getPriceOracle();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.asset];
@@ -204,7 +210,7 @@ library IsolateLogic {
         debtGroupData,
         nftAssetData,
         loanData,
-        ps.priceOracle
+        vars.priceOracle
       );
 
       vars.oldLastBidder = loanData.lastBidder;
@@ -266,6 +272,7 @@ library IsolateLogic {
   }
 
   struct ExecuteIsolateRedeemVars {
+    address priceOracle;
     uint256 nidx;
     uint40 auctionEndTimestamp;
     uint256 normalizedIndex;
@@ -283,6 +290,7 @@ library IsolateLogic {
     ExecuteIsolateRedeemVars memory vars;
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    vars.priceOracle = IAddressProvider(ps.addressProvider).getPriceOracle();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.asset];
@@ -315,7 +323,7 @@ library IsolateLogic {
         debtGroupData,
         nftAssetData,
         loanData,
-        ps.priceOracle
+        vars.priceOracle
       );
 
       // check the minimum debt repay amount, use redeem threshold in config

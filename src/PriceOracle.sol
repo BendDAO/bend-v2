@@ -6,6 +6,7 @@ import {Initializable} from '@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {AggregatorV2V3Interface} from '@chainlink/contracts/src/v0.8/interfaces/AggregatorV2V3Interface.sol';
 import {IBendNFTOracle} from './interfaces/IBendNFTOracle.sol';
 
+import {IAddressProvider} from './interfaces/IAddressProvider.sol';
 import {IACLManager} from './interfaces/IACLManager.sol';
 import {IPriceOracle} from './interfaces/IPriceOracle.sol';
 import {Constants} from './libraries/helpers/Constants.sol';
@@ -13,7 +14,7 @@ import {Errors} from './libraries/helpers/Errors.sol';
 import {Events} from './libraries/helpers/Events.sol';
 
 contract PriceOracle is IPriceOracle, Initializable {
-  IACLManager public aclManager;
+  IAddressProvider public addressProvider;
 
   address public BASE_CURRENCY;
   uint256 public BASE_CURRENCY_UNIT;
@@ -33,7 +34,7 @@ contract PriceOracle is IPriceOracle, Initializable {
   }
 
   function _onlyOracleAdmin() internal view {
-    require(aclManager.isOracleAdmin(msg.sender), Errors.CALLER_NOT_ORACLE_ADMIN);
+    require(IACLManager(addressProvider.getACLManager()).isOracleAdmin(msg.sender), Errors.CALLER_NOT_ORACLE_ADMIN);
   }
 
   constructor() {
@@ -44,14 +45,14 @@ contract PriceOracle is IPriceOracle, Initializable {
    * @dev The ACL admin should be initialized at the addressesProvider beforehand
    */
   function initialize(
-    address aclManager_,
+    address addressProvider_,
     address baseCurrency_,
     uint256 baseCurrencyUnit_,
     address nftBaseCurrency_,
     uint256 nftBaseCurrencyUnit_
   ) public initializer {
-    require(aclManager_ != address(0), Errors.ACL_MANAGER_CANNOT_BE_ZERO);
-    aclManager = IACLManager(aclManager_);
+    require(addressProvider_ != address(0), Errors.ADDR_PROVIDER_CANNOT_BE_ZERO);
+    addressProvider = IAddressProvider(addressProvider_);
 
     // if use US Dollars, baseCurrency will be 0 and unit is 1e8
     BASE_CURRENCY = baseCurrency_;

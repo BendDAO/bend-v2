@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
-import {EnumerableSetUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol';
 import {PausableUpgradeable} from '@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol';
 import {ReentrancyGuardUpgradeable} from '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
+import {AddressUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/AddressUpgradeable.sol';
 import {ERC721HolderUpgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/utils/ERC721HolderUpgradeable.sol';
 import {IERC20Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol';
 import {IERC721Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol';
 
+import {IAddressProvider} from './interfaces/IAddressProvider.sol';
 import {IACLManager} from './interfaces/IACLManager.sol';
 import {IWETH} from './interfaces/IWETH.sol';
 
@@ -15,10 +16,6 @@ import {Constants} from './libraries/helpers/Constants.sol';
 import {Errors} from './libraries/helpers/Errors.sol';
 import {DataTypes} from './libraries/types/DataTypes.sol';
 import {InputTypes} from './libraries/types/InputTypes.sol';
-import {ResultTypes} from './libraries/types/ResultTypes.sol';
-
-import {WadRayMath} from './libraries/math/WadRayMath.sol';
-import {PercentageMath} from './libraries/math/PercentageMath.sol';
 
 import {StorageSlot} from './libraries/logic/StorageSlot.sol';
 import {VaultLogic} from './libraries/logic/VaultLogic.sol';
@@ -33,35 +30,23 @@ import {QueryLogic} from './libraries/logic/QueryLogic.sol';
 import {PoolLogic} from './libraries/logic/PoolLogic.sol';
 
 contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721HolderUpgradeable {
-  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
-  using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
-  using WadRayMath for uint256;
-  using PercentageMath for uint256;
-
   constructor() {
     _disableInitializers();
   }
 
-  function initialize(
-    address wrappedNativeToken_,
-    address aclManager_,
-    address priceOracle_,
-    address treasury_
-  ) public initializer {
-    require(wrappedNativeToken_ != address(0), Errors.INVALID_ADDRESS);
-    require(aclManager_ != address(0), Errors.ACL_MANAGER_CANNOT_BE_ZERO);
-    require(priceOracle_ != address(0), Errors.PRICE_ORACLE_CANNOT_BE_ZERO);
+  function initialize(address provider_) public initializer {
+    require(provider_ != address(0), Errors.INVALID_ADDRESS);
 
     __Pausable_init();
     __ReentrancyGuard_init();
     __ERC721Holder_init();
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    ps.wrappedNativeToken = wrappedNativeToken_;
-    ps.aclManager = aclManager_;
-    ps.priceOracle = priceOracle_;
-    ps.treasury = treasury_;
+    ps.addressProvider = provider_;
     ps.nextPoolId = Constants.INITIAL_POOL_ID;
+
+    ps.wrappedNativeToken = IAddressProvider(ps.addressProvider).getWrappedNativeToken();
+    require(ps.wrappedNativeToken != address(0), Errors.INVALID_ADDRESS);
   }
 
   /****************************************************************************/
@@ -862,45 +847,6 @@ contract PoolManager is PausableUpgradeable, ReentrancyGuardUpgradeable, ERC721H
 
   function getGlobalPause() public view returns (bool) {
     return paused();
-  }
-
-  function setACLManager(address newAcl) public {
-    require(newAcl != address(0), Errors.ACL_MANAGER_CANNOT_BE_ZERO);
-
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    PoolLogic.checkCallerIsPoolAdmin(ps);
-    ps.aclManager = newAcl;
-  }
-
-  function getACLManager() public view returns (address) {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    return ps.aclManager;
-  }
-
-  function setPriceOracle(address newOracle) public {
-    require(newOracle != address(0), Errors.TREASURY_CANNOT_BE_ZERO);
-
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    PoolLogic.checkCallerIsPoolAdmin(ps);
-    ps.priceOracle = newOracle;
-  }
-
-  function getPriceOracle() public view returns (address) {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    return ps.priceOracle;
-  }
-
-  function setTreasury(address newTreasury) public {
-    require(newTreasury != address(0), Errors.TREASURY_CANNOT_BE_ZERO);
-
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    PoolLogic.checkCallerIsPoolAdmin(ps);
-    ps.treasury = newTreasury;
-  }
-
-  function getTreasury() public view returns (address) {
-    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    return ps.treasury;
   }
 
   /**

@@ -10,6 +10,7 @@ import {DataTypes} from '../types/DataTypes.sol';
 import {StorageSlot} from './StorageSlot.sol';
 import {WadRayMath} from '../math/WadRayMath.sol';
 
+import {IAddressProvider} from '../../interfaces/IAddressProvider.sol';
 import {IACLManager} from '../../interfaces/IACLManager.sol';
 import {IWETH} from '../../interfaces/IWETH.sol';
 
@@ -17,24 +18,22 @@ import {VaultLogic} from './VaultLogic.sol';
 import {InterestLogic} from './InterestLogic.sol';
 import {ValidateLogic} from './ValidateLogic.sol';
 
-import '@forge-std/console.sol';
-
 library PoolLogic {
   using WadRayMath for uint256;
 
   // check caller's permission
   function checkCallerIsPoolAdmin(DataTypes.PoolStorage storage ps) internal view {
-    IACLManager aclManager = IACLManager(ps.aclManager);
+    IACLManager aclManager = IACLManager(IAddressProvider(ps.addressProvider).getACLManager());
     require(aclManager.isPoolAdmin(msg.sender), Errors.CALLER_NOT_POOL_ADMIN);
   }
 
   function checkCallerIsEmergencyAdmin(DataTypes.PoolStorage storage ps) internal view {
-    IACLManager aclManager = IACLManager(ps.aclManager);
+    IACLManager aclManager = IACLManager(IAddressProvider(ps.addressProvider).getACLManager());
     require(aclManager.isEmergencyAdmin(msg.sender), Errors.CALLER_NOT_EMERGENCY_ADMIN);
   }
 
   function checkCallerIsOracleAdmin(DataTypes.PoolStorage storage ps) internal view {
-    IACLManager aclManager = IACLManager(ps.aclManager);
+    IACLManager aclManager = IACLManager(IAddressProvider(ps.addressProvider).getACLManager());
     require(aclManager.isOracleAdmin(msg.sender), Errors.CALLER_NOT_ORACLE_ADMIN);
   }
 
@@ -42,7 +41,7 @@ library PoolLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     checkCallerIsPoolAdmin(ps);
 
-    address treasuryAddress = ps.treasury;
+    address treasuryAddress = IAddressProvider(ps.addressProvider).getTreasury();
     require(treasuryAddress != address(0), Errors.TREASURY_CANNOT_BE_ZERO);
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];

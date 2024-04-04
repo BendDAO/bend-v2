@@ -17,8 +17,6 @@ import {Events} from '../helpers/Events.sol';
 import {DataTypes} from '../types/DataTypes.sol';
 import {InputTypes} from '../types/InputTypes.sol';
 
-import '@forge-std/console.sol';
-
 /**
  * @title InterestLogic library
  * @notice Implements the logic to update the interest state

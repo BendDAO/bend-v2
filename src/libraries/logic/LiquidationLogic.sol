@@ -3,6 +3,7 @@ pragma solidity ^0.8.19;
 
 import {EnumerableSetUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol';
 
+import {IAddressProvider} from '../../interfaces/IAddressProvider.sol';
 import {IPriceOracleGetter} from '../../interfaces/IPriceOracleGetter.sol';
 
 import {Constants} from '../helpers/Constants.sol';
@@ -30,6 +31,7 @@ library LiquidationLogic {
   using PercentageMath for uint256;
 
   struct LiquidateERC20LocalVars {
+    address priceOracle;
     uint256 gidx;
     uint256[] assetGroupIds;
     uint256 userCollateralBalance;
@@ -50,6 +52,7 @@ library LiquidationLogic {
     LiquidateERC20LocalVars memory vars;
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    vars.priceOracle = IAddressProvider(ps.addressProvider).getPriceOracle();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage collateralAssetData = poolData.assetLookup[params.collateralAsset];
@@ -68,7 +71,7 @@ library LiquidationLogic {
       poolData,
       params.user,
       params.collateralAsset,
-      ps.priceOracle
+      vars.priceOracle
     );
 
     require(
@@ -95,7 +98,7 @@ library LiquidationLogic {
       debtAssetData,
       vars.actualDebtToLiquidate,
       vars.userCollateralBalance,
-      IPriceOracleGetter(ps.priceOracle)
+      IPriceOracleGetter(vars.priceOracle)
     );
 
     vars.remainDebtToLiquidate = _repayUserERC20Debt(poolData, debtAssetData, params.user, vars.actualDebtToLiquidate);
@@ -134,6 +137,7 @@ library LiquidationLogic {
   }
 
   struct LiquidateERC721LocalVars {
+    address priceOracle;
     uint256 gidx;
     uint256[] assetGroupIds;
     uint256 userCollateralBalance;
@@ -152,6 +156,7 @@ library LiquidationLogic {
     LiquidateERC721LocalVars memory vars;
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    vars.priceOracle = IAddressProvider(ps.addressProvider).getPriceOracle();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage collateralAssetData = poolData.assetLookup[params.collateralAsset];
@@ -171,7 +176,7 @@ library LiquidationLogic {
       poolData,
       params.user,
       params.collateralAsset,
-      ps.priceOracle
+      vars.priceOracle
     );
 
     require(
@@ -187,7 +192,7 @@ library LiquidationLogic {
       debtAssetData,
       params,
       vars,
-      IPriceOracleGetter(ps.priceOracle)
+      IPriceOracleGetter(vars.priceOracle)
     );
 
     // try to repay debt for the user, the liquidated debt amount may less than user total debt

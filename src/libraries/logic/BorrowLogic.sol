@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
+import {IAddressProvider} from '../../interfaces/IAddressProvider.sol';
+
 import {Constants} from '../helpers/Constants.sol';
 import {Errors} from '../helpers/Errors.sol';
 import {Events} from '../helpers/Events.sol';
@@ -20,6 +22,7 @@ library BorrowLogic {
 
   function executeCrossBorrowERC20(InputTypes.ExecuteCrossBorrowERC20Params memory params) public returns (uint256) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    address priceOracle = IAddressProvider(ps.addressProvider).getPriceOracle();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
@@ -31,7 +34,7 @@ library BorrowLogic {
     InterestLogic.updateInterestIndexs(poolData, assetData);
 
     // check the user account
-    ValidateLogic.validateCrossBorrowERC20Account(params, poolData, assetData, msg.sender, ps.priceOracle);
+    ValidateLogic.validateCrossBorrowERC20Account(params, poolData, assetData, msg.sender, priceOracle);
 
     // update debt state
     uint256 totalBorrowAmount;

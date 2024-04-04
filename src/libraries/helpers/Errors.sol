@@ -41,6 +41,7 @@ library Errors {
   string public constant FLASH_LOAN_EXEC_FAILED = '207';
   string public constant TREASURY_CANNOT_BE_ZERO = '208';
   string public constant PRICE_ORACLE_CANNOT_BE_ZERO = '209';
+  string public constant ADDR_PROVIDER_CANNOT_BE_ZERO = '210';
 
   string public constant POOL_ALREADY_EXISTS = '300';
   string public constant POOL_NOT_EXISTS = '301';

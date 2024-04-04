@@ -3,6 +3,8 @@ pragma solidity ^0.8.19;
 
 import {EnumerableSetUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol';
 
+import {IAddressProvider} from '../../interfaces/IAddressProvider.sol';
+
 import {Constants} from '../helpers/Constants.sol';
 import {Errors} from '../helpers/Errors.sol';
 import {Events} from '../helpers/Events.sol';
@@ -262,7 +264,7 @@ library QueryLogic {
     ResultTypes.UserAccountResult memory result = GenericLogic.calculateUserAccountDataForHeathFactor(
       poolData,
       user,
-      ps.priceOracle
+      IAddressProvider(ps.addressProvider).getPriceOracle()
     );
 
     totalCollateralInBase = result.totalCollateralInBaseCurrency;
@@ -401,7 +403,7 @@ library QueryLogic {
     ResultTypes.UserAccountResult memory result = GenericLogic.calculateUserAccountDataForHeathFactor(
       poolData,
       user,
-      ps.priceOracle
+      IAddressProvider(ps.addressProvider).getPriceOracle()
     );
 
     groupsCollateralInBase = result.allGroupsCollateralInBaseCurrency;
@@ -438,7 +440,7 @@ library QueryLogic {
       debtGroupData,
       nftAssetData,
       loanData,
-      ps.priceOracle
+      IAddressProvider(ps.addressProvider).getPriceOracle()
     );
 
     totalCollateral =
@@ -524,7 +526,7 @@ library QueryLogic {
       debtGroupData,
       nftAssetData,
       loanData,
-      ps.priceOracle
+      IAddressProvider(ps.addressProvider).getPriceOracle()
     );
 
     uint256 normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtAssetData, debtGroupData);

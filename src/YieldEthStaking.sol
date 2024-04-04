@@ -6,6 +6,7 @@ import {Initializable} from '@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {PausableUpgradeable} from '@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol';
 import {ReentrancyGuardUpgradeable} from '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
 
+import {IAddressProvider} from './interfaces/IAddressProvider.sol';
 import {IACLManager} from './interfaces/IACLManager.sol';
 import {IPoolManager} from './interfaces/IPoolManager.sol';
 import {IPriceOracleGetter} from './interfaces/IPriceOracleGetter.sol';
@@ -20,8 +21,6 @@ import {PercentageMath} from './libraries/math/PercentageMath.sol';
 import {WadRayMath} from './libraries/math/WadRayMath.sol';
 import {MathUtils} from './libraries/math/MathUtils.sol';
 import {ShareUtils} from './libraries/math/ShareUtils.sol';
-
-import '@forge-std/console.sol';
 
 contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardUpgradeable {
   using PercentageMath for uint256;
@@ -55,6 +54,7 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
     uint256 stEthWithdrawReqId;
   }
 
+  IAddressProvider public addressProvider;
   IPoolManager public poolManager;
   IWETH public weth;
   IStETH public stETH;
@@ -73,22 +73,23 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
   }
 
   function __onlyPoolAdmin() internal view {
-    require(IACLManager(poolManager.getACLManager()).isPoolAdmin(msg.sender), Errors.CALLER_NOT_POOL_ADMIN);
+    require(IACLManager(addressProvider.getACLManager()).isPoolAdmin(msg.sender), Errors.CALLER_NOT_POOL_ADMIN);
   }
 
   constructor() {
     _disableInitializers();
   }
 
-  function initialize(address poolManager_, address weth_, address stETH_, address unstETH_) public initializer {
+  function initialize(address addressProvider_, address weth_, address stETH_, address unstETH_) public initializer {
     __Pausable_init();
     __ReentrancyGuard_init();
 
-    poolManager = IPoolManager(poolManager_);
+    addressProvider = IAddressProvider(addressProvider_);
     weth = IWETH(weth_);
     stETH = IStETH(stETH_);
     unstETH = IUnstETH(unstETH_);
 
+    poolManager = IPoolManager(addressProvider.getPoolManager());
     weth.approve(address(poolManager), type(uint256).max);
     stETH.approve(address(unstETH), type(uint256).max);
   }
@@ -399,14 +400,14 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
   }
 
   function getStETHPriceInEth() internal view returns (uint256) {
-    IPriceOracleGetter priceOracle = IPriceOracleGetter(poolManager.getPriceOracle());
+    IPriceOracleGetter priceOracle = IPriceOracleGetter(addressProvider.getPriceOracle());
     uint256 stETHPriceInBase = priceOracle.getAssetPrice(address(stETH));
     uint256 ethPriceInBase = priceOracle.getAssetPrice(address(weth));
     return stETHPriceInBase.mulDiv(10 ** weth.decimals(), ethPriceInBase);
   }
 
   function getNftPriceInEth(address nft) internal view returns (uint256) {
-    IPriceOracleGetter priceOracle = IPriceOracleGetter(poolManager.getPriceOracle());
+    IPriceOracleGetter priceOracle = IPriceOracleGetter(addressProvider.getPriceOracle());
     uint256 nftPriceInBase = priceOracle.getAssetPrice(nft);
     uint256 ethPriceInBase = priceOracle.getAssetPrice(address(weth));
     return nftPriceInBase.mulDiv(10 ** weth.decimals(), ethPriceInBase);

@@ -110,10 +110,4 @@ interface IPoolManager {
   ) external;
 
   function collectFeeToTreasury(uint32 poolId, address[] calldata assets) external;
-
-  function getACLManager() external view returns (address);
-
-  function getPriceOracle() external view returns (address);
-
-  function getTreasury() external view returns (address);
 }

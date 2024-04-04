@@ -9,6 +9,8 @@ import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {WadRayMath} from 'src/libraries/math/WadRayMath.sol';
 
 import {IWETH} from 'src/interfaces/IWETH.sol';
+
+import {AddressProvider} from 'src/AddressProvider.sol';
 import {ACLManager} from 'src/ACLManager.sol';
 import {PriceOracle} from 'src/PriceOracle.sol';
 import {DefaultInterestRateModel} from 'src/irm/DefaultInterestRateModel.sol';
@@ -58,6 +60,7 @@ abstract contract TestWithSetup is TestWithUtils {
   MockChainlinkAggregator tsCLAggregatorStETH;
 
   ProxyAdmin public tsProxyAdmin;
+  AddressProvider public tsAddressProvider;
   ACLManager public tsAclManager;
   PriceOracle public tsPriceOracle;
   PoolManager public tsPoolManager;
@@ -130,6 +133,18 @@ abstract contract TestWithSetup is TestWithUtils {
     /// Deploy proxies ///
     tsProxyAdmin = new ProxyAdmin();
 
+    /// Address Provider
+    AddressProvider addressProviderImpl = new AddressProvider();
+    TransparentUpgradeableProxy addressProviderProxy = new TransparentUpgradeableProxy(
+      address(addressProviderImpl),
+      address(tsProxyAdmin),
+      abi.encodeWithSelector(addressProviderImpl.initialize.selector)
+    );
+    tsAddressProvider = AddressProvider(address(addressProviderProxy));
+    tsAddressProvider.setWrappedNativeToken(address(tsWETH));
+    tsAddressProvider.setTreasury(tsTreasury);
+    tsAddressProvider.setACLAdmin(tsAclAdmin);
+
     /// ACL Manager
     ACLManager aclManagerImpl = new ACLManager();
     TransparentUpgradeableProxy aclManagerProxy = new TransparentUpgradeableProxy(
@@ -138,7 +153,7 @@ abstract contract TestWithSetup is TestWithUtils {
       abi.encodeWithSelector(aclManagerImpl.initialize.selector, tsAclAdmin)
     );
     tsAclManager = ACLManager(payable(address(aclManagerProxy)));
-    //tsAclManager.initialize(aclAdmin);
+    tsAddressProvider.setACLManager(address(tsAclManager));
 
     /// Price Oracle
     PriceOracle priceOracleImpl = new PriceOracle();
@@ -147,7 +162,7 @@ abstract contract TestWithSetup is TestWithUtils {
       address(tsProxyAdmin),
       abi.encodeWithSelector(
         priceOracleImpl.initialize.selector,
-        address(tsAclManager),
+        address(tsAddressProvider),
         address(0),
         1e8,
         address(tsWETH),
@@ -155,23 +170,17 @@ abstract contract TestWithSetup is TestWithUtils {
       )
     );
     tsPriceOracle = PriceOracle(payable(address(priceOracleProxy)));
-    //tsPriceOracle.initialize(address(aclManager), address(0), 1e8, address(tsWETH), 1e18);
+    tsAddressProvider.setPriceOracle(address(tsPriceOracle));
 
     // Pool Manager
     PoolManager poolManagerImpl = new PoolManager();
     TransparentUpgradeableProxy poolManagerProxy = new TransparentUpgradeableProxy(
       address(poolManagerImpl),
       address(tsProxyAdmin),
-      abi.encodeWithSelector(
-        poolManagerImpl.initialize.selector,
-        address(tsWETH),
-        address(tsAclManager),
-        address(tsPriceOracle),
-        tsTreasury
-      )
+      abi.encodeWithSelector(poolManagerImpl.initialize.selector, address(tsAddressProvider))
     );
     tsPoolManager = PoolManager(payable(address(poolManagerProxy)));
-    //tsPoolManager.initialize(address(tsWETH), address(aclManager), address(tsPriceOracle), tsTreasury);
+    tsAddressProvider.setPoolManager(address(tsPoolManager));
 
     // YieldEthStaking
     YieldEthStaking yieldEthStakingImpl = new YieldEthStaking();
@@ -180,14 +189,13 @@ abstract contract TestWithSetup is TestWithUtils {
       address(tsProxyAdmin),
       abi.encodeWithSelector(
         yieldEthStakingImpl.initialize.selector,
-        address(tsPoolManager),
+        address(tsAddressProvider),
         address(tsWETH),
         address(tsStETH),
         address(tsUnstETH)
       )
     );
     tsYieldEthStaking = YieldEthStaking(payable(address(yieldEthStakingProxy)));
-    //tsYieldEthStaking.initialize(address(tsPoolManager), address(tsWETH), address(tsStETH), address(tsUnstETH));
 
     // Interest Rate Model
     tsYieldRateIRM = new DefaultInterestRateModel(

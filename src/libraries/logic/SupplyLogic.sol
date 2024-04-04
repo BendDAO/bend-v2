@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.19;
 
+import {IAddressProvider} from '../../interfaces/IAddressProvider.sol';
+
 import {Constants} from '../helpers/Constants.sol';
 import {Errors} from '../helpers/Errors.sol';
 import {Events} from '../helpers/Events.sol';
@@ -60,7 +62,7 @@ library SupplyLogic {
     VaultLogic.erc20TransferOutLiquidity(assetData, msg.sender, params.amount);
 
     // check the HF still greater than 1.0
-    ValidateLogic.validateHealthFactor(poolData, msg.sender, ps.priceOracle);
+    ValidateLogic.validateHealthFactor(poolData, msg.sender, IAddressProvider(ps.addressProvider).getPriceOracle());
 
     emit Events.WithdrawERC20(msg.sender, params.poolId, params.asset, params.amount);
   }
@@ -101,7 +103,7 @@ library SupplyLogic {
 
       VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, msg.sender);
 
-      ValidateLogic.validateHealthFactor(poolData, msg.sender, ps.priceOracle);
+      ValidateLogic.validateHealthFactor(poolData, msg.sender, IAddressProvider(ps.addressProvider).getPriceOracle());
     } else if (params.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
       for (uint256 i = 0; i < params.tokenIds.length; i++) {
         DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[params.asset][params.tokenIds[i]];
@@ -157,6 +159,6 @@ library SupplyLogic {
 
     VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, msg.sender);
 
-    ValidateLogic.validateHealthFactor(poolData, msg.sender, ps.priceOracle);
+    ValidateLogic.validateHealthFactor(poolData, msg.sender, IAddressProvider(ps.addressProvider).getPriceOracle());
   }
 }
