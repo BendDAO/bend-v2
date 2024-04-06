@@ -31,10 +31,10 @@ library ConfigureLogic {
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.AddressSet;
   using EnumerableSetUpgradeable for EnumerableSetUpgradeable.UintSet;
 
-  function executeCreatePool(string memory name) public returns (uint32 poolId) {
+  function executeCreatePool(address msgSender, string memory name) internal returns (uint32 poolId) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
-    PoolLogic.checkCallerIsPoolAdmin(ps);
+    PoolLogic.checkCallerIsPoolAdmin(ps, msgSender);
 
     require(ps.nextPoolId > 0, Errors.INVALID_POOL_ID);
 
@@ -45,37 +45,37 @@ library ConfigureLogic {
     poolData.poolId = poolId;
     poolData.name = name;
 
-    emit Events.CreatePool(msg.sender, poolId, name);
+    emit Events.CreatePool(poolId, name);
   }
 
-  function executeDeletePool(uint32 poolId) public {
+  function executeDeletePool(address msgSender, uint32 poolId) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     require(poolData.assetList.length() == 0, Errors.ASSET_LIST_NOT_EMPTY);
 
     delete ps.poolLookup[poolId];
 
-    emit Events.DeletePool(msg.sender, poolId);
+    emit Events.DeletePool(poolId);
   }
 
-  function executeSetPoolPause(uint32 poolId, bool paused) public {
+  function executeSetPoolPause(address msgSender, uint32 poolId, bool paused) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
 
-    PoolLogic.checkCallerIsEmergencyAdmin(ps);
+    PoolLogic.checkCallerIsEmergencyAdmin(ps, msgSender);
 
     poolData.isPaused = paused;
     emit Events.SetPoolPause(poolId, paused);
   }
 
-  function executeAddPoolGroup(uint32 poolId, uint8 groupId) public {
+  function executeAddPoolGroup(address msgSender, uint32 poolId, uint8 groupId) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     require(groupId >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
     require(groupId <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
@@ -89,11 +89,11 @@ library ConfigureLogic {
     emit Events.AddPoolGroup(poolId, groupId);
   }
 
-  function executeRemovePoolGroup(uint32 poolId, uint8 groupId) public {
+  function executeRemovePoolGroup(address msgSender, uint32 poolId, uint8 groupId) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     require(groupId >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
     require(groupId <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
@@ -118,11 +118,11 @@ library ConfigureLogic {
     emit Events.RemovePoolGroup(poolId, groupId);
   }
 
-  function executeSetPoolYieldEnable(uint32 poolId, bool isEnable) public {
+  function executeSetPoolYieldEnable(address msgSender, uint32 poolId, bool isEnable) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     if (isEnable) {
       require(!poolData.isYieldEnabled, Errors.POOL_YIELD_ALREADY_ENABLE);
@@ -155,22 +155,22 @@ library ConfigureLogic {
     emit Events.SetPoolYieldEnable(poolId, isEnable);
   }
 
-  function executeSetPoolYieldPause(uint32 poolId, bool isPause) public {
+  function executeSetPoolYieldPause(address msgSender, uint32 poolId, bool isPause) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     poolData.isYieldPaused = isPause;
 
     emit Events.SetPoolYieldPause(poolId, isPause);
   }
 
-  function executeAddAssetERC20(uint32 poolId, address asset) public {
+  function executeAddAssetERC20(address msgSender, uint32 poolId, address asset) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.assetType == 0, Errors.ASSET_ALREADY_EXISTS);
@@ -189,11 +189,11 @@ library ConfigureLogic {
     emit Events.AddAsset(poolId, asset, uint8(Constants.ASSET_TYPE_ERC20));
   }
 
-  function executeRemoveAssetERC20(uint32 poolId, address asset) public {
+  function executeRemoveAssetERC20(address msgSender, uint32 poolId, address asset) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
@@ -202,11 +202,11 @@ library ConfigureLogic {
     emit Events.RemoveAsset(poolId, asset, uint8(Constants.ASSET_TYPE_ERC20));
   }
 
-  function executeAddAssetERC721(uint32 poolId, address asset) public {
+  function executeAddAssetERC721(address msgSender, uint32 poolId, address asset) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     require(poolData.assetList.length() <= Constants.MAX_NUMBER_OF_ASSET, Errors.ASSET_NUMBER_EXCEED_MAX_LIMIT);
 
@@ -222,11 +222,11 @@ library ConfigureLogic {
     emit Events.AddAsset(poolId, asset, uint8(Constants.ASSET_TYPE_ERC721));
   }
 
-  function executeRemoveAssetERC721(uint32 poolId, address asset) public {
+  function executeRemoveAssetERC721(address msgSender, uint32 poolId, address asset) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     _removeAsset(poolData, assetData, asset);
@@ -247,7 +247,13 @@ library ConfigureLogic {
     require(isDelOk, Errors.ENUM_SET_REMOVE_FAILED);
   }
 
-  function executeAddAssetGroup(uint32 poolId, address asset, uint8 groupId, address rateModel_) public {
+  function executeAddAssetGroup(
+    address msgSender,
+    uint32 poolId,
+    address asset,
+    uint8 groupId,
+    address rateModel_
+  ) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     require(groupId >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
@@ -255,7 +261,7 @@ library ConfigureLogic {
     require(rateModel_ != address(0), Errors.INVALID_ADDRESS);
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     require(poolData.enabledGroups[groupId] == true, Errors.GROUP_NOT_EXISTS);
 
@@ -275,14 +281,14 @@ library ConfigureLogic {
     emit Events.AddAssetGroup(poolId, asset, groupId);
   }
 
-  function executeRemoveAssetGroup(uint32 poolId, address asset, uint8 groupId) public {
+  function executeRemoveAssetGroup(address msgSender, uint32 poolId, address asset, uint8 groupId) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     require(groupId >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
     require(groupId <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
@@ -305,11 +311,11 @@ library ConfigureLogic {
   /* Asset Parameters Configuration */
   /****************************************************************************/
 
-  function executeSetAssetActive(uint32 poolId, address asset, bool isActive) public {
+  function executeSetAssetActive(address msgSender, uint32 poolId, address asset, bool isActive) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -319,11 +325,11 @@ library ConfigureLogic {
     emit Events.SetAssetActive(poolId, asset, isActive);
   }
 
-  function executeSetAssetFrozen(uint32 poolId, address asset, bool isFrozen) public {
+  function executeSetAssetFrozen(address msgSender, uint32 poolId, address asset, bool isFrozen) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -333,11 +339,11 @@ library ConfigureLogic {
     emit Events.SetAssetFrozen(poolId, asset, isFrozen);
   }
 
-  function executeSetAssetPause(uint32 poolId, address asset, bool isPause) public {
+  function executeSetAssetPause(address msgSender, uint32 poolId, address asset, bool isPause) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -347,11 +353,11 @@ library ConfigureLogic {
     emit Events.SetAssetPause(poolId, asset, isPause);
   }
 
-  function executeSetAssetBorrowing(uint32 poolId, address asset, bool isEnable) public {
+  function executeSetAssetBorrowing(address msgSender, uint32 poolId, address asset, bool isEnable) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -362,11 +368,11 @@ library ConfigureLogic {
     emit Events.SetAssetBorrowing(poolId, asset, isEnable);
   }
 
-  function executeSetAssetFlashLoan(uint32 poolId, address asset, bool isEnable) public {
+  function executeSetAssetFlashLoan(address msgSender, uint32 poolId, address asset, bool isEnable) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -377,11 +383,11 @@ library ConfigureLogic {
     emit Events.SetAssetFlashLoan(poolId, asset, isEnable);
   }
 
-  function executeSetAssetSupplyCap(uint32 poolId, address asset, uint256 newCap) public {
+  function executeSetAssetSupplyCap(address msgSender, uint32 poolId, address asset, uint256 newCap) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -392,11 +398,11 @@ library ConfigureLogic {
     emit Events.SetAssetSupplyCap(poolId, asset, newCap);
   }
 
-  function executeSetAssetBorrowCap(uint32 poolId, address asset, uint256 newCap) public {
+  function executeSetAssetBorrowCap(address msgSender, uint32 poolId, address asset, uint256 newCap) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -407,14 +413,14 @@ library ConfigureLogic {
     emit Events.SetAssetBorrowCap(poolId, asset, newCap);
   }
 
-  function executeSetAssetClassGroup(uint32 poolId, address asset, uint8 classGroup) public {
+  function executeSetAssetClassGroup(address msgSender, uint32 poolId, address asset, uint8 classGroup) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     require(classGroup >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
     require(classGroup <= Constants.GROUP_ID_LEND_MAX, Errors.INVALID_GROUP_ID);
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -425,12 +431,13 @@ library ConfigureLogic {
   }
 
   function executeSetAssetCollateralParams(
+    address msgSender,
     uint32 poolId,
     address asset,
     uint16 collateralFactor,
     uint16 liquidationThreshold,
     uint16 liquidationBonus
-  ) public {
+  ) internal {
     require(collateralFactor <= Constants.MAX_COLLATERAL_FACTOR, Errors.INVALID_ASSET_PARAMS);
     require(liquidationThreshold <= Constants.MAX_LIQUIDATION_THRESHOLD, Errors.INVALID_ASSET_PARAMS);
     require(liquidationBonus <= Constants.MAX_LIQUIDATION_BONUS, Errors.INVALID_ASSET_PARAMS);
@@ -440,7 +447,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -453,13 +460,14 @@ library ConfigureLogic {
   }
 
   function executeSetAssetAuctionParams(
+    address msgSender,
     uint32 poolId,
     address asset,
     uint16 redeemThreshold,
     uint16 bidFineFactor,
     uint16 minBidFineFactor,
     uint40 auctionDuration
-  ) public {
+  ) internal {
     require(redeemThreshold <= Constants.MAX_REDEEM_THRESHOLD, Errors.INVALID_ASSET_PARAMS);
     require(bidFineFactor <= Constants.MAX_BIDFINE_FACTOR, Errors.INVALID_ASSET_PARAMS);
     require(minBidFineFactor <= Constants.MAX_MIN_BIDFINE_FACTOR, Errors.INVALID_ASSET_PARAMS);
@@ -468,7 +476,7 @@ library ConfigureLogic {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -482,13 +490,13 @@ library ConfigureLogic {
     emit Events.SetAssetAuctionParams(poolId, asset, redeemThreshold, bidFineFactor, minBidFineFactor, auctionDuration);
   }
 
-  function executeSetAssetProtocolFee(uint32 poolId, address asset, uint16 feeFactor) public {
+  function executeSetAssetProtocolFee(address msgSender, uint32 poolId, address asset, uint16 feeFactor) internal {
     require(feeFactor <= Constants.MAX_FEE_FACTOR, Errors.INVALID_ASSET_PARAMS);
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -499,7 +507,13 @@ library ConfigureLogic {
     emit Events.SetAssetProtocolFee(poolId, asset, feeFactor);
   }
 
-  function executeSetAssetLendingRate(uint32 poolId, address asset, uint8 groupId, address rateModel_) public {
+  function executeSetAssetLendingRate(
+    address msgSender,
+    uint32 poolId,
+    address asset,
+    uint8 groupId,
+    address rateModel_
+  ) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     require(groupId >= Constants.GROUP_ID_LEND_MIN, Errors.INVALID_GROUP_ID);
@@ -507,7 +521,7 @@ library ConfigureLogic {
     require(rateModel_ != address(0), Errors.INVALID_ADDRESS);
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -521,11 +535,11 @@ library ConfigureLogic {
     emit Events.SetAssetLendingRate(poolId, asset, groupId, rateModel_);
   }
 
-  function executeSetAssetYieldEnable(uint32 poolId, address asset, bool isEnable) public {
+  function executeSetAssetYieldEnable(address msgSender, uint32 poolId, address asset, bool isEnable) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     require(poolData.isYieldEnabled, Errors.POOL_YIELD_NOT_ENABLE);
 
@@ -559,11 +573,11 @@ library ConfigureLogic {
     emit Events.SetAssetYieldEnable(poolId, asset, isEnable);
   }
 
-  function executeSetAssetYieldPause(uint32 poolId, address asset, bool isPause) public {
+  function executeSetAssetYieldPause(address msgSender, uint32 poolId, address asset, bool isPause) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -574,13 +588,13 @@ library ConfigureLogic {
     emit Events.SetAssetYieldPause(poolId, asset, isPause);
   }
 
-  function executeSetAssetYieldCap(uint32 poolId, address asset, uint256 newCap) public {
+  function executeSetAssetYieldCap(address msgSender, uint32 poolId, address asset, uint256 newCap) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     require(newCap <= Constants.MAX_YIELD_CAP_FACTOR, Errors.INVALID_ASSET_PARAMS);
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -591,13 +605,13 @@ library ConfigureLogic {
     emit Events.SetAssetYieldCap(poolId, asset, newCap);
   }
 
-  function executeSetAssetYieldRate(uint32 poolId, address asset, address rateModel_) public {
+  function executeSetAssetYieldRate(address msgSender, uint32 poolId, address asset, address rateModel_) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     require(rateModel_ != address(0), Errors.INVALID_ADDRESS);
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -609,11 +623,17 @@ library ConfigureLogic {
     emit Events.SetAssetYieldRate(poolId, asset, rateModel_);
   }
 
-  function executeSetStakerYieldCap(uint32 poolId, address staker, address asset, uint256 newCap) public {
+  function executeSetStakerYieldCap(
+    address msgSender,
+    uint32 poolId,
+    address staker,
+    address asset,
+    uint256 newCap
+  ) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    _validateCallerAndPool(ps, poolData);
+    _validateCallerAndPool(msgSender, ps, poolData);
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
@@ -624,8 +644,12 @@ library ConfigureLogic {
     stakerData.yieldCap = newCap;
   }
 
-  function _validateCallerAndPool(DataTypes.PoolStorage storage ps, DataTypes.PoolData storage poolData) internal view {
-    PoolLogic.checkCallerIsPoolAdmin(ps);
+  function _validateCallerAndPool(
+    address msgSender,
+    DataTypes.PoolStorage storage ps,
+    DataTypes.PoolData storage poolData
+  ) internal view {
+    PoolLogic.checkCallerIsPoolAdmin(ps, msgSender);
 
     require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
   }

@@ -32,7 +32,7 @@ library IsolateLogic {
   /**
    * @notice Implements the borrow for isolate lending.
    */
-  function executeIsolateBorrow(InputTypes.ExecuteIsolateBorrowParams memory params) public returns (uint256) {
+  function executeIsolateBorrow(InputTypes.ExecuteIsolateBorrowParams memory params) internal returns (uint256) {
     ExecuteIsolateBorrowVars memory vars;
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
@@ -46,7 +46,7 @@ library IsolateLogic {
     InterestLogic.updateInterestIndexs(poolData, debtAssetData);
 
     // check the basic params
-    ValidateLogic.validateIsolateBorrowBasic(params, poolData, debtAssetData, nftAssetData, msg.sender);
+    ValidateLogic.validateIsolateBorrowBasic(params, poolData, debtAssetData, nftAssetData, params.msgSender);
 
     // update debt state
     vars.totalBorrowAmount;
@@ -78,7 +78,7 @@ library IsolateLogic {
         loanData.scaledAmount += vars.amountScaled;
       }
 
-      VaultLogic.erc20IncreaseIsolateScaledBorrow(debtGroupData, msg.sender, vars.amountScaled);
+      VaultLogic.erc20IncreaseIsolateScaledBorrow(debtGroupData, params.msgSender, vars.amountScaled);
 
       vars.totalBorrowAmount += params.amounts[vars.nidx];
     }
@@ -86,10 +86,10 @@ library IsolateLogic {
     InterestLogic.updateInterestRates(poolData, debtAssetData, 0, vars.totalBorrowAmount);
 
     // transfer underlying asset to borrower
-    VaultLogic.erc20TransferOutLiquidity(debtAssetData, msg.sender, vars.totalBorrowAmount);
+    VaultLogic.erc20TransferOutLiquidity(debtAssetData, params.msgSender, vars.totalBorrowAmount);
 
     emit Events.IsolateBorrow(
-      msg.sender,
+      params.msgSender,
       params.poolId,
       params.nftAsset,
       params.nftTokenIds,
@@ -110,7 +110,7 @@ library IsolateLogic {
   /**
    * @notice Implements the repay for isolate lending.
    */
-  function executeIsolateRepay(InputTypes.ExecuteIsolateRepayParams memory params) public returns (uint256) {
+  function executeIsolateRepay(InputTypes.ExecuteIsolateRepayParams memory params) internal returns (uint256) {
     ExecuteIsolateRepayVars memory vars;
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
@@ -145,7 +145,7 @@ library IsolateLogic {
         loanData.scaledAmount -= vars.scaledRepayAmount;
       }
 
-      VaultLogic.erc20DecreaseIsolateScaledBorrow(debtGroupData, msg.sender, vars.scaledRepayAmount);
+      VaultLogic.erc20DecreaseIsolateScaledBorrow(debtGroupData, params.msgSender, vars.scaledRepayAmount);
 
       vars.totalRepayAmount += params.amounts[vars.nidx];
     }
@@ -153,10 +153,10 @@ library IsolateLogic {
     InterestLogic.updateInterestRates(poolData, debtAssetData, vars.totalRepayAmount, 0);
 
     // transfer underlying asset from borrower to pool
-    VaultLogic.erc20TransferInLiquidity(debtAssetData, msg.sender, vars.totalRepayAmount);
+    VaultLogic.erc20TransferInLiquidity(debtAssetData, params.msgSender, vars.totalRepayAmount);
 
     emit Events.IsolateRepay(
-      msg.sender,
+      params.msgSender,
       params.poolId,
       params.nftAsset,
       params.nftTokenIds,
@@ -183,7 +183,7 @@ library IsolateLogic {
   /**
    * @notice Implements the auction for isolate lending.
    */
-  function executeIsolateAuction(InputTypes.ExecuteIsolateAuctionParams memory params) public {
+  function executeIsolateAuction(InputTypes.ExecuteIsolateAuctionParams memory params) internal {
     ExecuteIsolateAuctionVars memory vars;
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
@@ -228,7 +228,7 @@ library IsolateLogic {
         require(params.amounts[vars.nidx] >= vars.liquidatePrice, Errors.ISOLATE_BID_PRICE_LESS_THAN_LIQUIDATION_PRICE);
 
         // record first bid state
-        loanData.firstBidder = msg.sender;
+        loanData.firstBidder = params.msgSender;
         loanData.loanStatus = Constants.LOAN_STATUS_AUCTION;
         loanData.bidStartTimestamp = uint40(block.timestamp);
       } else {
@@ -247,7 +247,7 @@ library IsolateLogic {
       }
 
       // record last bid state
-      loanData.lastBidder = msg.sender;
+      loanData.lastBidder = params.msgSender;
       loanData.bidAmount = params.amounts[vars.nidx];
 
       // transfer last bid amount to previous bidder from escrow
@@ -259,10 +259,10 @@ library IsolateLogic {
     }
 
     // transfer underlying asset from liquidator to escrow
-    VaultLogic.erc20TransferInBidAmount(debtAssetData, msg.sender, vars.totalBidAmount);
+    VaultLogic.erc20TransferInBidAmount(debtAssetData, params.msgSender, vars.totalBidAmount);
 
     emit Events.IsolateAuction(
-      msg.sender,
+      params.msgSender,
       params.poolId,
       params.nftAsset,
       params.nftTokenIds,
@@ -286,7 +286,7 @@ library IsolateLogic {
   /**
    * @notice Implements the redeem for isolate lending.
    */
-  function executeIsolateRedeem(InputTypes.ExecuteIsolateRedeemParams memory params) public {
+  function executeIsolateRedeem(InputTypes.ExecuteIsolateRedeemParams memory params) internal {
     ExecuteIsolateRedeemVars memory vars;
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
@@ -330,7 +330,7 @@ library IsolateLogic {
       vars.redeemAmounts[vars.nidx] = vars.borrowAmount.percentMul(nftAssetData.redeemThreshold);
       vars.amountScaled = vars.redeemAmounts[vars.nidx].rayDiv(debtGroupData.borrowIndex);
 
-      VaultLogic.erc20DecreaseIsolateScaledBorrow(debtGroupData, msg.sender, vars.amountScaled);
+      VaultLogic.erc20DecreaseIsolateScaledBorrow(debtGroupData, params.msgSender, vars.amountScaled);
 
       if (loanData.lastBidder != address(0)) {
         // transfer last bid from escrow to bidder
@@ -341,7 +341,7 @@ library IsolateLogic {
         // transfer bid fine from borrower to the first bidder
         VaultLogic.erc20TransferBetweenWallets(
           params.asset,
-          msg.sender,
+          params.msgSender,
           loanData.firstBidder,
           vars.bidFines[vars.nidx]
         );
@@ -359,10 +359,10 @@ library IsolateLogic {
     InterestLogic.updateInterestRates(poolData, debtAssetData, vars.totalRedeemAmount, 0);
 
     // transfer underlying asset from borrower to pool
-    VaultLogic.erc20TransferInLiquidity(debtAssetData, msg.sender, vars.totalRedeemAmount);
+    VaultLogic.erc20TransferInLiquidity(debtAssetData, params.msgSender, vars.totalRedeemAmount);
 
     emit Events.IsolateRedeem(
-      msg.sender,
+      params.msgSender,
       params.poolId,
       params.nftAsset,
       params.nftTokenIds,
@@ -387,7 +387,7 @@ library IsolateLogic {
   /**
    * @notice Implements the liquidate for isolate lending.
    */
-  function executeIsolateLiquidate(InputTypes.ExecuteIsolateLiquidateParams memory params) public {
+  function executeIsolateLiquidate(InputTypes.ExecuteIsolateLiquidateParams memory params) internal {
     ExecuteIsolateLiquidateVars memory vars;
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
@@ -459,20 +459,20 @@ library IsolateLogic {
 
     if (vars.totalExtraAmount > 0) {
       // transfer underlying asset from liquidator to pool
-      VaultLogic.erc20TransferInLiquidity(debtAssetData, msg.sender, vars.totalExtraAmount);
+      VaultLogic.erc20TransferInLiquidity(debtAssetData, params.msgSender, vars.totalExtraAmount);
     }
 
     // transfer erc721 to bidder
     if (params.supplyAsCollateral) {
-      VaultLogic.erc721TransferIsolateSupplyOnLiquidate(nftAssetData, msg.sender, params.nftTokenIds);
+      VaultLogic.erc721TransferIsolateSupplyOnLiquidate(nftAssetData, params.msgSender, params.nftTokenIds);
     } else {
       VaultLogic.erc721DecreaseIsolateSupplyOnLiquidate(nftAssetData, params.nftTokenIds);
 
-      VaultLogic.erc721TransferOutLiquidity(nftAssetData, msg.sender, params.nftTokenIds);
+      VaultLogic.erc721TransferOutLiquidity(nftAssetData, params.msgSender, params.nftTokenIds);
     }
 
     emit Events.IsolateLiquidate(
-      msg.sender,
+      params.msgSender,
       params.poolId,
       params.nftAsset,
       params.nftTokenIds,

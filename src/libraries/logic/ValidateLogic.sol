@@ -136,7 +136,7 @@ library ValidateLogic {
 
     for (uint256 i = 0; i < inputParams.tokenIds.length; i++) {
       DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(assetData, inputParams.tokenIds[i]);
-      require(tokenData.owner == msg.sender, Errors.INVALID_CALLER);
+      require(tokenData.owner == inputParams.msgSender, Errors.INVALID_CALLER);
       require(tokenData.supplyMode == inputParams.supplyMode, Errors.INVALID_SUPPLY_MODE);
 
       require(tokenData.lockerAddr == address(0), Errors.ASSET_ALREADY_LOCKED_IN_USE);
@@ -599,7 +599,7 @@ library ValidateLogic {
   }
 
   function validateYieldSetERC721TokenData(
-    InputTypes.ExecuteYieldSetERC721TokenDataParams memory /* inputParams */,
+    InputTypes.ExecuteYieldSetERC721TokenDataParams memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage assetData,
     DataTypes.ERC721TokenData storage tokenData
@@ -615,7 +615,7 @@ library ValidateLogic {
     require(tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.ASSET_NOT_ISOLATE_MODE);
 
     require(
-      tokenData.lockerAddr == msg.sender || tokenData.lockerAddr == address(0),
+      tokenData.lockerAddr == inputParams.msgSender || tokenData.lockerAddr == address(0),
       Errors.ASSET_ALREADY_LOCKED_IN_USE
     );
   }

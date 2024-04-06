@@ -5,6 +5,7 @@ import {Ownable2StepUpgradeable} from '@openzeppelin/contracts-upgradeable/acces
 
 import {IACLManager} from 'src/interfaces/IACLManager.sol';
 import {IAddressProvider} from 'src/interfaces/IAddressProvider.sol';
+import {IPoolManager} from 'src/interfaces/IPoolManager.sol';
 
 /**
  * @title AddressProvider
@@ -94,13 +95,21 @@ contract AddressProvider is Ownable2StepUpgradeable, IAddressProvider {
     emit PoolManagerUpdated(oldAddress, newAddress);
   }
 
-  function getPoolConfigurator() public view override returns (address) {
-    return getAddress(POOL_CONFIGURATOR);
+  function getPoolModuleImplementation(uint moduleId) public view override returns (address) {
+    return IPoolManager(getPoolManager()).moduleIdToImplementation(moduleId);
   }
 
-  function setPoolConfigurator(address newAddress) public override onlyOwner {
-    address oldAddress = _setAddress(POOL_CONFIGURATOR, newAddress);
-    emit PoolConfiguratorUpdated(oldAddress, newAddress);
+  function getPoolModuleProxy(uint moduleId) public view override returns (address) {
+    return IPoolManager(getPoolManager()).moduleIdToProxy(moduleId);
+  }
+
+  function getPoolModuleProxies(uint[] memory moduleIds) public view override returns (address[] memory) {
+    IPoolManager poolManager = IPoolManager(getPoolManager());
+    address[] memory proxies = new address[](moduleIds.length);
+    for (uint i = 0; i < moduleIds.length; i++) {
+      proxies[i] = poolManager.moduleIdToProxy(moduleIds[i]);
+    }
+    return proxies;
   }
 
   // internal methods

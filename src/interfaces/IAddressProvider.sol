@@ -16,8 +16,6 @@ interface IAddressProvider {
 
   event PoolManagerUpdated(address indexed oldAddress, address indexed newAddress);
 
-  event PoolConfiguratorUpdated(address indexed oldAddress, address indexed newAddress);
-
   function getAddress(bytes32 id) external view returns (address);
 
   function setAddress(bytes32 id, address newAddress) external;
@@ -46,7 +44,9 @@ interface IAddressProvider {
 
   function setPoolManager(address newAddress) external;
 
-  function getPoolConfigurator() external view returns (address);
+  function getPoolModuleImplementation(uint moduleId) external view returns (address);
 
-  function setPoolConfigurator(address newAddress) external;
+  function getPoolModuleProxy(uint moduleId) external view returns (address);
+
+  function getPoolModuleProxies(uint[] memory moduleIds) external view returns (address[] memory);
 }

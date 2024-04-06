@@ -164,7 +164,7 @@ abstract contract TestWithData is TestWithSetup {
       assetData.config.collateralFactor,
       assetData.config.liquidationThreshold,
       assetData.config.liquidationBonus
-    ) = tsPoolManager.getAssetLendingConfig(poolId, asset);
+    ) = tsPoolLens.getAssetLendingConfig(poolId, asset);
 
     (
       assetData.totalScaledCrossSupply,
@@ -175,12 +175,12 @@ abstract contract TestWithData is TestWithSetup {
       assetData.supplyRate,
       assetData.supplyIndex,
       assetData.lastUpdateTimestamp
-    ) = tsPoolManager.getAssetSupplyData(poolId, asset);
+    ) = tsPoolLens.getAssetSupplyData(poolId, asset);
 
-    uint256 maxGroupNum = tsPoolManager.getPoolMaxGroupNumber();
+    uint256 maxGroupNum = tsPoolLens.getPoolMaxGroupNumber();
     assetData.groupsData = new TestGroupData[](maxGroupNum);
 
-    uint256[] memory groupIds = tsPoolManager.getAssetGroupList(poolId, asset);
+    uint256[] memory groupIds = tsPoolLens.getAssetGroupList(poolId, asset);
     for (uint256 i = 0; i < groupIds.length; i++) {
       TestGroupData memory groupData = assetData.groupsData[groupIds[i]];
       groupData.groupId = uint8(i);
@@ -192,7 +192,7 @@ abstract contract TestWithData is TestWithSetup {
         groupData.borrowRate,
         groupData.borrowIndex,
         groupData.rateModel
-      ) = tsPoolManager.getAssetGroupData(poolId, asset, uint8(groupIds[i]));
+      ) = tsPoolLens.getAssetGroupData(poolId, asset, uint8(groupIds[i]));
 
       assetData.totalScaledCrossBorrow += groupData.totalScaledCrossBorrow;
       assetData.totalCrossBorrow += groupData.totalCrossBorrow;
@@ -254,7 +254,7 @@ abstract contract TestWithData is TestWithSetup {
       data.currentCollateralFactor,
       data.currentLiquidationThreshold,
       data.healthFactor
-    ) = tsPoolManager.getUserAccountData(user, poolId);
+    ) = tsPoolLens.getUserAccountData(user, poolId);
   }
 
   function getUserAssetData(
@@ -276,19 +276,19 @@ abstract contract TestWithData is TestWithSetup {
       userAssetData.totalScaledIsolateSupply,
       userAssetData.totalScaledCrossBorrow,
       userAssetData.totalScaledIsolateBorrow
-    ) = tsPoolManager.getUserAssetScaledData(user, poolId, asset);
+    ) = tsPoolLens.getUserAssetScaledData(user, poolId, asset);
 
     (
       userAssetData.totalCrossSupply,
       userAssetData.totalIsolateSupply,
       userAssetData.totalCrossBorrow,
       userAssetData.totalIsolateBorrow
-    ) = tsPoolManager.getUserAssetData(user, poolId, asset);
+    ) = tsPoolLens.getUserAssetData(user, poolId, asset);
 
-    uint256 maxGroupNum = tsPoolManager.getPoolMaxGroupNumber();
+    uint256 maxGroupNum = tsPoolLens.getPoolMaxGroupNumber();
     userAssetData.groupsData = new TestUserGroupData[](maxGroupNum);
 
-    uint256[] memory groupIds = tsPoolManager.getAssetGroupList(poolId, asset);
+    uint256[] memory groupIds = tsPoolLens.getAssetGroupList(poolId, asset);
     for (uint256 i = 0; i < groupIds.length; i++) {
       TestUserGroupData memory groupData = userAssetData.groupsData[groupIds[i]];
       (
@@ -296,7 +296,7 @@ abstract contract TestWithData is TestWithSetup {
         groupData.totalCrossBorrow,
         groupData.totalScaledIsolateBorrow,
         groupData.totalIsolateBorrow
-      ) = tsPoolManager.getUserAssetGroupData(user, poolId, asset, uint8(groupIds[i]));
+      ) = tsPoolLens.getUserAssetGroupData(user, poolId, asset, uint8(groupIds[i]));
     }
   }
 
@@ -343,7 +343,7 @@ abstract contract TestWithData is TestWithSetup {
     data.nftAsset = nftAsset;
     data.nftTokenId = nftTokenId;
 
-    (data.reserveAsset, data.scaledAmount, data.borrowAmount, data.reserveGroup, data.loanStatus) = tsPoolManager
+    (data.reserveAsset, data.scaledAmount, data.borrowAmount, data.reserveGroup, data.loanStatus) = tsPoolLens
       .getIsolateLoanData(poolId, nftAsset, nftTokenId);
 
     (
@@ -354,10 +354,10 @@ abstract contract TestWithData is TestWithSetup {
       data.bidAmount,
       data.bidFine,
       data.redeemAmount
-    ) = tsPoolManager.getIsolateAuctionData(poolId, nftAsset, nftTokenId);
+    ) = tsPoolLens.getIsolateAuctionData(poolId, nftAsset, nftTokenId);
 
     if (data.reserveAsset != address(0)) {
-      (data.totalCollateral, data.totalBorrow, data.availableBorrow, data.healthFactor) = tsPoolManager
+      (data.totalCollateral, data.totalBorrow, data.availableBorrow, data.healthFactor) = tsPoolLens
         .getIsolateCollateralData(poolId, nftAsset, nftTokenId, data.reserveAsset);
     }
   }
@@ -371,7 +371,7 @@ abstract contract TestWithData is TestWithSetup {
     data.nftAsset = nftAsset;
     data.nftTokenId = nftTokenId;
 
-    (data.totalCollateral, data.totalBorrow, data.availableBorrow, data.healthFactor) = tsPoolManager
+    (data.totalCollateral, data.totalBorrow, data.availableBorrow, data.healthFactor) = tsPoolLens
       .getIsolateCollateralData(poolId, nftAsset, nftTokenId, debtAsset);
   }
 

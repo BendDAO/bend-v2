@@ -48,7 +48,7 @@ contract TestIntCollectFeeToTreasury is TestWithPrepare {
     advanceTimes(365 days);
 
     // repay
-    (testVars.feeFactor, , ) = tsPoolManager.getAssetFeeData(tsCommonPoolId, address(tsUSDT));
+    (testVars.feeFactor, , ) = tsPoolLens.getAssetFeeData(tsCommonPoolId, address(tsUSDT));
 
     tsBorrower1.approveERC20(address(tsUSDT), type(uint256).max);
 
@@ -56,7 +56,7 @@ contract TestIntCollectFeeToTreasury is TestWithPrepare {
     repayGroups2[0] = tsLowRateGroupId;
 
     uint256[] memory repayAmounts = new uint256[](1);
-    (, repayAmounts[0], , ) = tsPoolManager.getUserAssetGroupData(
+    (, repayAmounts[0], , ) = tsPoolLens.getUserAssetGroupData(
       address(tsBorrower1),
       tsCommonPoolId,
       address(tsUSDT),
@@ -65,21 +65,17 @@ contract TestIntCollectFeeToTreasury is TestWithPrepare {
 
     tsBorrower1.crossRepayERC20(tsCommonPoolId, address(tsUSDT), repayGroups2, repayAmounts);
 
-    (, , testVars.normAccruedFeeAfter) = tsPoolManager.getAssetFeeData(tsCommonPoolId, address(tsUSDT));
+    (, , testVars.normAccruedFeeAfter) = tsPoolLens.getAssetFeeData(tsCommonPoolId, address(tsUSDT));
 
     // collect
-    (testVars.treasuryBalanceBefore, , , ) = tsPoolManager.getUserAssetData(
-      tsTreasury,
-      tsCommonPoolId,
-      address(tsUSDT)
-    );
+    (testVars.treasuryBalanceBefore, , , ) = tsPoolLens.getUserAssetData(tsTreasury, tsCommonPoolId, address(tsUSDT));
 
     address[] memory feeAssets = new address[](1);
     feeAssets[0] = address(tsUSDT);
     tsHEVM.prank(tsPoolAdmin);
-    tsPoolManager.collectFeeToTreasury(tsCommonPoolId, feeAssets);
+    tsBVault.collectFeeToTreasury(tsCommonPoolId, feeAssets);
 
-    (testVars.treasuryBalanceAfter, , , ) = tsPoolManager.getUserAssetData(tsTreasury, tsCommonPoolId, address(tsUSDT));
+    (testVars.treasuryBalanceAfter, , , ) = tsPoolLens.getUserAssetData(tsTreasury, tsCommonPoolId, address(tsUSDT));
 
     assertEq(
       testVars.treasuryBalanceAfter,

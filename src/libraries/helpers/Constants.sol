@@ -2,7 +2,50 @@
 pragma solidity ^0.8.19;
 
 library Constants {
+  // Universal
   address public constant NATIVE_TOKEN_ADDRESS = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
+
+  // Implementation internals
+
+  uint internal constant REENTRANCYLOCK__UNLOCKED = 1;
+  uint internal constant REENTRANCYLOCK__LOCKED = 2;
+
+  // Modules
+
+  // Public single-proxy modules
+  uint internal constant MODULEID__INSTALLER = 1;
+  uint internal constant MODULEID__CONFIGURATOR = 2;
+  uint internal constant MODULEID__BVAULT = 3;
+  uint internal constant MODULEID__CROSS_LENDING = 4;
+  uint internal constant MODULEID__ISOLATE_LENDING = 5;
+  uint internal constant MODULEID__YIELD = 6;
+  uint internal constant MODULEID__FLASHLOAN = 7;
+  uint internal constant MODULEID__POOL_LENS = 8;
+
+  uint internal constant MAX_EXTERNAL_SINGLE_PROXY_MODULEID = 499_999;
+
+  // Public multi-proxy modules
+  uint internal constant MODULEID__BTOKEN = 500_000;
+  uint internal constant MODULEID__DTOKEN = 500_001;
+
+  uint internal constant MAX_EXTERNAL_MODULEID = 999_999;
+
+  // Internal modules
+  uint internal constant MODULEID__RISK_MANAGER = 1_000_000;
+
+  // Interest rate models
+  //   Default for new markets
+  uint internal constant MODULEID__IRM_DEFAULT = 2_000_000;
+  //   Testing-only
+  uint internal constant MODULEID__IRM_ZERO = 2_000_001;
+  uint internal constant MODULEID__IRM_FIXED = 2_000_002;
+  uint internal constant MODULEID__IRM_LINEAR = 2_000_100;
+  //   Classes
+  uint internal constant MODULEID__IRM_CLASS__STABLE = 2_000_500;
+  uint internal constant MODULEID__IRM_CLASS__MAJOR = 2_000_501;
+  uint internal constant MODULEID__IRM_CLASS__MIDCAP = 2_000_502;
+
+  // Pool params
   uint32 public constant INITIAL_POOL_ID = 1;
 
   // Asset params

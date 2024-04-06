@@ -48,7 +48,7 @@ library LiquidationLogic {
    */
   function executeCrossLiquidateERC20(
     InputTypes.ExecuteCrossLiquidateERC20Params memory params
-  ) external returns (uint256, uint256) {
+  ) internal returns (uint256, uint256) {
     LiquidateERC20LocalVars memory vars;
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
@@ -111,7 +111,7 @@ library LiquidationLogic {
     InterestLogic.updateInterestRates(poolData, debtAssetData, vars.actualDebtToLiquidate, 0);
 
     // Transfers the debt asset being repaid to the vault, where the liquidity is kept
-    VaultLogic.erc20TransferInLiquidity(debtAssetData, msg.sender, vars.actualDebtToLiquidate);
+    VaultLogic.erc20TransferInLiquidity(debtAssetData, params.msgSender, vars.actualDebtToLiquidate);
 
     // Whether transfer the liquidated collateral or supplied as new collateral to liquidator
     if (params.supplyAsCollateral) {
@@ -124,7 +124,7 @@ library LiquidationLogic {
     VaultLogic.accountCheckAndSetSuppliedAsset(poolData, collateralAssetData, params.user);
 
     emit Events.CrossLiquidateERC20(
-      msg.sender,
+      params.msgSender,
       params.user,
       params.collateralAsset,
       params.debtAsset,
@@ -152,7 +152,7 @@ library LiquidationLogic {
    */
   function executeCrossLiquidateERC721(
     InputTypes.ExecuteCrossLiquidateERC721Params memory params
-  ) external returns (uint256, uint256) {
+  ) internal returns (uint256, uint256) {
     LiquidateERC721LocalVars memory vars;
 
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
@@ -211,7 +211,7 @@ library LiquidationLogic {
     InterestLogic.updateInterestRates(poolData, debtAssetData, vars.actualDebtToLiquidate, 0);
 
     // Transfers the debt asset being repaid to the vault, where the liquidity is kept
-    VaultLogic.erc20TransferInLiquidity(debtAssetData, msg.sender, vars.actualDebtToLiquidate);
+    VaultLogic.erc20TransferInLiquidity(debtAssetData, params.msgSender, vars.actualDebtToLiquidate);
 
     // Whether transfer the liquidated collateral or supplied as new collateral to liquidator
     if (params.supplyAsCollateral) {
@@ -224,7 +224,7 @@ library LiquidationLogic {
     VaultLogic.accountCheckAndSetSuppliedAsset(poolData, collateralAssetData, params.user);
 
     emit Events.CrossLiquidateERC721(
-      msg.sender,
+      params.msgSender,
       params.user,
       params.collateralAsset,
       params.collateralTokenIds,
@@ -249,7 +249,7 @@ library LiquidationLogic {
     // update rates before transfer out collateral to liquidator
     InterestLogic.updateInterestRates(poolData, collateralAssetData, 0, vars.actualCollateralToLiquidate);
 
-    VaultLogic.erc20TransferOutLiquidity(collateralAssetData, msg.sender, vars.actualCollateralToLiquidate);
+    VaultLogic.erc20TransferOutLiquidity(collateralAssetData, params.msgSender, vars.actualCollateralToLiquidate);
   }
 
   /**
@@ -264,10 +264,15 @@ library LiquidationLogic {
     // no need to update the interest rate, cos the total suplly not changed
 
     // transfer the equivalent amount between liquidator and borrower
-    VaultLogic.erc20TransferCrossSupply(collateralAssetData, params.user, msg.sender, vars.actualCollateralToLiquidate);
+    VaultLogic.erc20TransferCrossSupply(
+      collateralAssetData,
+      params.user,
+      params.msgSender,
+      vars.actualCollateralToLiquidate
+    );
 
     // If the collateral is supplied at first we need set the supply flag
-    VaultLogic.accountCheckAndSetSuppliedAsset(poolData, collateralAssetData, msg.sender);
+    VaultLogic.accountCheckAndSetSuppliedAsset(poolData, collateralAssetData, params.msgSender);
   }
 
   /**
@@ -410,7 +415,7 @@ library LiquidationLogic {
     // Burn the equivalent amount of collateral, sending the underlying to the liquidator
     VaultLogic.erc721DecreaseCrossSupply(collateralAssetData, params.user, params.collateralTokenIds);
 
-    VaultLogic.erc721TransferOutLiquidity(collateralAssetData, msg.sender, params.collateralTokenIds);
+    VaultLogic.erc721TransferOutLiquidity(collateralAssetData, params.msgSender, params.collateralTokenIds);
   }
 
   /**
@@ -421,10 +426,10 @@ library LiquidationLogic {
     DataTypes.AssetData storage collateralAssetData,
     InputTypes.ExecuteCrossLiquidateERC721Params memory params
   ) internal {
-    VaultLogic.erc721TransferCrossSupply(collateralAssetData, params.user, msg.sender, params.collateralTokenIds);
+    VaultLogic.erc721TransferCrossSupply(collateralAssetData, params.user, params.msgSender, params.collateralTokenIds);
 
     // If the collateral is supplied at first we need set the supply flag
-    VaultLogic.accountCheckAndSetSuppliedAsset(poolData, collateralAssetData, msg.sender);
+    VaultLogic.accountCheckAndSetSuppliedAsset(poolData, collateralAssetData, params.msgSender);
   }
 
   struct CalculateDebtAmountFromERC721CollateralLocalVars {

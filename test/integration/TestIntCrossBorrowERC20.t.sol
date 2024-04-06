@@ -95,7 +95,7 @@ contract TestIntCrossBorrowERC20 is TestWithCrossAction {
     prepareWETH(tsBorrower1);
     prepareCrossBAYC(tsBorrower1);
 
-    (, , uint256[] memory groupsAvailableBorrowInBase) = tsPoolManager.getUserAccountDebtData(
+    (, , uint256[] memory groupsAvailableBorrowInBase) = tsPoolLens.getUserAccountDebtData(
       address(tsBorrower1),
       tsCommonPoolId
     );

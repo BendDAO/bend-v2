@@ -42,7 +42,7 @@ abstract contract TestWithCrossAction is TestWithBaseAction {
     if (revertMessage.length > 0) {
       vm.expectRevert(revertMessage);
       tsHEVM.prank(sender);
-      tsPoolManager.crossBorrowERC20(poolId, asset, groups, amounts);
+      tsCrossLending.crossBorrowERC20(poolId, asset, groups, amounts);
     } else {
       // fetch contract data
       TestContractData memory dataBefore = getContractData(sender, poolId, asset, Constants.ASSET_TYPE_ERC20);
@@ -50,7 +50,7 @@ abstract contract TestWithCrossAction is TestWithBaseAction {
       // send tx
       if (_debugFlag) console.log('actionCrossBorrowERC20', 'sendtx');
       tsHEVM.prank(sender);
-      tsPoolManager.crossBorrowERC20(poolId, asset, groups, amounts);
+      tsCrossLending.crossBorrowERC20(poolId, asset, groups, amounts);
       uint256 txTimestamp = block.timestamp;
 
       // fetch contract data
@@ -80,7 +80,7 @@ abstract contract TestWithCrossAction is TestWithBaseAction {
     if (revertMessage.length > 0) {
       vm.expectRevert(revertMessage);
       tsHEVM.prank(sender);
-      tsPoolManager.crossRepayERC20(poolId, asset, groups, amounts);
+      tsCrossLending.crossRepayERC20(poolId, asset, groups, amounts);
     } else {
       // fetch contract data
       TestContractData memory dataBefore = getContractData(sender, poolId, asset, Constants.ASSET_TYPE_ERC20);
@@ -88,7 +88,7 @@ abstract contract TestWithCrossAction is TestWithBaseAction {
       // send tx
       if (_debugFlag) console.log('actionCrossRepayERC20', 'sendtx');
       tsHEVM.prank(sender);
-      tsPoolManager.crossRepayERC20(poolId, asset, groups, amounts);
+      tsCrossLending.crossRepayERC20(poolId, asset, groups, amounts);
       uint256 txTimestamp = block.timestamp;
 
       // fetch contract data
@@ -121,7 +121,7 @@ abstract contract TestWithCrossAction is TestWithBaseAction {
     if (revertMessage.length > 0) {
       vm.expectRevert(revertMessage);
       tsHEVM.prank(sender);
-      tsPoolManager.crossLiquidateERC20(poolId, user, collateralAsset, debtAsset, debtToCover, supplyAsCollateral);
+      tsCrossLending.crossLiquidateERC20(poolId, user, collateralAsset, debtAsset, debtToCover, supplyAsCollateral);
     } else {
       // fetch contract data
       // liquidator & collateral
@@ -140,7 +140,7 @@ abstract contract TestWithCrossAction is TestWithBaseAction {
       // send tx
       if (_debugFlag) console.log('actionCrossLiquidateERC20', 'sendtx');
       tsHEVM.prank(sender);
-      tsPoolManager.crossLiquidateERC20(poolId, user, collateralAsset, debtAsset, debtToCover, supplyAsCollateral);
+      tsCrossLending.crossLiquidateERC20(poolId, user, collateralAsset, debtAsset, debtToCover, supplyAsCollateral);
       uint256 txTimestamp = block.timestamp;
 
       // fetch contract data
@@ -244,7 +244,7 @@ abstract contract TestWithCrossAction is TestWithBaseAction {
     if (revertMessage.length > 0) {
       vm.expectRevert(revertMessage);
       tsHEVM.prank(sender);
-      tsPoolManager.crossLiquidateERC721(poolId, user, collateralAsset, tokenIds, debtAsset, supplyAsCollateral);
+      tsCrossLending.crossLiquidateERC721(poolId, user, collateralAsset, tokenIds, debtAsset, supplyAsCollateral);
     } else {
       // fetch contract data
       // liquidator & collateral
@@ -268,7 +268,7 @@ abstract contract TestWithCrossAction is TestWithBaseAction {
       // send tx
       if (_debugFlag) console.log('actionCrossLiquidateERC721', 'sendtx');
       tsHEVM.prank(sender);
-      tsPoolManager.crossLiquidateERC721(poolId, user, collateralAsset, tokenIds, debtAsset, supplyAsCollateral);
+      tsCrossLending.crossLiquidateERC721(poolId, user, collateralAsset, tokenIds, debtAsset, supplyAsCollateral);
       uint256 txTimestamp = block.timestamp;
 
       // fetch contract data

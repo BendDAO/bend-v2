@@ -17,7 +17,7 @@ import {VaultLogic} from './VaultLogic.sol';
 import {ValidateLogic} from './ValidateLogic.sol';
 
 library FlashLoanLogic {
-  function executeFlashLoanERC721(InputTypes.ExecuteFlashLoanERC721Params memory inputParams) public {
+  function executeFlashLoanERC721(InputTypes.ExecuteFlashLoanERC721Params memory inputParams) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[inputParams.poolId];
 
@@ -37,7 +37,7 @@ library FlashLoanLogic {
         assetData,
         inputParams.nftTokenIds[i]
       );
-      require(tokenData.owner == msg.sender, Errors.INVALID_TOKEN_OWNER);
+      require(tokenData.owner == inputParams.msgSender, Errors.INVALID_TOKEN_OWNER);
     }
 
     // step 1: moving underlying asset forward to receiver contract
@@ -51,7 +51,7 @@ library FlashLoanLogic {
     bool execOpRet = receiver.executeOperationERC721(
       inputParams.nftAssets,
       inputParams.nftTokenIds,
-      msg.sender,
+      inputParams.msgSender,
       address(this),
       inputParams.params
     );
@@ -61,7 +61,7 @@ library FlashLoanLogic {
     VaultLogic.erc721TransferInOnFlashLoan(inputParams.receiverAddress, inputParams.nftAssets, inputParams.nftTokenIds);
 
     emit Events.FlashLoanERC721(
-      msg.sender,
+      inputParams.msgSender,
       inputParams.nftAssets,
       inputParams.nftTokenIds,
       inputParams.receiverAddress

@@ -85,7 +85,7 @@ contract TestIntCrossNativeToken is TestWithPrepare {
     repayGroups2[0] = tsLowRateGroupId;
 
     uint256[] memory repayAmounts = new uint256[](1);
-    (, repayAmounts[0], , ) = tsPoolManager.getUserAssetGroupData(
+    (, repayAmounts[0], , ) = tsPoolLens.getUserAssetGroupData(
       address(tsBorrower1),
       tsCommonPoolId,
       address(tsWETH),

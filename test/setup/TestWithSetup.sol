@@ -6,6 +6,7 @@ import {TransparentUpgradeableProxy} from '@openzeppelin/contracts/proxy/transpa
 import {ProxyAdmin} from '@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
+import {Constants} from 'src/libraries/helpers/Constants.sol';
 import {WadRayMath} from 'src/libraries/math/WadRayMath.sol';
 
 import {IWETH} from 'src/interfaces/IWETH.sol';
@@ -16,6 +17,15 @@ import {PriceOracle} from 'src/PriceOracle.sol';
 import {DefaultInterestRateModel} from 'src/irm/DefaultInterestRateModel.sol';
 import {PoolManager} from 'src/PoolManager.sol';
 import {YieldEthStaking} from 'src/YieldEthStaking.sol';
+
+import {Installer} from 'src/modules/Installer.sol';
+import {Configurator} from 'src/modules/Configurator.sol';
+import {BVault} from 'src/modules/BVault.sol';
+import {CrossLending} from 'src/modules/CrossLending.sol';
+import {IsolateLending} from 'src/modules/IsolateLending.sol';
+import {Yield} from 'src/modules/Yield.sol';
+import {PoolLens} from 'src/modules/PoolLens.sol';
+import {FlashLoan} from 'src/modules/FlashLoan.sol';
 
 import {MockERC20} from 'test/mocks/MockERC20.sol';
 import {MockERC721} from 'test/mocks/MockERC721.sol';
@@ -65,6 +75,15 @@ abstract contract TestWithSetup is TestWithUtils {
   PriceOracle public tsPriceOracle;
   PoolManager public tsPoolManager;
   YieldEthStaking public tsYieldEthStaking;
+
+  Installer public tsInstaller;
+  Configurator public tsConfigurator;
+  BVault public tsBVault;
+  CrossLending public tsCrossLending;
+  IsolateLending public tsIsolateLending;
+  Yield public tsYield;
+  PoolLens tsPoolLens;
+  FlashLoan tsFlashLoan;
 
   uint32 public tsCommonPoolId;
   uint8 public tsLowRateGroupId;
@@ -155,6 +174,13 @@ abstract contract TestWithSetup is TestWithUtils {
     tsAclManager = ACLManager(payable(address(aclManagerProxy)));
     tsAddressProvider.setACLManager(address(tsAclManager));
 
+    // set acl mananger
+    tsHEVM.startPrank(tsAclAdmin);
+    tsAclManager.addPoolAdmin(tsPoolAdmin);
+    tsAclManager.addEmergencyAdmin(tsEmergencyAdmin);
+    tsAclManager.addOracleAdmin(tsOracleAdmin);
+    tsHEVM.stopPrank();
+
     /// Price Oracle
     PriceOracle priceOracleImpl = new PriceOracle();
     TransparentUpgradeableProxy priceOracleProxy = new TransparentUpgradeableProxy(
@@ -173,13 +199,38 @@ abstract contract TestWithSetup is TestWithUtils {
     tsAddressProvider.setPriceOracle(address(tsPriceOracle));
 
     // Pool Manager
-    PoolManager poolManagerImpl = new PoolManager();
-    TransparentUpgradeableProxy poolManagerProxy = new TransparentUpgradeableProxy(
-      address(poolManagerImpl),
-      address(tsProxyAdmin),
-      abi.encodeWithSelector(poolManagerImpl.initialize.selector, address(tsAddressProvider))
-    );
-    tsPoolManager = PoolManager(payable(address(poolManagerProxy)));
+    bytes32 gitCommit = bytes32('1');
+    Installer tsModInstallerImpl = new Installer(gitCommit);
+    tsPoolManager = new PoolManager(address(tsAddressProvider), address(tsModInstallerImpl));
+    tsInstaller = Installer(tsPoolManager.moduleIdToProxy(Constants.MODULEID__INSTALLER));
+
+    Configurator tsConfiguratorImpl = new Configurator(gitCommit);
+    BVault tsVaultImpl = new BVault(gitCommit);
+    CrossLending tsCrossLendingImpl = new CrossLending(gitCommit);
+    IsolateLending tsIsolateLendingImpl = new IsolateLending(gitCommit);
+    Yield tsYieldImpl = new Yield(gitCommit);
+    PoolLens tsPoolLensImpl = new PoolLens(gitCommit);
+    FlashLoan tsFlashLoanImpl = new FlashLoan(gitCommit);
+
+    address[] memory modules = new address[](7);
+    modules[0] = address(tsConfiguratorImpl);
+    modules[1] = address(tsVaultImpl);
+    modules[2] = address(tsCrossLendingImpl);
+    modules[3] = address(tsIsolateLendingImpl);
+    modules[4] = address(tsYieldImpl);
+    modules[5] = address(tsPoolLensImpl);
+    modules[6] = address(tsFlashLoanImpl);
+    tsHEVM.prank(tsPoolAdmin);
+    tsInstaller.installModules(modules);
+
+    tsConfigurator = Configurator(tsPoolManager.moduleIdToProxy(Constants.MODULEID__CONFIGURATOR));
+    tsBVault = BVault(tsPoolManager.moduleIdToProxy(Constants.MODULEID__BVAULT));
+    tsCrossLending = CrossLending(tsPoolManager.moduleIdToProxy(Constants.MODULEID__CROSS_LENDING));
+    tsIsolateLending = IsolateLending(tsPoolManager.moduleIdToProxy(Constants.MODULEID__ISOLATE_LENDING));
+    tsYield = Yield(tsPoolManager.moduleIdToProxy(Constants.MODULEID__YIELD));
+    tsPoolLens = PoolLens(tsPoolManager.moduleIdToProxy(Constants.MODULEID__POOL_LENS));
+    tsFlashLoan = FlashLoan(tsPoolManager.moduleIdToProxy(Constants.MODULEID__FLASHLOAN));
+
     tsAddressProvider.setPoolManager(address(tsPoolManager));
 
     // YieldEthStaking
@@ -222,13 +273,6 @@ abstract contract TestWithSetup is TestWithUtils {
       (8 * WadRayMath.RAY) / 100,
       (200 * WadRayMath.RAY) / 100
     );
-
-    // set acl mananger
-    tsHEVM.startPrank(tsAclAdmin);
-    tsAclManager.addPoolAdmin(tsPoolAdmin);
-    tsAclManager.addEmergencyAdmin(tsEmergencyAdmin);
-    tsAclManager.addOracleAdmin(tsOracleAdmin);
-    tsHEVM.stopPrank();
 
     // set price oracle
     tsHEVM.startPrank(tsOracleAdmin);
@@ -384,80 +428,80 @@ abstract contract TestWithSetup is TestWithUtils {
   function initCommonPools() internal {
     tsHEVM.startPrank(tsPoolAdmin);
 
-    tsCommonPoolId = tsPoolManager.createPool('Common Pool');
+    tsCommonPoolId = tsConfigurator.createPool('Common Pool');
 
     tsLowRateGroupId = 1;
     tsMiddleRateGroupId = 2;
     tsHighRateGroupId = 3;
-    tsPoolManager.addPoolGroup(tsCommonPoolId, tsLowRateGroupId);
-    tsPoolManager.addPoolGroup(tsCommonPoolId, tsMiddleRateGroupId);
-    tsPoolManager.addPoolGroup(tsCommonPoolId, tsHighRateGroupId);
+    tsConfigurator.addPoolGroup(tsCommonPoolId, tsLowRateGroupId);
+    tsConfigurator.addPoolGroup(tsCommonPoolId, tsMiddleRateGroupId);
+    tsConfigurator.addPoolGroup(tsCommonPoolId, tsHighRateGroupId);
 
     // asset some erc20 assets
-    tsPoolManager.addAssetERC20(tsCommonPoolId, address(tsWETH));
-    tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsWETH), 8050, 8300, 500);
-    tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsWETH), 2000);
-    tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsWETH), tsLowRateGroupId);
-    tsPoolManager.setAssetActive(tsCommonPoolId, address(tsWETH), true);
-    tsPoolManager.setAssetBorrowing(tsCommonPoolId, address(tsWETH), true);
+    tsConfigurator.addAssetERC20(tsCommonPoolId, address(tsWETH));
+    tsConfigurator.setAssetCollateralParams(tsCommonPoolId, address(tsWETH), 8050, 8300, 500);
+    tsConfigurator.setAssetProtocolFee(tsCommonPoolId, address(tsWETH), 2000);
+    tsConfigurator.setAssetClassGroup(tsCommonPoolId, address(tsWETH), tsLowRateGroupId);
+    tsConfigurator.setAssetActive(tsCommonPoolId, address(tsWETH), true);
+    tsConfigurator.setAssetBorrowing(tsCommonPoolId, address(tsWETH), true);
 
-    tsPoolManager.addAssetERC20(tsCommonPoolId, address(tsDAI));
-    tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsDAI), 7700, 8000, 500);
-    tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsDAI), 2000);
-    tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsDAI), tsLowRateGroupId);
-    tsPoolManager.setAssetActive(tsCommonPoolId, address(tsDAI), true);
-    tsPoolManager.setAssetBorrowing(tsCommonPoolId, address(tsDAI), true);
+    tsConfigurator.addAssetERC20(tsCommonPoolId, address(tsDAI));
+    tsConfigurator.setAssetCollateralParams(tsCommonPoolId, address(tsDAI), 7700, 8000, 500);
+    tsConfigurator.setAssetProtocolFee(tsCommonPoolId, address(tsDAI), 2000);
+    tsConfigurator.setAssetClassGroup(tsCommonPoolId, address(tsDAI), tsLowRateGroupId);
+    tsConfigurator.setAssetActive(tsCommonPoolId, address(tsDAI), true);
+    tsConfigurator.setAssetBorrowing(tsCommonPoolId, address(tsDAI), true);
 
-    tsPoolManager.addAssetERC20(tsCommonPoolId, address(tsUSDT));
-    tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsUSDT), 7400, 7600, 450);
-    tsPoolManager.setAssetProtocolFee(tsCommonPoolId, address(tsUSDT), 2000);
-    tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsUSDT), tsLowRateGroupId);
-    tsPoolManager.setAssetActive(tsCommonPoolId, address(tsUSDT), true);
-    tsPoolManager.setAssetBorrowing(tsCommonPoolId, address(tsUSDT), true);
+    tsConfigurator.addAssetERC20(tsCommonPoolId, address(tsUSDT));
+    tsConfigurator.setAssetCollateralParams(tsCommonPoolId, address(tsUSDT), 7400, 7600, 450);
+    tsConfigurator.setAssetProtocolFee(tsCommonPoolId, address(tsUSDT), 2000);
+    tsConfigurator.setAssetClassGroup(tsCommonPoolId, address(tsUSDT), tsLowRateGroupId);
+    tsConfigurator.setAssetActive(tsCommonPoolId, address(tsUSDT), true);
+    tsConfigurator.setAssetBorrowing(tsCommonPoolId, address(tsUSDT), true);
 
     // add interest group to assets
-    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsWETH), tsLowRateGroupId, address(tsLowRateIRM));
-    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsWETH), tsHighRateGroupId, address(tsHighRateIRM));
+    tsConfigurator.addAssetGroup(tsCommonPoolId, address(tsWETH), tsLowRateGroupId, address(tsLowRateIRM));
+    tsConfigurator.addAssetGroup(tsCommonPoolId, address(tsWETH), tsHighRateGroupId, address(tsHighRateIRM));
 
-    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsDAI), tsLowRateGroupId, address(tsLowRateIRM));
-    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsDAI), tsHighRateGroupId, address(tsHighRateIRM));
+    tsConfigurator.addAssetGroup(tsCommonPoolId, address(tsDAI), tsLowRateGroupId, address(tsLowRateIRM));
+    tsConfigurator.addAssetGroup(tsCommonPoolId, address(tsDAI), tsHighRateGroupId, address(tsHighRateIRM));
 
-    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsUSDT), tsLowRateGroupId, address(tsLowRateIRM));
-    tsPoolManager.addAssetGroup(tsCommonPoolId, address(tsUSDT), tsHighRateGroupId, address(tsHighRateIRM));
+    tsConfigurator.addAssetGroup(tsCommonPoolId, address(tsUSDT), tsLowRateGroupId, address(tsLowRateIRM));
+    tsConfigurator.addAssetGroup(tsCommonPoolId, address(tsUSDT), tsHighRateGroupId, address(tsHighRateIRM));
 
     // add some nft assets
-    tsPoolManager.addAssetERC721(tsCommonPoolId, address(tsWPUNK));
-    tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsWPUNK), 6000, 8000, 1000);
-    tsPoolManager.setAssetAuctionParams(tsCommonPoolId, address(tsWPUNK), 5000, 500, 2000, 1 days);
-    tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsWPUNK), tsLowRateGroupId);
-    tsPoolManager.setAssetActive(tsCommonPoolId, address(tsWPUNK), true);
+    tsConfigurator.addAssetERC721(tsCommonPoolId, address(tsWPUNK));
+    tsConfigurator.setAssetCollateralParams(tsCommonPoolId, address(tsWPUNK), 6000, 8000, 1000);
+    tsConfigurator.setAssetAuctionParams(tsCommonPoolId, address(tsWPUNK), 5000, 500, 2000, 1 days);
+    tsConfigurator.setAssetClassGroup(tsCommonPoolId, address(tsWPUNK), tsLowRateGroupId);
+    tsConfigurator.setAssetActive(tsCommonPoolId, address(tsWPUNK), true);
 
-    tsPoolManager.addAssetERC721(tsCommonPoolId, address(tsBAYC));
-    tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsBAYC), 6000, 8000, 1000);
-    tsPoolManager.setAssetAuctionParams(tsCommonPoolId, address(tsBAYC), 5000, 500, 2000, 1 days);
-    tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsBAYC), tsLowRateGroupId);
-    tsPoolManager.setAssetActive(tsCommonPoolId, address(tsBAYC), true);
+    tsConfigurator.addAssetERC721(tsCommonPoolId, address(tsBAYC));
+    tsConfigurator.setAssetCollateralParams(tsCommonPoolId, address(tsBAYC), 6000, 8000, 1000);
+    tsConfigurator.setAssetAuctionParams(tsCommonPoolId, address(tsBAYC), 5000, 500, 2000, 1 days);
+    tsConfigurator.setAssetClassGroup(tsCommonPoolId, address(tsBAYC), tsLowRateGroupId);
+    tsConfigurator.setAssetActive(tsCommonPoolId, address(tsBAYC), true);
 
-    tsPoolManager.addAssetERC721(tsCommonPoolId, address(tsMAYC));
-    tsPoolManager.setAssetCollateralParams(tsCommonPoolId, address(tsMAYC), 5000, 8000, 1000);
-    tsPoolManager.setAssetAuctionParams(tsCommonPoolId, address(tsMAYC), 5000, 500, 2000, 1 days);
-    tsPoolManager.setAssetClassGroup(tsCommonPoolId, address(tsMAYC), tsHighRateGroupId);
-    tsPoolManager.setAssetActive(tsCommonPoolId, address(tsMAYC), true);
+    tsConfigurator.addAssetERC721(tsCommonPoolId, address(tsMAYC));
+    tsConfigurator.setAssetCollateralParams(tsCommonPoolId, address(tsMAYC), 5000, 8000, 1000);
+    tsConfigurator.setAssetAuctionParams(tsCommonPoolId, address(tsMAYC), 5000, 500, 2000, 1 days);
+    tsConfigurator.setAssetClassGroup(tsCommonPoolId, address(tsMAYC), tsHighRateGroupId);
+    tsConfigurator.setAssetActive(tsCommonPoolId, address(tsMAYC), true);
 
     // yield
-    tsPoolManager.setPoolYieldEnable(tsCommonPoolId, true);
+    tsConfigurator.setPoolYieldEnable(tsCommonPoolId, true);
 
-    tsPoolManager.setAssetYieldEnable(tsCommonPoolId, address(tsWETH), true);
-    tsPoolManager.setAssetYieldCap(tsCommonPoolId, address(tsWETH), 2000);
-    tsPoolManager.setAssetYieldRate(tsCommonPoolId, address(tsWETH), address(tsYieldRateIRM));
-    tsPoolManager.setStakerYieldCap(tsCommonPoolId, address(tsPoolManager), address(tsWETH), 2000);
-    tsPoolManager.setStakerYieldCap(tsCommonPoolId, address(tsStaker1), address(tsWETH), 2000);
+    tsConfigurator.setAssetYieldEnable(tsCommonPoolId, address(tsWETH), true);
+    tsConfigurator.setAssetYieldCap(tsCommonPoolId, address(tsWETH), 2000);
+    tsConfigurator.setAssetYieldRate(tsCommonPoolId, address(tsWETH), address(tsYieldRateIRM));
+    tsConfigurator.setStakerYieldCap(tsCommonPoolId, address(tsPoolManager), address(tsWETH), 2000);
+    tsConfigurator.setStakerYieldCap(tsCommonPoolId, address(tsStaker1), address(tsWETH), 2000);
 
-    tsPoolManager.setAssetYieldEnable(tsCommonPoolId, address(tsDAI), true);
-    tsPoolManager.setAssetYieldCap(tsCommonPoolId, address(tsDAI), 2000);
-    tsPoolManager.setAssetYieldRate(tsCommonPoolId, address(tsDAI), address(tsYieldRateIRM));
-    tsPoolManager.setStakerYieldCap(tsCommonPoolId, address(tsPoolManager), address(tsDAI), 2000);
-    tsPoolManager.setStakerYieldCap(tsCommonPoolId, address(tsStaker2), address(tsDAI), 2000);
+    tsConfigurator.setAssetYieldEnable(tsCommonPoolId, address(tsDAI), true);
+    tsConfigurator.setAssetYieldCap(tsCommonPoolId, address(tsDAI), 2000);
+    tsConfigurator.setAssetYieldRate(tsCommonPoolId, address(tsDAI), address(tsYieldRateIRM));
+    tsConfigurator.setStakerYieldCap(tsCommonPoolId, address(tsPoolManager), address(tsDAI), 2000);
+    tsConfigurator.setStakerYieldCap(tsCommonPoolId, address(tsStaker2), address(tsDAI), 2000);
 
     tsHEVM.stopPrank();
   }
@@ -465,7 +509,7 @@ abstract contract TestWithSetup is TestWithUtils {
   function initYieldEthStaking() internal {
     tsHEVM.startPrank(tsPoolAdmin);
 
-    tsPoolManager.setStakerYieldCap(tsCommonPoolId, address(tsYieldEthStaking), address(tsWETH), 2000);
+    tsConfigurator.setStakerYieldCap(tsCommonPoolId, address(tsYieldEthStaking), address(tsWETH), 2000);
 
     tsYieldEthStaking.setNftActive(address(tsBAYC), true);
     tsYieldEthStaking.setNftStakeParams(address(tsBAYC), 50000, 9000);

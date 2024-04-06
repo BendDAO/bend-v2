@@ -79,8 +79,8 @@ contract TestIntFlashLoanERC721 is TestWithBaseAction {
     TestCaseLocalVars memory testVars;
 
     tsHEVM.startPrank(tsPoolAdmin);
-    tsPoolManager.setAssetFlashLoan(tsCommonPoolId, address(tsBAYC), true);
-    tsPoolManager.setAssetFlashLoan(tsCommonPoolId, address(tsMAYC), true);
+    tsConfigurator.setAssetFlashLoan(tsCommonPoolId, address(tsBAYC), true);
+    tsConfigurator.setAssetFlashLoan(tsCommonPoolId, address(tsMAYC), true);
     tsHEVM.stopPrank();
 
     prepareNftTokens(testVars, false);
@@ -93,8 +93,8 @@ contract TestIntFlashLoanERC721 is TestWithBaseAction {
     TestCaseLocalVars memory testVars;
 
     tsHEVM.startPrank(tsPoolAdmin);
-    tsPoolManager.setAssetFlashLoan(tsCommonPoolId, address(tsBAYC), true);
-    tsPoolManager.setAssetFlashLoan(tsCommonPoolId, address(tsMAYC), true);
+    tsConfigurator.setAssetFlashLoan(tsCommonPoolId, address(tsBAYC), true);
+    tsConfigurator.setAssetFlashLoan(tsCommonPoolId, address(tsMAYC), true);
     tsHEVM.stopPrank();
 
     prepareNftTokens(testVars, false);
@@ -113,8 +113,8 @@ contract TestIntFlashLoanERC721 is TestWithBaseAction {
     TestCaseLocalVars memory testVars;
 
     tsHEVM.startPrank(tsPoolAdmin);
-    tsPoolManager.setAssetFlashLoan(tsCommonPoolId, address(tsBAYC), true);
-    tsPoolManager.setAssetFlashLoan(tsCommonPoolId, address(tsMAYC), true);
+    tsConfigurator.setAssetFlashLoan(tsCommonPoolId, address(tsBAYC), true);
+    tsConfigurator.setAssetFlashLoan(tsCommonPoolId, address(tsMAYC), true);
     tsHEVM.stopPrank();
 
     prepareNftTokens(testVars, true);

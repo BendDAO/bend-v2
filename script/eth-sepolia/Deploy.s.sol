@@ -6,8 +6,6 @@ import {ProxyAdmin} from '@openzeppelin/contracts/proxy/transparent/ProxyAdmin.s
 
 import {ACLManager} from 'src/ACLManager.sol';
 import {PriceOracle} from 'src/PriceOracle.sol';
-import {PoolManager} from 'src/PoolManager.sol';
-import {YieldEthStaking} from 'src/YieldEthStaking.sol';
 
 import {Configured, ConfigLib, Config} from 'config/Configured.sol';
 
@@ -18,8 +16,6 @@ contract Deploy is Script, Configured {
   address internal deployer;
   ACLManager internal aclManager;
   PriceOracle internal priceOracle;
-  PoolManager internal poolManager;
-  YieldEthStaking internal yieldEthStaking;
 
   function run() external {
     _initConfig();
@@ -72,35 +68,5 @@ contract Deploy is Script, Configured {
       )
     );
     priceOracle = PriceOracle(address(priceOracleProxy));
-
-    // Pool Manager
-    PoolManager poolManagerImpl = new PoolManager();
-    TransparentUpgradeableProxy poolManagerProxy = new TransparentUpgradeableProxy(
-      address(poolManagerImpl),
-      address(proxyAdmin),
-      abi.encodeWithSelector(
-        poolManagerImpl.initialize.selector,
-        address(wNative),
-        address(aclManager),
-        address(priceOracle),
-        treasury
-      )
-    );
-    poolManager = PoolManager(payable(poolManagerProxy));
-
-    // YieldEthStaking
-    YieldEthStaking yieldEthStakingImpl = new YieldEthStaking();
-    TransparentUpgradeableProxy yieldEthStakingProxy = new TransparentUpgradeableProxy(
-      address(yieldEthStakingImpl),
-      address(proxyAdmin),
-      abi.encodeWithSelector(
-        yieldEthStakingImpl.initialize.selector,
-        address(poolManager),
-        address(weth),
-        address(stETH),
-        address(unstETH)
-      )
-    );
-    yieldEthStaking = YieldEthStaking(payable(yieldEthStakingProxy));
   }
 }

@@ -2,13 +2,19 @@
 pragma solidity ^0.8.19;
 
 library Events {
+  // Modeuls Events
+  event ProxyCreated(address indexed proxy, uint moduleId);
+  event InstallerSetUpgradeAdmin(address indexed newUpgradeAdmin);
+  event InstallerSetGovernorAdmin(address indexed newGovernorAdmin);
+  event InstallerInstallModule(uint indexed moduleId, address indexed moduleImpl, bytes32 moduleGitCommit);
+
   /* Oracle Events */
   event AssetAggregatorUpdated(address indexed asset, address aggregator);
   event BendNFTOracleUpdated(address bendNFTOracle);
 
   /* Pool Events */
-  event CreatePool(address indexed sender, uint32 indexed poolId, string name);
-  event DeletePool(address indexed sender, uint32 indexed poolId);
+  event CreatePool(uint32 indexed poolId, string name);
+  event DeletePool(uint32 indexed poolId);
 
   event AddPoolGroup(uint32 indexed poolId, uint8 groupId);
   event RemovePoolGroup(uint32 indexed poolId, uint8 groupId);

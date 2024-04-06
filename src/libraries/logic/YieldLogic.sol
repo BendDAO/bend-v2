@@ -29,10 +29,10 @@ library YieldLogic {
    * @notice Implements the borrow for yield feature.
    * It allows whitelisted staker to draw liquidity from the protocol without any collateral.
    */
-  function executeYieldBorrowERC20(InputTypes.ExecuteYieldBorrowERC20Params memory params) public {
+  function executeYieldBorrowERC20(InputTypes.ExecuteYieldBorrowERC20Params memory params) internal {
     ExecuteYieldBorrowERC20LocalVars memory vars;
     if (params.isExternalCaller) {
-      vars.stakerAddr = msg.sender;
+      vars.stakerAddr = params.msgSender;
     } else {
       vars.stakerAddr = address(this);
     }
@@ -82,10 +82,10 @@ library YieldLogic {
    * @notice Implements the repay for yield feature.
    * It transfers the underlying back to the pool and clears the equivalent amount of debt.
    */
-  function executeYieldRepayERC20(InputTypes.ExecuteYieldRepayERC20Params memory params) public {
+  function executeYieldRepayERC20(InputTypes.ExecuteYieldRepayERC20Params memory params) internal {
     ExecuteYieldRepayERC20LocalVars memory vars;
     if (params.isExternalCaller) {
-      vars.stakerAddr = msg.sender;
+      vars.stakerAddr = params.msgSender;
     } else {
       vars.stakerAddr = address(this);
     }
@@ -116,7 +116,7 @@ library YieldLogic {
     emit Events.YieldRepayERC20(vars.stakerAddr, params.poolId, params.asset, params.amount);
   }
 
-  function executeYieldSetERC721TokenData(InputTypes.ExecuteYieldSetERC721TokenDataParams memory params) public {
+  function executeYieldSetERC721TokenData(InputTypes.ExecuteYieldSetERC721TokenDataParams memory params) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage nftAssetData = poolData.assetLookup[params.nftAsset];
@@ -129,7 +129,7 @@ library YieldLogic {
 
     address lockerAddr;
     if (params.isExternalCaller) {
-      lockerAddr = msg.sender;
+      lockerAddr = params.msgSender;
     } else {
       lockerAddr = address(this);
     }

@@ -24,7 +24,7 @@ contract TestIntYieldRepayERC20 is TestWithBaseAction {
     advanceTimes(365 days);
 
     // repay full
-    uint256 repayAmount = tsPoolManager.getYieldERC20BorrowBalance(tsCommonPoolId, address(tsWETH), address(tsStaker1));
+    uint256 repayAmount = tsPoolLens.getYieldERC20BorrowBalance(tsCommonPoolId, address(tsWETH), address(tsStaker1));
     assertGt(repayAmount, borrowAmount, 'yield balance should have interest');
 
     tsStaker1.approveERC20(address(tsWETH), type(uint256).max);

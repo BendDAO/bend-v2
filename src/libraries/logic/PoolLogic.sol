@@ -22,24 +22,24 @@ library PoolLogic {
   using WadRayMath for uint256;
 
   // check caller's permission
-  function checkCallerIsPoolAdmin(DataTypes.PoolStorage storage ps) internal view {
+  function checkCallerIsPoolAdmin(DataTypes.PoolStorage storage ps, address msgSender) internal view {
     IACLManager aclManager = IACLManager(IAddressProvider(ps.addressProvider).getACLManager());
-    require(aclManager.isPoolAdmin(msg.sender), Errors.CALLER_NOT_POOL_ADMIN);
+    require(aclManager.isPoolAdmin(msgSender), Errors.CALLER_NOT_POOL_ADMIN);
   }
 
-  function checkCallerIsEmergencyAdmin(DataTypes.PoolStorage storage ps) internal view {
+  function checkCallerIsEmergencyAdmin(DataTypes.PoolStorage storage ps, address msgSender) internal view {
     IACLManager aclManager = IACLManager(IAddressProvider(ps.addressProvider).getACLManager());
-    require(aclManager.isEmergencyAdmin(msg.sender), Errors.CALLER_NOT_EMERGENCY_ADMIN);
+    require(aclManager.isEmergencyAdmin(msgSender), Errors.CALLER_NOT_EMERGENCY_ADMIN);
   }
 
-  function checkCallerIsOracleAdmin(DataTypes.PoolStorage storage ps) internal view {
+  function checkCallerIsOracleAdmin(DataTypes.PoolStorage storage ps, address msgSender) internal view {
     IACLManager aclManager = IACLManager(IAddressProvider(ps.addressProvider).getACLManager());
-    require(aclManager.isOracleAdmin(msg.sender), Errors.CALLER_NOT_ORACLE_ADMIN);
+    require(aclManager.isOracleAdmin(msgSender), Errors.CALLER_NOT_ORACLE_ADMIN);
   }
 
-  function executeCollectFeeToTreasury(uint32 poolId, address[] calldata assets) external {
+  function executeCollectFeeToTreasury(address msgSender, uint32 poolId, address[] calldata assets) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
-    checkCallerIsPoolAdmin(ps);
+    checkCallerIsPoolAdmin(ps, msgSender);
 
     address treasuryAddress = IAddressProvider(ps.addressProvider).getTreasury();
     require(treasuryAddress != address(0), Errors.TREASURY_CANNOT_BE_ZERO);

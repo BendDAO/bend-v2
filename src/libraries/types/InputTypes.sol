@@ -3,18 +3,21 @@ pragma solidity ^0.8.19;
 
 library InputTypes {
   struct ExecuteDepositERC20Params {
+    address msgSender;
     uint32 poolId;
     address asset;
     uint256 amount;
   }
 
   struct ExecuteWithdrawERC20Params {
+    address msgSender;
     uint32 poolId;
     address asset;
     uint256 amount;
   }
 
   struct ExecuteDepositERC721Params {
+    address msgSender;
     uint32 poolId;
     address asset;
     uint256[] tokenIds;
@@ -22,6 +25,7 @@ library InputTypes {
   }
 
   struct ExecuteWithdrawERC721Params {
+    address msgSender;
     uint32 poolId;
     address asset;
     uint256[] tokenIds;
@@ -29,6 +33,7 @@ library InputTypes {
   }
 
   struct ExecuteSetERC721SupplyModeParams {
+    address msgSender;
     uint32 poolId;
     address asset;
     uint256[] tokenIds;
@@ -38,6 +43,7 @@ library InputTypes {
   // Cross Lending
 
   struct ExecuteCrossBorrowERC20Params {
+    address msgSender;
     uint32 poolId;
     address asset;
     uint8[] groups;
@@ -45,6 +51,7 @@ library InputTypes {
   }
 
   struct ExecuteCrossRepayERC20Params {
+    address msgSender;
     uint32 poolId;
     address asset;
     uint8[] groups;
@@ -52,6 +59,7 @@ library InputTypes {
   }
 
   struct ExecuteCrossLiquidateERC20Params {
+    address msgSender;
     uint32 poolId;
     address user;
     address collateralAsset;
@@ -61,6 +69,7 @@ library InputTypes {
   }
 
   struct ExecuteCrossLiquidateERC721Params {
+    address msgSender;
     uint32 poolId;
     address user;
     address collateralAsset;
@@ -72,6 +81,7 @@ library InputTypes {
   // Isolate Lending
 
   struct ExecuteIsolateBorrowParams {
+    address msgSender;
     uint32 poolId;
     address nftAsset;
     uint256[] nftTokenIds;
@@ -80,6 +90,7 @@ library InputTypes {
   }
 
   struct ExecuteIsolateRepayParams {
+    address msgSender;
     uint32 poolId;
     address nftAsset;
     uint256[] nftTokenIds;
@@ -88,6 +99,7 @@ library InputTypes {
   }
 
   struct ExecuteIsolateAuctionParams {
+    address msgSender;
     uint32 poolId;
     address nftAsset;
     uint256[] nftTokenIds;
@@ -96,6 +108,7 @@ library InputTypes {
   }
 
   struct ExecuteIsolateRedeemParams {
+    address msgSender;
     uint32 poolId;
     address nftAsset;
     uint256[] nftTokenIds;
@@ -103,6 +116,7 @@ library InputTypes {
   }
 
   struct ExecuteIsolateLiquidateParams {
+    address msgSender;
     uint32 poolId;
     address nftAsset;
     uint256[] nftTokenIds;
@@ -113,6 +127,7 @@ library InputTypes {
   // Yield
 
   struct ExecuteYieldBorrowERC20Params {
+    address msgSender;
     uint32 poolId;
     address asset;
     uint256 amount;
@@ -120,6 +135,7 @@ library InputTypes {
   }
 
   struct ExecuteYieldRepayERC20Params {
+    address msgSender;
     uint32 poolId;
     address asset;
     uint256 amount;
@@ -127,6 +143,7 @@ library InputTypes {
   }
 
   struct ExecuteYieldSetERC721TokenDataParams {
+    address msgSender;
     uint32 poolId;
     address nftAsset;
     uint256 tokenId;
@@ -137,6 +154,7 @@ library InputTypes {
 
   // Misc
   struct ExecuteFlashLoanERC721Params {
+    address msgSender;
     uint32 poolId;
     address[] nftAssets;
     uint256[] nftTokenIds;

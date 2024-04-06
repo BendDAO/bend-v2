@@ -9,6 +9,7 @@ import {ReentrancyGuardUpgradeable} from '@openzeppelin/contracts-upgradeable/se
 import {IAddressProvider} from './interfaces/IAddressProvider.sol';
 import {IACLManager} from './interfaces/IACLManager.sol';
 import {IPoolManager} from './interfaces/IPoolManager.sol';
+import {IYield} from './interfaces/IYield.sol';
 import {IPriceOracleGetter} from './interfaces/IPriceOracleGetter.sol';
 import {IWETH} from './interfaces/IWETH.sol';
 import {IStETH} from './interfaces/IStETH.sol';
@@ -56,6 +57,7 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
 
   IAddressProvider public addressProvider;
   IPoolManager public poolManager;
+  IYield public poolYield;
   IWETH public weth;
   IStETH public stETH;
   IUnstETH public unstETH;
@@ -90,6 +92,8 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
     unstETH = IUnstETH(unstETH_);
 
     poolManager = IPoolManager(addressProvider.getPoolManager());
+    poolYield = IYield(addressProvider.getPoolModuleProxy(Constants.MODULEID__YIELD));
+
     weth.approve(address(poolManager), type(uint256).max);
     stETH.approve(address(unstETH), type(uint256).max);
   }
@@ -153,7 +157,7 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
     require(nc.isActive, Errors.YIELD_ETH_NFT_NOT_ACTIVE);
 
     // check the nft ownership
-    (vars.nftOwner, vars.nftSupplyMode, vars.nftLockerAddr) = poolManager.getERC721TokenData(poolId, nft, tokenId);
+    (vars.nftOwner, vars.nftSupplyMode, vars.nftLockerAddr) = poolYield.getERC721TokenData(poolId, nft, tokenId);
     require(vars.nftOwner == msg.sender, Errors.INVALID_CALLER);
     require(vars.nftSupplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.INVALID_SUPPLY_MODE);
 
@@ -178,7 +182,7 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
     vars.debtShare = convertToDebtShares(poolId, borrowAmount);
 
     // borrow from lending pool
-    poolManager.yieldBorrowERC20(poolId, address(weth), borrowAmount);
+    poolYield.yieldBorrowERC20(poolId, address(weth), borrowAmount);
 
     // stake in lido and got the stETH
     vars.totalYieldBeforeSubmit = getTotalYield();
@@ -198,7 +202,7 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
     totalDebtShare += vars.debtShare;
     totalYieldShare += vars.yieldShare;
 
-    poolManager.yieldSetERC721TokenData(poolId, nft, tokenId, true, address(weth));
+    poolYield.yieldSetERC721TokenData(poolId, nft, tokenId, true, address(weth));
 
     // check hf
     uint256 hf = calculateHealthFactor(nft, nc, sd);
@@ -219,7 +223,7 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
     require(nc.isActive, Errors.YIELD_ETH_NFT_NOT_ACTIVE);
 
     // check the nft ownership
-    (vars.nftOwner, vars.nftSupplyMode, vars.nftLockerAddr) = poolManager.getERC721TokenData(poolId, nft, tokenId);
+    (vars.nftOwner, vars.nftSupplyMode, vars.nftLockerAddr) = poolYield.getERC721TokenData(poolId, nft, tokenId);
     require(vars.nftOwner == msg.sender || botAdmin == msg.sender, Errors.INVALID_CALLER);
     require(vars.nftSupplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.INVALID_SUPPLY_MODE);
     require(vars.nftLockerAddr == address(this), Errors.YIELD_ETH_LOCKER_NOT_SAME);
@@ -275,7 +279,7 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
     require(sd.poolId == poolId, Errors.YIELD_ETH_POOL_NOT_SAME);
 
     // check the nft ownership
-    (vars.nftOwner, vars.nftSupplyMode, vars.nftLockerAddr) = poolManager.getERC721TokenData(poolId, nft, tokenId);
+    (vars.nftOwner, vars.nftSupplyMode, vars.nftLockerAddr) = poolYield.getERC721TokenData(poolId, nft, tokenId);
     require(vars.nftOwner == msg.sender || botAdmin == msg.sender, Errors.INVALID_CALLER);
     require(vars.nftSupplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.INVALID_SUPPLY_MODE);
     require(vars.nftLockerAddr == address(this), Errors.YIELD_ETH_LOCKER_NOT_SAME);
@@ -315,9 +319,9 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
     }
 
     // repay lending pool
-    poolManager.yieldRepayERC20(poolId, address(weth), vars.nftDebt);
+    poolYield.yieldRepayERC20(poolId, address(weth), vars.nftDebt);
 
-    poolManager.yieldSetERC721TokenData(poolId, nft, tokenId, false, address(weth));
+    poolYield.yieldSetERC721TokenData(poolId, nft, tokenId, false, address(weth));
 
     // update shares
     totalDebtShare -= sd.debtShare;
@@ -330,7 +334,7 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
   /****************************************************************************/
 
   function getTotalDebt(uint32 poolId) public view returns (uint256) {
-    return poolManager.getYieldERC20BorrowBalance(poolId, address(weth), address(this));
+    return poolYield.getYieldERC20BorrowBalance(poolId, address(weth), address(this));
   }
 
   function getTotalYield() public view returns (uint256) {

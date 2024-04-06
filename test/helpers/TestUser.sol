@@ -7,6 +7,11 @@ import {ERC721} from '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 import {ERC721Holder} from '@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol';
 
 import 'src/PoolManager.sol';
+import 'src/modules/BVault.sol';
+import 'src/modules/CrossLending.sol';
+import 'src/modules/IsolateLending.sol';
+import 'src/modules/Yield.sol';
+import 'src/modules/FlashLoan.sol';
 
 import '@forge-std/console.sol';
 
@@ -14,11 +19,23 @@ contract TestUser is ERC721Holder {
   using SafeERC20 for ERC20;
 
   PoolManager internal _poolManager;
+  BVault internal _BVault;
+  CrossLending internal _crossLending;
+  IsolateLending internal _isolateLending;
+  Yield internal _yield;
+  FlashLoan internal _flashLoan;
+
   uint256 internal _uid;
   uint256[] internal _tokenIds;
 
   constructor(PoolManager poolManager_, uint256 uid_) {
     _poolManager = poolManager_;
+    _BVault = BVault(_poolManager.moduleIdToProxy(Constants.MODULEID__BVAULT));
+    _crossLending = CrossLending(_poolManager.moduleIdToProxy(Constants.MODULEID__CROSS_LENDING));
+    _isolateLending = IsolateLending(_poolManager.moduleIdToProxy(Constants.MODULEID__ISOLATE_LENDING));
+    _yield = Yield(_poolManager.moduleIdToProxy(Constants.MODULEID__YIELD));
+    _flashLoan = FlashLoan(_poolManager.moduleIdToProxy(Constants.MODULEID__FLASHLOAN));
+
     _uid = uid_;
     _tokenIds = new uint256[](3);
     for (uint i = 0; i < 3; i++) {
@@ -71,30 +88,30 @@ contract TestUser is ERC721Holder {
   function depositERC20(uint32 poolId, address asset, uint256 amount) public {
     if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
       uint256 sendVal = amount;
-      _poolManager.depositERC20{value: sendVal}(poolId, asset, amount);
+      _BVault.depositERC20{value: sendVal}(poolId, asset, amount);
     } else {
-      _poolManager.depositERC20(poolId, asset, amount);
+      _BVault.depositERC20(poolId, asset, amount);
     }
   }
 
   function withdrawERC20(uint32 poolId, address asset, uint256 amount) public {
-    _poolManager.withdrawERC20(poolId, asset, amount);
+    _BVault.withdrawERC20(poolId, asset, amount);
   }
 
   function depositERC721(uint32 poolId, address asset, uint256[] calldata tokenIds, uint8 supplyMode) public {
-    _poolManager.depositERC721(poolId, asset, tokenIds, supplyMode);
+    _BVault.depositERC721(poolId, asset, tokenIds, supplyMode);
   }
 
   function withdrawERC721(uint32 poolId, address asset, uint256[] calldata tokenIds, uint8 supplyMode) public {
-    _poolManager.withdrawERC721(poolId, asset, tokenIds, supplyMode);
+    _BVault.withdrawERC721(poolId, asset, tokenIds, supplyMode);
   }
 
   function setERC721SupplyMode(uint32 poolId, address asset, uint256[] calldata tokenIds, uint8 supplyMode) public {
-    _poolManager.setERC721SupplyMode(poolId, asset, tokenIds, supplyMode);
+    _BVault.setERC721SupplyMode(poolId, asset, tokenIds, supplyMode);
   }
 
   function crossBorrowERC20(uint32 poolId, address asset, uint8[] calldata groups, uint256[] calldata amounts) public {
-    _poolManager.crossBorrowERC20(poolId, asset, groups, amounts);
+    _crossLending.crossBorrowERC20(poolId, asset, groups, amounts);
   }
 
   function crossRepayERC20(uint32 poolId, address asset, uint8[] calldata groups, uint256[] calldata amounts) public {
@@ -103,9 +120,9 @@ contract TestUser is ERC721Holder {
       for (uint i = 0; i < amounts.length; i++) {
         sendVal += amounts[i];
       }
-      _poolManager.crossRepayERC20{value: sendVal}(poolId, asset, groups, amounts);
+      _crossLending.crossRepayERC20{value: sendVal}(poolId, asset, groups, amounts);
     } else {
-      _poolManager.crossRepayERC20(poolId, asset, groups, amounts);
+      _crossLending.crossRepayERC20(poolId, asset, groups, amounts);
     }
   }
 
@@ -116,7 +133,7 @@ contract TestUser is ERC721Holder {
     address asset,
     uint256[] calldata amounts
   ) public {
-    _poolManager.isolateBorrow(poolId, nftAsset, nftTokenIds, asset, amounts);
+    _isolateLending.isolateBorrow(poolId, nftAsset, nftTokenIds, asset, amounts);
   }
 
   function isolateRepay(
@@ -131,9 +148,9 @@ contract TestUser is ERC721Holder {
       for (uint i = 0; i < amounts.length; i++) {
         sendVal += amounts[i];
       }
-      _poolManager.isolateRepay{value: sendVal}(poolId, nftAsset, nftTokenIds, asset, amounts);
+      _isolateLending.isolateRepay{value: sendVal}(poolId, nftAsset, nftTokenIds, asset, amounts);
     } else {
-      _poolManager.isolateRepay(poolId, nftAsset, nftTokenIds, asset, amounts);
+      _isolateLending.isolateRepay(poolId, nftAsset, nftTokenIds, asset, amounts);
     }
   }
 
@@ -149,9 +166,9 @@ contract TestUser is ERC721Holder {
       for (uint i = 0; i < amounts.length; i++) {
         sendVal += amounts[i];
       }
-      _poolManager.isolateAuction{value: sendVal}(poolId, nftAsset, nftTokenIds, asset, amounts);
+      _isolateLending.isolateAuction{value: sendVal}(poolId, nftAsset, nftTokenIds, asset, amounts);
     } else {
-      _poolManager.isolateAuction(poolId, nftAsset, nftTokenIds, asset, amounts);
+      _isolateLending.isolateAuction(poolId, nftAsset, nftTokenIds, asset, amounts);
     }
   }
 
@@ -167,9 +184,9 @@ contract TestUser is ERC721Holder {
       for (uint i = 0; i < amounts.length; i++) {
         sendVal += amounts[i];
       }
-      _poolManager.isolateRedeem{value: sendVal}(poolId, nftAsset, nftTokenIds, asset, amounts);
+      _isolateLending.isolateRedeem{value: sendVal}(poolId, nftAsset, nftTokenIds, asset, amounts);
     } else {
-      _poolManager.isolateRedeem(poolId, nftAsset, nftTokenIds, asset, amounts);
+      _isolateLending.isolateRedeem(poolId, nftAsset, nftTokenIds, asset, amounts);
     }
   }
 
@@ -186,18 +203,25 @@ contract TestUser is ERC721Holder {
       for (uint i = 0; i < amounts.length; i++) {
         sendVal += amounts[i];
       }
-      _poolManager.isolateLiquidate{value: sendVal}(poolId, nftAsset, nftTokenIds, asset, amounts, supplyAsCollateral);
+      _isolateLending.isolateLiquidate{value: sendVal}(
+        poolId,
+        nftAsset,
+        nftTokenIds,
+        asset,
+        amounts,
+        supplyAsCollateral
+      );
     } else {
-      _poolManager.isolateLiquidate(poolId, nftAsset, nftTokenIds, asset, amounts, supplyAsCollateral);
+      _isolateLending.isolateLiquidate(poolId, nftAsset, nftTokenIds, asset, amounts, supplyAsCollateral);
     }
   }
 
   function yieldBorrowERC20(uint32 poolId, address asset, uint256 amount) public {
-    _poolManager.yieldBorrowERC20(poolId, asset, amount);
+    _yield.yieldBorrowERC20(poolId, asset, amount);
   }
 
   function yieldRepayERC20(uint32 poolId, address asset, uint256 amount) public {
-    _poolManager.yieldRepayERC20(poolId, asset, amount);
+    _yield.yieldRepayERC20(poolId, asset, amount);
   }
 
   function flashLoanERC721(
@@ -207,6 +231,6 @@ contract TestUser is ERC721Holder {
     address receiverAddress,
     bytes calldata params
   ) public {
-    _poolManager.flashLoanERC721(poolId, nftAssets, nftTokenIds, receiverAddress, params);
+    _flashLoan.flashLoanERC721(poolId, nftAssets, nftTokenIds, receiverAddress, params);
   }
 }

@@ -27,15 +27,15 @@ library QueryLogic {
   using WadRayMath for uint256;
   using PercentageMath for uint256;
 
-  function getPoolMaxAssetNumber() public pure returns (uint256) {
+  function getPoolMaxAssetNumber() internal pure returns (uint256) {
     return Constants.MAX_NUMBER_OF_ASSET;
   }
 
-  function getPoolMaxGroupNumber() public pure returns (uint256) {
+  function getPoolMaxGroupNumber() internal pure returns (uint256) {
     return Constants.MAX_NUMBER_OF_GROUP;
   }
 
-  function getPoolName(uint32 poolId) public view returns (string memory) {
+  function getPoolName(uint32 poolId) internal view returns (string memory) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     return poolData.name;
@@ -43,28 +43,28 @@ library QueryLogic {
 
   function getPoolConfigFlag(
     uint32 poolId
-  ) public view returns (bool isPaused, bool isYieldEnabled, bool isYieldPaused, uint8 yieldGroup) {
+  ) internal view returns (bool isPaused, bool isYieldEnabled, bool isYieldPaused, uint8 yieldGroup) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
 
     return (poolData.isPaused, poolData.isYieldEnabled, poolData.isYieldPaused, poolData.yieldGroup);
   }
 
-  function getPoolGroupList(uint32 poolId) public view returns (uint256[] memory) {
+  function getPoolGroupList(uint32 poolId) internal view returns (uint256[] memory) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
 
     return poolData.groupList.values();
   }
 
-  function getPoolAssetList(uint32 poolId) public view returns (address[] memory) {
+  function getPoolAssetList(uint32 poolId) internal view returns (address[] memory) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
 
     return poolData.assetList.values();
   }
 
-  function getAssetGroupList(uint32 poolId, address asset) public view returns (uint256[] memory) {
+  function getAssetGroupList(uint32 poolId, address asset) internal view returns (uint256[] memory) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
@@ -76,7 +76,7 @@ library QueryLogic {
     uint32 poolId,
     address asset
   )
-    public
+    internal
     view
     returns (
       bool isActive,
@@ -104,7 +104,7 @@ library QueryLogic {
   function getAssetConfigCap(
     uint32 poolId,
     address asset
-  ) public view returns (uint256 supplyCap, uint256 borrowCap, uint256 yieldCap) {
+  ) internal view returns (uint256 supplyCap, uint256 borrowCap, uint256 yieldCap) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
@@ -116,7 +116,7 @@ library QueryLogic {
     uint32 poolId,
     address asset
   )
-    public
+    internal
     view
     returns (
       uint8 classGroup,
@@ -143,7 +143,7 @@ library QueryLogic {
     uint32 poolId,
     address asset
   )
-    public
+    internal
     view
     returns (uint16 redeemThreshold, uint16 bidFineFactor, uint16 minBidFineFactor, uint40 auctionDuration)
   {
@@ -158,7 +158,7 @@ library QueryLogic {
     uint32 poolId,
     address asset
   )
-    public
+    internal
     view
     returns (
       uint256 totalScaledCrossSupply,
@@ -198,7 +198,7 @@ library QueryLogic {
     address asset,
     uint8 group
   )
-    public
+    internal
     view
     returns (
       uint256 totalScaledCrossBorrow,
@@ -232,7 +232,7 @@ library QueryLogic {
   function getAssetFeeData(
     uint32 poolId,
     address asset
-  ) public view returns (uint256 feeFactor, uint256 accruedFee, uint256 normAccruedFee) {
+  ) internal view returns (uint256 feeFactor, uint256 accruedFee, uint256 normAccruedFee) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
@@ -247,7 +247,7 @@ library QueryLogic {
     address user,
     uint32 poolId
   )
-    public
+    internal
     view
     returns (
       uint256 totalCollateralInBase,
@@ -293,7 +293,7 @@ library QueryLogic {
     uint32 poolId,
     address asset
   )
-    public
+    internal
     view
     returns (uint256 totalCrossSupply, uint256 totalIsolateSupply, uint256 totalCrossBorrow, uint256 totalIsolateBorrow)
   {
@@ -326,7 +326,7 @@ library QueryLogic {
     uint32 poolId,
     address asset
   )
-    public
+    internal
     view
     returns (
       uint256 totalScaledCrossSupply,
@@ -363,7 +363,7 @@ library QueryLogic {
     address asset,
     uint8 groupId
   )
-    public
+    internal
     view
     returns (
       uint256 totalScaledCrossBorrow,
@@ -389,7 +389,7 @@ library QueryLogic {
     address user,
     uint32 poolId
   )
-    public
+    internal
     view
     returns (
       uint256[] memory groupsCollateralInBase,
@@ -425,7 +425,11 @@ library QueryLogic {
     address nftAsset,
     uint256 tokenId,
     address debtAsset
-  ) public view returns (uint256 totalCollateral, uint256 totalBorrow, uint256 availableBorrow, uint256 healthFactor) {
+  )
+    internal
+    view
+    returns (uint256 totalCollateral, uint256 totalBorrow, uint256 availableBorrow, uint256 healthFactor)
+  {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
 
@@ -463,7 +467,7 @@ library QueryLogic {
     address nftAsset,
     uint256 tokenId
   )
-    public
+    internal
     view
     returns (address reserveAsset, uint256 scaledAmount, uint256 borrowAmount, uint8 reserveGroup, uint8 loanStatus)
   {
@@ -490,7 +494,7 @@ library QueryLogic {
     address nftAsset,
     uint256 tokenId
   )
-    public
+    internal
     view
     returns (
       uint40 bidStartTimestamp,
@@ -534,7 +538,7 @@ library QueryLogic {
     redeemAmount = borrowAmount.percentMul(nftAssetData.redeemThreshold);
   }
 
-  function getYieldERC20BorrowBalance(uint32 poolId, address asset, address staker) public view returns (uint256) {
+  function getYieldERC20BorrowBalance(uint32 poolId, address asset, address staker) internal view returns (uint256) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
@@ -548,7 +552,7 @@ library QueryLogic {
     uint32 poolId,
     address asset,
     uint256 tokenId
-  ) public view returns (address, uint8, address) {
+  ) internal view returns (address, uint8, address) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];

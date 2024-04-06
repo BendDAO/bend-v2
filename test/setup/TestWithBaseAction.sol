@@ -65,7 +65,7 @@ abstract contract TestWithBaseAction is TestWithPrepare {
     if (revertMessage.length > 0) {
       tsHEVM.expectRevert(revertMessage);
       tsHEVM.prank(sender);
-      tsPoolManager.depositERC20(poolId, asset, amount);
+      tsBVault.depositERC20(poolId, asset, amount);
     } else {
       // fetch contract data
       TestContractData memory dataBefore = getContractData(sender, poolId, asset, Constants.ASSET_TYPE_ERC20);
@@ -73,7 +73,7 @@ abstract contract TestWithBaseAction is TestWithPrepare {
       // send tx
       if (_debugFlag) console.log('actionDepositERC20', 'sendtx');
       tsHEVM.prank(sender);
-      tsPoolManager.depositERC20(poolId, asset, amount);
+      tsBVault.depositERC20(poolId, asset, amount);
       uint256 txTimestamp = block.timestamp;
 
       // fetch contract data
@@ -102,7 +102,7 @@ abstract contract TestWithBaseAction is TestWithPrepare {
     if (revertMessage.length > 0) {
       vm.expectRevert(revertMessage);
       tsHEVM.prank(sender);
-      tsPoolManager.withdrawERC20(poolId, asset, amount);
+      tsBVault.withdrawERC20(poolId, asset, amount);
     } else {
       // fetch contract data
       TestContractData memory dataBefore = getContractData(sender, poolId, asset, Constants.ASSET_TYPE_ERC20);
@@ -110,7 +110,7 @@ abstract contract TestWithBaseAction is TestWithPrepare {
       // send tx
       if (_debugFlag) console.log('actionWithdrawERC20', 'sendtx');
       tsHEVM.prank(sender);
-      tsPoolManager.withdrawERC20(poolId, asset, amount);
+      tsBVault.withdrawERC20(poolId, asset, amount);
       uint256 txTimestamp = block.timestamp;
 
       // fetch contract data
@@ -140,7 +140,7 @@ abstract contract TestWithBaseAction is TestWithPrepare {
     if (revertMessage.length > 0) {
       vm.expectRevert(revertMessage);
       tsHEVM.prank(sender);
-      tsPoolManager.depositERC721(poolId, asset, tokenIds, supplyMode);
+      tsBVault.depositERC721(poolId, asset, tokenIds, supplyMode);
     } else {
       // fetch contract data
       TestContractData memory dataBefore = getContractData(sender, poolId, asset, Constants.ASSET_TYPE_ERC721);
@@ -148,7 +148,7 @@ abstract contract TestWithBaseAction is TestWithPrepare {
       // send tx
       if (_debugFlag) console.log('actionDepositERC721', 'sendtx');
       tsHEVM.prank(sender);
-      tsPoolManager.depositERC721(poolId, asset, tokenIds, supplyMode);
+      tsBVault.depositERC721(poolId, asset, tokenIds, supplyMode);
       uint256 txTimestamp = block.timestamp;
 
       // fetch contract data
@@ -192,7 +192,7 @@ abstract contract TestWithBaseAction is TestWithPrepare {
     if (revertMessage.length > 0) {
       vm.expectRevert(revertMessage);
       tsHEVM.prank(sender);
-      tsPoolManager.withdrawERC721(poolId, asset, tokenIds, supplyMode);
+      tsBVault.withdrawERC721(poolId, asset, tokenIds, supplyMode);
     } else {
       // fetch contract data
       TestContractData memory dataBefore = getContractData(sender, poolId, asset, Constants.ASSET_TYPE_ERC721);
@@ -200,7 +200,7 @@ abstract contract TestWithBaseAction is TestWithPrepare {
       // send tx
       if (_debugFlag) console.log('actionWithdrawERC721', 'sendtx');
       tsHEVM.prank(sender);
-      tsPoolManager.withdrawERC721(poolId, asset, tokenIds, supplyMode);
+      tsBVault.withdrawERC721(poolId, asset, tokenIds, supplyMode);
       uint256 txTimestamp = block.timestamp;
 
       // fetch contract data
