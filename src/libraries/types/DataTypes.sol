@@ -130,7 +130,6 @@ library DataTypes {
     // pool fields
     uint32 nextPoolId;
     mapping(uint32 => PoolData) poolLookup;
-
-    // yield fields
+    EnumerableSetUpgradeable.UintSet poolList;
   }
 }

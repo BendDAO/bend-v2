@@ -15,10 +15,12 @@ import {Installer} from 'src/modules/Installer.sol';
 import {Configurator} from 'src/modules/Configurator.sol';
 import {BVault} from 'src/modules/BVault.sol';
 import {CrossLending} from 'src/modules/CrossLending.sol';
+import {CrossLiquidation} from 'src/modules/CrossLiquidation.sol';
 import {IsolateLending} from 'src/modules/IsolateLending.sol';
+import {IsolateLiquidation} from 'src/modules/IsolateLiquidation.sol';
 import {Yield} from 'src/modules/Yield.sol';
-import {PoolLens} from 'src/modules/PoolLens.sol';
 import {FlashLoan} from 'src/modules/FlashLoan.sol';
+import {PoolLens} from 'src/modules/PoolLens.sol';
 
 import {Configured, ConfigLib, Config} from 'config/Configured.sol';
 
@@ -109,22 +111,36 @@ contract Deploy is Script, Configured {
 
     Installer installer = Installer(poolManager.moduleIdToProxy(Constants.MODULEID__INSTALLER));
 
-    Configurator tsConfiguratorImpl = new Configurator(gitCommitHash);
-    BVault tsVaultImpl = new BVault(gitCommitHash);
-    CrossLending tsCrossLendingImpl = new CrossLending(gitCommitHash);
-    IsolateLending tsIsolateLendingImpl = new IsolateLending(gitCommitHash);
-    Yield tsYieldImpl = new Yield(gitCommitHash);
-    PoolLens tsPoolLensImpl = new PoolLens(gitCommitHash);
-    FlashLoan tsFlashLoanImpl = new FlashLoan(gitCommitHash);
+    address[] memory modules = new address[](9);
+    uint modIdx = 0;
 
-    address[] memory modules = new address[](7);
-    modules[0] = address(tsConfiguratorImpl);
-    modules[1] = address(tsVaultImpl);
-    modules[2] = address(tsCrossLendingImpl);
-    modules[3] = address(tsIsolateLendingImpl);
-    modules[4] = address(tsYieldImpl);
-    modules[5] = address(tsPoolLensImpl);
-    modules[6] = address(tsFlashLoanImpl);
+    Configurator tsConfiguratorImpl = new Configurator(gitCommitHash);
+    modules[modIdx++] = address(tsConfiguratorImpl);
+
+    BVault tsVaultImpl = new BVault(gitCommitHash);
+    modules[modIdx++] = address(tsVaultImpl);
+
+    CrossLending tsCrossLendingImpl = new CrossLending(gitCommitHash);
+    modules[modIdx++] = address(tsCrossLendingImpl);
+
+    CrossLiquidation tsCrossLiquidationImpl = new CrossLiquidation(gitCommitHash);
+    modules[modIdx++] = address(tsCrossLiquidationImpl);
+
+    IsolateLending tsIsolateLendingImpl = new IsolateLending(gitCommitHash);
+    modules[modIdx++] = address(tsIsolateLendingImpl);
+
+    IsolateLiquidation tsIsolateLiquidationImpl = new IsolateLiquidation(gitCommitHash);
+    modules[modIdx++] = address(tsIsolateLiquidationImpl);
+
+    Yield tsYieldImpl = new Yield(gitCommitHash);
+    modules[modIdx++] = address(tsYieldImpl);
+
+    FlashLoan tsFlashLoanImpl = new FlashLoan(gitCommitHash);
+    modules[modIdx++] = address(tsFlashLoanImpl);
+
+    PoolLens tsPoolLensImpl = new PoolLens(gitCommitHash);
+    modules[modIdx++] = address(tsPoolLensImpl);
+
     installer.installModules(modules);
   }
 }

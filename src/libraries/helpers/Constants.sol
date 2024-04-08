@@ -16,11 +16,13 @@ library Constants {
   uint internal constant MODULEID__INSTALLER = 1;
   uint internal constant MODULEID__CONFIGURATOR = 2;
   uint internal constant MODULEID__BVAULT = 3;
-  uint internal constant MODULEID__CROSS_LENDING = 4;
-  uint internal constant MODULEID__ISOLATE_LENDING = 5;
+  uint internal constant MODULEID__POOL_LENS = 4;
+  uint internal constant MODULEID__FLASHLOAN = 5;
   uint internal constant MODULEID__YIELD = 6;
-  uint internal constant MODULEID__FLASHLOAN = 7;
-  uint internal constant MODULEID__POOL_LENS = 8;
+  uint internal constant MODULEID__CROSS_LENDING = 11;
+  uint internal constant MODULEID__CROSS_LIQUIDATION = 12;
+  uint internal constant MODULEID__ISOLATE_LENDING = 21;
+  uint internal constant MODULEID__ISOLATE_LIQUIDATION = 22;
 
   uint internal constant MAX_EXTERNAL_SINGLE_PROXY_MODULEID = 499_999;
 

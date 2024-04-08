@@ -24,6 +24,10 @@ contract PoolLens is BaseModule {
     return QueryLogic.getPoolMaxGroupNumber();
   }
 
+  function getPoolList() public view returns (uint256[] memory) {
+    return QueryLogic.getPoolList();
+  }
+
   function getPoolName(uint32 poolId) public view returns (string memory) {
     return QueryLogic.getPoolName(poolId);
   }

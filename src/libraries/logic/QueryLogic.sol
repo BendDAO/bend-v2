@@ -35,6 +35,11 @@ library QueryLogic {
     return Constants.MAX_NUMBER_OF_GROUP;
   }
 
+  function getPoolList() internal view returns (uint256[] memory) {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    return ps.poolList.values();
+  }
+
   function getPoolName(uint32 poolId) internal view returns (string memory) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];

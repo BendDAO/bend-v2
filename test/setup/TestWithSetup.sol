@@ -22,7 +22,9 @@ import {Installer} from 'src/modules/Installer.sol';
 import {Configurator} from 'src/modules/Configurator.sol';
 import {BVault} from 'src/modules/BVault.sol';
 import {CrossLending} from 'src/modules/CrossLending.sol';
+import {CrossLiquidation} from 'src/modules/CrossLiquidation.sol';
 import {IsolateLending} from 'src/modules/IsolateLending.sol';
+import {IsolateLiquidation} from 'src/modules/IsolateLiquidation.sol';
 import {Yield} from 'src/modules/Yield.sol';
 import {PoolLens} from 'src/modules/PoolLens.sol';
 import {FlashLoan} from 'src/modules/FlashLoan.sol';
@@ -80,7 +82,9 @@ abstract contract TestWithSetup is TestWithUtils {
   Configurator public tsConfigurator;
   BVault public tsBVault;
   CrossLending public tsCrossLending;
+  CrossLiquidation public tsCrossLiquidation;
   IsolateLending public tsIsolateLending;
+  IsolateLiquidation public tsIsolateLiquidation;
   Yield public tsYield;
   PoolLens tsPoolLens;
   FlashLoan tsFlashLoan;
@@ -206,29 +210,45 @@ abstract contract TestWithSetup is TestWithUtils {
 
     tsInstaller = Installer(tsPoolManager.moduleIdToProxy(Constants.MODULEID__INSTALLER));
 
-    Configurator tsConfiguratorImpl = new Configurator(gitCommit);
-    BVault tsVaultImpl = new BVault(gitCommit);
-    CrossLending tsCrossLendingImpl = new CrossLending(gitCommit);
-    IsolateLending tsIsolateLendingImpl = new IsolateLending(gitCommit);
-    Yield tsYieldImpl = new Yield(gitCommit);
-    PoolLens tsPoolLensImpl = new PoolLens(gitCommit);
-    FlashLoan tsFlashLoanImpl = new FlashLoan(gitCommit);
+    address[] memory modules = new address[](9);
+    uint modIdx = 0;
 
-    address[] memory modules = new address[](7);
-    modules[0] = address(tsConfiguratorImpl);
-    modules[1] = address(tsVaultImpl);
-    modules[2] = address(tsCrossLendingImpl);
-    modules[3] = address(tsIsolateLendingImpl);
-    modules[4] = address(tsYieldImpl);
-    modules[5] = address(tsPoolLensImpl);
-    modules[6] = address(tsFlashLoanImpl);
+    Configurator tsConfiguratorImpl = new Configurator(gitCommit);
+    modules[modIdx++] = address(tsConfiguratorImpl);
+
+    BVault tsVaultImpl = new BVault(gitCommit);
+    modules[modIdx++] = address(tsVaultImpl);
+
+    CrossLending tsCrossLendingImpl = new CrossLending(gitCommit);
+    modules[modIdx++] = address(tsCrossLendingImpl);
+
+    CrossLiquidation tsCrossLiquidationImpl = new CrossLiquidation(gitCommit);
+    modules[modIdx++] = address(tsCrossLiquidationImpl);
+
+    IsolateLending tsIsolateLendingImpl = new IsolateLending(gitCommit);
+    modules[modIdx++] = address(tsIsolateLendingImpl);
+
+    IsolateLiquidation tsIsolateLiquidationImpl = new IsolateLiquidation(gitCommit);
+    modules[modIdx++] = address(tsIsolateLiquidationImpl);
+
+    Yield tsYieldImpl = new Yield(gitCommit);
+    modules[modIdx++] = address(tsYieldImpl);
+
+    FlashLoan tsFlashLoanImpl = new FlashLoan(gitCommit);
+    modules[modIdx++] = address(tsFlashLoanImpl);
+
+    PoolLens tsPoolLensImpl = new PoolLens(gitCommit);
+    modules[modIdx++] = address(tsPoolLensImpl);
+
     tsHEVM.prank(tsPoolAdmin);
     tsInstaller.installModules(modules);
 
     tsConfigurator = Configurator(tsPoolManager.moduleIdToProxy(Constants.MODULEID__CONFIGURATOR));
     tsBVault = BVault(tsPoolManager.moduleIdToProxy(Constants.MODULEID__BVAULT));
     tsCrossLending = CrossLending(tsPoolManager.moduleIdToProxy(Constants.MODULEID__CROSS_LENDING));
+    tsCrossLiquidation = CrossLiquidation(tsPoolManager.moduleIdToProxy(Constants.MODULEID__CROSS_LIQUIDATION));
     tsIsolateLending = IsolateLending(tsPoolManager.moduleIdToProxy(Constants.MODULEID__ISOLATE_LENDING));
+    tsIsolateLiquidation = IsolateLiquidation(tsPoolManager.moduleIdToProxy(Constants.MODULEID__ISOLATE_LIQUIDATION));
     tsYield = Yield(tsPoolManager.moduleIdToProxy(Constants.MODULEID__YIELD));
     tsPoolLens = PoolLens(tsPoolManager.moduleIdToProxy(Constants.MODULEID__POOL_LENS));
     tsFlashLoan = FlashLoan(tsPoolManager.moduleIdToProxy(Constants.MODULEID__FLASHLOAN));

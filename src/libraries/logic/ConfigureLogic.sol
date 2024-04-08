@@ -45,6 +45,9 @@ library ConfigureLogic {
     poolData.poolId = poolId;
     poolData.name = name;
 
+    bool isAddOk = ps.poolList.add(poolId);
+    require(isAddOk, Errors.ENUM_SET_ADD_FAILED);
+
     emit Events.CreatePool(poolId, name);
   }
 
@@ -54,7 +57,11 @@ library ConfigureLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     _validateCallerAndPool(msgSender, ps, poolData);
 
+    require(poolData.groupList.length() == 0, Errors.GROUP_LIST_NOT_EMPTY);
     require(poolData.assetList.length() == 0, Errors.ASSET_LIST_NOT_EMPTY);
+
+    bool isDelOk = ps.poolList.remove(poolId);
+    require(isDelOk, Errors.ENUM_SET_REMOVE_FAILED);
 
     delete ps.poolLookup[poolId];
 

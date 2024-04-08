@@ -13,14 +13,14 @@
 
 echo "[BASH] Setting up testnet environment"
 
-if [ ! "$COVERAGE" = true ]; then
+if [ ! "$SKIP_CLEAN" = true ]; then
     # remove hardhat and artifacts cache
     npm run ci:clean
 
     # compile contracts
     npm run compile
 else
-    echo "[BASH] Skipping compilation to keep coverage artifacts"
+    echo "[BASH] Skipping clean & compilation"
 fi
 
 # Copy artifacts into separate directory to allow
