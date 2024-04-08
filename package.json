@@ -25,7 +25,7 @@
     "test:contract": "forge test --match-contract ${TEST_CONTRACT} -vvvv",
     "ci:test": ". ./setup-test-env.sh && npm run test:forge && npm run test:hardhat",
     "ci:clean": "rm -rf ./artifacts ./out ./cache ./forge-cache ./types ./typechain-types ./temp-artifacts",
-    "deploy:sepolia": "forge script ./script/eth-sepolia/Deploy.s.sol -vvvvv --broadcast --slow --rpc-url sepolia",
+    "deploy:sepolia": ". ./setup-test-env.sh && forge script ./script/eth-sepolia/Deploy.s.sol -vvvvv --broadcast --slow --rpc-url sepolia",
     "prepare": "husky install",
     "build": "tsc --project lib.tsconfig.json",
     "prepublish": "npm run compile && npm run build"

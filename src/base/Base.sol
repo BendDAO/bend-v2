@@ -6,16 +6,21 @@ import {ERC721Holder} from '@openzeppelin/contracts/token/ERC721/utils/ERC721Hol
 
 import {Constants} from 'src/libraries/helpers/Constants.sol';
 import {Events} from 'src/libraries/helpers/Events.sol';
+import {Errors} from 'src/libraries/helpers/Errors.sol';
 
 import {Storage} from 'src/base/Storage.sol';
 import {Proxy} from 'src/base/Proxy.sol';
 
 abstract contract Base is Storage, Pausable, ERC721Holder {
+  constructor() {
+    reentrancyLock = Constants.REENTRANCYLOCK__UNLOCKED;
+  }
+
   // Modules
 
   function _createProxy(uint proxyModuleId) internal returns (address) {
-    require(proxyModuleId != 0, 'e/create-proxy/invalid-module');
-    require(proxyModuleId <= Constants.MAX_EXTERNAL_MODULEID, 'e/create-proxy/internal-module');
+    require(proxyModuleId != 0, Errors.PROXY_INVALID_MODULE);
+    require(proxyModuleId <= Constants.MAX_EXTERNAL_MODULEID, Errors.PROXY_INTERNAL_MODULE);
 
     // If we've already created a proxy for a single-proxy module, just return it:
 
@@ -43,7 +48,7 @@ abstract contract Base is Storage, Pausable, ERC721Holder {
   // Modifiers
 
   modifier nonReentrant() {
-    require(reentrancyLock == Constants.REENTRANCYLOCK__UNLOCKED, 'e/reentrancy');
+    require(reentrancyLock == Constants.REENTRANCYLOCK__UNLOCKED, Errors.REENTRANCY_ALREADY_LOCKED);
 
     reentrancyLock = Constants.REENTRANCYLOCK__LOCKED;
     _;
@@ -71,6 +76,6 @@ abstract contract Base is Storage, Pausable, ERC721Holder {
       }
     }
 
-    revert('e/empty-error');
+    revert(Errors.EMPTY_ERROR);
   }
 }

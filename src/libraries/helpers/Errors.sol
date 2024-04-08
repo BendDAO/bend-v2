@@ -3,7 +3,15 @@ pragma solidity ^0.8.19;
 
 library Errors {
   string public constant OK = '0';
-  string public constant ETH_TRANSFER_FAILED = '1';
+  string public constant EMPTY_ERROR = '1';
+  string public constant ETH_TRANSFER_FAILED = '2';
+
+  string public constant REENTRANCY_ALREADY_LOCKED = '10';
+
+  string public constant PROXY_INVALID_MODULE = '30';
+  string public constant PROXY_INTERNAL_MODULE = '31';
+  string public constant PROXY_SENDER_NOT_TRUST = '32';
+  string public constant PROXY_MSGDATA_TOO_SHORT = '33';
 
   string public constant INVALID_AMOUNT = '100';
   string public constant INVALID_SCALED_AMOUNT = '101';

@@ -44,15 +44,17 @@ contract PoolManager is Base {
   }
 
   function dispatch() external payable reentrantOK {
+    // only trusted proxy
     uint32 moduleId = trustedSenders[msg.sender].moduleId;
     address moduleImpl = trustedSenders[msg.sender].moduleImpl;
 
-    require(moduleId != 0, 'e/sender-not-trusted');
+    require(moduleId != 0, Errors.PROXY_SENDER_NOT_TRUST);
 
+    // multi proxy module
     if (moduleImpl == address(0)) moduleImpl = moduleLookup[moduleId];
 
     uint msgDataLength = msg.data.length;
-    require(msgDataLength >= (4 + 4 + 20), 'e/input-too-short');
+    require(msgDataLength >= (4 + 4 + 20), Errors.PROXY_MSGDATA_TOO_SHORT);
 
     assembly {
       let payloadSize := sub(calldatasize(), 4)

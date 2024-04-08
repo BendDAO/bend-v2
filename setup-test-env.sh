@@ -28,4 +28,6 @@ fi
 mkdir -p temp-artifacts
 cp -r artifacts/* temp-artifacts
 
+export GIT_COMMIT_HASH=`git rev-parse HEAD | cast to-bytes32`
+
 echo "[BASH] Testnet environment ready"

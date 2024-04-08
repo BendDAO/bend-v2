@@ -202,6 +202,8 @@ abstract contract TestWithSetup is TestWithUtils {
     bytes32 gitCommit = bytes32('1');
     Installer tsModInstallerImpl = new Installer(gitCommit);
     tsPoolManager = new PoolManager(address(tsAddressProvider), address(tsModInstallerImpl));
+    tsAddressProvider.setPoolManager(address(tsPoolManager));
+
     tsInstaller = Installer(tsPoolManager.moduleIdToProxy(Constants.MODULEID__INSTALLER));
 
     Configurator tsConfiguratorImpl = new Configurator(gitCommit);
@@ -230,8 +232,6 @@ abstract contract TestWithSetup is TestWithUtils {
     tsYield = Yield(tsPoolManager.moduleIdToProxy(Constants.MODULEID__YIELD));
     tsPoolLens = PoolLens(tsPoolManager.moduleIdToProxy(Constants.MODULEID__POOL_LENS));
     tsFlashLoan = FlashLoan(tsPoolManager.moduleIdToProxy(Constants.MODULEID__FLASHLOAN));
-
-    tsAddressProvider.setPoolManager(address(tsPoolManager));
 
     // YieldEthStaking
     YieldEthStaking yieldEthStakingImpl = new YieldEthStaking();
