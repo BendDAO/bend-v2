@@ -111,13 +111,13 @@ contract TestPoolManagerConfig is TestWithSetup {
     tsConfigurator.addAssetERC20(poolId, address(tsDAI));
     tsConfigurator.addAssetGroup(poolId, address(tsDAI), 1, address(tsLowRateIRM));
 
-    tsHEVM.expectRevert(bytes(Errors.GROUP_USDED_BY_ASSET));
+    tsHEVM.expectRevert(bytes(Errors.GROUP_USED_BY_ASSET));
     tsConfigurator.removePoolGroup(poolId, 1);
 
     tsConfigurator.addAssetERC721(poolId, address(tsMAYC));
     tsConfigurator.setAssetClassGroup(poolId, address(tsMAYC), 2);
 
-    tsHEVM.expectRevert(bytes(Errors.GROUP_USDED_BY_ASSET));
+    tsHEVM.expectRevert(bytes(Errors.GROUP_USED_BY_ASSET));
     tsConfigurator.removePoolGroup(poolId, 2);
 
     tsHEVM.stopPrank();

@@ -24,6 +24,8 @@ contract BVault is BaseModule {
       asset = ps.wrappedNativeToken;
       amount = msg.value;
       VaultLogic.wrapNativeTokenInWallet(asset, msgSender, amount);
+    } else {
+      require(msg.value == 0, Errors.MSG_VALUE_NOT_ZERO);
     }
 
     SupplyLogic.executeDepositERC20(

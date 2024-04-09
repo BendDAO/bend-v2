@@ -88,10 +88,6 @@ library Constants {
   uint8 public constant LOAN_STATUS_AUCTION = 3;
   uint8 public constant LOAN_STATUS_DEFAULT = 4;
 
-  // Minimum health factor allowed under any circumstance
-  // A value of 0.95e18 results in 0.95
-  uint256 public constant MINIMUM_HEALTH_FACTOR_LIQUIDATION_THRESHOLD = 0.95e18;
-
   /**
    * @dev Minimum health factor to consider a user position healthy
    * A value of 1e18 results in 1

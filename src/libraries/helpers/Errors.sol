@@ -5,6 +5,8 @@ library Errors {
   string public constant OK = '0';
   string public constant EMPTY_ERROR = '1';
   string public constant ETH_TRANSFER_FAILED = '2';
+  string public constant TOKEN_TRANSFER_FAILED = '3';
+  string public constant MSG_VALUE_NOT_ZERO = '4';
 
   string public constant REENTRANCY_ALREADY_LOCKED = '10';
 
@@ -63,7 +65,7 @@ library Errors {
   string public constant GROUP_LIST_NOT_EMPTY = '322';
   string public constant GROUP_LIST_IS_EMPTY = '323';
   string public constant GROUP_NUMBER_EXCEED_MAX_LIMIT = '324';
-  string public constant GROUP_USDED_BY_ASSET = '325';
+  string public constant GROUP_USED_BY_ASSET = '325';
 
   string public constant ASSET_ALREADY_EXISTS = '340';
   string public constant ASSET_NOT_EXISTS = '341';
@@ -100,6 +102,7 @@ library Errors {
   string public constant LTV_VALIDATION_FAILED = '408';
   string public constant COLLATERAL_CANNOT_COVER_NEW_BORROW = '409';
   string public constant LIQUIDATE_REPAY_DEBT_FAILED = '410';
+  string public constant ORACLE_PRICE_IS_STALE = '411';
 
   string public constant YIELD_EXCEED_ASSET_CAP_LIMIT = '500';
   string public constant YIELD_EXCEED_STAKER_CAP_LIMIT = '501';

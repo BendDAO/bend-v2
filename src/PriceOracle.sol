@@ -28,6 +28,13 @@ contract PriceOracle is IPriceOracle, Initializable {
   // Chainlink Aggregators for ERC20 tokens
   mapping(address => AggregatorV2V3Interface) public assetChainlinkAggregators;
 
+  /**
+   * @dev This empty reserved space is put in place to allow future versions to add new
+   * variables without shifting down storage in the inheritance chain.
+   * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+   */
+  uint256[43] private __gap;
+
   modifier onlyOracleAdmin() {
     _onlyOracleAdmin();
     _;
@@ -109,16 +116,15 @@ contract PriceOracle is IPriceOracle, Initializable {
 
   /// @notice Query the price of asset from chainlink oracle
   function getAssetPriceFromChainlink(address asset) public view returns (uint256) {
-    uint256 price;
-
     AggregatorV2V3Interface sourceAgg = assetChainlinkAggregators[asset];
     require(address(sourceAgg) != address(0), Errors.ASSET_AGGREGATOR_NOT_EXIST);
 
-    int256 priceFromAgg = sourceAgg.latestAnswer();
-    price = uint256(priceFromAgg);
+    (uint80 roundId, int256 answer, , uint256 updatedAt, uint80 answeredInRound) = sourceAgg.latestRoundData();
+    require(answer > 0, Errors.ASSET_PRICE_IS_ZERO);
+    require(updatedAt != 0, Errors.ORACLE_PRICE_IS_STALE);
+    require(answeredInRound >= roundId, Errors.ORACLE_PRICE_IS_STALE);
 
-    require(price > 0, Errors.ASSET_PRICE_IS_ZERO);
-    return price;
+    return uint256(answer);
   }
 
   /// @notice Query the price of asset from benddao nft oracle

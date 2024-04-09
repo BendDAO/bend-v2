@@ -140,6 +140,8 @@ library IsolateLogic {
       }
 
       if (vars.isFullRepay) {
+        VaultLogic.erc721SetTokenLockerAddr(nftAssetData, params.nftTokenIds[vars.nidx], address(0));
+
         delete poolData.loanLookup[params.nftAsset][params.nftTokenIds[vars.nidx]];
       } else {
         loanData.scaledAmount -= vars.scaledRepayAmount;
@@ -201,8 +203,12 @@ library IsolateLogic {
     for (vars.nidx = 0; vars.nidx < params.nftTokenIds.length; vars.nidx++) {
       DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[params.nftAsset][params.nftTokenIds[vars.nidx]];
       DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[loanData.reserveGroup];
+      DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(
+        nftAssetData,
+        params.nftTokenIds[vars.nidx]
+      );
 
-      ValidateLogic.validateIsolateAuctionLoan(params, debtGroupData, loanData);
+      ValidateLogic.validateIsolateAuctionLoan(params, debtGroupData, loanData, tokenData);
 
       (vars.borrowAmount, vars.thresholdPrice, vars.liquidatePrice) = GenericLogic.calculateNftLoanLiquidatePrice(
         poolData,

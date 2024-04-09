@@ -31,6 +31,8 @@ contract CrossLiquidation is BaseModule {
     if (debtAsset == Constants.NATIVE_TOKEN_ADDRESS) {
       debtAsset = ps.wrappedNativeToken;
       VaultLogic.wrapNativeTokenInWallet(debtAsset, msgSender, msg.value);
+    } else {
+      require(msg.value == 0, Errors.MSG_VALUE_NOT_ZERO);
     }
 
     bool isCollateralNative;
@@ -69,6 +71,8 @@ contract CrossLiquidation is BaseModule {
     if (debtAsset == Constants.NATIVE_TOKEN_ADDRESS) {
       debtAsset = ps.wrappedNativeToken;
       VaultLogic.wrapNativeTokenInWallet(debtAsset, msgSender, msg.value);
+    } else {
+      require(msg.value == 0, Errors.MSG_VALUE_NOT_ZERO);
     }
 
     LiquidationLogic.executeCrossLiquidateERC721(

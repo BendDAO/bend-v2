@@ -272,6 +272,8 @@ library ValidateLogic {
     validateAssetBasic(collateralAssetData);
     validateAssetBasic(debtAssetData);
 
+    require(inputParams.msgSender != inputParams.user, Errors.INVALID_CALLER);
+
     require(collateralAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
     require(debtAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
@@ -287,6 +289,8 @@ library ValidateLogic {
     validatePoolBasic(poolData);
     validateAssetBasic(collateralAssetData);
     validateAssetBasic(debtAssetData);
+
+    require(inputParams.msgSender != inputParams.user, Errors.INVALID_CALLER);
 
     require(collateralAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
     require(debtAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
@@ -489,9 +493,12 @@ library ValidateLogic {
   function validateIsolateAuctionLoan(
     InputTypes.ExecuteIsolateAuctionParams memory inputParams,
     DataTypes.GroupData storage debtGroupData,
-    DataTypes.IsolateLoanData storage loanData
+    DataTypes.IsolateLoanData storage loanData,
+    DataTypes.ERC721TokenData storage tokenData
   ) internal view {
     validateGroupBasic(debtGroupData);
+
+    require(inputParams.msgSender != tokenData.owner, Errors.INVALID_CALLER);
 
     require(
       loanData.loanStatus == Constants.LOAN_STATUS_ACTIVE || loanData.loanStatus == Constants.LOAN_STATUS_AUCTION,

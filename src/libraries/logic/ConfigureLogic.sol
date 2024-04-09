@@ -110,12 +110,12 @@ library ConfigureLogic {
     address[] memory allAssets = poolData.assetList.values();
     for (uint256 i = 0; i < allAssets.length; i++) {
       DataTypes.AssetData storage assetData = poolData.assetLookup[allAssets[i]];
-      require(assetData.classGroup != groupId, Errors.GROUP_USDED_BY_ASSET);
+      require(assetData.classGroup != groupId, Errors.GROUP_USED_BY_ASSET);
 
-      require(!assetData.groupList.contains(groupId), Errors.GROUP_USDED_BY_ASSET);
+      require(!assetData.groupList.contains(groupId), Errors.GROUP_USED_BY_ASSET);
 
       DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
-      require((groupData.groupId == 0) && (groupData.rateModel == address(0)), Errors.GROUP_USDED_BY_ASSET);
+      require((groupData.groupId == 0) && (groupData.rateModel == address(0)), Errors.GROUP_USED_BY_ASSET);
     }
 
     poolData.enabledGroups[groupId] = false;
@@ -149,7 +149,7 @@ library ConfigureLogic {
         require(!assetData.isYieldEnabled, Errors.ASSET_YIELD_ALREADY_ENABLE);
 
         DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
-        require((groupData.groupId == 0) && (groupData.rateModel == address(0)), Errors.GROUP_USDED_BY_ASSET);
+        require((groupData.groupId == 0) && (groupData.rateModel == address(0)), Errors.GROUP_USED_BY_ASSET);
       }
 
       poolData.isYieldEnabled = false;
@@ -563,14 +563,16 @@ library ConfigureLogic {
 
       InterestLogic.initGroupData(groupData);
 
-      assetData.groupList.add(poolData.yieldGroup);
+      bool isAddOk = assetData.groupList.add(poolData.yieldGroup);
+      require(isAddOk, Errors.ENUM_SET_ADD_FAILED);
     } else {
       require(assetData.isYieldEnabled, Errors.ASSET_YIELD_NOT_ENABLE);
 
       DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
       VaultLogic.checkGroupHasEmptyLiquidity(groupData);
 
-      assetData.groupList.remove(poolData.yieldGroup);
+      bool isDelOk = assetData.groupList.remove(poolData.yieldGroup);
+      require(isDelOk, Errors.ENUM_SET_REMOVE_FAILED);
 
       delete assetData.groupLookup[poolData.yieldGroup];
 
@@ -649,6 +651,8 @@ library ConfigureLogic {
 
     DataTypes.StakerData storage stakerData = assetData.stakerLookup[staker];
     stakerData.yieldCap = newCap;
+
+    emit Events.SetStakerYieldCap(poolId, staker, asset, newCap);
   }
 
   function _validateCallerAndPool(

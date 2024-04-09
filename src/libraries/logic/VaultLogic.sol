@@ -434,6 +434,7 @@ library VaultLogic {
 
   function erc20TransferBetweenWallets(address asset, address from, address to, uint amount) internal {
     require(to != address(0), Errors.INVALID_TO_ADDRESS);
+    require(from != to, Errors.INVALID_FROM_ADDRESS);
 
     uint256 userSizeBefore = IERC20Upgradeable(asset).balanceOf(to);
 
@@ -747,16 +748,21 @@ library VaultLogic {
 
   function wrapNativeTokenInWallet(address wrappedNativeToken, address user, uint256 amount) internal {
     require(amount > 0, Errors.INVALID_AMOUNT);
+
     IWETH(wrappedNativeToken).deposit{value: amount}();
-    IWETH(wrappedNativeToken).transferFrom(address(this), user, amount);
+
+    bool success = IWETH(wrappedNativeToken).transferFrom(address(this), user, amount);
+    require(success, Errors.TOKEN_TRANSFER_FAILED);
   }
 
   function unwrapNativeTokenInWallet(address wrappedNativeToken, address user, uint256 amount) internal {
     require(amount > 0, Errors.INVALID_AMOUNT);
-    IWETH(wrappedNativeToken).transferFrom(user, address(this), amount);
+
+    bool success = IWETH(wrappedNativeToken).transferFrom(user, address(this), amount);
+    require(success, Errors.TOKEN_TRANSFER_FAILED);
+
     IWETH(wrappedNativeToken).withdraw(amount);
 
-    (bool success, ) = user.call{value: amount}(new bytes(0));
-    require(success, Errors.ETH_TRANSFER_FAILED);
+    safeTransferNativeToken(user, amount);
   }
 }

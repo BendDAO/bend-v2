@@ -32,11 +32,6 @@ library PoolLogic {
     require(aclManager.isEmergencyAdmin(msgSender), Errors.CALLER_NOT_EMERGENCY_ADMIN);
   }
 
-  function checkCallerIsOracleAdmin(DataTypes.PoolStorage storage ps, address msgSender) internal view {
-    IACLManager aclManager = IACLManager(IAddressProvider(ps.addressProvider).getACLManager());
-    require(aclManager.isOracleAdmin(msgSender), Errors.CALLER_NOT_ORACLE_ADMIN);
-  }
-
   function executeCollectFeeToTreasury(address msgSender, uint32 poolId, address[] calldata assets) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     checkCallerIsPoolAdmin(ps, msgSender);

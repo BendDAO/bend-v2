@@ -33,11 +33,20 @@ library FlashLoanLogic {
       require(assetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
       require(assetData.isFlashLoanEnabled, Errors.ASSET_IS_FLASHLOAN_DISABLED);
 
+      // check the owner
       DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(
         assetData,
         inputParams.nftTokenIds[i]
       );
       require(tokenData.owner == inputParams.msgSender, Errors.INVALID_TOKEN_OWNER);
+
+      // check the isolate loan status
+      DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[inputParams.nftAssets[i]][
+        inputParams.nftTokenIds[i]
+      ];
+      if (loanData.loanStatus != 0) {
+        require(loanData.loanStatus == Constants.LOAN_STATUS_ACTIVE, Errors.INVALID_LOAN_STATUS);
+      }
     }
 
     // step 1: moving underlying asset forward to receiver contract

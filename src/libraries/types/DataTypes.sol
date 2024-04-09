@@ -64,7 +64,7 @@ library DataTypes {
   struct AssetData {
     // config params
     address underlyingAsset;
-    uint8 assetType; // ERC20=0, ERC721=1
+    uint8 assetType; // See ASSET_TYPE_xxx
     uint8 underlyingDecimals; // only for ERC20
     uint8 classGroup;
     bool isActive;

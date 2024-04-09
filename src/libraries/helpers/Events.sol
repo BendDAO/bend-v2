@@ -65,6 +65,7 @@ library Events {
   event SetAssetYieldPause(uint32 indexed poolId, address indexed asset, bool isPause);
   event SetAssetYieldCap(uint32 indexed poolId, address indexed asset, uint256 newCap);
   event SetAssetYieldRate(uint32 indexed poolId, address indexed asset, address rateModel);
+  event SetStakerYieldCap(uint32 indexed poolId, address indexed staker, address indexed asset, uint256 newCap);
 
   /* Supply Events */
   event DepositERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);

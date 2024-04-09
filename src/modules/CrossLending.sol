@@ -58,6 +58,8 @@ contract CrossLending is BaseModule {
     if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
       asset = ps.wrappedNativeToken;
       VaultLogic.wrapNativeTokenInWallet(asset, msgSender, msg.value);
+    } else {
+      require(msg.value == 0, Errors.MSG_VALUE_NOT_ZERO);
     }
 
     BorrowLogic.executeCrossRepayERC20(
