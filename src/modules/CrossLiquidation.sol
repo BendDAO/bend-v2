@@ -20,7 +20,7 @@ contract CrossLiquidation is BaseModule {
 
   function crossLiquidateERC20(
     uint32 poolId,
-    address user,
+    address borrower,
     address collateralAsset,
     address debtAsset,
     uint256 debtToCover,
@@ -45,7 +45,7 @@ contract CrossLiquidation is BaseModule {
       InputTypes.ExecuteCrossLiquidateERC20Params({
         msgSender: msgSender,
         poolId: poolId,
-        user: user,
+        borrower: borrower,
         collateralAsset: collateralAsset,
         debtAsset: debtAsset,
         debtToCover: debtToCover,
@@ -60,7 +60,7 @@ contract CrossLiquidation is BaseModule {
 
   function crossLiquidateERC721(
     uint32 poolId,
-    address user,
+    address borrower,
     address collateralAsset,
     uint256[] calldata collateralTokenIds,
     address debtAsset,
@@ -79,7 +79,7 @@ contract CrossLiquidation is BaseModule {
       InputTypes.ExecuteCrossLiquidateERC721Params({
         msgSender: msgSender,
         poolId: poolId,
-        user: user,
+        borrower: borrower,
         collateralAsset: collateralAsset,
         collateralTokenIds: collateralTokenIds,
         debtAsset: debtAsset,

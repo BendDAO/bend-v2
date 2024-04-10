@@ -65,16 +65,15 @@ library ValidateLogic {
   function validateDepositERC20(
     InputTypes.ExecuteDepositERC20Params memory inputParams,
     DataTypes.PoolData storage poolData,
-    DataTypes.AssetData storage assetData,
-    address //user
+    DataTypes.AssetData storage assetData
   ) internal view {
     validatePoolBasic(poolData);
     validateAssetBasic(assetData);
 
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
-    require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
-
     require(!assetData.isFrozen, Errors.ASSET_IS_FROZEN);
+
+    require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
 
     if (assetData.supplyCap != 0) {
       uint256 totalScaledSupply = VaultLogic.erc20GetTotalScaledCrossSupply(assetData);
@@ -86,8 +85,7 @@ library ValidateLogic {
   function validateWithdrawERC20(
     InputTypes.ExecuteWithdrawERC20Params memory inputParams,
     DataTypes.PoolData storage poolData,
-    DataTypes.AssetData storage assetData,
-    address //user
+    DataTypes.AssetData storage assetData
   ) internal view {
     validatePoolBasic(poolData);
     validateAssetBasic(assetData);
@@ -101,8 +99,7 @@ library ValidateLogic {
   function validateDepositERC721(
     InputTypes.ExecuteDepositERC721Params memory inputParams,
     DataTypes.PoolData storage poolData,
-    DataTypes.AssetData storage assetData,
-    address //user
+    DataTypes.AssetData storage assetData
   ) internal view {
     validatePoolBasic(poolData);
     validateAssetBasic(assetData);
@@ -122,8 +119,7 @@ library ValidateLogic {
   function validateWithdrawERC721(
     InputTypes.ExecuteWithdrawERC721Params memory inputParams,
     DataTypes.PoolData storage poolData,
-    DataTypes.AssetData storage assetData,
-    address //user
+    DataTypes.AssetData storage assetData
   ) internal view {
     validatePoolBasic(poolData);
     validateAssetBasic(assetData);
@@ -201,7 +197,7 @@ library ValidateLogic {
     );
 
     require(
-      userAccountResult.healthFactor >= Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
+      userAccountResult.healthFactor > Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
       Errors.HEALTH_FACTOR_BELOW_LIQUIDATION_THRESHOLD
     );
 
@@ -272,7 +268,7 @@ library ValidateLogic {
     validateAssetBasic(collateralAssetData);
     validateAssetBasic(debtAssetData);
 
-    require(inputParams.msgSender != inputParams.user, Errors.INVALID_CALLER);
+    require(inputParams.msgSender != inputParams.borrower, Errors.INVALID_CALLER);
 
     require(collateralAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
     require(debtAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
@@ -290,7 +286,7 @@ library ValidateLogic {
     validateAssetBasic(collateralAssetData);
     validateAssetBasic(debtAssetData);
 
-    require(inputParams.msgSender != inputParams.user, Errors.INVALID_CALLER);
+    require(inputParams.msgSender != inputParams.borrower, Errors.INVALID_CALLER);
 
     require(collateralAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
     require(debtAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
@@ -303,7 +299,7 @@ library ValidateLogic {
         collateralAssetData,
         inputParams.collateralTokenIds[i]
       );
-      require(tokenData.owner == inputParams.user, Errors.INVALID_TOKEN_OWNER);
+      require(tokenData.owner == inputParams.borrower, Errors.INVALID_TOKEN_OWNER);
       require(tokenData.supplyMode == Constants.SUPPLY_MODE_CROSS, Errors.ASSET_NOT_CROSS_MODE);
     }
   }

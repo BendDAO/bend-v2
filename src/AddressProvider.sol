@@ -12,17 +12,23 @@ import {IPoolManager} from 'src/interfaces/IPoolManager.sol';
  * @notice Main registry of addresses part of or connected to the protocol, including permissioned roles
  */
 contract AddressProvider is Ownable2StepUpgradeable, IAddressProvider {
+  // Main identifiers
+  bytes32 public constant WRAPPED_NATIVE_TOKEN = 'WRAPPED_NATIVE_TOKEN';
+  bytes32 public constant TREASURY = 'TREASURY';
+  bytes32 public constant ACL_ADMIN = 'ACL_ADMIN';
+  bytes32 public constant ACL_MANAGER = 'ACL_MANAGER';
+  bytes32 public constant PRICE_ORACLE = 'PRICE_ORACLE';
+  bytes32 public constant POOL_MANAGER = 'POOL_MANAGER';
+
   // Map of registered addresses (identifier => registeredAddress)
   mapping(bytes32 => address) private _addresses;
 
-  // Main identifiers
-  bytes32 private constant WRAPPED_NATIVE_TOKEN = 'WRAPPED_NATIVE_TOKEN';
-  bytes32 private constant TREASURY = 'TREASURY';
-  bytes32 private constant ACL_ADMIN = 'ACL_ADMIN';
-  bytes32 private constant ACL_MANAGER = 'ACL_MANAGER';
-  bytes32 private constant PRICE_ORACLE = 'PRICE_ORACLE';
-  bytes32 private constant POOL_MANAGER = 'POOL_MANAGER';
-  bytes32 private constant POOL_CONFIGURATOR = 'POOL_CONFIGURATOR';
+  /**
+   * @dev This empty reserved space is put in place to allow future versions to add new
+   * variables without shifting down storage in the inheritance chain.
+   * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+   */
+  uint256[49] private __gap;
 
   constructor() {
     _disableInitializers();

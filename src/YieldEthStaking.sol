@@ -90,6 +90,11 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
   }
 
   function initialize(address addressProvider_, address weth_, address stETH_, address unstETH_) public initializer {
+    require(addressProvider_ != address(0), Errors.ADDR_PROVIDER_CANNOT_BE_ZERO);
+    require(weth_ != address(0), Errors.INVALID_ADDRESS);
+    require(stETH_ != address(0), Errors.INVALID_ADDRESS);
+    require(unstETH_ != address(0), Errors.INVALID_ADDRESS);
+
     __Pausable_init();
     __ReentrancyGuard_init();
 

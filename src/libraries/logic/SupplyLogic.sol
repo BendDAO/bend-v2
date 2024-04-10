@@ -24,7 +24,7 @@ library SupplyLogic {
 
     InterestLogic.updateInterestIndexs(poolData, assetData);
 
-    ValidateLogic.validateDepositERC20(params, poolData, assetData, params.msgSender);
+    ValidateLogic.validateDepositERC20(params, poolData, assetData);
 
     VaultLogic.erc20IncreaseCrossSupply(assetData, params.msgSender, params.amount);
 
@@ -45,7 +45,7 @@ library SupplyLogic {
 
     InterestLogic.updateInterestIndexs(poolData, assetData);
 
-    ValidateLogic.validateWithdrawERC20(params, poolData, assetData, params.msgSender);
+    ValidateLogic.validateWithdrawERC20(params, poolData, assetData);
 
     // withdraw amount can not bigger than supply balance
     uint256 userBalance = VaultLogic.erc20GetUserCrossSupply(assetData, params.msgSender, assetData.supplyIndex);
@@ -77,7 +77,7 @@ library SupplyLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
 
-    ValidateLogic.validateDepositERC721(params, poolData, assetData, params.msgSender);
+    ValidateLogic.validateDepositERC721(params, poolData, assetData);
 
     VaultLogic.erc721TransferInLiquidity(assetData, params.msgSender, params.tokenIds);
 
@@ -85,6 +85,8 @@ library SupplyLogic {
       VaultLogic.erc721IncreaseCrossSupply(assetData, params.msgSender, params.tokenIds);
     } else if (params.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
       VaultLogic.erc721IncreaseIsolateSupply(assetData, params.msgSender, params.tokenIds);
+    } else {
+      revert(Errors.INVALID_SUPPLY_MODE);
     }
 
     VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, params.msgSender);
@@ -100,7 +102,7 @@ library SupplyLogic {
 
     InterestLogic.updateInterestIndexs(poolData, assetData);
 
-    ValidateLogic.validateWithdrawERC721(params, poolData, assetData, params.msgSender);
+    ValidateLogic.validateWithdrawERC721(params, poolData, assetData);
 
     if (params.supplyMode == Constants.SUPPLY_MODE_CROSS) {
       VaultLogic.erc721DecreaseCrossSupply(assetData, params.msgSender, params.tokenIds);
@@ -116,9 +118,14 @@ library SupplyLogic {
       for (uint256 i = 0; i < params.tokenIds.length; i++) {
         DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[params.asset][params.tokenIds[i]];
         require(loanData.loanStatus == 0, Errors.ISOLATE_LOAN_EXISTS);
+
+        DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(assetData, params.tokenIds[i]);
+        require(tokenData.lockerAddr == address(0), Errors.ASSET_ALREADY_LOCKED_IN_USE);
       }
 
       VaultLogic.erc721DecreaseIsolateSupply(assetData, params.msgSender, params.tokenIds);
+    } else {
+      revert(Errors.INVALID_SUPPLY_MODE);
     }
 
     VaultLogic.erc721TransferOutLiquidity(assetData, params.msgSender, params.tokenIds);
@@ -135,29 +142,21 @@ library SupplyLogic {
     ValidateLogic.validatePoolBasic(poolData);
     ValidateLogic.validateAssetBasic(assetData);
 
+    for (uint256 i = 0; i < params.tokenIds.length; i++) {
+      DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(assetData, params.tokenIds[i]);
+      require(tokenData.owner == params.msgSender, Errors.INVALID_TOKEN_OWNER);
+      require(tokenData.supplyMode != params.supplyMode, Errors.ASSET_SUPPLY_MODE_IS_SAME);
+      require(tokenData.lockerAddr == address(0), Errors.ASSET_ALREADY_LOCKED_IN_USE);
+
+      DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[params.asset][params.tokenIds[i]];
+      require(loanData.loanStatus == 0, Errors.ISOLATE_LOAN_EXISTS);
+    }
+
     if (params.supplyMode == Constants.SUPPLY_MODE_CROSS) {
-      for (uint256 i = 0; i < params.tokenIds.length; i++) {
-        DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(assetData, params.tokenIds[i]);
-        require(tokenData.owner == params.msgSender, Errors.INVALID_TOKEN_OWNER);
-        require(tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.ASSET_NOT_ISOLATE_MODE);
-
-        DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[params.asset][params.tokenIds[i]];
-        require(loanData.loanStatus == 0, Errors.ISOLATE_LOAN_EXISTS);
-      }
-
       VaultLogic.erc721DecreaseIsolateSupply(assetData, params.msgSender, params.tokenIds);
 
       VaultLogic.erc721IncreaseCrossSupply(assetData, params.msgSender, params.tokenIds);
     } else if (params.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
-      for (uint256 i = 0; i < params.tokenIds.length; i++) {
-        DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(assetData, params.tokenIds[i]);
-        require(tokenData.owner == params.msgSender, Errors.INVALID_TOKEN_OWNER);
-        require(tokenData.supplyMode == Constants.SUPPLY_MODE_CROSS, Errors.ASSET_NOT_CROSS_MODE);
-
-        DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[params.asset][params.tokenIds[i]];
-        require(loanData.loanStatus == 0, Errors.ISOLATE_LOAN_EXISTS);
-      }
-
       VaultLogic.erc721DecreaseCrossSupply(assetData, params.msgSender, params.tokenIds);
 
       VaultLogic.erc721IncreaseIsolateSupply(assetData, params.msgSender, params.tokenIds);

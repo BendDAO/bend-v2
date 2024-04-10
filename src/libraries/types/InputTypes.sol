@@ -61,7 +61,7 @@ library InputTypes {
   struct ExecuteCrossLiquidateERC20Params {
     address msgSender;
     uint32 poolId;
-    address user;
+    address borrower;
     address collateralAsset;
     address debtAsset;
     uint256 debtToCover;
@@ -71,7 +71,7 @@ library InputTypes {
   struct ExecuteCrossLiquidateERC721Params {
     address msgSender;
     uint32 poolId;
-    address user;
+    address borrower;
     address collateralAsset;
     uint256[] collateralTokenIds;
     address debtAsset;
