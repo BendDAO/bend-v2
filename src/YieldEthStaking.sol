@@ -33,6 +33,8 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
   event SetNftActive(address indexed nft, bool isActive);
   event SetNftStakeParams(address indexed nft, uint16 leverageFactor, uint16 liquidationThreshold);
   event SetNftUnstakeParams(address indexed nft, uint16 maxUnstakeFine, uint256 unstakeHeathFactor);
+  event SetBotAdmin(address oldAdmin, address newAdmin);
+
   event Stake(address indexed nft, uint256 indexed tokenId, uint256 amount);
   event Unstake(address indexed nft, uint256 indexed tokenId, uint256 amount);
   event Repay(address indexed nft, uint256 indexed tokenId, uint256 amount);
@@ -135,6 +137,13 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
     nc.unstakeHeathFactor = unstakeHeathFactor;
 
     emit SetNftUnstakeParams(nft, maxUnstakeFine, unstakeHeathFactor);
+  }
+
+  function setBotAdmin(address newAdmin) public onlyPoolAdmin {
+    address oldAdmin = botAdmin;
+    botAdmin = newAdmin;
+
+    emit SetBotAdmin(oldAdmin, newAdmin);
   }
 
   function setPause(bool paused) public onlyPoolAdmin {
@@ -278,6 +287,7 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
     uint256 nftDebtWithFine;
     uint256 remainAmount;
     uint256 extraAmount;
+    bool isOK;
   }
 
   function repay(uint32 poolId, address nft, uint256 tokenId) public whenNotPaused nonReentrant {
@@ -323,11 +333,13 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
 
     // transfer eth from sender
     if (vars.extraAmount > 0) {
-      weth.transferFrom(msg.sender, address(this), vars.extraAmount);
+      vars.isOK = weth.transferFrom(msg.sender, address(this), vars.extraAmount);
+      require(vars.isOK, Errors.TOKEN_TRANSFER_FAILED);
     }
 
     if (vars.remainAmount > 0) {
-      weth.transferFrom(address(this), msg.sender, vars.remainAmount);
+      vars.isOK = weth.transferFrom(address(this), msg.sender, vars.remainAmount);
+      require(vars.isOK, Errors.TOKEN_TRANSFER_FAILED);
     }
 
     // repay lending pool
