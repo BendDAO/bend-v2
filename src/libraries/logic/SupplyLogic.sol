@@ -79,8 +79,6 @@ library SupplyLogic {
 
     ValidateLogic.validateDepositERC721(params, poolData, assetData);
 
-    VaultLogic.erc721TransferInLiquidity(assetData, params.msgSender, params.tokenIds);
-
     if (params.supplyMode == Constants.SUPPLY_MODE_CROSS) {
       VaultLogic.erc721IncreaseCrossSupply(assetData, params.msgSender, params.tokenIds);
     } else if (params.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
@@ -88,6 +86,8 @@ library SupplyLogic {
     } else {
       revert(Errors.INVALID_SUPPLY_MODE);
     }
+
+    VaultLogic.erc721TransferInLiquidity(assetData, params.msgSender, params.tokenIds);
 
     VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, params.msgSender);
 
@@ -99,8 +99,6 @@ library SupplyLogic {
 
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
-
-    InterestLogic.updateInterestIndexs(poolData, assetData);
 
     ValidateLogic.validateWithdrawERC721(params, poolData, assetData);
 

@@ -13,5 +13,5 @@ interface IInterestRateModel {
    * @param utilizationRate The asset liquidity utilization rate
    * @return borrowRate The group borrow rate expressed in rays
    */
-  function calculateGroupBorrowRate(uint256 utilizationRate) external view returns (uint256);
+  function calculateGroupBorrowRate(uint256 groupId, uint256 utilizationRate) external view returns (uint256);
 }

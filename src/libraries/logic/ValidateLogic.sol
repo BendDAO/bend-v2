@@ -2,6 +2,7 @@
 pragma solidity ^0.8.19;
 
 import {EnumerableSetUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol';
+import {IERC721Upgradeable} from '@openzeppelin/contracts-upgradeable/token/ERC721/IERC721Upgradeable.sol';
 import {IPriceOracleGetter} from '../../interfaces/IPriceOracleGetter.sol';
 
 import {Constants} from '../helpers/Constants.sol';
@@ -105,6 +106,8 @@ library ValidateLogic {
     validateAssetBasic(assetData);
 
     require(assetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
+    require(!assetData.isFrozen, Errors.ASSET_IS_FROZEN);
+
     require(inputParams.tokenIds.length > 0, Errors.INVALID_ID_LIST);
     validateArrayDuplicateUInt256(inputParams.tokenIds);
 
@@ -113,7 +116,10 @@ library ValidateLogic {
       Errors.INVALID_SUPPLY_MODE
     );
 
-    require(!assetData.isFrozen, Errors.ASSET_IS_FROZEN);
+    for (uint256 i = 0; i < inputParams.tokenIds.length; i++) {
+      DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(assetData, inputParams.tokenIds[i]);
+      require(tokenData.owner == address(0), Errors.ASSET_TOKEN_ALREADY_EXISTS);
+    }
   }
 
   function validateWithdrawERC721(
@@ -128,7 +134,10 @@ library ValidateLogic {
     require(inputParams.tokenIds.length > 0, Errors.INVALID_ID_LIST);
     validateArrayDuplicateUInt256(inputParams.tokenIds);
 
-    require(inputParams.supplyMode != 0, Errors.INVALID_SUPPLY_MODE);
+    require(
+      inputParams.supplyMode == Constants.SUPPLY_MODE_CROSS || inputParams.supplyMode == Constants.SUPPLY_MODE_ISOLATE,
+      Errors.INVALID_SUPPLY_MODE
+    );
 
     for (uint256 i = 0; i < inputParams.tokenIds.length; i++) {
       DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(assetData, inputParams.tokenIds[i]);
@@ -197,7 +206,7 @@ library ValidateLogic {
     );
 
     require(
-      userAccountResult.healthFactor > Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
+      userAccountResult.healthFactor >= Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
       Errors.HEALTH_FACTOR_BELOW_LIQUIDATION_THRESHOLD
     );
 

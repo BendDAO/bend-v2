@@ -733,6 +733,7 @@ abstract contract TestWithBaseAction is TestWithPrepare {
       }
 
       groupData.borrowRate = IInterestRateModel(groupData.rateModel).calculateGroupBorrowRate(
+        i,
         expectedAssetData.utilizationRate
       );
       if (_debugFlag) console.log('calcExpectedInterestRates-borrowRate', i, groupData.borrowRate);

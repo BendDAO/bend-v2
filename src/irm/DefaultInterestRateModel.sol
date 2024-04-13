@@ -79,7 +79,10 @@ contract DefaultInterestRateModel is IDefaultInterestRateModel {
   }
 
   /// @inheritdoc IInterestRateModel
-  function calculateGroupBorrowRate(uint256 utilizationRate) public view override returns (uint256) {
+  function calculateGroupBorrowRate(
+    uint256 /*groupId*/,
+    uint256 utilizationRate
+  ) public view override returns (uint256) {
     CalcInterestRatesLocalVars memory vars;
 
     vars.currentBorrowRate = _baseVariableBorrowRate;

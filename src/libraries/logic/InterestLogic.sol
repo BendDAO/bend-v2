@@ -80,22 +80,6 @@ library InterestLogic {
     }
   }
 
-  /**
-   * @notice Accumulates a predefined amount of asset to the asset as a fixed, instantaneous income. Used for example
-   * to accumulate the flashloan fee to the asset, and spread it between all the suppliers.
-   */
-  function cumulateToSupplyIndex(
-    DataTypes.AssetData storage assetData,
-    uint256 totalSupply,
-    uint256 amount
-  ) internal returns (uint256) {
-    //next supply index is calculated this way: `((amount / totalSupply) + 1) * supplyIndex`
-    //division `amount / totalSupply` done in ray for precision
-    uint256 result = (amount.wadToRay().rayDiv(totalSupply.wadToRay()) + WadRayMath.RAY).rayMul(assetData.supplyIndex);
-    assetData.supplyIndex = result.toUint128();
-    return result;
-  }
-
   struct UpdateInterestIndexsLocalVars {
     uint256 i;
     uint256[] assetGroupIds;
@@ -191,10 +175,12 @@ library InterestLogic {
       DataTypes.GroupData storage loopGroupData = assetData.groupLookup[vars.loopGroupId];
 
       vars.nextGroupBorrowRate = IInterestRateModel(loopGroupData.rateModel).calculateGroupBorrowRate(
+        vars.loopGroupId,
         vars.assetUtilizationRate
       );
       loopGroupData.borrowRate = vars.nextGroupBorrowRate.toUint128();
 
+      // assetBorrowRate = SUM(groupBorrowRate * (groupDebt / assetDebt))
       if (vars.totalAssetDebt > 0) {
         vars.nextAssetBorrowRate += vars.nextGroupBorrowRate.rayMul(vars.allGroupDebtList[vars.i]).rayDiv(
           vars.totalAssetDebt
@@ -232,7 +218,7 @@ library InterestLogic {
   }
 
   /**
-   * @notice Mints part of the repaid interest to the reserve treasury as a function of the reserve factor for the
+   * @notice Mints part of the repaid interest to the treasury as a function of the fee factor for the
    * specific asset.
    */
   function _accrueFeeToTreasury(
@@ -269,7 +255,7 @@ library InterestLogic {
    */
   function _updateSupplyIndex(DataTypes.AssetData storage assetData) internal {
     // Only cumulating on the supply side if there is any income being produced
-    // The case of Reserve Factor 100% is not a problem (currentLiquidityRate == 0),
+    // The case of Fee Factor 100% is not a problem (supplyRate == 0),
     // as liquidity index should not be updated
     if (assetData.supplyRate != 0) {
       uint256 cumulatedSupplyInterest = MathUtils.calculateLinearInterest(

@@ -27,25 +27,12 @@ library Constants {
   uint internal constant MAX_EXTERNAL_SINGLE_PROXY_MODULEID = 499_999;
 
   // Public multi-proxy modules
-  uint internal constant MODULEID__BTOKEN = 500_000;
-  uint internal constant MODULEID__DTOKEN = 500_001;
+  // uint internal constant MODULEID__xxx = 500_000;
 
   uint internal constant MAX_EXTERNAL_MODULEID = 999_999;
 
   // Internal modules
-  uint internal constant MODULEID__RISK_MANAGER = 1_000_000;
-
-  // Interest rate models
-  //   Default for new markets
-  uint internal constant MODULEID__IRM_DEFAULT = 2_000_000;
-  //   Testing-only
-  uint internal constant MODULEID__IRM_ZERO = 2_000_001;
-  uint internal constant MODULEID__IRM_FIXED = 2_000_002;
-  uint internal constant MODULEID__IRM_LINEAR = 2_000_100;
-  //   Classes
-  uint internal constant MODULEID__IRM_CLASS__STABLE = 2_000_500;
-  uint internal constant MODULEID__IRM_CLASS__MAJOR = 2_000_501;
-  uint internal constant MODULEID__IRM_CLASS__MIDCAP = 2_000_502;
+  // uint internal constant MODULEID__xxx = 1_000_000;
 
   // Pool params
   uint32 public constant INITIAL_POOL_ID = 1;
