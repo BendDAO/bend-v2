@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.0;
 
 interface IAddressProvider {
   event AddressSet(bytes32 indexed id, address indexed oldAddress, address indexed newAddress);

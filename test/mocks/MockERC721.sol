@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.0;
 
 import {Ownable2Step} from '@openzeppelin/contracts/access/Ownable2Step.sol';
 import {ERC721} from '@openzeppelin/contracts/token/ERC721/ERC721.sol';

@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.0;
 
 /**
  * @dev Collection of sort functions related to key-value array types.

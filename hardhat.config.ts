@@ -15,7 +15,7 @@ const remappings = fs
 dotenv.config({ path: './.env.local' });
 
 const config: HardhatUserConfig = {
-  solidity: '0.8.19',
+  solidity: '0.8.25',
   preprocess: {
     eachLine: () => ({
       transform: (line) => {

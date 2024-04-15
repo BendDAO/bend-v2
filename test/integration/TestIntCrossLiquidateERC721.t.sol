@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.0;
 
 import 'src/libraries/helpers/Constants.sol';
 
@@ -28,7 +28,6 @@ contract TestIntCrossLiquidateERC721 is TestWithCrossAction {
     borrowAmounts[0] =
       (accountDataBeforeBorrow.availableBorrowInBase * (10 ** tsUSDT.decimals())) /
       tsPriceOracle.getAssetPrice(address(tsUSDT));
-    borrowAmounts[0] + 10000000;
 
     actionCrossBorrowERC20(
       address(tsBorrower1),
@@ -83,7 +82,6 @@ contract TestIntCrossLiquidateERC721 is TestWithCrossAction {
     borrowAmounts[0] =
       (accountDataBeforeBorrow.availableBorrowInBase * (10 ** tsUSDT.decimals())) /
       tsPriceOracle.getAssetPrice(address(tsUSDT));
-    borrowAmounts[0] + 10000000;
 
     actionCrossBorrowERC20(
       address(tsBorrower1),

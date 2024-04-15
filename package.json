@@ -14,6 +14,7 @@
     "compile:hardhat:clean": "npm run ci:clean && npm run compile",
     "prettier:check": "prettier -c --plugin=prettier-plugin-solidity .",
     "prettier:write": "prettier -w --plugin=prettier-plugin-solidity .",
+    "update-abis": "npm run compile && bash ./script/extractABI.sh",
     "gas-report": "forge test --gas-report",
     "size": "forge build --sizes",
     "slither": "slither ./src",
