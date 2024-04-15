@@ -57,7 +57,7 @@ library DataTypes {
     address lockerAddr;
   }
 
-  struct StakerData {
+  struct YieldManagerData {
     uint256 yieldCap;
   }
 
@@ -106,7 +106,7 @@ library DataTypes {
     uint40 lastUpdateTimestamp;
 
     // yield state
-    mapping(address => StakerData) stakerLookup;
+    mapping(address => YieldManagerData) yieldManagerLookup;
   }
 
   struct IsolateLoanData {

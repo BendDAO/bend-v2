@@ -631,7 +631,7 @@ library ConfigureLogic {
     emit Events.SetAssetYieldRate(poolId, asset, rateModel_);
   }
 
-  function executeSetStakerYieldCap(
+  function executeSetManagerYieldCap(
     address msgSender,
     uint32 poolId,
     address staker,
@@ -648,10 +648,10 @@ library ConfigureLogic {
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
     require(newCap <= assetData.yieldCap, Errors.YIELD_EXCEED_ASSET_CAP_LIMIT);
 
-    DataTypes.StakerData storage stakerData = assetData.stakerLookup[staker];
-    stakerData.yieldCap = newCap;
+    DataTypes.YieldManagerData storage ymData = assetData.yieldManagerLookup[staker];
+    ymData.yieldCap = newCap;
 
-    emit Events.SetStakerYieldCap(poolId, staker, asset, newCap);
+    emit Events.SetManagerYieldCap(poolId, staker, asset, newCap);
   }
 
   function _validateCallerAndPool(

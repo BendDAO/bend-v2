@@ -207,8 +207,8 @@ contract Configurator is BaseModule {
     ConfigureLogic.executeSetAssetYieldRate(msgSender, poolId, asset, rateModel_);
   }
 
-  function setStakerYieldCap(uint32 poolId, address staker, address asset, uint256 cap) public nonReentrant {
+  function setManagerYieldCap(uint32 poolId, address staker, address asset, uint256 cap) public nonReentrant {
     address msgSender = unpackTrailingParamMsgSender();
-    ConfigureLogic.executeSetStakerYieldCap(msgSender, poolId, staker, asset, cap);
+    ConfigureLogic.executeSetManagerYieldCap(msgSender, poolId, staker, asset, cap);
   }
 }

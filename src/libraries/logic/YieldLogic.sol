@@ -42,7 +42,7 @@ library YieldLogic {
     DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
     DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
-    DataTypes.StakerData storage stakerData = assetData.stakerLookup[vars.stakerAddr];
+    DataTypes.YieldManagerData storage ymData = assetData.yieldManagerLookup[vars.stakerAddr];
 
     InterestLogic.updateInterestIndexs(poolData, assetData);
 
@@ -60,7 +60,7 @@ library YieldLogic {
     // check staker level yield cap limit
     vars.stakerBorrow = VaultLogic.erc20GetUserCrossBorrowInGroup(groupData, vars.stakerAddr, groupData.borrowIndex);
     require(
-      (vars.stakerBorrow + params.amount) <= vars.totalSupply.percentMul(stakerData.yieldCap),
+      (vars.stakerBorrow + params.amount) <= vars.totalSupply.percentMul(ymData.yieldCap),
       Errors.YIELD_EXCEED_STAKER_CAP_LIMIT
     );
 
@@ -134,8 +134,8 @@ library YieldLogic {
       lockerAddr = address(this);
     }
 
-    DataTypes.StakerData storage stakerData = debtAssetData.stakerLookup[lockerAddr];
-    require(stakerData.yieldCap > 0, Errors.YIELD_EXCEED_STAKER_CAP_LIMIT);
+    DataTypes.YieldManagerData storage ymData = debtAssetData.yieldManagerLookup[lockerAddr];
+    require(ymData.yieldCap > 0, Errors.YIELD_EXCEED_STAKER_CAP_LIMIT);
 
     if (params.isLock) {
       VaultLogic.erc721SetTokenLockerAddr(nftAssetData, params.tokenId, lockerAddr);

@@ -523,14 +523,14 @@ abstract contract TestWithSetup is TestWithUtils {
     tsConfigurator.setAssetYieldEnable(tsCommonPoolId, address(tsWETH), true);
     tsConfigurator.setAssetYieldCap(tsCommonPoolId, address(tsWETH), 2000);
     tsConfigurator.setAssetYieldRate(tsCommonPoolId, address(tsWETH), address(tsYieldRateIRM));
-    tsConfigurator.setStakerYieldCap(tsCommonPoolId, address(tsPoolManager), address(tsWETH), 2000);
-    tsConfigurator.setStakerYieldCap(tsCommonPoolId, address(tsStaker1), address(tsWETH), 2000);
+    tsConfigurator.setManagerYieldCap(tsCommonPoolId, address(tsPoolManager), address(tsWETH), 2000);
+    tsConfigurator.setManagerYieldCap(tsCommonPoolId, address(tsStaker1), address(tsWETH), 2000);
 
     tsConfigurator.setAssetYieldEnable(tsCommonPoolId, address(tsDAI), true);
     tsConfigurator.setAssetYieldCap(tsCommonPoolId, address(tsDAI), 2000);
     tsConfigurator.setAssetYieldRate(tsCommonPoolId, address(tsDAI), address(tsYieldRateIRM));
-    tsConfigurator.setStakerYieldCap(tsCommonPoolId, address(tsPoolManager), address(tsDAI), 2000);
-    tsConfigurator.setStakerYieldCap(tsCommonPoolId, address(tsStaker2), address(tsDAI), 2000);
+    tsConfigurator.setManagerYieldCap(tsCommonPoolId, address(tsPoolManager), address(tsDAI), 2000);
+    tsConfigurator.setManagerYieldCap(tsCommonPoolId, address(tsStaker2), address(tsDAI), 2000);
 
     tsHEVM.stopPrank();
   }
@@ -538,7 +538,7 @@ abstract contract TestWithSetup is TestWithUtils {
   function initYieldEthStaking() internal {
     tsHEVM.startPrank(tsPoolAdmin);
 
-    tsConfigurator.setStakerYieldCap(tsCommonPoolId, address(tsYieldEthStaking), address(tsWETH), 2000);
+    tsConfigurator.setManagerYieldCap(tsCommonPoolId, address(tsYieldEthStaking), address(tsWETH), 2000);
 
     tsYieldEthStaking.setNftActive(address(tsBAYC), true);
     tsYieldEthStaking.setNftStakeParams(address(tsBAYC), 50000, 9000);
