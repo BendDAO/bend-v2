@@ -31,7 +31,7 @@
     "deploy:sepolia:resume": "SKIP_CLEAN=true . ./setup-test-env.sh && forge script ./script/eth-sepolia/Deploy.s.sol -vvvvv --private-key ${PRIVATE_KEY} --etherscan-api-key ${ETHERSCAN_KEY} --rpc-url sepolia --verify --resume",
     "deploy:sepolia:verify": "SKIP_CLEAN=true . ./setup-test-env.sh && forge script ./script/eth-sepolia/Deploy.s.sol -vvvvv --private-key ${PRIVATE_KEY} --etherscan-api-key ${ETHERSCAN_KEY} --rpc-url sepolia --verify",
     "prepare": "husky install",
-    "build": "tsc --project lib.tsconfig.json",
+    "build": "tsc --project tsconfig.json",
     "prepublish": "npm run compile && npm run build"
   },
   "repository": {
@@ -49,12 +49,13 @@
     "dotenv": "16.3.1",
     "hardhat": "^2.18.0",
     "hardhat-preprocessor": "0.1.5",
+    "husky": "9.0.11",
     "prettier": "3.0.3",
     "prettier-plugin-solidity": "1.1.3"
   },
   "dependencies": {
     "@chainlink/contracts": "0.8.0",
-    "@openzeppelin/contracts": "4.9.3",
-    "@openzeppelin/contracts-upgradeable": "4.9.3"
+    "@openzeppelin/contracts": "4.9.6",
+    "@openzeppelin/contracts-upgradeable": "4.9.6"
   }
 }
