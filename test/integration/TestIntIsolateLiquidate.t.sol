@@ -16,6 +16,8 @@ contract TestIntIsolateLiquidate is TestWithIsolateAction {
     uint256 walletBalanceBefore2;
     uint256 walletBalanceAfter1;
     uint256 walletBalanceAfter2;
+    uint256 erc721BalanceBefore1;
+    uint256 erc721BalanceAfter1;
     TestLoanData[] loanDataBefore;
     TestLoanData[] loanDataAfter;
     uint256 txAuctionTimestamp;
@@ -89,6 +91,7 @@ contract TestIntIsolateLiquidate is TestWithIsolateAction {
     testVars.poolBalanceBefore = tsWETH.balanceOf(address(tsPoolManager));
     testVars.walletBalanceBefore1 = tsWETH.balanceOf(address(tsLiquidator1));
     testVars.walletBalanceBefore2 = tsWETH.balanceOf(address(tsBorrower1));
+    testVars.erc721BalanceBefore1 = tsBAYC.balanceOf(address(tsLiquidator1));
 
     // liquidate
     tsLiquidator1.isolateLiquidate(tsCommonPoolId, address(tsBAYC), tokenIds, address(tsWETH), liquidateAmounts, false);
@@ -108,11 +111,11 @@ contract TestIntIsolateLiquidate is TestWithIsolateAction {
     assertEq(
       testVars.poolBalanceAfter,
       testVars.poolBalanceBefore - (testVars.totalBidAmount - testVars.totalBorrowAmount),
-      'tsPoolManager balance'
+      'tsPoolManager weth balance'
     );
 
     testVars.walletBalanceAfter1 = tsWETH.balanceOf(address(tsLiquidator1));
-    assertEq(testVars.walletBalanceAfter1, testVars.walletBalanceBefore1, 'tsLiquidator1 balance');
+    assertEq(testVars.walletBalanceAfter1, testVars.walletBalanceBefore1, 'tsLiquidator1 weth balance');
 
     testVars.walletBalanceAfter2 = tsWETH.balanceOf(address(tsBorrower1));
     assertEq(
@@ -120,9 +123,16 @@ contract TestIntIsolateLiquidate is TestWithIsolateAction {
       (testVars.walletBalanceBefore2 + (testVars.totalBidAmount - testVars.totalBorrowAmount)),
       'tsBorrower1 balance'
     );
+
+    testVars.erc721BalanceAfter1 = tsBAYC.balanceOf(address(tsLiquidator1));
+    assertEq(
+      testVars.erc721BalanceAfter1,
+      (testVars.erc721BalanceBefore1 + tokenIds.length),
+      'tsLiquidator1 bayc balance'
+    );
   }
 
-  function test_Should_LiquidateUSDT() public {
+  function test_Should_LiquidateUSDT_SupplyAsCollateral() public {
     TestCaseLocalVars memory testVars;
 
     // deposit
@@ -156,9 +166,10 @@ contract TestIntIsolateLiquidate is TestWithIsolateAction {
     testVars.poolBalanceBefore = tsUSDT.balanceOf(address(tsPoolManager));
     testVars.walletBalanceBefore1 = tsUSDT.balanceOf(address(tsLiquidator1));
     testVars.walletBalanceBefore2 = tsUSDT.balanceOf(address(tsBorrower1));
+    testVars.erc721BalanceBefore1 = tsBAYC.balanceOf(address(tsLiquidator1));
 
     // liquidate
-    tsLiquidator1.isolateLiquidate(tsCommonPoolId, address(tsBAYC), tokenIds, address(tsUSDT), liquidateAmounts, false);
+    tsLiquidator1.isolateLiquidate(tsCommonPoolId, address(tsBAYC), tokenIds, address(tsUSDT), liquidateAmounts, true);
     testVars.txAuctionTimestamp = block.timestamp;
 
     // check results
@@ -175,17 +186,20 @@ contract TestIntIsolateLiquidate is TestWithIsolateAction {
     assertEq(
       testVars.poolBalanceAfter,
       testVars.poolBalanceBefore - (testVars.totalBidAmount - testVars.totalBorrowAmount),
-      'tsPoolManager balance'
+      'tsPoolManager usdt balance'
     );
 
     testVars.walletBalanceAfter1 = tsUSDT.balanceOf(address(tsLiquidator1));
-    assertEq(testVars.walletBalanceAfter1, testVars.walletBalanceBefore1, 'tsLiquidator1 balance');
+    assertEq(testVars.walletBalanceAfter1, testVars.walletBalanceBefore1, 'tsLiquidator1 usdt balance');
 
     testVars.walletBalanceAfter2 = tsUSDT.balanceOf(address(tsBorrower1));
     assertEq(
       testVars.walletBalanceAfter2,
       (testVars.walletBalanceBefore2 + (testVars.totalBidAmount - testVars.totalBorrowAmount)),
-      'tsBorrower1 balance'
+      'tsBorrower1 usdt balance'
     );
+
+    testVars.erc721BalanceAfter1 = tsBAYC.balanceOf(address(tsLiquidator1));
+    assertEq(testVars.erc721BalanceAfter1, (testVars.erc721BalanceBefore1), 'tsLiquidator1 bayc balance');
   }
 }

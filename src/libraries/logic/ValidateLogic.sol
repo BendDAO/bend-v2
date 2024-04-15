@@ -120,6 +120,12 @@ library ValidateLogic {
       DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(assetData, inputParams.tokenIds[i]);
       require(tokenData.owner == address(0), Errors.ASSET_TOKEN_ALREADY_EXISTS);
     }
+
+    if (assetData.supplyCap != 0) {
+      uint256 totalSupply = VaultLogic.erc721GetTotalCrossSupply(assetData) +
+        VaultLogic.erc721GetTotalIsolateSupply(assetData);
+      require((totalSupply + inputParams.tokenIds.length) <= assetData.supplyCap, Errors.ASSET_SUPPLY_CAP_EXCEEDED);
+    }
   }
 
   function validateWithdrawERC721(
@@ -177,7 +183,9 @@ library ValidateLogic {
     validateArrayDuplicateUInt8(inputParams.groups);
 
     if (assetData.borrowCap != 0) {
-      vars.totalAssetBorrowAmount = VaultLogic.erc20GetTotalCrossBorrowInAsset(assetData);
+      vars.totalAssetBorrowAmount =
+        VaultLogic.erc20GetTotalCrossBorrowInAsset(assetData) +
+        VaultLogic.erc20GetTotalIsolateBorrowInAsset(assetData);
 
       for (vars.gidx = 0; vars.gidx < inputParams.groups.length; vars.gidx++) {
         vars.totalNewBorrowAmount += inputParams.amounts[vars.gidx];
@@ -303,6 +311,11 @@ library ValidateLogic {
     require(inputParams.collateralTokenIds.length > 0, Errors.INVALID_ID_LIST);
     validateArrayDuplicateUInt256(inputParams.collateralTokenIds);
 
+    require(
+      inputParams.collateralTokenIds.length <= Constants.MAX_LIQUIDATION_ERC721_TOKEN_NUM,
+      Errors.LIQUIDATION_EXCEED_MAX_TOKEN_NUM
+    );
+
     for (uint256 i = 0; i < inputParams.collateralTokenIds.length; i++) {
       DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(
         collateralAssetData,
@@ -381,7 +394,9 @@ library ValidateLogic {
     require(vars.totalNewBorrowAmount <= debtAssetData.availableLiquidity, Errors.ASSET_INSUFFICIENT_LIQUIDITY);
 
     if (debtAssetData.borrowCap != 0) {
-      vars.totalAssetBorrowAmount = VaultLogic.erc20GetTotalCrossBorrowInAsset(debtAssetData);
+      vars.totalAssetBorrowAmount =
+        VaultLogic.erc20GetTotalCrossBorrowInAsset(debtAssetData) +
+        VaultLogic.erc20GetTotalIsolateBorrowInAsset(debtAssetData);
 
       require(
         (vars.totalAssetBorrowAmount + vars.totalNewBorrowAmount) <= debtAssetData.borrowCap,
@@ -393,7 +408,6 @@ library ValidateLogic {
   function validateIsolateBorrowLoan(
     InputTypes.ExecuteIsolateBorrowParams memory inputParams,
     uint256 nftIndex,
-    DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage debtAssetData,
     DataTypes.GroupData storage debtGroupData,
     DataTypes.AssetData storage nftAssetData,
@@ -409,7 +423,6 @@ library ValidateLogic {
     }
 
     ResultTypes.NftLoanResult memory nftLoanResult = GenericLogic.calculateNftLoanData(
-      poolData,
       debtAssetData,
       debtGroupData,
       nftAssetData,

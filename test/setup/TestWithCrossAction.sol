@@ -836,7 +836,7 @@ abstract contract TestWithCrossAction is TestWithBaseAction {
     TestContractData memory /*dataAfter*/,
     TestContractData memory dataExpected,
     uint256 colToLiq,
-    uint256 txTimestamp
+    uint256 /*txTimestamp*/
   ) internal view {
     if (_debugFlag) console.log('calcExpectedCollateralAssetDataAfterCrossLiquidateERC721', 'begin');
     TestAssetData memory expectedAssetData = copyAssetData(dataBefore.assetData);

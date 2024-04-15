@@ -102,6 +102,8 @@ library Constants {
    */
   uint256 public constant CLOSE_FACTOR_HF_THRESHOLD = 0.95e18;
 
+  uint256 public constant MAX_LIQUIDATION_ERC721_TOKEN_NUM = 1;
+
   // Yield Status
   uint8 public constant YIELD_STATUS_ACTIVE = 1;
   uint8 public constant YIELD_STATUS_UNSTAKE = 2;

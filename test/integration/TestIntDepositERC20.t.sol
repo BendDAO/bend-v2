@@ -34,7 +34,7 @@ contract TestIntDepositERC20 is TestWithBaseAction {
   }
 
   function test_RevertIf_ExceedBalance() public {
-    uint256 amount = 1_000_000_000 ether;
+    uint256 amount = tsWETH.balanceOf(address(tsDepositor1)) + 100;
 
     tsDepositor1.approveERC20(address(tsWETH), amount);
     actionDepositERC20(

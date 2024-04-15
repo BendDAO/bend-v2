@@ -444,7 +444,6 @@ library QueryLogic {
     DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[nftAsset][tokenId];
 
     ResultTypes.NftLoanResult memory nftLoanResult = GenericLogic.calculateNftLoanData(
-      poolData,
       debtAssetData,
       debtGroupData,
       nftAssetData,
@@ -530,7 +529,6 @@ library QueryLogic {
     bidAmount = loanData.bidAmount;
 
     (, bidFine) = GenericLogic.calculateNftLoanBidFine(
-      poolData,
       debtAssetData,
       debtGroupData,
       nftAssetData,

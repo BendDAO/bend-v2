@@ -105,6 +105,7 @@ library Errors {
   string public constant COLLATERAL_CANNOT_COVER_NEW_BORROW = '409';
   string public constant LIQUIDATE_REPAY_DEBT_FAILED = '410';
   string public constant ORACLE_PRICE_IS_STALE = '411';
+  string public constant LIQUIDATION_EXCEED_MAX_TOKEN_NUM = '412';
 
   string public constant YIELD_EXCEED_ASSET_CAP_LIMIT = '500';
   string public constant YIELD_EXCEED_STAKER_CAP_LIMIT = '501';

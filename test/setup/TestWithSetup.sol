@@ -464,6 +464,8 @@ abstract contract TestWithSetup is TestWithUtils {
     tsConfigurator.setAssetClassGroup(tsCommonPoolId, address(tsWETH), tsLowRateGroupId);
     tsConfigurator.setAssetActive(tsCommonPoolId, address(tsWETH), true);
     tsConfigurator.setAssetBorrowing(tsCommonPoolId, address(tsWETH), true);
+    tsConfigurator.setAssetSupplyCap(tsCommonPoolId, address(tsWETH), 100_000_000 * (10 ** tsWETH.decimals()));
+    tsConfigurator.setAssetBorrowCap(tsCommonPoolId, address(tsWETH), 100_000_000 * (10 ** tsWETH.decimals()));
 
     tsConfigurator.addAssetERC20(tsCommonPoolId, address(tsDAI));
     tsConfigurator.setAssetCollateralParams(tsCommonPoolId, address(tsDAI), 7700, 8000, 500);
@@ -471,6 +473,8 @@ abstract contract TestWithSetup is TestWithUtils {
     tsConfigurator.setAssetClassGroup(tsCommonPoolId, address(tsDAI), tsLowRateGroupId);
     tsConfigurator.setAssetActive(tsCommonPoolId, address(tsDAI), true);
     tsConfigurator.setAssetBorrowing(tsCommonPoolId, address(tsDAI), true);
+    tsConfigurator.setAssetSupplyCap(tsCommonPoolId, address(tsDAI), 100_000_000 * (10 ** tsWETH.decimals()));
+    tsConfigurator.setAssetBorrowCap(tsCommonPoolId, address(tsDAI), 100_000_000 * (10 ** tsWETH.decimals()));
 
     tsConfigurator.addAssetERC20(tsCommonPoolId, address(tsUSDT));
     tsConfigurator.setAssetCollateralParams(tsCommonPoolId, address(tsUSDT), 7400, 7600, 450);
@@ -478,6 +482,8 @@ abstract contract TestWithSetup is TestWithUtils {
     tsConfigurator.setAssetClassGroup(tsCommonPoolId, address(tsUSDT), tsLowRateGroupId);
     tsConfigurator.setAssetActive(tsCommonPoolId, address(tsUSDT), true);
     tsConfigurator.setAssetBorrowing(tsCommonPoolId, address(tsUSDT), true);
+    tsConfigurator.setAssetSupplyCap(tsCommonPoolId, address(tsUSDT), 100_000_000 * (10 ** tsWETH.decimals()));
+    tsConfigurator.setAssetBorrowCap(tsCommonPoolId, address(tsUSDT), 100_000_000 * (10 ** tsWETH.decimals()));
 
     // add interest group to assets
     tsConfigurator.addAssetGroup(tsCommonPoolId, address(tsWETH), tsLowRateGroupId, address(tsLowRateIRM));
@@ -495,18 +501,21 @@ abstract contract TestWithSetup is TestWithUtils {
     tsConfigurator.setAssetAuctionParams(tsCommonPoolId, address(tsWPUNK), 5000, 500, 2000, 1 days);
     tsConfigurator.setAssetClassGroup(tsCommonPoolId, address(tsWPUNK), tsLowRateGroupId);
     tsConfigurator.setAssetActive(tsCommonPoolId, address(tsWPUNK), true);
+    tsConfigurator.setAssetSupplyCap(tsCommonPoolId, address(tsWPUNK), 10_000);
 
     tsConfigurator.addAssetERC721(tsCommonPoolId, address(tsBAYC));
     tsConfigurator.setAssetCollateralParams(tsCommonPoolId, address(tsBAYC), 6000, 8000, 1000);
     tsConfigurator.setAssetAuctionParams(tsCommonPoolId, address(tsBAYC), 5000, 500, 2000, 1 days);
     tsConfigurator.setAssetClassGroup(tsCommonPoolId, address(tsBAYC), tsLowRateGroupId);
     tsConfigurator.setAssetActive(tsCommonPoolId, address(tsBAYC), true);
+    tsConfigurator.setAssetSupplyCap(tsCommonPoolId, address(tsBAYC), 10_000);
 
     tsConfigurator.addAssetERC721(tsCommonPoolId, address(tsMAYC));
     tsConfigurator.setAssetCollateralParams(tsCommonPoolId, address(tsMAYC), 5000, 8000, 1000);
     tsConfigurator.setAssetAuctionParams(tsCommonPoolId, address(tsMAYC), 5000, 500, 2000, 1 days);
     tsConfigurator.setAssetClassGroup(tsCommonPoolId, address(tsMAYC), tsHighRateGroupId);
     tsConfigurator.setAssetActive(tsCommonPoolId, address(tsMAYC), true);
+    tsConfigurator.setAssetSupplyCap(tsCommonPoolId, address(tsMAYC), 10_000);
 
     // yield
     tsConfigurator.setPoolYieldEnable(tsCommonPoolId, true);

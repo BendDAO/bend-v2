@@ -214,7 +214,6 @@ library GenericLogic {
    * @dev Calculates the nft loan data.
    **/
   function calculateNftLoanData(
-    DataTypes.PoolData storage /*poolData*/,
     DataTypes.AssetData storage debtAssetData,
     DataTypes.GroupData storage debtGroupData,
     DataTypes.AssetData storage nftAssetData,
@@ -254,7 +253,6 @@ library GenericLogic {
   }
 
   function calculateNftLoanLiquidatePrice(
-    DataTypes.PoolData storage /*poolData*/,
     DataTypes.AssetData storage debtAssetData,
     DataTypes.GroupData storage debtGroupData,
     DataTypes.AssetData storage nftAssetData,
@@ -312,7 +310,6 @@ library GenericLogic {
   }
 
   function calculateNftLoanBidFine(
-    DataTypes.PoolData storage /*poolData*/,
     DataTypes.AssetData storage debtAssetData,
     DataTypes.GroupData storage debtGroupData,
     DataTypes.AssetData storage nftAssetData,

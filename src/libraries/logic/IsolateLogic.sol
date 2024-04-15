@@ -57,7 +57,6 @@ library IsolateLogic {
       ValidateLogic.validateIsolateBorrowLoan(
         params,
         vars.nidx,
-        poolData,
         debtAssetData,
         debtGroupData,
         nftAssetData,
@@ -211,7 +210,6 @@ library IsolateLogic {
       ValidateLogic.validateIsolateAuctionLoan(params, debtGroupData, loanData, tokenData);
 
       (vars.borrowAmount, vars.thresholdPrice, vars.liquidatePrice) = GenericLogic.calculateNftLoanLiquidatePrice(
-        poolData,
         debtAssetData,
         debtGroupData,
         nftAssetData,
@@ -324,7 +322,6 @@ library IsolateLogic {
 
       // check bid fine in min & max range
       (, vars.bidFines[vars.nidx]) = GenericLogic.calculateNftLoanBidFine(
-        poolData,
         debtAssetData,
         debtGroupData,
         nftAssetData,
