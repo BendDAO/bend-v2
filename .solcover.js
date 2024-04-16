@@ -12,6 +12,6 @@ module.exports = {
   },
   onCompileComplete: function () {
     console.log('onCompileComplete hook');
-    cp.execSync('. ./setup-test-env.sh', {stdio: 'inherit'});
+    cp.execSync('. ./setup-env.sh', {stdio: 'inherit'});
   },
 };

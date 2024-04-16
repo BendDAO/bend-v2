@@ -26,14 +26,11 @@ import {Configured, ConfigLib, Config} from 'config/Configured.sol';
 
 import '@forge-std/Script.sol';
 
-contract Deploy is Script, Configured {
+abstract contract DeployBase is Script, Configured {
   using ConfigLib for Config;
   address internal deployer;
   bytes32 internal gitCommitHash;
-  AddressProvider internal addressProvider;
-  ACLManager internal aclManager;
-  PriceOracle internal priceOracle;
-  PoolManager internal poolManager;
+  string internal etherscanKey;
 
   function run() external {
     _initConfig();
@@ -44,6 +41,8 @@ contract Deploy is Script, Configured {
 
     gitCommitHash = vm.envBytes32('GIT_COMMIT_HASH');
 
+    etherscanKey = vm.envString('ETHERSCAN_KEY');
+
     vm.startBroadcast(deployer);
 
     _deploy();
@@ -51,66 +50,103 @@ contract Deploy is Script, Configured {
     vm.stopBroadcast();
   }
 
-  function _network() internal pure virtual override returns (string memory) {
-    return 'eth-sepolia';
+  function _deploy() internal virtual {}
+
+  function _deployProxyAdmin() internal returns (address) {
+    address addressInCfg = config.getProxyAdmin();
+    require(addressInCfg == address(0), 'ProxyAdmin exist in config');
+
+    ProxyAdmin proxyAdmin = new ProxyAdmin();
+    return address(proxyAdmin);
   }
 
-  function _deploy() internal {
-    address aclAdmin = deployer; // config.getACLAdmin();
-    address treasury = config.getTreasury();
+  function _deployAddressProvider(address proxyAdmin_) internal returns (address) {
+    address addressInCfg = config.getAddressProvider();
+    require(addressInCfg == address(0), 'AddressProvider exist in config');
 
-    console.log('aclAdmin:', aclAdmin, 'treasury:', treasury);
-
-    /// Deploy proxies ///
-    ProxyAdmin proxyAdmin = new ProxyAdmin();
-
-    /// Address Provider
     AddressProvider addressProviderImpl = new AddressProvider();
     TransparentUpgradeableProxy addressProviderProxy = new TransparentUpgradeableProxy(
       address(addressProviderImpl),
-      address(proxyAdmin),
+      address(proxyAdmin_),
       abi.encodeWithSelector(addressProviderImpl.initialize.selector)
     );
-    addressProvider = AddressProvider(address(addressProviderProxy));
-    addressProvider.setWrappedNativeToken(address(wNative));
-    addressProvider.setTreasury(treasury);
+    AddressProvider addressProvider = AddressProvider(address(addressProviderProxy));
+
+    require(cfgWrappedNative != address(0), 'Invalid WrappedNative in config');
+    addressProvider.setWrappedNativeToken(cfgWrappedNative);
+
+    address aclAdmin = config.getACLAdmin();
+    require(aclAdmin != address(0), 'Invalid ACLAdmin in config');
     addressProvider.setACLAdmin(aclAdmin);
 
-    /// ACL Manager
+    address treasury = config.getTreasury();
+    require(addressInCfg == address(0), 'Invalid Treasury in config');
+    addressProvider.setTreasury(treasury);
+
+    return address(addressProvider);
+  }
+
+  function _deployACLManager(address proxyAdmin_, address addressProvider_) internal returns (address) {
+    address addressInCfg = config.getACLManager();
+    require(addressInCfg == address(0), 'ACLManager exist in config');
+
+    address aclAdmin = config.getACLAdmin();
+    require(aclAdmin != address(0), 'Invalid ACLAdmin in config');
+
     ACLManager aclManagerImpl = new ACLManager();
     TransparentUpgradeableProxy aclManagerProxy = new TransparentUpgradeableProxy(
       address(aclManagerImpl),
-      address(proxyAdmin),
+      address(proxyAdmin_),
       abi.encodeWithSelector(aclManagerImpl.initialize.selector, aclAdmin)
     );
-    aclManager = ACLManager(address(aclManagerProxy));
-    aclManager.addPoolAdmin(deployer);
-    addressProvider.setACLManager(address(aclManager));
+    ACLManager aclManager = ACLManager(address(aclManagerProxy));
 
-    /// Price Oracle
+    aclManager.addPoolAdmin(deployer);
+    aclManager.addEmergencyAdmin(deployer);
+    aclManager.addOracleAdmin(deployer);
+
+    AddressProvider(addressProvider_).setACLManager(address(aclManager));
+
+    return address(aclManager);
+  }
+
+  function _deployPriceOracle(address proxyAdmin_, address addressProvider_) internal returns (address) {
+    address addressInCfg = config.getPriceOracle();
+    require(addressInCfg == address(0), 'PriceOracle exist in config');
+
     PriceOracle priceOracleImpl = new PriceOracle();
     TransparentUpgradeableProxy priceOracleProxy = new TransparentUpgradeableProxy(
       address(priceOracleImpl),
-      address(proxyAdmin),
+      address(proxyAdmin_),
       abi.encodeWithSelector(
         priceOracleImpl.initialize.selector,
-        address(aclManager),
+        address(addressProvider_),
         address(0),
         1e8,
-        address(wNative),
+        address(cfgWrappedNative),
         1e18
       )
     );
-    priceOracle = PriceOracle(address(priceOracleProxy));
-    addressProvider.setPriceOracle(address(priceOracle));
+    PriceOracle priceOracle = PriceOracle(address(priceOracleProxy));
 
-    // Pool Manager
+    AddressProvider(addressProvider_).setPriceOracle(address(priceOracle));
+
+    return address(priceOracle);
+  }
+
+  function _deployPoolManager(address addressProvider_) internal returns (address) {
+    address addressInCfg = config.getPoolManager();
+    require(addressInCfg == address(0), 'PoolManager exist in config');
+
+    // Installer & PoolManager
     Installer tsModInstallerImpl = new Installer(gitCommitHash);
-    poolManager = new PoolManager(address(addressProvider), address(tsModInstallerImpl));
-    addressProvider.setPoolManager(address(poolManager));
+    PoolManager poolManager = new PoolManager(address(addressProvider_), address(tsModInstallerImpl));
+
+    AddressProvider(addressProvider_).setPoolManager(address(poolManager));
 
     Installer installer = Installer(poolManager.moduleIdToProxy(Constants.MODULEID__INSTALLER));
 
+    // Modules
     address[] memory modules = new address[](9);
     uint modIdx = 0;
 
@@ -142,5 +178,7 @@ contract Deploy is Script, Configured {
     modules[modIdx++] = address(tsPoolLensImpl);
 
     installer.installModules(modules);
+
+    return address(poolManager);
   }
 }

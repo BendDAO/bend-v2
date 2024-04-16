@@ -27,7 +27,7 @@ const config: HardhatUserConfig = {
   paths: {
     sources: './src',
     tests: './test/hardhat',
-  }
+  },
 };
 
 export default config;

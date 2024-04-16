@@ -12,20 +12,10 @@ contract Configured is StdChains {
 
   Config internal config;
 
-  address internal wNative;
-  address internal usdt;
-  address internal wbtc;
-  address internal weth;
-  address internal stETH;
-  address internal unstETH;
-  address[] internal allUnderlyings;
+  address internal cfgWrappedNative;
 
   function _network() internal view virtual returns (string memory) {
-    try vm.envString('NETWORK') returns (string memory configNetwork) {
-      return configNetwork;
-    } catch {
-      return 'eth-mainnet';
-    }
+    return vm.envString('NETWORK');
   }
 
   function _rpcAlias() internal virtual returns (string memory) {
@@ -44,13 +34,6 @@ contract Configured is StdChains {
   }
 
   function _loadConfig() internal virtual {
-    wNative = config.getWrappedNative();
-    usdt = config.getAddress('USDT');
-    wbtc = config.getAddress('WBTC');
-    weth = config.getAddress('WETH');
-    stETH = config.getAddress('stETH');
-    unstETH = config.getAddress('unstETH');
-
-    allUnderlyings = [usdt, wbtc, weth];
+    cfgWrappedNative = config.getWrappedNative();
   }
 }

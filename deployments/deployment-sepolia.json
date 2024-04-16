@@ -1,0 +1,58 @@
+{
+  "Tokens": {},
+  "AddressProvider": {
+    "Proxy": "0xfc1e466a089F50874D07aef72E1C3e6aEF071704",
+    "Implementation": "0x25C6b251515D71b7177Ee8D1810F99F1D9ed8fca"
+  },
+  "ACLManager": {
+    "Proxy": "0xb89b746f008cAF75144eB28dd51E90aC9dF2fbc0",
+    "Implementation": "0x854f642C34d2A068A4fbB99E1EF9Ba8B589080f2"
+  },
+  "PriceOracle": {
+    "Proxy": "0x8365860E4fE84254dCD747d2498d6b104Ac1b60A",
+    "Implementation": "0x0e5b15F7d1Ca881406f108b56540BB254EF4f258"
+  },
+  "PoolManager": "0x0aaC3738020F8e8394Ebc4bc39E887FDdE996914",
+  "Modules": {
+    "Installer": {
+      "Proxy": "0xaFB6b37e9664655B197a4bD5a38927a8d3b3c9ce",
+      "Implementation": "0xb409587EcCF6d966304031F26E6E8B0d3281E59d"
+    },
+    "Configurator": {
+      "Proxy": "0xa0C8a1ed80d78d07E9c9649Ba941f734E6E12689",
+      "Implementation": "0x650ceb8ad5C3B06252c30aB9CF2f3deD521DDF3d"
+    },
+    "BVault": {
+      "Proxy": "0x8b1CF95993a353d38472e1bB8FADFfac256cE68e",
+      "Implementation": "0xF2e76249f2eBA8FC4e2d090f225e2b137d4Abc74"
+    },
+    "PoolLens": {
+      "Proxy": "0xDc3748260aE18699f71C652E3C4e0ADf4CBCe001",
+      "Implementation": "0xfD5d53346B9B66352f1f18BBDD34667dad48409B"
+    },
+    "FlashLoan": {
+      "Proxy": "0x045367Cd70F75711547d2a81f227D398a21417EB",
+      "Implementation": "0x6c3459111a3a7778322B4f624F58c4cdaB9034Ee"
+    },
+    "Yield": {
+      "Proxy": "0x5b784b06629F809F3407f537FC0795a7d96f147e",
+      "Implementation": "0x25876363DECB4De618676bd2d602948C9f33907C"
+    },
+    "CrossLending": {
+      "Proxy": "0x63745dd3dfF8A6d5DA0D25d5ACa720c7c6748ee5",
+      "Implementation": "0x28E45a238f3e30432411bcA36233dD22Bc2F8681"
+    },
+    "CrossLiquidation": {
+      "Proxy": "0xEB6401c9099c2E0eeb718aF32579639E4A100f1A",
+      "Implementation": "0xDD0d2980cCd99b8BA4bC876b64fCE572B553E3BF"
+    },
+    "IsolateLending": {
+      "Proxy": "0xDbbed082ee8e5ecd2e34505CD64Da08A1e71713C",
+      "Implementation": "0xd1837d629d7A75a5ab8dfE061379e43c978d1Ad4"
+    },
+    "IsolateLiquidation": {
+      "Proxy": "0x554F34D3E00604EAf3c72f6e5795e78A3C656eF7",
+      "Implementation": "0xF8af6b7160D4bcB48a9f4c31A7953c47951848D0"
+    }
+  }
+}

@@ -25,9 +25,6 @@ typechain
 typechain-types
 contracts/hardhat-dependency-compiler
 
-deployed-contracts.json
-deployments/
-
 # Coverage files
 lcov.info
 coverage

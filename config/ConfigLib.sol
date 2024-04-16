@@ -14,9 +14,12 @@ library ConfigLib {
   string internal constant RPC_ALIAS_PATH = '$.rpcAlias';
   string internal constant FORK_BLOCK_NUMBER_PATH = '$.forkBlockNumber';
   string internal constant WRAPPED_NATIVE_PATH = '$.wrappedNative';
-  string internal constant ACL_ADMIN_PATH = '$.aclAdmin';
-  string internal constant ACL_MANAGER_PATH = '$.aclManager';
-  string internal constant PRICE_ORACLE_PATH = '$.priceOracle';
+  string internal constant PROXY_ADMIN_PATH = '$.ProxyAdmin';
+  string internal constant ADDRESS_PROVIDER_PATH = '$.AddressProvider';
+  string internal constant ACL_ADMIN_PATH = '$.ACLAdmin';
+  string internal constant ACL_MANAGER_PATH = '$.ACLManager';
+  string internal constant PRICE_ORACLE_PATH = '$.PriceOracle';
+  string internal constant POOL_MANAGER_PATH = '$.PoolManager';
   string internal constant TREASURY_PATH = '$.treasury';
 
   function getAddress(Config storage config, string memory key) internal view returns (address) {
@@ -50,6 +53,14 @@ library ConfigLib {
     return config.json.readAddress(WRAPPED_NATIVE_PATH);
   }
 
+  function getProxyAdmin(Config storage config) internal view returns (address) {
+    return config.json.readAddress(PROXY_ADMIN_PATH);
+  }
+
+  function getAddressProvider(Config storage config) internal view returns (address) {
+    return config.json.readAddress(ADDRESS_PROVIDER_PATH);
+  }
+
   function getACLAdmin(Config storage config) internal view returns (address) {
     return config.json.readAddress(ACL_ADMIN_PATH);
   }
@@ -60,6 +71,10 @@ library ConfigLib {
 
   function getPriceOracle(Config storage config) internal view returns (address) {
     return config.json.readAddress(PRICE_ORACLE_PATH);
+  }
+
+  function getPoolManager(Config storage config) internal view returns (address) {
+    return config.json.readAddress(POOL_MANAGER_PATH);
   }
 
   function getTreasury(Config storage config) internal view returns (address) {
