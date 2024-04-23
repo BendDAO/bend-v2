@@ -11,6 +11,8 @@ import {IACLManager} from './interfaces/IACLManager.sol';
 import {IPoolManager} from './interfaces/IPoolManager.sol';
 import {IYield} from './interfaces/IYield.sol';
 import {IPriceOracleGetter} from './interfaces/IPriceOracleGetter.sol';
+import {IYieldAccount} from 'src/interfaces/IYieldAccount.sol';
+import {IYieldRegistry} from 'src/interfaces/IYieldRegistry.sol';
 import {IWETH} from './interfaces/IWETH.sol';
 import {IStETH} from './interfaces/IStETH.sol';
 import {IUnstETH} from './interfaces/IUnstETH.sol';
@@ -48,6 +50,7 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
   }
 
   struct YieldStakeData {
+    address yieldAccount;
     uint32 poolId;
     uint8 state;
     uint256 debtShare;
@@ -60,14 +63,15 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
   IAddressProvider public addressProvider;
   IPoolManager public poolManager;
   IYield public poolYield;
+  IYieldRegistry public yieldRegistry;
   IWETH public weth;
   IStETH public stETH;
   IUnstETH public unstETH;
-  uint256 public totalDebtShare;
-  uint256 public totalYieldShare;
-  uint256 public totalUnstakeFine;
   address public botAdmin;
-
+  uint256 public totalDebtShare;
+  uint256 public totalUnstakeFine;
+  mapping(address => address) public yieldAccounts;
+  mapping(address => uint256) public accountYieldShares;
   mapping(address => YieldNftConfig) nftConfigs;
   mapping(address => mapping(uint256 => YieldStakeData)) stakeDatas;
 
@@ -76,7 +80,7 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
    * variables without shifting down storage in the inheritance chain.
    * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
    */
-  uint256[38] private __gap;
+  uint256[36] private __gap;
 
   modifier onlyPoolAdmin() {
     __onlyPoolAdmin();
@@ -107,6 +111,7 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
 
     poolManager = IPoolManager(addressProvider.getPoolManager());
     poolYield = IYield(addressProvider.getPoolModuleProxy(Constants.MODULEID__YIELD));
+    yieldRegistry = IYieldRegistry(addressProvider.getYieldRegistry());
 
     weth.approve(address(poolManager), type(uint256).max);
     stETH.approve(address(unstETH), type(uint256).max);
@@ -158,7 +163,17 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
   /* Service Methods */
   /****************************************************************************/
 
+  function createYieldAccount(address user) public returns (address) {
+    if (user == address(0)) {
+      user = msg.sender;
+    }
+    address account = yieldRegistry.createYieldAccount(address(this));
+    yieldAccounts[user] = account;
+    return account;
+  }
+
   struct StakeLocalVars {
+    IYieldAccount yieldAccout;
     address nftOwner;
     uint8 nftSupplyMode;
     address nftLockerAddr;
@@ -173,6 +188,9 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
 
   function stake(uint32 poolId, address nft, uint256 tokenId, uint256 borrowAmount) public whenNotPaused nonReentrant {
     StakeLocalVars memory vars;
+
+    vars.yieldAccout = IYieldAccount(yieldAccounts[msg.sender]);
+    require(address(vars.yieldAccout) != address(0), Errors.YIELD_ACCOUNT_NOT_EXIST);
 
     YieldNftConfig storage nc = nftConfigs[nft];
     require(nc.isActive, Errors.YIELD_ETH_NFT_NOT_ACTIVE);
@@ -206,13 +224,18 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
     poolYield.yieldBorrowERC20(poolId, address(weth), borrowAmount);
 
     // stake in lido and got the stETH
-    vars.totalYieldBeforeSubmit = getTotalYield();
+    vars.totalYieldBeforeSubmit = getAccountTotalYield(address(vars.yieldAccout));
     weth.withdraw(borrowAmount);
     vars.stETHAmount = stETH.submit{value: borrowAmount}(address(0));
-    vars.yieldShare = _convertToYieldSharesBeforeSubmit(vars.stETHAmount, vars.totalYieldBeforeSubmit);
+    vars.yieldShare = _convertToYieldSharesBeforeSubmit(
+      address(vars.yieldAccout),
+      vars.stETHAmount,
+      vars.totalYieldBeforeSubmit
+    );
 
     // update nft shares
     if (sd.state == 0) {
+      sd.yieldAccount = address(vars.yieldAccout);
       sd.poolId = poolId;
       sd.state = Constants.YIELD_STATUS_ACTIVE;
     }
@@ -221,7 +244,7 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
 
     // update global shares
     totalDebtShare += vars.debtShare;
-    totalYieldShare += vars.yieldShare;
+    accountYieldShares[address(vars.yieldAccout)] += vars.yieldShare;
 
     poolYield.yieldSetERC721TokenData(poolId, nft, tokenId, true, address(weth));
 
@@ -231,6 +254,7 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
   }
 
   struct UnstakeLocalVars {
+    IYieldAccount yieldAccout;
     address nftOwner;
     uint8 nftSupplyMode;
     address nftLockerAddr;
@@ -239,6 +263,9 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
 
   function unstake(uint32 poolId, address nft, uint256 tokenId, uint256 unstakeFine) public whenNotPaused nonReentrant {
     UnstakeLocalVars memory vars;
+
+    vars.yieldAccout = IYieldAccount(yieldAccounts[msg.sender]);
+    require(address(vars.yieldAccout) != address(0), Errors.YIELD_ACCOUNT_NOT_EXIST);
 
     YieldNftConfig storage nc = nftConfigs[nft];
     require(nc.isActive, Errors.YIELD_ETH_NFT_NOT_ACTIVE);
@@ -265,18 +292,19 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
     }
 
     sd.state = Constants.YIELD_STATUS_UNSTAKE;
-    sd.stEthWithdrawAmount = convertToYieldAssets(sd.yieldShare);
+    sd.stEthWithdrawAmount = convertToYieldAssets(address(vars.yieldAccout), sd.yieldShare);
 
     vars.requestAmounts = new uint256[](1);
     vars.requestAmounts[0] = sd.stEthWithdrawAmount;
     sd.stEthWithdrawReqId = unstETH.requestWithdrawals(vars.requestAmounts, address(this))[0];
 
     // update shares
-    totalYieldShare -= sd.yieldShare;
+    accountYieldShares[address(vars.yieldAccout)] -= sd.yieldShare;
     sd.yieldShare = 0;
   }
 
   struct RepayLocalVars {
+    IYieldAccount yieldAccout;
     address nftOwner;
     uint8 nftSupplyMode;
     address nftLockerAddr;
@@ -292,6 +320,9 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
 
   function repay(uint32 poolId, address nft, uint256 tokenId) public whenNotPaused nonReentrant {
     RepayLocalVars memory vars;
+
+    vars.yieldAccout = IYieldAccount(yieldAccounts[msg.sender]);
+    require(address(vars.yieldAccout) != address(0), Errors.YIELD_ACCOUNT_NOT_EXIST);
 
     YieldNftConfig memory nc = nftConfigs[nft];
     require(nc.isActive, Errors.YIELD_ETH_NFT_NOT_ACTIVE);
@@ -361,8 +392,8 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
     return poolYield.getYieldERC20BorrowBalance(poolId, address(weth), address(this));
   }
 
-  function getTotalYield() public view returns (uint256) {
-    return stETH.balanceOf(address(this));
+  function getAccountTotalYield(address account) public view returns (uint256) {
+    return stETH.balanceOf(account);
   }
 
   function getNftValueInETH(address nft) public view returns (uint256) {
@@ -405,16 +436,20 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
     return shares.convertToAssets(totalDebtShare, getTotalDebt(poolId), Math.Rounding.Down);
   }
 
-  function convertToYieldShares(uint256 assets) public view returns (uint256) {
-    return assets.convertToShares(totalYieldShare, getTotalYield(), Math.Rounding.Down);
+  function convertToYieldShares(address account, uint256 assets) public view returns (uint256) {
+    return assets.convertToShares(accountYieldShares[account], getAccountTotalYield(account), Math.Rounding.Down);
   }
 
-  function convertToYieldAssets(uint256 shares) public view returns (uint256) {
-    return shares.convertToAssets(totalYieldShare, getTotalYield(), Math.Rounding.Down);
+  function convertToYieldAssets(address account, uint256 shares) public view returns (uint256) {
+    return shares.convertToAssets(accountYieldShares[account], getAccountTotalYield(account), Math.Rounding.Down);
   }
 
-  function _convertToYieldSharesBeforeSubmit(uint256 assets, uint256 totalYield) internal view returns (uint256) {
-    return assets.convertToShares(totalYieldShare, totalYield, Math.Rounding.Down);
+  function _convertToYieldSharesBeforeSubmit(
+    address account,
+    uint256 assets,
+    uint256 totalYield
+  ) internal view returns (uint256) {
+    return assets.convertToShares(accountYieldShares[account], totalYield, Math.Rounding.Down);
   }
 
   function _getNftDebtInEth(YieldStakeData storage sd) internal view returns (uint256) {
@@ -422,7 +457,7 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
   }
 
   function _getNftYieldInEth(YieldStakeData storage sd) internal view returns (uint256, uint256) {
-    uint256 stEthAmount = convertToYieldAssets(sd.yieldShare);
+    uint256 stEthAmount = convertToYieldAssets(sd.yieldAccount, sd.yieldShare);
     uint256 stEthPrice = getStETHPriceInEth();
     return (stEthAmount, stEthAmount.mulDiv(stEthPrice, 10 ** stETH.decimals()));
   }

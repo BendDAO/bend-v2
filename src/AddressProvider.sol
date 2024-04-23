@@ -19,6 +19,7 @@ contract AddressProvider is Ownable2StepUpgradeable, IAddressProvider {
   bytes32 public constant ACL_MANAGER = 'ACL_MANAGER';
   bytes32 public constant PRICE_ORACLE = 'PRICE_ORACLE';
   bytes32 public constant POOL_MANAGER = 'POOL_MANAGER';
+  bytes32 public constant YIELD_REGISTRY = 'YIELD_REGISTRY';
 
   // Map of registered addresses (identifier => registeredAddress)
   mapping(bytes32 => address) private _addresses;
@@ -116,6 +117,15 @@ contract AddressProvider is Ownable2StepUpgradeable, IAddressProvider {
       proxies[i] = poolManager.moduleIdToProxy(moduleIds[i]);
     }
     return proxies;
+  }
+
+  function getYieldRegistry() public view override returns (address) {
+    return getAddress(YIELD_REGISTRY);
+  }
+
+  function setYieldRegistry(address newAddress) public override onlyOwner {
+    address oldAddress = _setAddress(YIELD_REGISTRY, newAddress);
+    emit YieldRegistryUpdated(oldAddress, newAddress);
   }
 
   // internal methods

@@ -110,6 +110,10 @@ library Errors {
   string public constant YIELD_EXCEED_ASSET_CAP_LIMIT = '500';
   string public constant YIELD_EXCEED_STAKER_CAP_LIMIT = '501';
   string public constant YIELD_TOKEN_ALREADY_LOCKED = '502';
+  string public constant YIELD_ACCOUNT_NOT_EXIST = '503';
+  string public constant YIELD_ACCOUNT_ALREADY_EXIST = '504';
+  string public constant YIELD_REGISTRY_IS_NOT_AUTH = '505';
+  string public constant YIELD_MANAGER_IS_NOT_AUTH = '506';
 
   string public constant ISOLATE_LOAN_ASSET_NOT_MATCH = '600';
   string public constant ISOLATE_LOAN_GROUP_NOT_MATCH = '601';
