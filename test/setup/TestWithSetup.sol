@@ -16,6 +16,8 @@ import {ACLManager} from 'src/ACLManager.sol';
 import {PriceOracle} from 'src/PriceOracle.sol';
 import {DefaultInterestRateModel} from 'src/irm/DefaultInterestRateModel.sol';
 import {PoolManager} from 'src/PoolManager.sol';
+
+import {YieldRegistry} from 'src/yield/YieldRegistry.sol';
 import {YieldEthStakingLido} from 'src/yield/lido/YieldEthStakingLido.sol';
 
 import {Installer} from 'src/modules/Installer.sol';
@@ -76,6 +78,8 @@ abstract contract TestWithSetup is TestWithUtils {
   ACLManager public tsAclManager;
   PriceOracle public tsPriceOracle;
   PoolManager public tsPoolManager;
+
+  YieldRegistry public tsYieldRegistry;
   YieldEthStakingLido public tsYieldEthStakingLido;
 
   Installer public tsInstaller;
@@ -253,6 +257,16 @@ abstract contract TestWithSetup is TestWithUtils {
     tsPoolLens = PoolLens(tsPoolManager.moduleIdToProxy(Constants.MODULEID__POOL_LENS));
     tsFlashLoan = FlashLoan(tsPoolManager.moduleIdToProxy(Constants.MODULEID__FLASHLOAN));
 
+    // YieldRegistry
+    YieldRegistry yieldRegistryImpl = new YieldRegistry();
+    TransparentUpgradeableProxy yieldRegistryImplProxy = new TransparentUpgradeableProxy(
+      address(yieldRegistryImpl),
+      address(tsProxyAdmin),
+      abi.encodeWithSelector(yieldRegistryImpl.initialize.selector, address(tsAddressProvider))
+    );
+    tsYieldRegistry = YieldRegistry(payable(address(yieldRegistryImplProxy)));
+    tsAddressProvider.setYieldRegistry(address(tsYieldRegistry));
+
     // YieldEthStakingLido
     YieldEthStakingLido yieldEthStakingLidoImpl = new YieldEthStakingLido();
     TransparentUpgradeableProxy yieldEthStakingLidoProxy = new TransparentUpgradeableProxy(
@@ -267,6 +281,8 @@ abstract contract TestWithSetup is TestWithUtils {
       )
     );
     tsYieldEthStakingLido = YieldEthStakingLido(payable(address(yieldEthStakingLidoProxy)));
+    tsHEVM.prank(tsPoolAdmin);
+    tsYieldRegistry.addYieldManager(address(tsYieldEthStakingLido));
 
     // Interest Rate Model
     tsYieldRateIRM = new DefaultInterestRateModel(

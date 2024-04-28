@@ -58,7 +58,7 @@ contract YieldRegistry is IYieldRegistry, PausableUpgradeable, ReentrancyGuardUp
     require(existYieldManager(_manager), Errors.YIELD_MANAGER_IS_NOT_AUTH);
 
     address yieldAccount = ClonesUpgradeable.clone(yieldAccountImplementation);
-    YieldAccount(yieldAccount).initialize(address(this), _manager);
+    YieldAccount(payable(yieldAccount)).initialize(address(this), _manager);
 
     emit CreateYieldAccount(yieldAccount, _manager);
 
@@ -88,7 +88,7 @@ contract YieldRegistry is IYieldRegistry, PausableUpgradeable, ReentrancyGuardUp
   }
 
   function rescue(address yieldAccount, address target, bytes calldata data) public onlyPoolAdmin {
-    YieldAccount(yieldAccount).rescue(target, data);
+    YieldAccount(payable(yieldAccount)).rescue(target, data);
 
     emit RescueYieldAccount(yieldAccount, target, data);
   }

@@ -10,5 +10,11 @@ interface IYieldAccount {
 
   function execute(address target, bytes calldata data) external returns (bytes memory result);
 
+  function executeWithValue(
+    address target,
+    bytes calldata data,
+    uint256 value
+  ) external payable returns (bytes memory result);
+
   function rescue(address target, bytes calldata data) external;
 }
