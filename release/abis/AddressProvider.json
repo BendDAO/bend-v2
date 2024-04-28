@@ -84,6 +84,19 @@
   },
   {
     "type": "function",
+    "name": "YIELD_REGISTRY",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "acceptOwnership",
     "inputs": [],
     "outputs": [],
@@ -245,6 +258,19 @@
   },
   {
     "type": "function",
+    "name": "getYieldRegistry",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "initialize",
     "inputs": [],
     "outputs": [],
@@ -369,6 +395,19 @@
   {
     "type": "function",
     "name": "setWrappedNativeToken",
+    "inputs": [
+      {
+        "name": "newAddress",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setYieldRegistry",
     "inputs": [
       {
         "name": "newAddress",
@@ -566,6 +605,25 @@
   {
     "type": "event",
     "name": "WrappedNativeTokenUpdated",
+    "inputs": [
+      {
+        "name": "oldAddress",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newAddress",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "YieldRegistryUpdated",
     "inputs": [
       {
         "name": "oldAddress",
