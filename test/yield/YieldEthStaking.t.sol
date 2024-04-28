@@ -32,13 +32,13 @@ contract TestYieldEthStaking is TestWithPrepare {
 
     uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
 
-    uint256 stakeAmount = tsYieldEthStaking.getNftValueInETH(address(tsBAYC));
+    uint256 stakeAmount = tsYieldEthStakingLido.getNftValueInETH(address(tsBAYC));
     stakeAmount = (stakeAmount * 80) / 100;
 
     tsHEVM.prank(address(tsBorrower1));
-    tsYieldEthStaking.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
+    tsYieldEthStakingLido.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
 
-    (testVars.poolId, testVars.state, testVars.debtShare, testVars.yieldShare) = tsYieldEthStaking.getNftStakeData(
+    (testVars.poolId, testVars.state, testVars.debtShare, testVars.yieldShare) = tsYieldEthStakingLido.getNftStakeData(
       address(tsBAYC),
       tokenIds[0]
     );
@@ -47,10 +47,10 @@ contract TestYieldEthStaking is TestWithPrepare {
     assertEq(testVars.debtShare, stakeAmount, 'debtShare not eq');
     assertEq(testVars.yieldShare, stakeAmount, 'yieldShare not eq');
 
-    uint256 debtAmount = tsYieldEthStaking.getNftDebtInEth(address(tsBAYC), tokenIds[0]);
+    uint256 debtAmount = tsYieldEthStakingLido.getNftDebtInEth(address(tsBAYC), tokenIds[0]);
     assertEq(debtAmount, stakeAmount, 'debtAmount not eq');
 
-    (uint256 stETHAmount, ) = tsYieldEthStaking.getNftYieldInEth(address(tsBAYC), tokenIds[0]);
+    (uint256 stETHAmount, ) = tsYieldEthStakingLido.getNftYieldInEth(address(tsBAYC), tokenIds[0]);
     assertEq(stETHAmount, stakeAmount, 'stETHAmount not lt');
   }
 
@@ -61,24 +61,24 @@ contract TestYieldEthStaking is TestWithPrepare {
 
     uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
 
-    uint256 stakeAmount = tsYieldEthStaking.getNftValueInETH(address(tsBAYC));
+    uint256 stakeAmount = tsYieldEthStakingLido.getNftValueInETH(address(tsBAYC));
     stakeAmount = (stakeAmount * 80) / 100;
 
     tsHEVM.prank(address(tsBorrower1));
-    tsYieldEthStaking.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
+    tsYieldEthStakingLido.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
 
-    (uint256 stETHAmount, ) = tsYieldEthStaking.getNftYieldInEth(address(tsBAYC), tokenIds[0]);
+    (uint256 stETHAmount, ) = tsYieldEthStakingLido.getNftYieldInEth(address(tsBAYC), tokenIds[0]);
 
     tsHEVM.prank(address(tsBorrower1));
-    tsYieldEthStaking.unstake(tsCommonPoolId, address(tsBAYC), tokenIds[0], 0);
+    tsYieldEthStakingLido.unstake(tsCommonPoolId, address(tsBAYC), tokenIds[0], 0);
 
-    (testVars.poolId, testVars.state, testVars.debtShare, testVars.yieldShare) = tsYieldEthStaking.getNftStakeData(
+    (testVars.poolId, testVars.state, testVars.debtShare, testVars.yieldShare) = tsYieldEthStakingLido.getNftStakeData(
       address(tsBAYC),
       tokenIds[0]
     );
     assertEq(testVars.state, 2, 'state not eq');
 
-    (testVars.unstakeFine, testVars.stEthWithdrawAmount, testVars.stEthWithdrawReqId) = tsYieldEthStaking
+    (testVars.unstakeFine, testVars.stEthWithdrawAmount, testVars.stEthWithdrawReqId) = tsYieldEthStakingLido
       .getNftUnstakeData(address(tsBAYC), tokenIds[0]);
     assertEq(testVars.unstakeFine, 0, 'state not eq');
     assertEq(testVars.stEthWithdrawAmount, stETHAmount, 'stEthWithdrawAmount not eq');
@@ -92,26 +92,26 @@ contract TestYieldEthStaking is TestWithPrepare {
 
     uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
 
-    uint256 stakeAmount = tsYieldEthStaking.getNftValueInETH(address(tsBAYC));
+    uint256 stakeAmount = tsYieldEthStakingLido.getNftValueInETH(address(tsBAYC));
     stakeAmount = (stakeAmount * 80) / 100;
 
     tsHEVM.prank(address(tsBorrower1));
-    tsYieldEthStaking.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
+    tsYieldEthStakingLido.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
 
     tsHEVM.prank(tsStETH.owner());
     tsStETH.transferETH(address(tsUnstETH));
 
     tsHEVM.prank(address(tsBorrower1));
-    tsYieldEthStaking.unstake(tsCommonPoolId, address(tsBAYC), tokenIds[0], 0);
+    tsYieldEthStakingLido.unstake(tsCommonPoolId, address(tsBAYC), tokenIds[0], 0);
 
-    (testVars.unstakeFine, testVars.stEthWithdrawAmount, testVars.stEthWithdrawReqId) = tsYieldEthStaking
+    (testVars.unstakeFine, testVars.stEthWithdrawAmount, testVars.stEthWithdrawReqId) = tsYieldEthStakingLido
       .getNftUnstakeData(address(tsBAYC), tokenIds[0]);
     tsUnstETH.setWithdrawalStatus(testVars.stEthWithdrawReqId, true, false);
 
     tsHEVM.prank(address(tsBorrower1));
-    tsYieldEthStaking.repay(tsCommonPoolId, address(tsBAYC), tokenIds[0]);
+    tsYieldEthStakingLido.repay(tsCommonPoolId, address(tsBAYC), tokenIds[0]);
 
-    (testVars.poolId, testVars.state, testVars.debtShare, testVars.yieldShare) = tsYieldEthStaking.getNftStakeData(
+    (testVars.poolId, testVars.state, testVars.debtShare, testVars.yieldShare) = tsYieldEthStakingLido.getNftStakeData(
       address(tsBAYC),
       tokenIds[0]
     );

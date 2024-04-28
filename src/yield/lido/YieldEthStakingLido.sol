@@ -2,52 +2,39 @@
 pragma solidity ^0.8.0;
 
 import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
-import {Initializable} from '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
-import {PausableUpgradeable} from '@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol';
-import {ReentrancyGuardUpgradeable} from '@openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol';
 
-import {IAddressProvider} from './interfaces/IAddressProvider.sol';
-import {IACLManager} from './interfaces/IACLManager.sol';
-import {IPoolManager} from './interfaces/IPoolManager.sol';
-import {IYield} from './interfaces/IYield.sol';
-import {IPriceOracleGetter} from './interfaces/IPriceOracleGetter.sol';
+import {IAddressProvider} from 'src/interfaces/IAddressProvider.sol';
+import {IACLManager} from 'src/interfaces/IACLManager.sol';
+import {IPoolManager} from 'src/interfaces/IPoolManager.sol';
+import {IYield} from 'src/interfaces/IYield.sol';
+import {IPriceOracleGetter} from 'src/interfaces/IPriceOracleGetter.sol';
 import {IYieldAccount} from 'src/interfaces/IYieldAccount.sol';
 import {IYieldRegistry} from 'src/interfaces/IYieldRegistry.sol';
-import {IWETH} from './interfaces/IWETH.sol';
-import {IStETH} from './interfaces/IStETH.sol';
-import {IUnstETH} from './interfaces/IUnstETH.sol';
 
-import {Constants} from './libraries/helpers/Constants.sol';
-import {Errors} from './libraries/helpers/Errors.sol';
+import {IWETH} from 'src/interfaces/IWETH.sol';
+import {IStETH} from 'src/interfaces/IStETH.sol';
+import {IUnstETH} from 'src/interfaces/IUnstETH.sol';
 
-import {PercentageMath} from './libraries/math/PercentageMath.sol';
-import {WadRayMath} from './libraries/math/WadRayMath.sol';
-import {MathUtils} from './libraries/math/MathUtils.sol';
-import {ShareUtils} from './libraries/math/ShareUtils.sol';
+import {Constants} from 'src/libraries/helpers/Constants.sol';
+import {Errors} from 'src/libraries/helpers/Errors.sol';
 
-contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardUpgradeable {
+import {PercentageMath} from 'src/libraries/math/PercentageMath.sol';
+import {WadRayMath} from 'src/libraries/math/WadRayMath.sol';
+import {MathUtils} from 'src/libraries/math/MathUtils.sol';
+import {ShareUtils} from 'src/libraries/math/ShareUtils.sol';
+
+import {YieldEthStakingBase} from '../YieldEthStakingBase.sol';
+
+contract YieldEthStakingLido is YieldEthStakingBase {
   using PercentageMath for uint256;
   using ShareUtils for uint256;
   using WadRayMath for uint256;
   using MathUtils for uint256;
   using Math for uint256;
 
-  event SetNftActive(address indexed nft, bool isActive);
-  event SetNftStakeParams(address indexed nft, uint16 leverageFactor, uint16 liquidationThreshold);
-  event SetNftUnstakeParams(address indexed nft, uint16 maxUnstakeFine, uint256 unstakeHeathFactor);
-  event SetBotAdmin(address oldAdmin, address newAdmin);
-
   event Stake(address indexed nft, uint256 indexed tokenId, uint256 amount);
   event Unstake(address indexed nft, uint256 indexed tokenId, uint256 amount);
   event Repay(address indexed nft, uint256 indexed tokenId, uint256 amount);
-
-  struct YieldNftConfig {
-    bool isActive;
-    uint16 leverageFactor; // e.g. 50000 -> 500%
-    uint16 liquidationThreshold; // e.g. 9000 -> 90%
-    uint16 maxUnstakeFine; // e.g. 1ether -> 1e18
-    uint256 unstakeHeathFactor; // 18 decimals, e.g. 1.0 -> 1e18
-  }
 
   struct YieldStakeData {
     address yieldAccount;
@@ -60,19 +47,9 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
     uint256 stEthWithdrawReqId;
   }
 
-  IAddressProvider public addressProvider;
-  IPoolManager public poolManager;
-  IYield public poolYield;
-  IYieldRegistry public yieldRegistry;
   IWETH public weth;
   IStETH public stETH;
   IUnstETH public unstETH;
-  address public botAdmin;
-  uint256 public totalDebtShare;
-  uint256 public totalUnstakeFine;
-  mapping(address => address) public yieldAccounts;
-  mapping(address => uint256) public accountYieldShares;
-  mapping(address => YieldNftConfig) nftConfigs;
   mapping(address => mapping(uint256 => YieldStakeData)) stakeDatas;
 
   /**
@@ -80,16 +57,7 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
    * variables without shifting down storage in the inheritance chain.
    * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
    */
-  uint256[36] private __gap;
-
-  modifier onlyPoolAdmin() {
-    __onlyPoolAdmin();
-    _;
-  }
-
-  function __onlyPoolAdmin() internal view {
-    require(IACLManager(addressProvider.getACLManager()).isPoolAdmin(msg.sender), Errors.CALLER_NOT_POOL_ADMIN);
-  }
+  uint256[20] private __gap;
 
   constructor() {
     _disableInitializers();
@@ -101,17 +69,11 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
     require(stETH_ != address(0), Errors.INVALID_ADDRESS);
     require(unstETH_ != address(0), Errors.INVALID_ADDRESS);
 
-    __Pausable_init();
-    __ReentrancyGuard_init();
+    __YieldStakingBase_init(addressProvider_);
 
-    addressProvider = IAddressProvider(addressProvider_);
     weth = IWETH(weth_);
     stETH = IStETH(stETH_);
     unstETH = IUnstETH(unstETH_);
-
-    poolManager = IPoolManager(addressProvider.getPoolManager());
-    poolYield = IYield(addressProvider.getPoolModuleProxy(Constants.MODULEID__YIELD));
-    yieldRegistry = IYieldRegistry(addressProvider.getYieldRegistry());
 
     weth.approve(address(poolManager), type(uint256).max);
     stETH.approve(address(unstETH), type(uint256).max);
@@ -121,56 +83,9 @@ contract YieldEthStaking is Initializable, PausableUpgradeable, ReentrancyGuardU
   /* Configure Methods */
   /****************************************************************************/
 
-  function setNftActive(address nft, bool active) public onlyPoolAdmin {
-    YieldNftConfig storage nc = nftConfigs[nft];
-    nc.isActive = active;
-
-    emit SetNftActive(nft, active);
-  }
-
-  function setNftStakeParams(address nft, uint16 leverageFactor, uint16 liquidationThreshold) public onlyPoolAdmin {
-    YieldNftConfig storage nc = nftConfigs[nft];
-    nc.leverageFactor = leverageFactor;
-    nc.liquidationThreshold = liquidationThreshold;
-
-    emit SetNftStakeParams(nft, leverageFactor, liquidationThreshold);
-  }
-
-  function setNftUnstakeParams(address nft, uint16 maxUnstakeFine, uint256 unstakeHeathFactor) public onlyPoolAdmin {
-    YieldNftConfig storage nc = nftConfigs[nft];
-    nc.maxUnstakeFine = maxUnstakeFine;
-    nc.unstakeHeathFactor = unstakeHeathFactor;
-
-    emit SetNftUnstakeParams(nft, maxUnstakeFine, unstakeHeathFactor);
-  }
-
-  function setBotAdmin(address newAdmin) public onlyPoolAdmin {
-    address oldAdmin = botAdmin;
-    botAdmin = newAdmin;
-
-    emit SetBotAdmin(oldAdmin, newAdmin);
-  }
-
-  function setPause(bool paused) public onlyPoolAdmin {
-    if (paused) {
-      _pause();
-    } else {
-      _unpause();
-    }
-  }
-
   /****************************************************************************/
   /* Service Methods */
   /****************************************************************************/
-
-  function createYieldAccount(address user) public returns (address) {
-    if (user == address(0)) {
-      user = msg.sender;
-    }
-    address account = yieldRegistry.createYieldAccount(address(this));
-    yieldAccounts[user] = account;
-    return account;
-  }
 
   struct StakeLocalVars {
     IYieldAccount yieldAccout;

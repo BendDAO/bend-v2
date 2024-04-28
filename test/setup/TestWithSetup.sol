@@ -16,7 +16,7 @@ import {ACLManager} from 'src/ACLManager.sol';
 import {PriceOracle} from 'src/PriceOracle.sol';
 import {DefaultInterestRateModel} from 'src/irm/DefaultInterestRateModel.sol';
 import {PoolManager} from 'src/PoolManager.sol';
-import {YieldEthStaking} from 'src/YieldEthStaking.sol';
+import {YieldEthStakingLido} from 'src/yield/lido/YieldEthStakingLido.sol';
 
 import {Installer} from 'src/modules/Installer.sol';
 import {Configurator} from 'src/modules/Configurator.sol';
@@ -76,7 +76,7 @@ abstract contract TestWithSetup is TestWithUtils {
   ACLManager public tsAclManager;
   PriceOracle public tsPriceOracle;
   PoolManager public tsPoolManager;
-  YieldEthStaking public tsYieldEthStaking;
+  YieldEthStakingLido public tsYieldEthStakingLido;
 
   Installer public tsInstaller;
   Configurator public tsConfigurator;
@@ -253,20 +253,20 @@ abstract contract TestWithSetup is TestWithUtils {
     tsPoolLens = PoolLens(tsPoolManager.moduleIdToProxy(Constants.MODULEID__POOL_LENS));
     tsFlashLoan = FlashLoan(tsPoolManager.moduleIdToProxy(Constants.MODULEID__FLASHLOAN));
 
-    // YieldEthStaking
-    YieldEthStaking yieldEthStakingImpl = new YieldEthStaking();
-    TransparentUpgradeableProxy yieldEthStakingProxy = new TransparentUpgradeableProxy(
-      address(yieldEthStakingImpl),
+    // YieldEthStakingLido
+    YieldEthStakingLido yieldEthStakingLidoImpl = new YieldEthStakingLido();
+    TransparentUpgradeableProxy yieldEthStakingLidoProxy = new TransparentUpgradeableProxy(
+      address(yieldEthStakingLidoImpl),
       address(tsProxyAdmin),
       abi.encodeWithSelector(
-        yieldEthStakingImpl.initialize.selector,
+        yieldEthStakingLidoImpl.initialize.selector,
         address(tsAddressProvider),
         address(tsWETH),
         address(tsStETH),
         address(tsUnstETH)
       )
     );
-    tsYieldEthStaking = YieldEthStaking(payable(address(yieldEthStakingProxy)));
+    tsYieldEthStakingLido = YieldEthStakingLido(payable(address(yieldEthStakingLidoProxy)));
 
     // Interest Rate Model
     tsYieldRateIRM = new DefaultInterestRateModel(
@@ -538,11 +538,11 @@ abstract contract TestWithSetup is TestWithUtils {
   function initYieldEthStaking() internal {
     tsHEVM.startPrank(tsPoolAdmin);
 
-    tsConfigurator.setManagerYieldCap(tsCommonPoolId, address(tsYieldEthStaking), address(tsWETH), 2000);
+    tsConfigurator.setManagerYieldCap(tsCommonPoolId, address(tsYieldEthStakingLido), address(tsWETH), 2000);
 
-    tsYieldEthStaking.setNftActive(address(tsBAYC), true);
-    tsYieldEthStaking.setNftStakeParams(address(tsBAYC), 50000, 9000);
-    tsYieldEthStaking.setNftUnstakeParams(address(tsBAYC), 100, 1.05e18);
+    tsYieldEthStakingLido.setNftActive(address(tsBAYC), true);
+    tsYieldEthStakingLido.setNftStakeParams(address(tsBAYC), 50000, 9000);
+    tsYieldEthStakingLido.setNftUnstakeParams(address(tsBAYC), 100, 1.05e18);
 
     tsHEVM.stopPrank();
   }
