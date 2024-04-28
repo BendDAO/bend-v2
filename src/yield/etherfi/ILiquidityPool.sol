@@ -6,9 +6,9 @@ interface ILiquidityPool {
 
   function withdrawRequestNFT() external view returns (address);
 
-  function getTotalEtherClaimOf(address _user) external view returns (uint256);
-
   function deposit() external payable returns (uint256);
+
+  function withdraw(address _recipient, uint256 _amount) external returns (uint256);
 
   function requestWithdraw(address recipient, uint256 amount) external returns (uint256);
 }

@@ -17,8 +17,10 @@ import {PriceOracle} from 'src/PriceOracle.sol';
 import {DefaultInterestRateModel} from 'src/irm/DefaultInterestRateModel.sol';
 import {PoolManager} from 'src/PoolManager.sol';
 
+import {YieldAccount} from 'src/yield/YieldAccount.sol';
 import {YieldRegistry} from 'src/yield/YieldRegistry.sol';
 import {YieldEthStakingLido} from 'src/yield/lido/YieldEthStakingLido.sol';
+import {YieldEthStakingEtherfi} from 'src/yield/etherfi/YieldEthStakingEtherfi.sol';
 
 import {Installer} from 'src/modules/Installer.sol';
 import {Configurator} from 'src/modules/Configurator.sol';
@@ -36,6 +38,10 @@ import {MockERC721} from 'test/mocks/MockERC721.sol';
 import {MockFaucet} from 'test/mocks/MockFaucet.sol';
 import {MockStETH} from 'test/mocks/MockStETH.sol';
 import {MockUnstETH} from 'test/mocks/MockUnstETH.sol';
+
+import {MockeETH} from 'test/mocks/MockeETH.sol';
+import {MockEtherfiLiquidityPool} from 'test/mocks/MockEtherfiLiquidityPool.sol';
+import {MockEtherfiWithdrawRequestNFT} from 'test/mocks/MockEtherfiWithdrawRequestNFT.sol';
 
 import {MockBendNFTOracle} from 'test/mocks/MockBendNFTOracle.sol';
 import {MockChainlinkAggregator} from 'test/mocks/MockChainlinkAggregator.sol';
@@ -66,12 +72,16 @@ abstract contract TestWithSetup is TestWithUtils {
   MockERC721 public tsMAYC;
   MockStETH public tsStETH;
   MockUnstETH public tsUnstETH;
+  MockeETH public tsEETH;
+  MockEtherfiWithdrawRequestNFT public tsEtherfiWithdrawRequestNFT;
+  MockEtherfiLiquidityPool public tsEtherfiLiquidityPool;
 
   MockBendNFTOracle public tsBendNFTOracle;
   MockChainlinkAggregator tsCLAggregatorWETH;
   MockChainlinkAggregator tsCLAggregatorDAI;
   MockChainlinkAggregator tsCLAggregatorUSDT;
   MockChainlinkAggregator tsCLAggregatorStETH;
+  MockChainlinkAggregator tsCLAggregatorEETH;
 
   ProxyAdmin public tsProxyAdmin;
   AddressProvider public tsAddressProvider;
@@ -81,6 +91,7 @@ abstract contract TestWithSetup is TestWithUtils {
 
   YieldRegistry public tsYieldRegistry;
   YieldEthStakingLido public tsYieldEthStakingLido;
+  YieldEthStakingEtherfi public tsYieldEthStakingEtherfi;
 
   Installer public tsInstaller;
   Configurator public tsConfigurator;
@@ -267,6 +278,10 @@ abstract contract TestWithSetup is TestWithUtils {
     tsYieldRegistry = YieldRegistry(payable(address(yieldRegistryImplProxy)));
     tsAddressProvider.setYieldRegistry(address(tsYieldRegistry));
 
+    YieldAccount yieldAccountImpl = new YieldAccount();
+    tsHEVM.prank(tsPoolAdmin);
+    tsYieldRegistry.setYieldAccountImplementation(address(yieldAccountImpl));
+
     // YieldEthStakingLido
     YieldEthStakingLido yieldEthStakingLidoImpl = new YieldEthStakingLido();
     TransparentUpgradeableProxy yieldEthStakingLidoProxy = new TransparentUpgradeableProxy(
@@ -283,6 +298,22 @@ abstract contract TestWithSetup is TestWithUtils {
     tsYieldEthStakingLido = YieldEthStakingLido(payable(address(yieldEthStakingLidoProxy)));
     tsHEVM.prank(tsPoolAdmin);
     tsYieldRegistry.addYieldManager(address(tsYieldEthStakingLido));
+
+    // YieldEthStakingEtherfi
+    YieldEthStakingEtherfi yieldEthStakingEtherfiImpl = new YieldEthStakingEtherfi();
+    TransparentUpgradeableProxy yieldEthStakingEtherfiProxy = new TransparentUpgradeableProxy(
+      address(yieldEthStakingEtherfiImpl),
+      address(tsProxyAdmin),
+      abi.encodeWithSelector(
+        yieldEthStakingEtherfiImpl.initialize.selector,
+        address(tsAddressProvider),
+        address(tsWETH),
+        address(tsEtherfiLiquidityPool)
+      )
+    );
+    tsYieldEthStakingEtherfi = YieldEthStakingEtherfi(payable(address(yieldEthStakingEtherfiProxy)));
+    tsHEVM.prank(tsPoolAdmin);
+    tsYieldRegistry.addYieldManager(address(tsYieldEthStakingEtherfi));
 
     // Interest Rate Model
     tsYieldRateIRM = new DefaultInterestRateModel(
@@ -314,16 +345,18 @@ abstract contract TestWithSetup is TestWithUtils {
     tsHEVM.startPrank(tsOracleAdmin);
     tsPriceOracle.setBendNFTOracle(address(tsBendNFTOracle));
 
-    address[] memory oracleAssets = new address[](4);
+    address[] memory oracleAssets = new address[](5);
     oracleAssets[0] = address(tsWETH);
     oracleAssets[1] = address(tsDAI);
     oracleAssets[2] = address(tsUSDT);
     oracleAssets[3] = address(tsStETH);
-    address[] memory oracleAggs = new address[](4);
+    oracleAssets[4] = address(tsEETH);
+    address[] memory oracleAggs = new address[](5);
     oracleAggs[0] = address(tsCLAggregatorWETH);
     oracleAggs[1] = address(tsCLAggregatorDAI);
     oracleAggs[2] = address(tsCLAggregatorUSDT);
     oracleAggs[3] = address(tsCLAggregatorStETH);
+    oracleAggs[4] = address(tsCLAggregatorEETH);
     tsPriceOracle.setAssetChainlinkAggregators(oracleAssets, oracleAggs);
     tsHEVM.stopPrank();
   }
@@ -339,8 +372,16 @@ abstract contract TestWithSetup is TestWithUtils {
     tsBAYC = MockERC721(tsFaucet.createMockERC721('MockBAYC', 'BAYC'));
     tsMAYC = MockERC721(tsFaucet.createMockERC721('MockMAYC', 'MAYC'));
 
-    tsStETH = MockStETH(tsFaucet.createMockStETH());
+    tsStETH = MockStETH(payable(tsFaucet.createMockStETH()));
     tsUnstETH = MockUnstETH(payable(tsFaucet.createMockUnstETH(address(tsStETH))));
+
+    tsEETH = MockeETH(payable(tsFaucet.createMockeETH()));
+    tsEtherfiWithdrawRequestNFT = new MockEtherfiWithdrawRequestNFT();
+    tsEtherfiLiquidityPool = new MockEtherfiLiquidityPool(address(tsEETH), address(tsEtherfiWithdrawRequestNFT));
+
+    tsHEVM.prank(address(tsFaucet));
+    tsEETH.setLiquidityPool(address(tsEtherfiLiquidityPool));
+    tsEtherfiWithdrawRequestNFT.setLiquidityPool(address(tsEtherfiLiquidityPool), address(tsEETH));
   }
 
   function initUsers() internal {
@@ -434,9 +475,13 @@ abstract contract TestWithSetup is TestWithUtils {
     tsHEVM.label(address(tsCLAggregatorUSDT), 'MockCLAggregator(USDT/USD)');
     tsCLAggregatorUSDT.updateAnswer(100053000);
 
-    tsCLAggregatorStETH = new MockChainlinkAggregator(8, 'ETH / USD');
+    tsCLAggregatorStETH = new MockChainlinkAggregator(8, 'stETH / USD');
     tsHEVM.label(address(tsCLAggregatorStETH), 'MockCLAggregator(StETH/USD)');
     tsCLAggregatorStETH.updateAnswer(204005904164);
+
+    tsCLAggregatorEETH = new MockChainlinkAggregator(8, 'eETH / USD');
+    tsHEVM.label(address(tsCLAggregatorEETH), 'MockCLAggregator(eETH/USD)');
+    tsCLAggregatorEETH.updateAnswer(203005904164);
 
     tsBendNFTOracle = new MockBendNFTOracle();
     tsHEVM.label(address(tsBendNFTOracle), 'MockBendNFTOracle');
@@ -555,10 +600,15 @@ abstract contract TestWithSetup is TestWithUtils {
     tsHEVM.startPrank(tsPoolAdmin);
 
     tsConfigurator.setManagerYieldCap(tsCommonPoolId, address(tsYieldEthStakingLido), address(tsWETH), 2000);
+    tsConfigurator.setManagerYieldCap(tsCommonPoolId, address(tsYieldEthStakingEtherfi), address(tsWETH), 2000);
 
     tsYieldEthStakingLido.setNftActive(address(tsBAYC), true);
     tsYieldEthStakingLido.setNftStakeParams(address(tsBAYC), 50000, 9000);
     tsYieldEthStakingLido.setNftUnstakeParams(address(tsBAYC), 100, 1.05e18);
+
+    tsYieldEthStakingEtherfi.setNftActive(address(tsBAYC), true);
+    tsYieldEthStakingEtherfi.setNftStakeParams(address(tsBAYC), 20000, 9000);
+    tsYieldEthStakingEtherfi.setNftUnstakeParams(address(tsBAYC), 100, 1.05e18);
 
     tsHEVM.stopPrank();
   }

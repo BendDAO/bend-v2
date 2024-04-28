@@ -80,6 +80,7 @@ contract YieldEthStakingEtherfi is YieldEthStakingBase {
       amount
     );
     uint256 yieldAmount = abi.decode(result, (uint256));
+    require(yieldAmount > 0, Errors.YIELD_ETH_DEPOSIT_FAILED);
     return yieldAmount;
   }
 
@@ -87,9 +88,11 @@ contract YieldEthStakingEtherfi is YieldEthStakingBase {
     IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[msg.sender]);
     bytes memory result = yieldAccount.execute(
       address(liquidityPool),
-      abi.encodeWithSelector(ILiquidityPool.requestWithdraw.selector, sd.withdrawAmount)
+      abi.encodeWithSelector(ILiquidityPool.requestWithdraw.selector, address(yieldAccount), sd.withdrawAmount)
     );
-    (sd.withdrawReqId) = abi.decode(result, (uint256));
+    uint256 withdrawReqId = abi.decode(result, (uint256));
+    require(withdrawReqId > 0, Errors.YIELD_ETH_WITHDRAW_FAILED);
+    sd.withdrawReqId = withdrawReqId;
   }
 
   function protocolClaimWithdraw(YieldStakeData storage sd) internal virtual override returns (uint256) {
@@ -101,6 +104,7 @@ contract YieldEthStakingEtherfi is YieldEthStakingBase {
       abi.encodeWithSelector(IWithdrawRequestNFT.claimWithdraw.selector, sd.withdrawReqId)
     );
     claimedEth = address(yieldAccount).balance - claimedEth;
+    require(claimedEth > 0, Errors.YIELD_ETH_CLAIM_FAILED);
 
     yieldAccount.safeTransferNativeToken(address(this), claimedEth);
 
@@ -122,12 +126,7 @@ contract YieldEthStakingEtherfi is YieldEthStakingBase {
     return eETH.decimals();
   }
 
-  /**
-   * @dev Only WETH contract is allowed to transfer ETH here. Prevent other addresses to send Ether to this contract.
-   */
-  receive() external payable {
-    require(msg.sender == address(weth) || msg.sender == address(withdrawRequestNFT), 'Receive not allowed');
-  }
+  receive() external payable {}
 
   /**
    * @dev Revert fallback calls

@@ -114,6 +114,7 @@ library Errors {
   string public constant YIELD_ACCOUNT_ALREADY_EXIST = '504';
   string public constant YIELD_REGISTRY_IS_NOT_AUTH = '505';
   string public constant YIELD_MANAGER_IS_NOT_AUTH = '506';
+  string public constant YIELD_ACCOUNT_IMPL_ZERO = '507';
 
   string public constant ISOLATE_LOAN_ASSET_NOT_MATCH = '600';
   string public constant ISOLATE_LOAN_GROUP_NOT_MATCH = '601';
@@ -138,5 +139,8 @@ library Errors {
   string public constant YIELD_ETH_HEATH_FACTOR_TOO_LOW = '1007';
   string public constant YIELD_ETH_HEATH_FACTOR_TOO_HIGH = '1008';
   string public constant YIELD_ETH_EXCEED_MAX_FINE = '1009';
-  string public constant YIELD_ETH_STETH_WITHDRAW_NOT_READY = '1010';
+  string public constant YIELD_ETH_WITHDRAW_NOT_READY = '1010';
+  string public constant YIELD_ETH_DEPOSIT_FAILED = '1011';
+  string public constant YIELD_ETH_WITHDRAW_FAILED = '1012';
+  string public constant YIELD_ETH_CLAIM_FAILED = '1013';
 }

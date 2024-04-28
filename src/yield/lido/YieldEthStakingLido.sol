@@ -80,7 +80,7 @@ contract YieldEthStakingLido is YieldEthStakingBase {
       amount
     );
     uint256 yieldAmount = abi.decode(result, (uint256));
-
+    require(yieldAmount > 0, Errors.YIELD_ETH_DEPOSIT_FAILED);
     return yieldAmount;
   }
 
@@ -91,9 +91,11 @@ contract YieldEthStakingLido is YieldEthStakingBase {
     requestAmounts[0] = sd.withdrawAmount;
     bytes memory result = yieldAccount.execute(
       address(unstETH),
-      abi.encodeWithSelector(IUnstETH.requestWithdrawals.selector, requestAmounts, address(this))
+      abi.encodeWithSelector(IUnstETH.requestWithdrawals.selector, requestAmounts, address(yieldAccount))
     );
-    (sd.withdrawReqId) = abi.decode(result, (uint256));
+    uint256[] memory withdrawReqIds = abi.decode(result, (uint256[]));
+    require(withdrawReqIds.length > 0 && withdrawReqIds[0] > 0, Errors.YIELD_ETH_WITHDRAW_FAILED);
+    sd.withdrawReqId = withdrawReqIds[0];
   }
 
   function protocolClaimWithdraw(YieldStakeData storage sd) internal virtual override returns (uint256) {
@@ -102,11 +104,12 @@ contract YieldEthStakingLido is YieldEthStakingBase {
     uint256[] memory requestIds = new uint256[](1);
     requestIds[0] = sd.withdrawReqId;
     IUnstETH.WithdrawalRequestStatus memory withdrawStatus = unstETH.getWithdrawalStatus(requestIds)[0];
-    require(withdrawStatus.isFinalized && !withdrawStatus.isClaimed, Errors.YIELD_ETH_STETH_WITHDRAW_NOT_READY);
+    require(withdrawStatus.isFinalized && !withdrawStatus.isClaimed, Errors.YIELD_ETH_WITHDRAW_NOT_READY);
 
     uint256 claimedEth = address(yieldAccount).balance;
     yieldAccount.execute(address(unstETH), abi.encodeWithSelector(IUnstETH.claimWithdrawal.selector, sd.withdrawReqId));
     claimedEth = address(yieldAccount).balance - claimedEth;
+    require(claimedEth > 0, Errors.YIELD_ETH_CLAIM_FAILED);
 
     yieldAccount.safeTransferNativeToken(address(this), claimedEth);
 
@@ -128,12 +131,7 @@ contract YieldEthStakingLido is YieldEthStakingBase {
     return stETH.decimals();
   }
 
-  /**
-   * @dev Only WETH contract is allowed to transfer ETH here. Prevent other addresses to send Ether to this contract.
-   */
-  receive() external payable {
-    require(msg.sender == address(weth) || msg.sender == address(unstETH), 'Receive not allowed');
-  }
+  receive() external payable {}
 
   /**
    * @dev Revert fallback calls

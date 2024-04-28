@@ -9,6 +9,7 @@ import {MockWETH} from './MockWETH.sol';
 import {MockERC721} from './MockERC721.sol';
 import {MockStETH} from './MockStETH.sol';
 import {MockUnstETH} from './MockUnstETH.sol';
+import {MockeETH} from './MockeETH.sol';
 
 contract MockFaucet is Ownable2Step {
   using EnumerableSet for EnumerableSet.AddressSet;
@@ -117,5 +118,16 @@ contract MockFaucet is Ownable2Step {
     mockERC721Set.add(address(token));
 
     return address(token);
+  }
+
+  function createMockeETH() public onlyOwner returns (address) {
+    require(symbolToERC20s['eETH'] == address(0), 'MockFaucet: symbol already exist');
+
+    MockeETH eETH = new MockeETH('eETH', 'eETH', 18);
+
+    symbolToERC20s['eETH'] = address(eETH);
+    mockERC20Set.add(address(eETH));
+
+    return address(eETH);
   }
 }

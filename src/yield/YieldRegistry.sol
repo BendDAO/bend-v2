@@ -56,6 +56,7 @@ contract YieldRegistry is IYieldRegistry, PausableUpgradeable, ReentrancyGuardUp
 
   function createYieldAccount(address _manager) public override returns (address) {
     require(existYieldManager(_manager), Errors.YIELD_MANAGER_IS_NOT_AUTH);
+    require(yieldAccountImplementation != address(0), Errors.YIELD_ACCOUNT_IMPL_ZERO);
 
     address yieldAccount = ClonesUpgradeable.clone(yieldAccountImplementation);
     YieldAccount(payable(yieldAccount)).initialize(address(this), _manager);

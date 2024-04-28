@@ -61,6 +61,9 @@ contract MockUnstETH is IUnstETH, ERC20, Ownable2Step {
   }
 
   function claimWithdrawal(uint256 _requestId) public override {
+    require(_withdrawStatuses[_requestId].owner == msg.sender, 'not owner');
+    require(!_withdrawStatuses[_requestId].isClaimed, 'already claimed');
+
     _withdrawStatuses[_requestId].isClaimed = true;
 
     (bool success, ) = msg.sender.call{value: _withdrawStatuses[_requestId].amountOfStETH}('');
