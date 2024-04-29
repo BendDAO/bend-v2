@@ -39,6 +39,7 @@ library LiquidationLogic {
     uint256 actualDebtToLiquidate;
     uint256 remainDebtToLiquidate;
     uint256 actualCollateralToLiquidate;
+    ResultTypes.UserAccountResult userAccountResult;
   }
 
   /**
@@ -67,7 +68,7 @@ library LiquidationLogic {
     ValidateLogic.validateCrossLiquidateERC20(params, poolData, collateralAssetData, debtAssetData);
 
     // check the user account state
-    ResultTypes.UserAccountResult memory userAccountResult = GenericLogic.calculateUserAccountDataForLiquidate(
+    vars.userAccountResult = GenericLogic.calculateUserAccountDataForLiquidate(
       poolData,
       params.borrower,
       params.collateralAsset,
@@ -75,7 +76,7 @@ library LiquidationLogic {
     );
 
     require(
-      userAccountResult.healthFactor < Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
+      vars.userAccountResult.healthFactor < Constants.HEALTH_FACTOR_LIQUIDATION_THRESHOLD,
       Errors.HEALTH_FACTOR_NOT_BELOW_LIQUIDATION_THRESHOLD
     );
 
@@ -84,7 +85,7 @@ library LiquidationLogic {
       poolData,
       debtAssetData,
       params,
-      userAccountResult.healthFactor
+      vars.userAccountResult.healthFactor
     );
 
     vars.userCollateralBalance = VaultLogic.erc20GetUserCrossSupply(
@@ -130,6 +131,7 @@ library LiquidationLogic {
 
     emit Events.CrossLiquidateERC20(
       params.msgSender,
+      params.poolId,
       params.borrower,
       params.collateralAsset,
       params.debtAsset,
@@ -235,6 +237,7 @@ library LiquidationLogic {
 
     emit Events.CrossLiquidateERC721(
       params.msgSender,
+      params.poolId,
       params.borrower,
       params.collateralAsset,
       params.collateralTokenIds,

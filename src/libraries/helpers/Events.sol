@@ -80,6 +80,14 @@ library Events {
   );
   event WithdrawERC721(address indexed sender, uint256 indexed poolId, address indexed asset, uint256[] tokenIds);
 
+  event SetERC721SupplyMode(
+    address indexed sender,
+    uint256 indexed poolId,
+    address indexed asset,
+    uint256[] tokenIds,
+    uint8 supplyMode
+  );
+
   // Cross Lending Events
   event CrossBorrowERC20(
     address indexed sender,
@@ -98,19 +106,21 @@ library Events {
   );
 
   event CrossLiquidateERC20(
-    address liquidator,
+    address indexed liquidator,
+    uint256 indexed poolId,
     address indexed user,
-    address indexed collateralAsset,
-    address indexed debtAsset,
+    address collateralAsset,
+    address debtAsset,
     uint256 debtToCover,
     uint256 liquidatedCollateralAmount,
     bool supplyAsCollateral
   );
 
   event CrossLiquidateERC721(
-    address liquidator,
+    address indexed liquidator,
+    uint256 indexed poolId,
     address indexed user,
-    address indexed collateralAsset,
+    address collateralAsset,
     uint256[] liquidatedCollateralTokenIds,
     bool supplyAsCollateral
   );
@@ -119,36 +129,36 @@ library Events {
   event IsolateBorrow(
     address indexed sender,
     uint256 indexed poolId,
-    address nftAsset,
+    address indexed nftAsset,
     uint256[] tokenIds,
-    address indexed debtAsset,
+    address debtAsset,
     uint256[] amounts
   );
 
   event IsolateRepay(
     address indexed sender,
     uint256 indexed poolId,
-    address nftAsset,
+    address indexed nftAsset,
     uint256[] tokenIds,
-    address indexed debtAsset,
+    address debtAsset,
     uint256[] amounts
   );
 
   event IsolateAuction(
     address indexed sender,
     uint256 indexed poolId,
-    address nftAsset,
+    address indexed nftAsset,
     uint256[] tokenIds,
-    address indexed debtAsset,
+    address debtAsset,
     uint256[] bidAmounts
   );
 
   event IsolateRedeem(
     address indexed sender,
     uint256 indexed poolId,
-    address nftAsset,
+    address indexed nftAsset,
     uint256[] tokenIds,
-    address indexed debtAsset,
+    address debtAsset,
     uint256[] redeemAmounts,
     uint256[] bidFines
   );
@@ -156,9 +166,9 @@ library Events {
   event IsolateLiquidate(
     address indexed sender,
     uint256 indexed poolId,
-    address nftAsset,
+    address indexed nftAsset,
     uint256[] tokenIds,
-    address indexed debtAsset,
+    address debtAsset,
     uint256[] extraAmounts,
     uint256[] remainAmounts
   );
@@ -169,10 +179,5 @@ library Events {
   event YieldRepayERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
 
   // Misc Events
-  event FlashLoanERC721(
-    address indexed sender,
-    address[] nftAssets,
-    uint256[] nftTokenIds,
-    address indexed receiverAddress
-  );
+  event FlashLoanERC721(address indexed sender, address[] nftAssets, uint256[] nftTokenIds, address receiverAddress);
 }

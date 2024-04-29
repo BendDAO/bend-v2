@@ -169,5 +169,7 @@ library SupplyLogic {
       params.msgSender,
       IAddressProvider(ps.addressProvider).getPriceOracle()
     );
+
+    emit Events.SetERC721SupplyMode(params.msgSender, params.poolId, params.asset, params.tokenIds, params.supplyMode);
   }
 }
