@@ -222,8 +222,14 @@
       {
         "name": "liquidator",
         "type": "address",
-        "indexed": false,
+        "indexed": true,
         "internalType": "address"
+      },
+      {
+        "name": "poolId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
       },
       {
         "name": "user",
@@ -234,13 +240,13 @@
       {
         "name": "collateralAsset",
         "type": "address",
-        "indexed": true,
+        "indexed": false,
         "internalType": "address"
       },
       {
         "name": "debtAsset",
         "type": "address",
-        "indexed": true,
+        "indexed": false,
         "internalType": "address"
       },
       {
@@ -271,8 +277,14 @@
       {
         "name": "liquidator",
         "type": "address",
-        "indexed": false,
+        "indexed": true,
         "internalType": "address"
+      },
+      {
+        "name": "poolId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
       },
       {
         "name": "user",
@@ -283,7 +295,7 @@
       {
         "name": "collateralAsset",
         "type": "address",
-        "indexed": true,
+        "indexed": false,
         "internalType": "address"
       },
       {
@@ -291,6 +303,18 @@
         "type": "uint256[]",
         "indexed": false,
         "internalType": "uint256[]"
+      },
+      {
+        "name": "debtAsset",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "liquidatedDebtAmount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       },
       {
         "name": "supplyAsCollateral",

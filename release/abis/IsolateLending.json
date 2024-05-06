@@ -224,7 +224,7 @@
       {
         "name": "nftAsset",
         "type": "address",
-        "indexed": false,
+        "indexed": true,
         "internalType": "address"
       },
       {
@@ -236,7 +236,7 @@
       {
         "name": "debtAsset",
         "type": "address",
-        "indexed": true,
+        "indexed": false,
         "internalType": "address"
       },
       {
@@ -267,7 +267,7 @@
       {
         "name": "nftAsset",
         "type": "address",
-        "indexed": false,
+        "indexed": true,
         "internalType": "address"
       },
       {
@@ -279,7 +279,7 @@
       {
         "name": "debtAsset",
         "type": "address",
-        "indexed": true,
+        "indexed": false,
         "internalType": "address"
       },
       {

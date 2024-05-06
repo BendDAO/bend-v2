@@ -710,12 +710,76 @@
         "internalType": "uint256"
       },
       {
-        "name": "currentCollateralFactor",
+        "name": "avgLtv",
         "type": "uint256",
         "internalType": "uint256"
       },
       {
-        "name": "currentLiquidationThreshold",
+        "name": "avgLiquidationThreshold",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "healthFactor",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getUserAccountDataForSupplyAsset",
+    "inputs": [
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "poolId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "isAddOrRemove",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "asset",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "totalCollateralInBase",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "totalBorrowInBase",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "availableBorrowInBase",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "avgLtv",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "avgLiquidationThreshold",
         "type": "uint256",
         "internalType": "uint256"
       },
