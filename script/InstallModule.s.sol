@@ -34,7 +34,7 @@ contract InstallModule is DeployBase {
     address[] memory modules = new address[](2);
     uint modIdx = 0;
 
-    BVault tsVaultImpl = new BVault(gitCommitHash);
+    PoolLens tsVaultImpl = new PoolLens(gitCommitHash);
     modules[modIdx++] = address(tsVaultImpl);
 
     CrossLiquidation tsCrossLiquidationImpl = new CrossLiquidation(gitCommitHash);

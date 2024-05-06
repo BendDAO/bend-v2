@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {EnumerableSetUpgradeable} from '@openzeppelin/contracts-upgradeable/utils/structs/EnumerableSetUpgradeable.sol';
 
 import {IAddressProvider} from '../../interfaces/IAddressProvider.sol';
+import {IPriceOracleGetter} from '../..//interfaces/IPriceOracleGetter.sol';
 
 import {Constants} from '../helpers/Constants.sol';
 import {Errors} from '../helpers/Errors.sol';
@@ -258,8 +259,8 @@ library QueryLogic {
       uint256 totalCollateralInBase,
       uint256 totalBorrowInBase,
       uint256 availableBorrowInBase,
-      uint256 currentCollateralFactor,
-      uint256 currentLiquidationThreshold,
+      uint256 avgLtv,
+      uint256 avgLiquidationThreshold,
       uint256 healthFactor
     )
   {
@@ -281,9 +282,89 @@ library QueryLogic {
       result.avgLtv
     );
 
-    currentCollateralFactor = result.avgLtv;
-    currentLiquidationThreshold = result.avgLiquidationThreshold;
+    avgLtv = result.avgLtv;
+    avgLiquidationThreshold = result.avgLiquidationThreshold;
     healthFactor = result.healthFactor;
+  }
+
+  struct GetUserAccountDataLocalVars {
+    address oracle;
+    uint256 assetPrice;
+    uint256 assetUnit;
+    uint256 assetCollateralInBase;
+  }
+
+  function getUserAccountDataForSupplyAsset(
+    address user,
+    uint32 poolId,
+    bool isAddOrRemove,
+    address asset,
+    uint256 amount
+  )
+    internal
+    view
+    returns (
+      uint256 totalCollateralInBase,
+      uint256 totalBorrowInBase,
+      uint256 availableBorrowInBase,
+      uint256 avgLtv,
+      uint256 avgLiquidationThreshold,
+      uint256 healthFactor
+    )
+  {
+    GetUserAccountDataLocalVars memory vars;
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+
+    (
+      totalCollateralInBase,
+      totalBorrowInBase,
+      availableBorrowInBase,
+      avgLtv,
+      avgLiquidationThreshold,
+      healthFactor
+    ) = getUserAccountData(user, poolId);
+
+    vars.oracle = IAddressProvider(ps.addressProvider).getPriceOracle();
+    vars.assetPrice = IPriceOracleGetter(vars.oracle).getAssetPrice(asset);
+    if (assetData.assetType == Constants.ASSET_TYPE_ERC20) {
+      vars.assetUnit = 10 ** assetData.underlyingDecimals;
+    } else {
+      vars.assetUnit = 1;
+    }
+    vars.assetCollateralInBase = (vars.assetPrice * amount) / vars.assetUnit;
+
+    avgLtv = avgLtv * totalCollateralInBase;
+    avgLiquidationThreshold = avgLiquidationThreshold * totalCollateralInBase;
+
+    if (isAddOrRemove) {
+      avgLtv = avgLtv + (vars.assetCollateralInBase * assetData.collateralFactor);
+      avgLiquidationThreshold = avgLiquidationThreshold + (vars.assetCollateralInBase * assetData.liquidationThreshold);
+
+      totalCollateralInBase += vars.assetCollateralInBase;
+    } else {
+      avgLtv = avgLtv - (vars.assetCollateralInBase * assetData.collateralFactor);
+      avgLiquidationThreshold = avgLiquidationThreshold - (vars.assetCollateralInBase * assetData.liquidationThreshold);
+
+      totalCollateralInBase -= vars.assetCollateralInBase;
+    }
+
+    if (totalCollateralInBase == 0) {
+      avgLtv = 0;
+      avgLiquidationThreshold = 0;
+    } else {
+      avgLtv = avgLtv / totalCollateralInBase;
+      avgLiquidationThreshold = avgLiquidationThreshold / totalCollateralInBase;
+    }
+
+    availableBorrowInBase = GenericLogic.calculateAvailableBorrows(totalCollateralInBase, totalBorrowInBase, avgLtv);
+
+    healthFactor = GenericLogic.calculateHealthFactorFromBalances(
+      totalCollateralInBase,
+      totalBorrowInBase,
+      avgLiquidationThreshold
+    );
   }
 
   struct GetUserAssetDataLocalVars {

@@ -122,6 +122,8 @@ library Events {
     address indexed user,
     address collateralAsset,
     uint256[] liquidatedCollateralTokenIds,
+    address debtAsset,
+    uint256 liquidatedDebtAmount,
     bool supplyAsCollateral
   );
 

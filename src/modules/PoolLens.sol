@@ -160,12 +160,33 @@ contract PoolLens is BaseModule {
       uint256 totalCollateralInBase,
       uint256 totalBorrowInBase,
       uint256 availableBorrowInBase,
-      uint256 currentCollateralFactor,
-      uint256 currentLiquidationThreshold,
+      uint256 avgLtv,
+      uint256 avgLiquidationThreshold,
       uint256 healthFactor
     )
   {
     return QueryLogic.getUserAccountData(user, poolId);
+  }
+
+  function getUserAccountDataForSupplyAsset(
+    address user,
+    uint32 poolId,
+    bool isAddOrRemove,
+    address asset,
+    uint256 amount
+  )
+    public
+    view
+    returns (
+      uint256 totalCollateralInBase,
+      uint256 totalBorrowInBase,
+      uint256 availableBorrowInBase,
+      uint256 avgLtv,
+      uint256 avgLiquidationThreshold,
+      uint256 healthFactor
+    )
+  {
+    return QueryLogic.getUserAccountDataForSupplyAsset(user, poolId, isAddOrRemove, asset, amount);
   }
 
   function getUserAssetData(

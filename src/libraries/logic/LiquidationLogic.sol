@@ -241,6 +241,8 @@ library LiquidationLogic {
       params.borrower,
       params.collateralAsset,
       params.collateralTokenIds,
+      params.debtAsset,
+      vars.actualDebtToLiquidate,
       params.supplyAsCollateral
     );
 
