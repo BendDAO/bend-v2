@@ -20,7 +20,16 @@ contract MockEtherfiLiquidityPool is ILiquidityPool, Ownable2Step {
   }
 
   function deposit() external payable override returns (uint256) {
+    require(msg.value > 0, 'msg value is 0');
+
     MockeETH(payable(eETH)).mint(msg.sender, msg.value);
+    return msg.value;
+  }
+
+  function rebase(address to) public payable returns (uint256) {
+    require(msg.value > 0, 'msg value is 0');
+
+    MockeETH(payable(eETH)).mint(to, msg.value);
     return msg.value;
   }
 

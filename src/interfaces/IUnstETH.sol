@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
+import {IERC721} from '@openzeppelin/contracts/token/ERC721/IERC721.sol';
 
-interface IUnstETH is IERC20 {
+interface IUnstETH is IERC721 {
   struct WithdrawalRequestStatus {
     /// @notice stETH token amount that was locked on withdrawal queue for this request
     uint256 amountOfStETH;

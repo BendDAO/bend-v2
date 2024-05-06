@@ -374,6 +374,8 @@ abstract contract TestWithSetup is TestWithUtils {
 
     tsStETH = MockStETH(payable(tsFaucet.createMockStETH()));
     tsUnstETH = MockUnstETH(payable(tsFaucet.createMockUnstETH(address(tsStETH))));
+    tsHEVM.prank(address(tsFaucet));
+    tsStETH.setUnstETH(address(tsUnstETH));
 
     tsEETH = MockeETH(payable(tsFaucet.createMockeETH()));
     tsEtherfiWithdrawRequestNFT = new MockEtherfiWithdrawRequestNFT();

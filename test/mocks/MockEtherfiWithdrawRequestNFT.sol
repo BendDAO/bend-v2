@@ -2,22 +2,23 @@
 pragma solidity ^0.8.0;
 
 import {Ownable2Step} from '@openzeppelin/contracts/access/Ownable2Step.sol';
+import {ERC721} from '@openzeppelin/contracts/token/ERC721/ERC721.sol';
+import {ERC721Enumerable} from '@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
 
 import {IeETH} from 'src/yield/etherfi/IeETH.sol';
 import {ILiquidityPool} from 'src/yield/etherfi/ILiquidityPool.sol';
 import {IWithdrawRequestNFT} from 'src/yield/etherfi/IWithdrawRequestNFT.sol';
 
-contract MockEtherfiWithdrawRequestNFT is IWithdrawRequestNFT, Ownable2Step {
+contract MockEtherfiWithdrawRequestNFT is IWithdrawRequestNFT, ERC721Enumerable, Ownable2Step {
   IeETH private _eETH;
   ILiquidityPool private _liquidityPool;
 
   uint256 private _nextRequestId;
   mapping(uint256 => WithdrawRequest) private _withdrawRequests;
-  mapping(uint256 => address) private _requestOwners;
   mapping(uint256 => bool) private _isFinalizeds;
   mapping(uint256 => bool) private _isClaimeds;
 
-  constructor() {
+  constructor() ERC721('MockEtherfiWithdrawRequestNFT', 'WithdrawRequestNFT') {
     _nextRequestId = 1;
   }
 
@@ -35,15 +36,22 @@ contract MockEtherfiWithdrawRequestNFT is IWithdrawRequestNFT, Ownable2Step {
     _withdrawRequests[reqId].shareOfEEth = shareOfEEth;
     _withdrawRequests[reqId].isValid = true;
     _withdrawRequests[reqId].feeGwei = uint32(fee / 1 gwei);
-    _requestOwners[reqId] = requester;
+
+    _mint(requester, reqId);
 
     return reqId;
   }
 
   function claimWithdraw(uint256 requestId) external override {
+    address reqOwner = ownerOf(requestId);
+    require(reqOwner == msg.sender, 'Not Owner');
     require(!_isClaimeds[requestId], 'Already Claimed');
-    _liquidityPool.withdraw(_requestOwners[requestId], _withdrawRequests[requestId].amountOfEEth);
+
+    _liquidityPool.withdraw(reqOwner, _withdrawRequests[requestId].amountOfEEth);
+
     _isClaimeds[requestId] = true;
+
+    _burn(requestId);
   }
 
   function getRequest(uint256 requestId) external view override returns (WithdrawRequest memory) {

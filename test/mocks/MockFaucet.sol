@@ -99,12 +99,12 @@ contract MockFaucet is Ownable2Step {
   }
 
   function createMockUnstETH(address stETH) public onlyOwner returns (address) {
-    require(symbolToERC20s['unstETH'] == address(0), 'MockFaucet: symbol already exist');
+    require(symbolToERC721s['unstETH'] == address(0), 'MockFaucet: symbol already exist');
 
-    MockUnstETH unstETH = new MockUnstETH('unstETH', 'unstETH', 18, stETH);
+    MockUnstETH unstETH = new MockUnstETH(stETH);
 
-    symbolToERC20s['unstETH'] = address(unstETH);
-    mockERC20Set.add(address(unstETH));
+    symbolToERC721s['unstETH'] = address(unstETH);
+    mockERC721Set.add(address(unstETH));
 
     return address(unstETH);
   }

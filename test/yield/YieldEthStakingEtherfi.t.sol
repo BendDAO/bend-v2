@@ -66,12 +66,16 @@ contract YieldEthStakingEtherfi is TestWithPrepare {
     stakeAmount = (stakeAmount * 80) / 100;
 
     tsHEVM.prank(address(tsBorrower1));
-    tsYieldEthStakingEtherfi.createYieldAccount(address(tsBorrower1));
+    address yieldAccount = tsYieldEthStakingEtherfi.createYieldAccount(address(tsBorrower1));
 
     tsHEVM.prank(address(tsBorrower1));
     tsYieldEthStakingEtherfi.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
 
+    uint256 deltaAmount = (stakeAmount * 35) / 1000;
+    tsEtherfiLiquidityPool.rebase{value: deltaAmount}(yieldAccount);
+
     (uint256 yieldAmount, ) = tsYieldEthStakingEtherfi.getNftYieldInEth(address(tsBAYC), tokenIds[0]);
+    testEquality(yieldAmount, (stakeAmount + deltaAmount), 'yieldAmount not eq');
 
     tsHEVM.prank(address(tsBorrower1));
     tsYieldEthStakingEtherfi.unstake(tsCommonPoolId, address(tsBAYC), tokenIds[0], 0);

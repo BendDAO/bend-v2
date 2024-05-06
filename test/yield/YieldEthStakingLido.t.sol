@@ -68,12 +68,16 @@ contract TestYieldEthStakingLido is TestWithPrepare {
     stakeAmount = (stakeAmount * 80) / 100;
 
     tsHEVM.prank(address(tsBorrower1));
-    tsYieldEthStakingLido.createYieldAccount(address(tsBorrower1));
+    address yieldAccount = tsYieldEthStakingLido.createYieldAccount(address(tsBorrower1));
 
     tsHEVM.prank(address(tsBorrower1));
     tsYieldEthStakingLido.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
 
+    uint256 deltaAmount = (stakeAmount * 35) / 1000;
+    tsStETH.rebase{value: deltaAmount}(yieldAccount);
+
     (uint256 yieldAmount, ) = tsYieldEthStakingLido.getNftYieldInEth(address(tsBAYC), tokenIds[0]);
+    testEquality(yieldAmount, (stakeAmount + deltaAmount), 'yieldAmount not eq');
 
     tsHEVM.prank(address(tsBorrower1));
     tsYieldEthStakingLido.unstake(tsCommonPoolId, address(tsBAYC), tokenIds[0], 0);
@@ -88,7 +92,7 @@ contract TestYieldEthStakingLido is TestWithPrepare {
       address(tsBAYC),
       tokenIds[0]
     );
-    assertEq(testVars.unstakeFine, 0, 'state not eq');
+    assertEq(testVars.unstakeFine, 0, 'unstakeFine not eq');
     assertEq(testVars.withdrawAmount, yieldAmount, 'withdrawAmount not eq');
     assertGt(testVars.withdrawReqId, 0, 'withdrawReqId not gt');
   }
@@ -108,9 +112,6 @@ contract TestYieldEthStakingLido is TestWithPrepare {
 
     tsHEVM.prank(address(tsBorrower1));
     tsYieldEthStakingLido.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
-
-    tsHEVM.prank(tsStETH.owner());
-    tsStETH.transferETH(address(tsUnstETH));
 
     tsHEVM.prank(address(tsBorrower1));
     tsYieldEthStakingLido.unstake(tsCommonPoolId, address(tsBAYC), tokenIds[0], 0);
