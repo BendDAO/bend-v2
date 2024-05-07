@@ -11,6 +11,7 @@ import {Constants} from 'src/libraries/helpers/Constants.sol';
 import {YieldEthStakingLido} from 'src/yield/lido/YieldEthStakingLido.sol';
 import {YieldEthStakingEtherfi} from 'src/yield/etherfi/YieldEthStakingEtherfi.sol';
 import {YieldRegistry} from 'src/yield/YieldRegistry.sol';
+import {YieldAccount} from 'src/yield/YieldAccount.sol';
 
 import {Configured, ConfigLib, Config} from 'config/Configured.sol';
 import {DeployBase} from './DeployBase.s.sol';
@@ -45,6 +46,10 @@ contract DeployYieldEthStaking is DeployBase {
     YieldRegistry yieldRegistry = YieldRegistry(address(yieldRegistryProxy));
 
     IAddressProvider(addressProvider_).setYieldRegistry(address(yieldRegistry));
+
+    YieldAccount accountImpl = new YieldAccount();
+
+    yieldRegistry.setYieldAccountImplementation(address(accountImpl));
 
     return address(yieldRegistry);
   }

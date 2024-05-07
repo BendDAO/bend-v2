@@ -54,5 +54,17 @@
       "Proxy": "0x554F34D3E00604EAf3c72f6e5795e78A3C656eF7",
       "Implementation": "0xF8af6b7160D4bcB48a9f4c31A7953c47951848D0"
     }
+  },
+  "YieldRegistry": {
+    "Proxy": "0xa5c913fCaebf3eaE04Db39aDa359FbCCB8331d7a",
+    "Implementation": "0x0558faC9A85C5aEDb30D6012665b55CEacAa0586"
+  },
+  "YieldEthStakingLido": {
+    "Proxy": "0xbEbd4006710434493Ee223192272c7c7Ed3E8fFE",
+    "Implementation": "0xf6E994Bc07cbe14Bd2F2E007F77106BbeBda4Ee7"
+  },
+  "YieldEthStakingEtherfi": {
+    "Proxy": "0x337fa37aB2379acbcAD08428cE2eDC2B2212005c",
+    "Implementation": "0x147904174829FFbfFb5B6F87Ef02CB3F07E5B48d"
   }
 }
