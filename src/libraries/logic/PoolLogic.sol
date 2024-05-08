@@ -62,7 +62,7 @@ library PoolLogic {
       VaultLogic.erc20IncreaseCrossSupply(assetData, treasuryAddress, amountToCollect);
       VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, treasuryAddress);
 
-      emit Events.CollectFeeToTreasury(assetAddress, amountToCollect, normalizedIncome);
+      emit Events.CollectFeeToTreasury(poolId, assetAddress, amountToCollect, normalizedIncome);
     }
   }
 }

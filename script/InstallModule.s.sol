@@ -31,14 +31,35 @@ contract InstallModule is DeployBase {
 
     Installer installer = Installer(poolManager.moduleIdToProxy(Constants.MODULEID__INSTALLER));
 
-    address[] memory modules = new address[](2);
+    address[] memory modules = new address[](9);
     uint modIdx = 0;
 
-    PoolLens tsVaultImpl = new PoolLens(gitCommitHash);
+    Configurator tsConfiguratorImpl = new Configurator(gitCommitHash);
+    modules[modIdx++] = address(tsConfiguratorImpl);
+
+    BVault tsVaultImpl = new BVault(gitCommitHash);
     modules[modIdx++] = address(tsVaultImpl);
+
+    CrossLending tsCrossLendingImpl = new CrossLending(gitCommitHash);
+    modules[modIdx++] = address(tsCrossLendingImpl);
 
     CrossLiquidation tsCrossLiquidationImpl = new CrossLiquidation(gitCommitHash);
     modules[modIdx++] = address(tsCrossLiquidationImpl);
+
+    IsolateLending tsIsolateLendingImpl = new IsolateLending(gitCommitHash);
+    modules[modIdx++] = address(tsIsolateLendingImpl);
+
+    IsolateLiquidation tsIsolateLiquidationImpl = new IsolateLiquidation(gitCommitHash);
+    modules[modIdx++] = address(tsIsolateLiquidationImpl);
+
+    Yield tsYieldImpl = new Yield(gitCommitHash);
+    modules[modIdx++] = address(tsYieldImpl);
+
+    FlashLoan tsFlashLoanImpl = new FlashLoan(gitCommitHash);
+    modules[modIdx++] = address(tsFlashLoanImpl);
+
+    PoolLens tsPoolLensImpl = new PoolLens(gitCommitHash);
+    modules[modIdx++] = address(tsPoolLensImpl);
 
     installer.installModules(modules);
   }

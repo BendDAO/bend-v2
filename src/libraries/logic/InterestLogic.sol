@@ -138,7 +138,7 @@ library InterestLogic {
    * @notice Updates the asset current borrow rate and current supply rate.
    */
   function updateInterestRates(
-    DataTypes.PoolData storage /*poolData*/,
+    DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage assetData,
     uint256 liquidityAdded,
     uint256 liquidityTaken
@@ -188,6 +188,7 @@ library InterestLogic {
       }
 
       emit Events.AssetInterestBorrowDataUpdated(
+        poolData.poolId,
         assetData.underlyingAsset,
         vars.loopGroupId,
         vars.nextGroupBorrowRate,
@@ -203,6 +204,7 @@ library InterestLogic {
     assetData.supplyRate = vars.nextAssetSupplyRate.toUint128();
 
     emit Events.AssetInterestSupplyDataUpdated(
+      poolData.poolId,
       assetData.underlyingAsset,
       vars.nextAssetSupplyRate,
       assetData.supplyIndex

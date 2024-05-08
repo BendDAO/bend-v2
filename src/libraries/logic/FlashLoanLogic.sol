@@ -71,6 +71,7 @@ library FlashLoanLogic {
 
     emit Events.FlashLoanERC721(
       inputParams.msgSender,
+      inputParams.poolId,
       inputParams.nftAssets,
       inputParams.nftTokenIds,
       inputParams.receiverAddress

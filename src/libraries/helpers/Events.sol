@@ -20,14 +20,25 @@ library Events {
   event RemovePoolGroup(uint32 indexed poolId, uint8 groupId);
 
   event SetPoolPause(uint32 indexed poolId, bool isPause);
-  event CollectFeeToTreasury(address indexed asset, uint256 fee, uint256 index);
+  event CollectFeeToTreasury(uint32 indexed poolId, address indexed asset, uint256 fee, uint256 index);
 
   event SetPoolYieldEnable(uint32 indexed poolId, bool isEnable);
   event SetPoolYieldPause(uint32 indexed poolId, bool isPause);
 
   /* Asset Events */
-  event AssetInterestSupplyDataUpdated(address indexed asset, uint256 supplyRate, uint256 supplyIndex);
-  event AssetInterestBorrowDataUpdated(address indexed asset, uint256 groupId, uint256 borrowRate, uint256 borrowIndex);
+  event AssetInterestSupplyDataUpdated(
+    uint32 indexed poolId,
+    address indexed asset,
+    uint256 supplyRate,
+    uint256 supplyIndex
+  );
+  event AssetInterestBorrowDataUpdated(
+    uint32 indexed poolId,
+    address indexed asset,
+    uint256 groupId,
+    uint256 borrowRate,
+    uint256 borrowIndex
+  );
 
   event AddAsset(uint32 indexed poolId, address indexed asset, uint8 assetType);
   event RemoveAsset(uint32 indexed poolId, address indexed asset, uint8 assetType);
@@ -181,5 +192,11 @@ library Events {
   event YieldRepayERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
 
   // Misc Events
-  event FlashLoanERC721(address indexed sender, address[] nftAssets, uint256[] nftTokenIds, address receiverAddress);
+  event FlashLoanERC721(
+    address indexed sender,
+    uint32 indexed poolId,
+    address[] nftAssets,
+    uint256[] nftTokenIds,
+    address receiverAddress
+  );
 }
