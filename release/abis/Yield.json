@@ -235,6 +235,12 @@
     "name": "AssetInterestBorrowDataUpdated",
     "inputs": [
       {
+        "name": "poolId",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
         "name": "asset",
         "type": "address",
         "indexed": true,
@@ -265,6 +271,12 @@
     "type": "event",
     "name": "AssetInterestSupplyDataUpdated",
     "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
       {
         "name": "asset",
         "type": "address",

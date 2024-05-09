@@ -127,6 +127,12 @@
         "internalType": "address"
       },
       {
+        "name": "poolId",
+        "type": "uint32",
+        "indexed": true,
+        "internalType": "uint32"
+      },
+      {
         "name": "nftAssets",
         "type": "address[]",
         "indexed": false,

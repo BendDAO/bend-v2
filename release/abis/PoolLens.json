@@ -729,7 +729,7 @@
   },
   {
     "type": "function",
-    "name": "getUserAccountDataForSupplyAsset",
+    "name": "getUserAccountDataForCalculation",
     "inputs": [
       {
         "name": "user",
@@ -742,9 +742,9 @@
         "internalType": "uint32"
       },
       {
-        "name": "isAddOrRemove",
-        "type": "bool",
-        "internalType": "bool"
+        "name": "calcType",
+        "type": "uint8",
+        "internalType": "uint8"
       },
       {
         "name": "asset",
