@@ -168,10 +168,11 @@ contract PoolLens is BaseModule {
     return QueryLogic.getUserAccountData(user, poolId);
   }
 
-  function getUserAccountDataForSupplyAsset(
+  /* @dev calcType: 1-supply, 2-withdraw, 3-borrow, 4-repay */
+  function getUserAccountDataForCalculation(
     address user,
     uint32 poolId,
-    bool isAddOrRemove,
+    uint8 calcType,
     address asset,
     uint256 amount
   )
@@ -186,7 +187,7 @@ contract PoolLens is BaseModule {
       uint256 healthFactor
     )
   {
-    return QueryLogic.getUserAccountDataForSupplyAsset(user, poolId, isAddOrRemove, asset, amount);
+    return QueryLogic.getUserAccountDataForCalculation(user, poolId, calcType, asset, amount);
   }
 
   function getUserAssetData(

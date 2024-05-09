@@ -291,13 +291,13 @@ library QueryLogic {
     address oracle;
     uint256 assetPrice;
     uint256 assetUnit;
-    uint256 assetCollateralInBase;
+    uint256 assetValueInBase;
   }
 
-  function getUserAccountDataForSupplyAsset(
+  function getUserAccountDataForCalculation(
     address user,
     uint32 poolId,
-    bool isAddOrRemove,
+    uint8 calcType,
     address asset,
     uint256 amount
   )
@@ -333,21 +333,37 @@ library QueryLogic {
     } else {
       vars.assetUnit = 1;
     }
-    vars.assetCollateralInBase = (vars.assetPrice * amount) / vars.assetUnit;
+    vars.assetValueInBase = (vars.assetPrice * amount) / vars.assetUnit;
 
     avgLtv = avgLtv * totalCollateralInBase;
     avgLiquidationThreshold = avgLiquidationThreshold * totalCollateralInBase;
 
-    if (isAddOrRemove) {
-      avgLtv = avgLtv + (vars.assetCollateralInBase * assetData.collateralFactor);
-      avgLiquidationThreshold = avgLiquidationThreshold + (vars.assetCollateralInBase * assetData.liquidationThreshold);
+    if (calcType == 1) {
+      // supply
+      avgLtv = avgLtv + (vars.assetValueInBase * assetData.collateralFactor);
+      avgLiquidationThreshold = avgLiquidationThreshold + (vars.assetValueInBase * assetData.liquidationThreshold);
 
-      totalCollateralInBase += vars.assetCollateralInBase;
-    } else {
-      avgLtv = avgLtv - (vars.assetCollateralInBase * assetData.collateralFactor);
-      avgLiquidationThreshold = avgLiquidationThreshold - (vars.assetCollateralInBase * assetData.liquidationThreshold);
+      totalCollateralInBase += vars.assetValueInBase;
+    } else if (calcType == 2) {
+      // withdraw
+      avgLtv = avgLtv - (vars.assetValueInBase * assetData.collateralFactor);
+      avgLiquidationThreshold = avgLiquidationThreshold - (vars.assetValueInBase * assetData.liquidationThreshold);
 
-      totalCollateralInBase -= vars.assetCollateralInBase;
+      if (totalCollateralInBase > vars.assetValueInBase) {
+        totalCollateralInBase -= vars.assetValueInBase;
+      } else {
+        totalCollateralInBase = 0;
+      }
+    } else if (calcType == 3) {
+      // borrow
+      totalBorrowInBase += vars.assetValueInBase;
+    } else if (calcType == 4) {
+      // repay
+      if (totalBorrowInBase > vars.assetValueInBase) {
+        totalBorrowInBase -= vars.assetValueInBase;
+      } else {
+        totalBorrowInBase = 0;
+      }
     }
 
     if (totalCollateralInBase == 0) {

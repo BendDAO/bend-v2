@@ -20,6 +20,13 @@ import '@forge-std/Script.sol';
 contract InitConfigSepolia is DeployBase {
   using ConfigLib for Config;
 
+  address constant addrWETH = 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14;
+  address constant addrUSDT = 0x53cEd787Ba91B4f872b961914faE013ccF8b0236;
+
+  address constant addrWPUNK = 0x647dc527Bd7dFEE4DD468cE6fC62FC50fa42BD8b;
+  address constant addrBAYC = 0xE15A78992dd4a9d6833eA7C9643650d3b0a2eD2B;
+  address constant addrMAYC = 0xD0ff8ae7E3D9591605505D3db9C33b96c4809CDC;
+
   AddressProvider internal addressProvider;
   PriceOracle internal priceOracle;
   Configurator internal configurator;
@@ -57,8 +64,8 @@ contract InitConfigSepolia is DeployBase {
     priceOracle.setBendNFTOracle(0xF143144Fb2703C8aeefD0c4D06d29F5Bb0a9C60A);
 
     address[] memory assets = new address[](2);
-    assets[0] = address(0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14);
-    assets[1] = address(0x53cEd787Ba91B4f872b961914faE013ccF8b0236);
+    assets[0] = address(addrWETH);
+    assets[1] = address(addrUSDT);
     address[] memory aggs = new address[](2);
     aggs[0] = address(0x694AA1769357215DE4FAC081bf1f309aDC325306);
     aggs[1] = address(0x382c1856D25CbB835D4C1d732EB69f3e0d9Ba104);
@@ -105,7 +112,7 @@ contract InitConfigSepolia is DeployBase {
 
   function addERC20Assets() internal {
     uint8 decimals;
-    IERC20Metadata weth = IERC20Metadata(0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14);
+    IERC20Metadata weth = IERC20Metadata(addrWETH);
     decimals = weth.decimals();
     configurator.addAssetERC20(commonPoolId, address(weth));
     configurator.setAssetCollateralParams(commonPoolId, address(weth), 8050, 8300, 500);
@@ -119,7 +126,7 @@ contract InitConfigSepolia is DeployBase {
     configurator.addAssetGroup(commonPoolId, address(weth), middleRateGroupId, address(irmMiddle));
     configurator.addAssetGroup(commonPoolId, address(weth), highRateGroupId, address(irmHigh));
 
-    IERC20Metadata usdt = IERC20Metadata(0x53cEd787Ba91B4f872b961914faE013ccF8b0236);
+    IERC20Metadata usdt = IERC20Metadata(addrUSDT);
     decimals = usdt.decimals();
     configurator.addAssetERC20(commonPoolId, address(usdt));
     configurator.setAssetCollateralParams(commonPoolId, address(usdt), 7400, 7600, 450);
@@ -135,7 +142,7 @@ contract InitConfigSepolia is DeployBase {
   }
 
   function addERC721Assets() internal {
-    IERC721 wpunk = IERC721(0x647dc527Bd7dFEE4DD468cE6fC62FC50fa42BD8b);
+    IERC721 wpunk = IERC721(addrWPUNK);
     configurator.addAssetERC721(commonPoolId, address(wpunk));
     configurator.setAssetCollateralParams(commonPoolId, address(wpunk), 6000, 8000, 1000);
     configurator.setAssetAuctionParams(commonPoolId, address(wpunk), 5000, 500, 2000, 1 days);
@@ -143,7 +150,7 @@ contract InitConfigSepolia is DeployBase {
     configurator.setAssetActive(commonPoolId, address(wpunk), true);
     configurator.setAssetSupplyCap(commonPoolId, address(wpunk), 10_000);
 
-    IERC721 bayc = IERC721(0xE15A78992dd4a9d6833eA7C9643650d3b0a2eD2B);
+    IERC721 bayc = IERC721(addrBAYC);
     configurator.addAssetERC721(commonPoolId, address(bayc));
     configurator.setAssetCollateralParams(commonPoolId, address(bayc), 6000, 8000, 1000);
     configurator.setAssetAuctionParams(commonPoolId, address(bayc), 5000, 500, 2000, 1 days);
@@ -151,7 +158,7 @@ contract InitConfigSepolia is DeployBase {
     configurator.setAssetActive(commonPoolId, address(bayc), true);
     configurator.setAssetSupplyCap(commonPoolId, address(bayc), 10_000);
 
-    IERC721 mayc = IERC721(0xD0ff8ae7E3D9591605505D3db9C33b96c4809CDC);
+    IERC721 mayc = IERC721(addrMAYC);
     configurator.addAssetERC721(commonPoolId, address(mayc));
     configurator.setAssetCollateralParams(commonPoolId, address(mayc), 5000, 8000, 1000);
     configurator.setAssetAuctionParams(commonPoolId, address(mayc), 5000, 500, 2000, 1 days);
