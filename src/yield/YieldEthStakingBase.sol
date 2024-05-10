@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
+import {IERC20Metadata} from '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
+import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+
 import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 import {Initializable} from '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
 import {PausableUpgradeable} from '@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol';
@@ -13,7 +16,6 @@ import {IYield} from 'src/interfaces/IYield.sol';
 import {IPriceOracleGetter} from 'src/interfaces/IPriceOracleGetter.sol';
 import {IYieldAccount} from 'src/interfaces/IYieldAccount.sol';
 import {IYieldRegistry} from 'src/interfaces/IYieldRegistry.sol';
-import {IWETH} from 'src/interfaces/IWETH.sol';
 
 import {Constants} from 'src/libraries/helpers/Constants.sol';
 import {Errors} from 'src/libraries/helpers/Errors.sol';
@@ -24,6 +26,7 @@ import {MathUtils} from 'src/libraries/math/MathUtils.sol';
 import {ShareUtils} from 'src/libraries/math/ShareUtils.sol';
 
 abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, ReentrancyGuardUpgradeable {
+  using SafeERC20 for IERC20Metadata;
   using PercentageMath for uint256;
   using ShareUtils for uint256;
   using WadRayMath for uint256;
@@ -62,7 +65,7 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
   IPoolManager public poolManager;
   IYield public poolYield;
   IYieldRegistry public yieldRegistry;
-  IWETH public weth;
+  IERC20Metadata public underlyingAsset;
   address public botAdmin;
   uint256 public totalDebtShare;
   uint256 public totalUnstakeFine;
@@ -87,7 +90,7 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
     require(IACLManager(addressProvider.getACLManager()).isPoolAdmin(msg.sender), Errors.CALLER_NOT_POOL_ADMIN);
   }
 
-  function __YieldStakingBase_init(address addressProvider_, address weth_) internal onlyInitializing {
+  function __YieldStakingBase_init(address addressProvider_, address underlyingAsset_) internal onlyInitializing {
     __Pausable_init();
     __ReentrancyGuard_init();
 
@@ -97,9 +100,9 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
     poolYield = IYield(addressProvider.getPoolModuleProxy(Constants.MODULEID__YIELD));
     yieldRegistry = IYieldRegistry(addressProvider.getYieldRegistry());
 
-    weth = IWETH(weth_);
+    underlyingAsset = IERC20Metadata(underlyingAsset_);
 
-    weth.approve(address(poolManager), type(uint256).max);
+    underlyingAsset.approve(address(poolManager), type(uint256).max);
   }
 
   /****************************************************************************/
@@ -163,7 +166,7 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
     uint8 nftSupplyMode;
     address nftLockerAddr;
     uint256 totalDebtAmount;
-    uint256 nftPriceInEth;
+    uint256 nftPriceInUnderlyingAsset;
     uint256 maxBorrowAmount;
     uint256 debtShare;
     uint256 yieldShare;
@@ -203,17 +206,17 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
       vars.totalDebtAmount = convertToDebtAssets(poolId, sd.debtShare) + borrowAmount;
     }
 
-    vars.nftPriceInEth = getNftPriceInEth(nft);
-    vars.maxBorrowAmount = vars.nftPriceInEth.percentMul(nc.leverageFactor);
+    vars.nftPriceInUnderlyingAsset = getNftPriceInUnderlyingAsset(nft);
+    vars.maxBorrowAmount = vars.nftPriceInUnderlyingAsset.percentMul(nc.leverageFactor);
     require(vars.totalDebtAmount <= vars.maxBorrowAmount, Errors.YIELD_ETH_EXCEED_MAX_BORROWABLE);
 
     // calculate debt share before borrow
     vars.debtShare = convertToDebtShares(poolId, borrowAmount);
 
     // borrow from lending pool
-    poolYield.yieldBorrowERC20(poolId, address(weth), borrowAmount);
+    poolYield.yieldBorrowERC20(poolId, address(underlyingAsset), borrowAmount);
 
-    // stake in lido and got the stETH
+    // stake in protocol and got the yield
     vars.totalYieldBeforeSubmit = getAccountTotalYield(address(vars.yieldAccout));
     vars.yieldAmount = protocolDeposit(sd, borrowAmount);
     vars.yieldShare = _convertToYieldSharesBeforeSubmit(
@@ -235,7 +238,7 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
     totalDebtShare += vars.debtShare;
     accountYieldShares[address(vars.yieldAccout)] += vars.yieldShare;
 
-    poolYield.yieldSetERC721TokenData(poolId, nft, tokenId, true, address(weth));
+    poolYield.yieldSetERC721TokenData(poolId, nft, tokenId, true, address(underlyingAsset));
 
     // check hf
     uint256 hf = calculateHealthFactor(nft, nc, sd);
@@ -300,7 +303,7 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
     address nftOwner;
     uint8 nftSupplyMode;
     address nftLockerAddr;
-    uint256 claimedEth;
+    uint256 claimedYield;
     uint256 nftDebt;
     uint256 nftDebtWithFine;
     uint256 remainAmount;
@@ -321,43 +324,41 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
     require(sd.state == Constants.YIELD_STATUS_UNSTAKE, Errors.YIELD_ETH_STATUS_NOT_UNSTAKE);
     require(sd.poolId == poolId, Errors.YIELD_ETH_POOL_NOT_SAME);
 
+    require(protocolIsClaimReady(sd), Errors.YIELD_ETH_WITHDRAW_NOT_READY);
+
     // check the nft ownership
     (vars.nftOwner, vars.nftSupplyMode, vars.nftLockerAddr) = poolYield.getERC721TokenData(poolId, nft, tokenId);
     require(vars.nftOwner == msg.sender || botAdmin == msg.sender, Errors.INVALID_CALLER);
     require(vars.nftSupplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.INVALID_SUPPLY_MODE);
     require(vars.nftLockerAddr == address(this), Errors.YIELD_ETH_LOCKER_NOT_SAME);
 
-    // withdraw eth from lido and repay if possible
+    // withdraw yield from protocol and repay if possible
 
-    vars.claimedEth = protocolClaimWithdraw(sd);
+    vars.claimedYield = protocolClaimWithdraw(sd);
 
-    weth.deposit{value: vars.claimedEth}();
-
-    vars.nftDebt = _getNftDebtInEth(sd);
+    vars.nftDebt = _getNftDebtInUnderlyingAsset(sd);
     vars.nftDebtWithFine = vars.nftDebt + sd.unstakeFine;
 
     // compute repay value
-    if (vars.claimedEth >= vars.nftDebtWithFine) {
-      vars.remainAmount = vars.claimedEth - vars.nftDebtWithFine;
+    if (vars.claimedYield >= vars.nftDebtWithFine) {
+      vars.remainAmount = vars.claimedYield - vars.nftDebtWithFine;
     } else {
-      vars.extraAmount = vars.nftDebtWithFine - vars.claimedEth;
+      vars.extraAmount = vars.nftDebtWithFine - vars.claimedYield;
     }
 
     // transfer eth from sender
     if (vars.extraAmount > 0) {
-      vars.isOK = weth.transferFrom(msg.sender, address(this), vars.extraAmount);
-      require(vars.isOK, Errors.TOKEN_TRANSFER_FAILED);
+      underlyingAsset.safeTransferFrom(msg.sender, address(this), vars.extraAmount);
     }
 
     if (vars.remainAmount > 0) {
-      vars.isOK = weth.transferFrom(address(this), msg.sender, vars.remainAmount);
-      require(vars.isOK, Errors.TOKEN_TRANSFER_FAILED);
+      underlyingAsset.safeTransfer(msg.sender, vars.remainAmount);
     }
 
     // repay lending pool
-    poolYield.yieldRepayERC20(poolId, address(weth), vars.nftDebt);
+    poolYield.yieldRepayERC20(poolId, address(underlyingAsset), vars.nftDebt);
 
-    poolYield.yieldSetERC721TokenData(poolId, nft, tokenId, false, address(weth));
+    poolYield.yieldSetERC721TokenData(poolId, nft, tokenId, false, address(underlyingAsset));
 
     // update shares
     totalDebtShare -= sd.debtShare;
@@ -370,29 +371,29 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
   /****************************************************************************/
 
   function getTotalDebt(uint32 poolId) public view virtual returns (uint256) {
-    return poolYield.getYieldERC20BorrowBalance(poolId, address(weth), address(this));
+    return poolYield.getYieldERC20BorrowBalance(poolId, address(underlyingAsset), address(this));
   }
 
   function getAccountTotalYield(address /*account*/) public view virtual returns (uint256) {
     return 0;
   }
 
-  function getNftValueInETH(address nft) public view virtual returns (uint256) {
+  function getNftValueInUnderlyingAsset(address nft) public view virtual returns (uint256) {
     YieldNftConfig storage nc = nftConfigs[nft];
 
-    uint256 nftPrice = getNftPriceInEth(nft);
+    uint256 nftPrice = getNftPriceInUnderlyingAsset(nft);
     uint256 totalNftValue = nftPrice.percentMul(nc.liquidationThreshold);
     return totalNftValue;
   }
 
-  function getNftDebtInEth(address nft, uint256 tokenId) public view virtual returns (uint256) {
+  function getNftDebtInUnderlyingAsset(address nft, uint256 tokenId) public view virtual returns (uint256) {
     YieldStakeData storage sd = stakeDatas[nft][tokenId];
-    return _getNftDebtInEth(sd);
+    return _getNftDebtInUnderlyingAsset(sd);
   }
 
-  function getNftYieldInEth(address nft, uint256 tokenId) public view virtual returns (uint256, uint256) {
+  function getNftYieldInUnderlyingAsset(address nft, uint256 tokenId) public view virtual returns (uint256, uint256) {
     YieldStakeData storage sd = stakeDatas[nft][tokenId];
-    return _getNftYieldInEth(sd);
+    return _getNftYieldInUnderlyingAsset(sd);
   }
 
   function getNftStakeData(address nft, uint256 tokenId) public view virtual returns (uint32, uint8, uint256, uint256) {
@@ -413,6 +414,8 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
   function protocolRequestWithdrawal(YieldStakeData storage sd) internal virtual {}
 
   function protocolClaimWithdraw(YieldStakeData storage sd) internal virtual returns (uint256) {}
+
+  function protocolIsClaimReady(YieldStakeData storage sd) internal virtual returns (bool) {}
 
   function convertToDebtShares(uint32 poolId, uint256 assets) public view virtual returns (uint256) {
     return assets.convertToShares(totalDebtShare, getTotalDebt(poolId), Math.Rounding.Down);
@@ -438,29 +441,29 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
     return assets.convertToShares(accountYieldShares[account], totalYield, Math.Rounding.Down);
   }
 
-  function _getNftDebtInEth(YieldStakeData storage sd) internal view virtual returns (uint256) {
+  function _getNftDebtInUnderlyingAsset(YieldStakeData storage sd) internal view virtual returns (uint256) {
     return convertToDebtAssets(sd.poolId, sd.debtShare);
   }
 
-  function _getNftYieldInEth(YieldStakeData storage sd) internal view virtual returns (uint256, uint256) {
-    uint256 stEthAmount = convertToYieldAssets(sd.yieldAccount, sd.yieldShare);
-    uint256 stEthPrice = getProtocolTokenPriceInEth();
-    return (stEthAmount, stEthAmount.mulDiv(stEthPrice, 10 ** getProtocolTokenDecimals()));
+  function _getNftYieldInUnderlyingAsset(YieldStakeData storage sd) internal view virtual returns (uint256, uint256) {
+    uint256 yieldAmount = convertToYieldAssets(sd.yieldAccount, sd.yieldShare);
+    uint256 yieldPrice = getProtocolTokenPriceInUnderlyingAsset();
+    return (yieldAmount, yieldAmount.mulDiv(yieldPrice, 10 ** getProtocolTokenDecimals()));
   }
 
   function getProtocolTokenDecimals() internal view virtual returns (uint8) {
     return 0;
   }
 
-  function getProtocolTokenPriceInEth() internal view virtual returns (uint256) {
+  function getProtocolTokenPriceInUnderlyingAsset() internal view virtual returns (uint256) {
     return 0;
   }
 
-  function getNftPriceInEth(address nft) internal view virtual returns (uint256) {
+  function getNftPriceInUnderlyingAsset(address nft) internal view virtual returns (uint256) {
     IPriceOracleGetter priceOracle = IPriceOracleGetter(addressProvider.getPriceOracle());
     uint256 nftPriceInBase = priceOracle.getAssetPrice(nft);
-    uint256 ethPriceInBase = priceOracle.getAssetPrice(address(weth));
-    return nftPriceInBase.mulDiv(10 ** weth.decimals(), ethPriceInBase);
+    uint256 underlyingAssetPriceInBase = priceOracle.getAssetPrice(address(underlyingAsset));
+    return nftPriceInBase.mulDiv(10 ** underlyingAsset.decimals(), underlyingAssetPriceInBase);
   }
 
   function calculateHealthFactor(
@@ -468,11 +471,11 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
     YieldNftConfig storage nc,
     YieldStakeData storage sd
   ) internal view virtual returns (uint256) {
-    uint256 nftPrice = getNftPriceInEth(nft);
+    uint256 nftPrice = getNftPriceInUnderlyingAsset(nft);
     uint256 totalNftValue = nftPrice.percentMul(nc.liquidationThreshold);
 
-    (, uint256 totalYieldValue) = _getNftYieldInEth(sd);
-    uint256 totalDebtValue = _getNftDebtInEth(sd);
+    (, uint256 totalYieldValue) = _getNftYieldInUnderlyingAsset(sd);
+    uint256 totalDebtValue = _getNftDebtInUnderlyingAsset(sd);
 
     return (totalNftValue + totalYieldValue).wadDiv(totalDebtValue);
   }

@@ -6,7 +6,7 @@ import '@openzeppelin/contracts/utils/Strings.sol';
 import 'test/setup/TestWithPrepare.sol';
 import '@forge-std/Test.sol';
 
-contract TestYieldEthStakingLido is TestWithPrepare {
+contract TestYieldSavingsDai is TestWithPrepare {
   struct YieldTestVars {
     uint32 poolId;
     uint8 state;
@@ -28,20 +28,20 @@ contract TestYieldEthStakingLido is TestWithPrepare {
   function test_Should_stake() public {
     YieldTestVars memory testVars;
 
-    prepareWETH(tsDepositor1);
+    prepareDAI(tsDepositor1);
 
     uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
 
-    uint256 stakeAmount = tsYieldEthStakingLido.getNftValueInUnderlyingAsset(address(tsBAYC));
+    uint256 stakeAmount = tsYieldSavingsDai.getNftValueInUnderlyingAsset(address(tsBAYC));
     stakeAmount = (stakeAmount * 80) / 100;
 
     tsHEVM.prank(address(tsBorrower1));
-    tsYieldEthStakingLido.createYieldAccount(address(tsBorrower1));
+    tsYieldSavingsDai.createYieldAccount(address(tsBorrower1));
 
     tsHEVM.prank(address(tsBorrower1));
-    tsYieldEthStakingLido.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
+    tsYieldSavingsDai.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
 
-    (testVars.poolId, testVars.state, testVars.debtShare, testVars.yieldShare) = tsYieldEthStakingLido.getNftStakeData(
+    (testVars.poolId, testVars.state, testVars.debtShare, testVars.yieldShare) = tsYieldSavingsDai.getNftStakeData(
       address(tsBAYC),
       tokenIds[0]
     );
@@ -50,82 +50,79 @@ contract TestYieldEthStakingLido is TestWithPrepare {
     assertEq(testVars.debtShare, stakeAmount, 'debtShare not eq');
     assertEq(testVars.yieldShare, stakeAmount, 'yieldShare not eq');
 
-    uint256 debtAmount = tsYieldEthStakingLido.getNftDebtInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
+    uint256 debtAmount = tsYieldSavingsDai.getNftDebtInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
     assertEq(debtAmount, stakeAmount, 'debtAmount not eq');
 
-    (uint256 yieldAmount, ) = tsYieldEthStakingLido.getNftYieldInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
+    (uint256 yieldAmount, ) = tsYieldSavingsDai.getNftYieldInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
     assertEq(yieldAmount, stakeAmount, 'yieldAmount not eq');
   }
 
   function test_Should_unstake() public {
     YieldTestVars memory testVars;
 
-    prepareWETH(tsDepositor1);
+    prepareDAI(tsDepositor1);
 
     uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
 
-    uint256 stakeAmount = tsYieldEthStakingLido.getNftValueInUnderlyingAsset(address(tsBAYC));
+    uint256 stakeAmount = tsYieldSavingsDai.getNftValueInUnderlyingAsset(address(tsBAYC));
     stakeAmount = (stakeAmount * 80) / 100;
 
     tsHEVM.prank(address(tsBorrower1));
-    address yieldAccount = tsYieldEthStakingLido.createYieldAccount(address(tsBorrower1));
+    address yieldAccount = tsYieldSavingsDai.createYieldAccount(address(tsBorrower1));
 
     tsHEVM.prank(address(tsBorrower1));
-    tsYieldEthStakingLido.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
+    tsYieldSavingsDai.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
 
     uint256 deltaAmount = (stakeAmount * 35) / 1000;
-    tsStETH.rebase{value: deltaAmount}(yieldAccount);
+    tsHEVM.prank(address(tsDepositor1));
+    tsDAI.approve(address(tsSDAI), type(uint256).max);
+    tsHEVM.prank(address(tsDepositor1));
+    tsSDAI.rebase(yieldAccount, deltaAmount);
 
-    (uint256 yieldAmount, ) = tsYieldEthStakingLido.getNftYieldInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
+    (uint256 yieldAmount, ) = tsYieldSavingsDai.getNftYieldInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
     testEquality(yieldAmount, (stakeAmount + deltaAmount), 'yieldAmount not eq');
 
     tsHEVM.prank(address(tsBorrower1));
-    tsYieldEthStakingLido.unstake(tsCommonPoolId, address(tsBAYC), tokenIds[0], 0);
+    tsYieldSavingsDai.unstake(tsCommonPoolId, address(tsBAYC), tokenIds[0], 0);
 
-    (testVars.poolId, testVars.state, testVars.debtShare, testVars.yieldShare) = tsYieldEthStakingLido.getNftStakeData(
+    (testVars.poolId, testVars.state, testVars.debtShare, testVars.yieldShare) = tsYieldSavingsDai.getNftStakeData(
       address(tsBAYC),
       tokenIds[0]
     );
     assertEq(testVars.state, 2, 'state not eq');
 
-    (testVars.unstakeFine, testVars.withdrawAmount, testVars.withdrawReqId) = tsYieldEthStakingLido.getNftUnstakeData(
+    (testVars.unstakeFine, testVars.withdrawAmount, testVars.withdrawReqId) = tsYieldSavingsDai.getNftUnstakeData(
       address(tsBAYC),
       tokenIds[0]
     );
     assertEq(testVars.unstakeFine, 0, 'unstakeFine not eq');
     assertEq(testVars.withdrawAmount, yieldAmount, 'withdrawAmount not eq');
-    assertGt(testVars.withdrawReqId, 0, 'withdrawReqId not gt');
+    assertEq(testVars.withdrawReqId, 0, 'withdrawReqId not eq');
   }
 
   function test_Should_repay() public {
     YieldTestVars memory testVars;
 
-    prepareWETH(tsDepositor1);
+    prepareDAI(tsDepositor1);
 
     uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
 
-    uint256 stakeAmount = tsYieldEthStakingLido.getNftValueInUnderlyingAsset(address(tsBAYC));
+    uint256 stakeAmount = tsYieldSavingsDai.getNftValueInUnderlyingAsset(address(tsBAYC));
     stakeAmount = (stakeAmount * 80) / 100;
 
     tsHEVM.prank(address(tsBorrower1));
-    tsYieldEthStakingLido.createYieldAccount(address(tsBorrower1));
+    tsYieldSavingsDai.createYieldAccount(address(tsBorrower1));
 
     tsHEVM.prank(address(tsBorrower1));
-    tsYieldEthStakingLido.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
+    tsYieldSavingsDai.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
 
     tsHEVM.prank(address(tsBorrower1));
-    tsYieldEthStakingLido.unstake(tsCommonPoolId, address(tsBAYC), tokenIds[0], 0);
-
-    (testVars.unstakeFine, testVars.withdrawAmount, testVars.withdrawReqId) = tsYieldEthStakingLido.getNftUnstakeData(
-      address(tsBAYC),
-      tokenIds[0]
-    );
-    tsUnstETH.setWithdrawalStatus(testVars.withdrawReqId, true, false);
+    tsYieldSavingsDai.unstake(tsCommonPoolId, address(tsBAYC), tokenIds[0], 0);
 
     tsHEVM.prank(address(tsBorrower1));
-    tsYieldEthStakingLido.repay(tsCommonPoolId, address(tsBAYC), tokenIds[0]);
+    tsYieldSavingsDai.repay(tsCommonPoolId, address(tsBAYC), tokenIds[0]);
 
-    (testVars.poolId, testVars.state, testVars.debtShare, testVars.yieldShare) = tsYieldEthStakingLido.getNftStakeData(
+    (testVars.poolId, testVars.state, testVars.debtShare, testVars.yieldShare) = tsYieldSavingsDai.getNftStakeData(
       address(tsBAYC),
       tokenIds[0]
     );

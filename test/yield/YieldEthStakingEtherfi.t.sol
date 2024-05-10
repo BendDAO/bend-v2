@@ -32,7 +32,7 @@ contract YieldEthStakingEtherfi is TestWithPrepare {
 
     uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
 
-    uint256 stakeAmount = tsYieldEthStakingEtherfi.getNftValueInETH(address(tsBAYC));
+    uint256 stakeAmount = tsYieldEthStakingEtherfi.getNftValueInUnderlyingAsset(address(tsBAYC));
     stakeAmount = (stakeAmount * 80) / 100;
 
     tsHEVM.prank(address(tsBorrower1));
@@ -48,10 +48,10 @@ contract YieldEthStakingEtherfi is TestWithPrepare {
     assertEq(testVars.debtShare, stakeAmount, 'debtShare not eq');
     assertEq(testVars.yieldShare, stakeAmount, 'yieldShare not eq');
 
-    uint256 debtAmount = tsYieldEthStakingEtherfi.getNftDebtInEth(address(tsBAYC), tokenIds[0]);
+    uint256 debtAmount = tsYieldEthStakingEtherfi.getNftDebtInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
     assertEq(debtAmount, stakeAmount, 'debtAmount not eq');
 
-    (uint256 yieldAmount, ) = tsYieldEthStakingEtherfi.getNftYieldInEth(address(tsBAYC), tokenIds[0]);
+    (uint256 yieldAmount, ) = tsYieldEthStakingEtherfi.getNftYieldInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
     assertEq(yieldAmount, stakeAmount, 'yieldAmount not eq');
   }
 
@@ -62,7 +62,7 @@ contract YieldEthStakingEtherfi is TestWithPrepare {
 
     uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
 
-    uint256 stakeAmount = tsYieldEthStakingEtherfi.getNftValueInETH(address(tsBAYC));
+    uint256 stakeAmount = tsYieldEthStakingEtherfi.getNftValueInUnderlyingAsset(address(tsBAYC));
     stakeAmount = (stakeAmount * 80) / 100;
 
     tsHEVM.prank(address(tsBorrower1));
@@ -74,7 +74,7 @@ contract YieldEthStakingEtherfi is TestWithPrepare {
     uint256 deltaAmount = (stakeAmount * 35) / 1000;
     tsEtherfiLiquidityPool.rebase{value: deltaAmount}(yieldAccount);
 
-    (uint256 yieldAmount, ) = tsYieldEthStakingEtherfi.getNftYieldInEth(address(tsBAYC), tokenIds[0]);
+    (uint256 yieldAmount, ) = tsYieldEthStakingEtherfi.getNftYieldInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
     testEquality(yieldAmount, (stakeAmount + deltaAmount), 'yieldAmount not eq');
 
     tsHEVM.prank(address(tsBorrower1));
@@ -98,7 +98,7 @@ contract YieldEthStakingEtherfi is TestWithPrepare {
 
     uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
 
-    uint256 stakeAmount = tsYieldEthStakingEtherfi.getNftValueInETH(address(tsBAYC));
+    uint256 stakeAmount = tsYieldEthStakingEtherfi.getNftValueInUnderlyingAsset(address(tsBAYC));
     stakeAmount = (stakeAmount * 80) / 100;
 
     tsHEVM.prank(address(tsBorrower1));

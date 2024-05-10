@@ -5,10 +5,6 @@
     "stateMutability": "nonpayable"
   },
   {
-    "type": "fallback",
-    "stateMutability": "payable"
-  },
-  {
     "type": "receive",
     "stateMutability": "payable"
   },
@@ -193,7 +189,7 @@
   },
   {
     "type": "function",
-    "name": "getNftDebtInEth",
+    "name": "getNftDebtInUnderlyingAsset",
     "inputs": [
       {
         "name": "nft",
@@ -290,7 +286,7 @@
   },
   {
     "type": "function",
-    "name": "getNftValueInETH",
+    "name": "getNftValueInUnderlyingAsset",
     "inputs": [
       {
         "name": "nft",
@@ -309,7 +305,7 @@
   },
   {
     "type": "function",
-    "name": "getNftYieldInEth",
+    "name": "getNftYieldInUnderlyingAsset",
     "inputs": [
       {
         "name": "nft",
@@ -604,6 +600,19 @@
   },
   {
     "type": "function",
+    "name": "underlyingAsset",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract IERC20Metadata"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "unstETH",
     "inputs": [],
     "outputs": [
@@ -642,19 +651,6 @@
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "weth",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract IWETH"
-      }
-    ],
-    "stateMutability": "view"
   },
   {
     "type": "function",

@@ -1,0 +1,116 @@
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity ^0.8.0;
+
+import {IERC20Metadata} from '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
+import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
+import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
+
+import {IPriceOracleGetter} from 'src/interfaces/IPriceOracleGetter.sol';
+import {IYieldAccount} from 'src/interfaces/IYieldAccount.sol';
+import {IYieldRegistry} from 'src/interfaces/IYieldRegistry.sol';
+
+import {ISavingsDai} from './ISavingsDai.sol';
+
+import {Constants} from 'src/libraries/helpers/Constants.sol';
+import {Errors} from 'src/libraries/helpers/Errors.sol';
+
+import {YieldEthStakingBase} from '../YieldEthStakingBase.sol';
+
+contract YieldSavingsDai is YieldEthStakingBase {
+  using SafeERC20 for IERC20Metadata;
+  using Math for uint256;
+
+  IERC20Metadata public dai;
+  ISavingsDai public sdai;
+
+  /**
+   * @dev This empty reserved space is put in place to allow future versions to add new
+   * variables without shifting down storage in the inheritance chain.
+   * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+   */
+  uint256[20] private __gap;
+
+  constructor() {
+    _disableInitializers();
+  }
+
+  function initialize(address addressProvider_, address dai_, address sdai_) public initializer {
+    require(addressProvider_ != address(0), Errors.ADDR_PROVIDER_CANNOT_BE_ZERO);
+
+    require(dai_ != address(0), Errors.INVALID_ADDRESS);
+    require(sdai_ != address(0), Errors.INVALID_ADDRESS);
+
+    __YieldStakingBase_init(addressProvider_, dai_);
+
+    dai = IERC20Metadata(dai_);
+    sdai = ISavingsDai(sdai_);
+  }
+
+  function createYieldAccount(address user) public virtual override returns (address) {
+    super.createYieldAccount(user);
+
+    IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[msg.sender]);
+    yieldAccount.safeApprove(address(dai), address(sdai), type(uint256).max);
+
+    return address(yieldAccount);
+  }
+
+  function protocolDeposit(YieldStakeData storage /*sd*/, uint256 amount) internal virtual override returns (uint256) {
+    IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[msg.sender]);
+
+    dai.safeTransfer(address(yieldAccount), amount);
+
+    bytes memory result = yieldAccount.execute(
+      address(sdai),
+      abi.encodeWithSelector(ISavingsDai.deposit.selector, amount, address(yieldAccount))
+    );
+    uint256 yieldAmount = abi.decode(result, (uint256));
+    require(yieldAmount > 0, Errors.YIELD_ETH_DEPOSIT_FAILED);
+
+    return yieldAmount;
+  }
+
+  function protocolRequestWithdrawal(YieldStakeData storage sd) internal virtual override {
+    require(sd.withdrawAmount > 0, Errors.YIELD_ETH_WITHDRAW_FAILED);
+  }
+
+  function protocolClaimWithdraw(YieldStakeData storage sd) internal virtual override returns (uint256) {
+    IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[msg.sender]);
+
+    uint256 claimedDai = dai.balanceOf(address(this));
+
+    bytes memory result = yieldAccount.execute(
+      address(sdai),
+      abi.encodeWithSelector(ISavingsDai.redeem.selector, sd.withdrawAmount, address(this), address(yieldAccount))
+    );
+    uint256 assetAmount = abi.decode(result, (uint256));
+    require(assetAmount > 0, Errors.YIELD_ETH_CLAIM_FAILED);
+
+    claimedDai = dai.balanceOf(address(this)) - claimedDai;
+    require(claimedDai > 0, Errors.YIELD_ETH_CLAIM_FAILED);
+
+    return claimedDai;
+  }
+
+  function protocolIsClaimReady(YieldStakeData storage sd) internal virtual override returns (bool) {
+    if (sd.state == Constants.YIELD_STATUS_UNSTAKE) {
+      return true;
+    }
+    return false;
+  }
+
+  function getAccountTotalYield(address account) public view virtual override returns (uint256) {
+    return sdai.balanceOf(account);
+  }
+
+  function getProtocolTokenPriceInUnderlyingAsset() internal view virtual override returns (uint256) {
+    IPriceOracleGetter priceOracle = IPriceOracleGetter(addressProvider.getPriceOracle());
+    uint256 sDaiPriceInBase = priceOracle.getAssetPrice(address(sdai));
+    uint256 daiPriceInBase = priceOracle.getAssetPrice(address(underlyingAsset));
+    return sDaiPriceInBase.mulDiv(10 ** underlyingAsset.decimals(), daiPriceInBase);
+  }
+
+  function getProtocolTokenDecimals() internal view virtual override returns (uint8) {
+    return sdai.decimals();
+  }
+}

@@ -3,10 +3,6 @@ pragma solidity ^0.8.0;
 
 import {Math} from '@openzeppelin/contracts/utils/math/Math.sol';
 
-import {IAddressProvider} from 'src/interfaces/IAddressProvider.sol';
-import {IACLManager} from 'src/interfaces/IACLManager.sol';
-import {IPoolManager} from 'src/interfaces/IPoolManager.sol';
-import {IYield} from 'src/interfaces/IYield.sol';
 import {IPriceOracleGetter} from 'src/interfaces/IPriceOracleGetter.sol';
 import {IYieldAccount} from 'src/interfaces/IYieldAccount.sol';
 import {IYieldRegistry} from 'src/interfaces/IYieldRegistry.sol';
@@ -18,20 +14,9 @@ import {IUnstETH} from 'src/interfaces/IUnstETH.sol';
 import {Constants} from 'src/libraries/helpers/Constants.sol';
 import {Errors} from 'src/libraries/helpers/Errors.sol';
 
-import {PercentageMath} from 'src/libraries/math/PercentageMath.sol';
-import {WadRayMath} from 'src/libraries/math/WadRayMath.sol';
-import {MathUtils} from 'src/libraries/math/MathUtils.sol';
-import {ShareUtils} from 'src/libraries/math/ShareUtils.sol';
-
 import {YieldEthStakingBase} from '../YieldEthStakingBase.sol';
 
-import '@forge-std/console2.sol';
-
 contract YieldEthStakingLido is YieldEthStakingBase {
-  using PercentageMath for uint256;
-  using ShareUtils for uint256;
-  using WadRayMath for uint256;
-  using MathUtils for uint256;
   using Math for uint256;
 
   IStETH public stETH;
@@ -70,7 +55,7 @@ contract YieldEthStakingLido is YieldEthStakingBase {
   }
 
   function protocolDeposit(YieldStakeData storage /*sd*/, uint256 amount) internal virtual override returns (uint256) {
-    weth.withdraw(amount);
+    IWETH(address(underlyingAsset)).withdraw(amount);
 
     IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[msg.sender]);
 
@@ -101,11 +86,6 @@ contract YieldEthStakingLido is YieldEthStakingBase {
   function protocolClaimWithdraw(YieldStakeData storage sd) internal virtual override returns (uint256) {
     IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[msg.sender]);
 
-    uint256[] memory requestIds = new uint256[](1);
-    requestIds[0] = sd.withdrawReqId;
-    IUnstETH.WithdrawalRequestStatus memory withdrawStatus = unstETH.getWithdrawalStatus(requestIds)[0];
-    require(withdrawStatus.isFinalized && !withdrawStatus.isClaimed, Errors.YIELD_ETH_WITHDRAW_NOT_READY);
-
     uint256 claimedEth = address(yieldAccount).balance;
     yieldAccount.execute(address(unstETH), abi.encodeWithSelector(IUnstETH.claimWithdrawal.selector, sd.withdrawReqId));
     claimedEth = address(yieldAccount).balance - claimedEth;
@@ -113,18 +93,30 @@ contract YieldEthStakingLido is YieldEthStakingBase {
 
     yieldAccount.safeTransferNativeToken(address(this), claimedEth);
 
+    IWETH(address(underlyingAsset)).deposit{value: claimedEth}();
+
     return claimedEth;
+  }
+
+  function protocolIsClaimReady(YieldStakeData storage sd) internal virtual override returns (bool) {
+    if (sd.state == Constants.YIELD_STATUS_UNSTAKE) {
+      uint256[] memory requestIds = new uint256[](1);
+      requestIds[0] = sd.withdrawReqId;
+      IUnstETH.WithdrawalRequestStatus memory withdrawStatus = unstETH.getWithdrawalStatus(requestIds)[0];
+      return withdrawStatus.isFinalized && !withdrawStatus.isClaimed;
+    }
+    return false;
   }
 
   function getAccountTotalYield(address account) public view virtual override returns (uint256) {
     return stETH.balanceOf(account);
   }
 
-  function getProtocolTokenPriceInEth() internal view virtual override returns (uint256) {
+  function getProtocolTokenPriceInUnderlyingAsset() internal view virtual override returns (uint256) {
     IPriceOracleGetter priceOracle = IPriceOracleGetter(addressProvider.getPriceOracle());
     uint256 stETHPriceInBase = priceOracle.getAssetPrice(address(stETH));
-    uint256 ethPriceInBase = priceOracle.getAssetPrice(address(weth));
-    return stETHPriceInBase.mulDiv(10 ** weth.decimals(), ethPriceInBase);
+    uint256 ethPriceInBase = priceOracle.getAssetPrice(address(underlyingAsset));
+    return stETHPriceInBase.mulDiv(10 ** underlyingAsset.decimals(), ethPriceInBase);
   }
 
   function getProtocolTokenDecimals() internal view virtual override returns (uint8) {
@@ -132,11 +124,4 @@ contract YieldEthStakingLido is YieldEthStakingBase {
   }
 
   receive() external payable {}
-
-  /**
-   * @dev Revert fallback calls
-   */
-  fallback() external payable {
-    revert('Fallback not allowed');
-  }
 }
