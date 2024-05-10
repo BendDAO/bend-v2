@@ -56,6 +56,15 @@ contract YieldEthStakingEtherfi is YieldEthStakingBase {
     return address(yieldAccount);
   }
 
+  function repayETH(uint32 poolId, address nft, uint256 tokenId) public payable {
+    if (msg.value > 0) {
+      IWETH(address(underlyingAsset)).deposit{value: msg.value}();
+      IWETH(address(underlyingAsset)).transfer(msg.sender, msg.value);
+    }
+
+    super.repay(poolId, nft, tokenId);
+  }
+
   function protocolDeposit(YieldStakeData storage /*sd*/, uint256 amount) internal virtual override returns (uint256) {
     IWETH(address(underlyingAsset)).withdraw(amount);
 
@@ -100,7 +109,7 @@ contract YieldEthStakingEtherfi is YieldEthStakingBase {
     return claimedEth;
   }
 
-  function protocolIsClaimReady(YieldStakeData storage sd) internal virtual override returns (bool) {
+  function protocolIsClaimReady(YieldStakeData storage sd) internal view virtual override returns (bool) {
     if (sd.state == Constants.YIELD_STATUS_UNSTAKE) {
       return withdrawRequestNFT.isFinalized(sd.withdrawReqId);
     }

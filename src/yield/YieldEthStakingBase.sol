@@ -109,14 +109,18 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
   /* Configure Methods */
   /****************************************************************************/
 
-  function setNftActive(address nft, bool active) public onlyPoolAdmin {
+  function setNftActive(address nft, bool active) public virtual onlyPoolAdmin {
     YieldNftConfig storage nc = nftConfigs[nft];
     nc.isActive = active;
 
     emit SetNftActive(nft, active);
   }
 
-  function setNftStakeParams(address nft, uint16 leverageFactor, uint16 liquidationThreshold) public onlyPoolAdmin {
+  function setNftStakeParams(
+    address nft,
+    uint16 leverageFactor,
+    uint16 liquidationThreshold
+  ) public virtual onlyPoolAdmin {
     YieldNftConfig storage nc = nftConfigs[nft];
     nc.leverageFactor = leverageFactor;
     nc.liquidationThreshold = liquidationThreshold;
@@ -124,7 +128,11 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
     emit SetNftStakeParams(nft, leverageFactor, liquidationThreshold);
   }
 
-  function setNftUnstakeParams(address nft, uint16 maxUnstakeFine, uint256 unstakeHeathFactor) public onlyPoolAdmin {
+  function setNftUnstakeParams(
+    address nft,
+    uint16 maxUnstakeFine,
+    uint256 unstakeHeathFactor
+  ) public virtual onlyPoolAdmin {
     YieldNftConfig storage nc = nftConfigs[nft];
     nc.maxUnstakeFine = maxUnstakeFine;
     nc.unstakeHeathFactor = unstakeHeathFactor;
@@ -132,14 +140,14 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
     emit SetNftUnstakeParams(nft, maxUnstakeFine, unstakeHeathFactor);
   }
 
-  function setBotAdmin(address newAdmin) public onlyPoolAdmin {
+  function setBotAdmin(address newAdmin) public virtual onlyPoolAdmin {
     address oldAdmin = botAdmin;
     botAdmin = newAdmin;
 
     emit SetBotAdmin(oldAdmin, newAdmin);
   }
 
-  function setPause(bool paused) public onlyPoolAdmin {
+  function setPause(bool paused) public virtual onlyPoolAdmin {
     if (paused) {
       _pause();
     } else {
@@ -348,11 +356,11 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
 
     // transfer eth from sender
     if (vars.extraAmount > 0) {
-      underlyingAsset.safeTransferFrom(msg.sender, address(this), vars.extraAmount);
+      underlyingAsset.safeTransferFrom(vars.nftOwner, address(this), vars.extraAmount);
     }
 
     if (vars.remainAmount > 0) {
-      underlyingAsset.safeTransfer(msg.sender, vars.remainAmount);
+      underlyingAsset.safeTransfer(vars.nftOwner, vars.remainAmount);
     }
 
     // repay lending pool
@@ -398,7 +406,18 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
 
   function getNftStakeData(address nft, uint256 tokenId) public view virtual returns (uint32, uint8, uint256, uint256) {
     YieldStakeData storage sd = stakeDatas[nft][tokenId];
-    return (sd.poolId, sd.state, sd.debtShare, sd.yieldShare);
+
+    uint8 state = sd.state;
+    if (sd.state == Constants.YIELD_STATUS_UNSTAKE) {
+      if (protocolIsClaimReady(sd)) {
+        state = Constants.YIELD_STATUS_CLAIM;
+      }
+    }
+
+    uint256 debtAmount = _getNftDebtInUnderlyingAsset(sd);
+    (uint256 yieldAmount, ) = _getNftYieldInUnderlyingAsset(sd);
+
+    return (sd.poolId, state, debtAmount, yieldAmount);
   }
 
   function getNftUnstakeData(address nft, uint256 tokenId) public view virtual returns (uint256, uint256, uint256) {
@@ -415,7 +434,7 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
 
   function protocolClaimWithdraw(YieldStakeData storage sd) internal virtual returns (uint256) {}
 
-  function protocolIsClaimReady(YieldStakeData storage sd) internal virtual returns (bool) {}
+  function protocolIsClaimReady(YieldStakeData storage sd) internal view virtual returns (bool) {}
 
   function convertToDebtShares(uint32 poolId, uint256 assets) public view virtual returns (uint256) {
     return assets.convertToShares(totalDebtShare, getTotalDebt(poolId), Math.Rounding.Down);
@@ -446,9 +465,13 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
   }
 
   function _getNftYieldInUnderlyingAsset(YieldStakeData storage sd) internal view virtual returns (uint256, uint256) {
+    // here's yieldAmount are just the raw amount (shares) for the token in the protocol, not the actual underlying assets
     uint256 yieldAmount = convertToYieldAssets(sd.yieldAccount, sd.yieldShare);
+    uint256 underAmount = getProtocolTokenAmountInUnderlyingAsset(yieldAmount);
+
+    // yieldValue are calculated by the raw amount & protocol token price
     uint256 yieldPrice = getProtocolTokenPriceInUnderlyingAsset();
-    return (yieldAmount, yieldAmount.mulDiv(yieldPrice, 10 ** getProtocolTokenDecimals()));
+    return (underAmount, yieldAmount.mulDiv(yieldPrice, 10 ** getProtocolTokenDecimals()));
   }
 
   function getProtocolTokenDecimals() internal view virtual returns (uint8) {
@@ -457,6 +480,12 @@ abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, Ree
 
   function getProtocolTokenPriceInUnderlyingAsset() internal view virtual returns (uint256) {
     return 0;
+  }
+
+  function getProtocolTokenAmountInUnderlyingAsset(uint256 yieldAmount) internal view virtual returns (uint256) {
+    // stETH, eETH is rebase model & 1:1 to the underlying
+    // but sDAI is not rebase model, the share are fixed
+    return yieldAmount;
   }
 
   function getNftPriceInUnderlyingAsset(address nft) internal view virtual returns (uint256) {

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
-import '@openzeppelin/contracts/utils/Strings.sol';
+import {Constants} from 'src/libraries/helpers/Constants.sol';
 
 import 'test/setup/TestWithPrepare.sol';
 import '@forge-std/Test.sol';
@@ -10,8 +10,8 @@ contract TestYieldSavingsDai is TestWithPrepare {
   struct YieldTestVars {
     uint32 poolId;
     uint8 state;
-    uint256 debtShare;
-    uint256 yieldShare;
+    uint256 debtAmount;
+    uint256 yieldAmount;
     uint256 unstakeFine;
     uint256 withdrawAmount;
     uint256 withdrawReqId;
@@ -41,14 +41,14 @@ contract TestYieldSavingsDai is TestWithPrepare {
     tsHEVM.prank(address(tsBorrower1));
     tsYieldSavingsDai.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
 
-    (testVars.poolId, testVars.state, testVars.debtShare, testVars.yieldShare) = tsYieldSavingsDai.getNftStakeData(
+    (testVars.poolId, testVars.state, testVars.debtAmount, testVars.yieldAmount) = tsYieldSavingsDai.getNftStakeData(
       address(tsBAYC),
       tokenIds[0]
     );
     assertEq(testVars.poolId, tsCommonPoolId, 'poolId not eq');
-    assertEq(testVars.state, 1, 'state not eq');
-    assertEq(testVars.debtShare, stakeAmount, 'debtShare not eq');
-    assertEq(testVars.yieldShare, stakeAmount, 'yieldShare not eq');
+    assertEq(testVars.state, Constants.YIELD_STATUS_ACTIVE, 'state not eq');
+    assertEq(testVars.debtAmount, stakeAmount, 'debtAmount not eq');
+    assertEq(testVars.yieldAmount, stakeAmount, 'yieldAmount not eq');
 
     uint256 debtAmount = tsYieldSavingsDai.getNftDebtInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
     assertEq(debtAmount, stakeAmount, 'debtAmount not eq');
@@ -85,11 +85,11 @@ contract TestYieldSavingsDai is TestWithPrepare {
     tsHEVM.prank(address(tsBorrower1));
     tsYieldSavingsDai.unstake(tsCommonPoolId, address(tsBAYC), tokenIds[0], 0);
 
-    (testVars.poolId, testVars.state, testVars.debtShare, testVars.yieldShare) = tsYieldSavingsDai.getNftStakeData(
+    (testVars.poolId, testVars.state, testVars.debtAmount, testVars.yieldAmount) = tsYieldSavingsDai.getNftStakeData(
       address(tsBAYC),
       tokenIds[0]
     );
-    assertEq(testVars.state, 2, 'state not eq');
+    assertEq(testVars.state, Constants.YIELD_STATUS_CLAIM, 'state not eq');
 
     (testVars.unstakeFine, testVars.withdrawAmount, testVars.withdrawReqId) = tsYieldSavingsDai.getNftUnstakeData(
       address(tsBAYC),
@@ -110,24 +110,27 @@ contract TestYieldSavingsDai is TestWithPrepare {
     uint256 stakeAmount = tsYieldSavingsDai.getNftValueInUnderlyingAsset(address(tsBAYC));
     stakeAmount = (stakeAmount * 80) / 100;
 
-    tsHEVM.prank(address(tsBorrower1));
-    tsYieldSavingsDai.createYieldAccount(address(tsBorrower1));
+    tsHEVM.startPrank(address(tsBorrower1));
 
-    tsHEVM.prank(address(tsBorrower1));
+    tsYieldSavingsDai.createYieldAccount(address(tsBorrower1));
     tsYieldSavingsDai.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
 
-    tsHEVM.prank(address(tsBorrower1));
+    // make some interest
+    advanceTimes(365 days);
+
     tsYieldSavingsDai.unstake(tsCommonPoolId, address(tsBAYC), tokenIds[0], 0);
 
-    tsHEVM.prank(address(tsBorrower1));
+    tsDAI.approve(address(tsYieldSavingsDai), type(uint256).max);
     tsYieldSavingsDai.repay(tsCommonPoolId, address(tsBAYC), tokenIds[0]);
 
-    (testVars.poolId, testVars.state, testVars.debtShare, testVars.yieldShare) = tsYieldSavingsDai.getNftStakeData(
+    tsHEVM.stopPrank();
+
+    (testVars.poolId, testVars.state, testVars.debtAmount, testVars.yieldAmount) = tsYieldSavingsDai.getNftStakeData(
       address(tsBAYC),
       tokenIds[0]
     );
     assertEq(testVars.state, 0, 'state not eq');
-    assertEq(testVars.debtShare, 0, 'debtShare not eq');
-    assertEq(testVars.yieldShare, 0, 'yieldShare not eq');
+    assertEq(testVars.debtAmount, 0, 'debtAmount not eq');
+    assertEq(testVars.yieldAmount, 0, 'yieldAmount not eq');
   }
 }

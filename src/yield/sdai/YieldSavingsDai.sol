@@ -92,7 +92,7 @@ contract YieldSavingsDai is YieldEthStakingBase {
     return claimedDai;
   }
 
-  function protocolIsClaimReady(YieldStakeData storage sd) internal virtual override returns (bool) {
+  function protocolIsClaimReady(YieldStakeData storage sd) internal view virtual override returns (bool) {
     if (sd.state == Constants.YIELD_STATUS_UNSTAKE) {
       return true;
     }
@@ -108,6 +108,12 @@ contract YieldSavingsDai is YieldEthStakingBase {
     uint256 sDaiPriceInBase = priceOracle.getAssetPrice(address(sdai));
     uint256 daiPriceInBase = priceOracle.getAssetPrice(address(underlyingAsset));
     return sDaiPriceInBase.mulDiv(10 ** underlyingAsset.decimals(), daiPriceInBase);
+  }
+
+  function getProtocolTokenAmountInUnderlyingAsset(
+    uint256 yieldAmount
+  ) internal view virtual override returns (uint256) {
+    return sdai.convertToAssets(yieldAmount);
   }
 
   function getProtocolTokenDecimals() internal view virtual override returns (uint8) {

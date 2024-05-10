@@ -107,5 +107,6 @@ library Constants {
   // Yield Status
   uint8 public constant YIELD_STATUS_ACTIVE = 1;
   uint8 public constant YIELD_STATUS_UNSTAKE = 2;
-  uint8 public constant YIELD_STATUS_REPAID = 3;
+  uint8 public constant YIELD_STATUS_CLAIM = 3;
+  uint8 public constant YIELD_STATUS_REPAID = 4;
 }

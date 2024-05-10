@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import {IERC20Metadata} from '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 
 interface ISavingsDai is IERC20Metadata {
-  function dai() external returns (address);
+  function dai() external view returns (address);
 
   function deposit(uint256 assets, address receiver) external returns (uint256 shares);
 
