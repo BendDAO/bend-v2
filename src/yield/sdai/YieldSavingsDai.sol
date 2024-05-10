@@ -14,9 +14,9 @@ import {ISavingsDai} from './ISavingsDai.sol';
 import {Constants} from 'src/libraries/helpers/Constants.sol';
 import {Errors} from 'src/libraries/helpers/Errors.sol';
 
-import {YieldEthStakingBase} from '../YieldEthStakingBase.sol';
+import {YieldStakingBase} from '../YieldStakingBase.sol';
 
-contract YieldSavingsDai is YieldEthStakingBase {
+contract YieldSavingsDai is YieldStakingBase {
   using SafeERC20 for IERC20Metadata;
   using Math for uint256;
 

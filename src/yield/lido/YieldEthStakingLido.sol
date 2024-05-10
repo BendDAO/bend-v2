@@ -14,9 +14,9 @@ import {IUnstETH} from 'src/interfaces/IUnstETH.sol';
 import {Constants} from 'src/libraries/helpers/Constants.sol';
 import {Errors} from 'src/libraries/helpers/Errors.sol';
 
-import {YieldEthStakingBase} from '../YieldEthStakingBase.sol';
+import {YieldStakingBase} from '../YieldStakingBase.sol';
 
-contract YieldEthStakingLido is YieldEthStakingBase {
+contract YieldEthStakingLido is YieldStakingBase {
   using Math for uint256;
 
   IStETH public stETH;

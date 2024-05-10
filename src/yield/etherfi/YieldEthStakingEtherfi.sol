@@ -15,9 +15,9 @@ import {ILiquidityPool} from './ILiquidityPool.sol';
 import {Constants} from 'src/libraries/helpers/Constants.sol';
 import {Errors} from 'src/libraries/helpers/Errors.sol';
 
-import {YieldEthStakingBase} from '../YieldEthStakingBase.sol';
+import {YieldStakingBase} from '../YieldStakingBase.sol';
 
-contract YieldEthStakingEtherfi is YieldEthStakingBase {
+contract YieldEthStakingEtherfi is YieldStakingBase {
   using Math for uint256;
 
   ILiquidityPool public liquidityPool;

@@ -25,7 +25,7 @@ import {WadRayMath} from 'src/libraries/math/WadRayMath.sol';
 import {MathUtils} from 'src/libraries/math/MathUtils.sol';
 import {ShareUtils} from 'src/libraries/math/ShareUtils.sol';
 
-abstract contract YieldEthStakingBase is Initializable, PausableUpgradeable, ReentrancyGuardUpgradeable {
+abstract contract YieldStakingBase is Initializable, PausableUpgradeable, ReentrancyGuardUpgradeable {
   using SafeERC20 for IERC20Metadata;
   using PercentageMath for uint256;
   using ShareUtils for uint256;
