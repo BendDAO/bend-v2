@@ -182,12 +182,30 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     uint256 totalYieldBeforeSubmit;
   }
 
+  function batchStake(
+    uint32 poolId,
+    address[] calldata nfts,
+    uint256[] calldata tokenIds,
+    uint256[] calldata borrowAmounts
+  ) public virtual whenNotPaused nonReentrant {
+    require(nfts.length == tokenIds.length, Errors.INCONSISTENT_PARAMS_LENGTH);
+    require(nfts.length == borrowAmounts.length, Errors.INCONSISTENT_PARAMS_LENGTH);
+
+    for (uint i = 0; i < nfts.length; i++) {
+      _stake(poolId, nfts[i], tokenIds[i], borrowAmounts[i]);
+    }
+  }
+
   function stake(
     uint32 poolId,
     address nft,
     uint256 tokenId,
     uint256 borrowAmount
   ) public virtual whenNotPaused nonReentrant {
+    _stake(poolId, nft, tokenId, borrowAmount);
+  }
+
+  function _stake(uint32 poolId, address nft, uint256 tokenId, uint256 borrowAmount) internal virtual {
     StakeLocalVars memory vars;
 
     vars.yieldAccout = IYieldAccount(yieldAccounts[msg.sender]);
@@ -261,12 +279,29 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     uint256[] requestAmounts;
   }
 
+  function batchUnstake(
+    uint32 poolId,
+    address[] calldata nfts,
+    uint256[] calldata tokenIds,
+    uint256 unstakeFine
+  ) public virtual whenNotPaused nonReentrant {
+    require(nfts.length == tokenIds.length, Errors.INCONSISTENT_PARAMS_LENGTH);
+
+    for (uint i = 0; i < nfts.length; i++) {
+      _unstake(poolId, nfts[i], tokenIds[i], unstakeFine);
+    }
+  }
+
   function unstake(
     uint32 poolId,
     address nft,
     uint256 tokenId,
     uint256 unstakeFine
   ) public virtual whenNotPaused nonReentrant {
+    _unstake(poolId, nft, tokenId, unstakeFine);
+  }
+
+  function _unstake(uint32 poolId, address nft, uint256 tokenId, uint256 unstakeFine) internal virtual {
     UnstakeLocalVars memory vars;
 
     vars.yieldAccout = IYieldAccount(yieldAccounts[msg.sender]);
@@ -319,7 +354,23 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     bool isOK;
   }
 
+  function batchRepay(
+    uint32 poolId,
+    address[] calldata nfts,
+    uint256[] calldata tokenIds
+  ) public virtual whenNotPaused nonReentrant {
+    require(nfts.length == tokenIds.length, Errors.INCONSISTENT_PARAMS_LENGTH);
+
+    for (uint i = 0; i < nfts.length; i++) {
+      _repay(poolId, nfts[i], tokenIds[i]);
+    }
+  }
+
   function repay(uint32 poolId, address nft, uint256 tokenId) public virtual whenNotPaused nonReentrant {
+    _repay(poolId, nft, tokenId);
+  }
+
+  function _repay(uint32 poolId, address nft, uint256 tokenId) internal virtual {
     RepayLocalVars memory vars;
 
     vars.yieldAccout = IYieldAccount(yieldAccounts[msg.sender]);

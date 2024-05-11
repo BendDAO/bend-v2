@@ -127,4 +127,44 @@ contract TestYieldEthStakingLido is TestWithPrepare {
     assertEq(testVars.debtAmount, 0, 'debtAmount not eq');
     assertEq(testVars.yieldAmount, 0, 'yieldAmount not eq');
   }
+
+  function test_Should_batch() public {
+    YieldTestVars memory testVars;
+
+    prepareWETH(tsDepositor1);
+
+    uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
+    address[] memory nfts = new address[](tokenIds.length);
+    for (uint i = 0; i < tokenIds.length; i++) {
+      nfts[i] = address(tsBAYC);
+    }
+
+    uint256 stakeAmount = tsYieldEthStakingLido.getNftValueInUnderlyingAsset(address(tsBAYC));
+    stakeAmount = (stakeAmount * 80) / 100;
+
+    uint256[] memory stakeAmounts = new uint256[](tokenIds.length);
+    for (uint i = 0; i < tokenIds.length; i++) {
+      stakeAmounts[i] = stakeAmount;
+    }
+
+    tsHEVM.startPrank(address(tsBorrower1));
+
+    tsYieldEthStakingLido.createYieldAccount(address(tsBorrower1));
+
+    tsYieldEthStakingLido.batchStake(tsCommonPoolId, nfts, tokenIds, stakeAmounts);
+
+    tsYieldEthStakingLido.batchUnstake(tsCommonPoolId, nfts, tokenIds, 0);
+
+    for (uint i = 0; i < tokenIds.length; i++) {
+      (testVars.unstakeFine, testVars.withdrawAmount, testVars.withdrawReqId) = tsYieldEthStakingLido.getNftUnstakeData(
+        nfts[i],
+        tokenIds[i]
+      );
+      tsUnstETH.setWithdrawalStatus(testVars.withdrawReqId, true, false);
+    }
+
+    tsYieldEthStakingLido.batchRepay(tsCommonPoolId, nfts, tokenIds);
+
+    tsHEVM.stopPrank();
+  }
 }

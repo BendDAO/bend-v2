@@ -55,6 +55,26 @@ contract YieldSavingsDai is YieldStakingBase {
     return address(yieldAccount);
   }
 
+  function batchUnstakeAndRepay(
+    uint32 poolId,
+    address[] calldata nfts,
+    uint256[] calldata tokenIds
+  ) public virtual whenNotPaused nonReentrant {
+    require(nfts.length == tokenIds.length, Errors.INCONSISTENT_PARAMS_LENGTH);
+
+    for (uint i = 0; i < nfts.length; i++) {
+      _unstake(poolId, nfts[i], tokenIds[i], 0);
+
+      _repay(poolId, nfts[i], tokenIds[i]);
+    }
+  }
+
+  function unstakeAndRepay(uint32 poolId, address nft, uint256 tokenId) public virtual whenNotPaused nonReentrant {
+    _unstake(poolId, nft, tokenId, 0);
+
+    _repay(poolId, nft, tokenId);
+  }
+
   function protocolDeposit(YieldStakeData storage /*sd*/, uint256 amount) internal virtual override returns (uint256) {
     IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[msg.sender]);
 
