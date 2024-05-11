@@ -56,11 +56,26 @@ library QueryLogic {
     return (poolData.isPaused, poolData.isYieldEnabled, poolData.isYieldPaused, poolData.yieldGroup);
   }
 
-  function getPoolGroupList(uint32 poolId) internal view returns (uint256[] memory) {
+  function getPoolGroupList(uint32 poolId) internal view returns (uint256[] memory groupIds) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
 
-    return poolData.groupList.values();
+    uint256[] memory poolAllGroupIds = poolData.groupList.values();
+    uint256 groupNum;
+    for (uint256 i = 0; i < poolAllGroupIds.length; i++) {
+      if ((poolAllGroupIds[i] >= Constants.GROUP_ID_LEND_MIN) && (poolAllGroupIds[i] <= Constants.GROUP_ID_LEND_MAX)) {
+        groupNum++;
+      }
+    }
+
+    groupIds = new uint256[](groupNum);
+    for (uint256 i = 0; i < poolAllGroupIds.length; i++) {
+      if ((poolAllGroupIds[i] >= Constants.GROUP_ID_LEND_MIN) && (poolAllGroupIds[i] <= Constants.GROUP_ID_LEND_MAX)) {
+        groupIds[i] = poolAllGroupIds[i];
+      }
+    }
+
+    return groupIds;
   }
 
   function getPoolAssetList(uint32 poolId) internal view returns (address[] memory) {
@@ -487,13 +502,14 @@ library QueryLogic {
     totalIsolateBorrow = VaultLogic.erc20GetUserIsolateBorrowInGroup(groupData, user, index);
   }
 
-  function getUserAccountDebtData(
+  function getUserAccountGroupData(
     address user,
     uint32 poolId
   )
     internal
     view
     returns (
+      uint256[] memory groupsIds,
       uint256[] memory groupsCollateralInBase,
       uint256[] memory groupsBorrowInBase,
       uint256[] memory groupsAvailableBorrowInBase
@@ -508,16 +524,23 @@ library QueryLogic {
       IAddressProvider(ps.addressProvider).getPriceOracle()
     );
 
-    groupsCollateralInBase = result.allGroupsCollateralInBaseCurrency;
-    groupsBorrowInBase = result.allGroupsDebtInBaseCurrency;
+    groupsIds = getPoolGroupList(poolId);
 
-    groupsAvailableBorrowInBase = new uint256[](result.allGroupsCollateralInBaseCurrency.length);
+    groupsCollateralInBase = new uint256[](groupsIds.length);
+    groupsBorrowInBase = new uint256[](groupsIds.length);
+    groupsAvailableBorrowInBase = new uint256[](groupsIds.length);
 
-    for (uint256 i = 0; i < result.allGroupsCollateralInBaseCurrency.length; i++) {
+    uint256 curGroupId;
+    for (uint256 i = 0; i < groupsIds.length; i++) {
+      curGroupId = groupsIds[i];
+
+      groupsCollateralInBase[i] = result.allGroupsCollateralInBaseCurrency[curGroupId];
+      groupsBorrowInBase[i] = result.allGroupsDebtInBaseCurrency[curGroupId];
+
       groupsAvailableBorrowInBase[i] = GenericLogic.calculateAvailableBorrows(
-        result.allGroupsCollateralInBaseCurrency[i],
-        result.allGroupsDebtInBaseCurrency[i],
-        result.allGroupsAvgLtv[i]
+        result.allGroupsCollateralInBaseCurrency[curGroupId],
+        result.allGroupsDebtInBaseCurrency[curGroupId],
+        result.allGroupsAvgLtv[curGroupId]
       );
     }
   }

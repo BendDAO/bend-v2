@@ -24,3 +24,4 @@ jq '.abi' out/YieldRegistry.sol/YieldRegistry.json > release/abis/YieldRegistry.
 jq '.abi' out/YieldAccount.sol/YieldAccount.json > release/abis/YieldAccount.json
 jq '.abi' out/YieldEthStakingLido.sol/YieldEthStakingLido.json > release/abis/YieldEthStakingLido.json
 jq '.abi' out/YieldEthStakingEtherfi.sol/YieldEthStakingEtherfi.json > release/abis/YieldEthStakingEtherfi.json
+jq '.abi' out/YieldSavingsDai.sol/YieldSavingsDai.json > release/abis/YieldSavingsDai.json

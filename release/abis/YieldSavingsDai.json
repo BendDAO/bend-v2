@@ -5,10 +5,6 @@
     "stateMutability": "nonpayable"
   },
   {
-    "type": "receive",
-    "stateMutability": "payable"
-  },
-  {
     "type": "function",
     "name": "accountYieldShares",
     "inputs": [
@@ -167,6 +163,19 @@
       }
     ],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "dai",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract IERC20Metadata"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -361,17 +370,12 @@
         "internalType": "address"
       },
       {
-        "name": "weth_",
+        "name": "dai_",
         "type": "address",
         "internalType": "address"
       },
       {
-        "name": "stETH_",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "unstETH_",
+        "name": "sdai_",
         "type": "address",
         "internalType": "address"
       }
@@ -443,26 +447,16 @@
   },
   {
     "type": "function",
-    "name": "repayETH",
-    "inputs": [
+    "name": "sdai",
+    "inputs": [],
+    "outputs": [
       {
-        "name": "poolId",
-        "type": "uint32",
-        "internalType": "uint32"
-      },
-      {
-        "name": "nft",
+        "name": "",
         "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "tokenId",
-        "type": "uint256",
-        "internalType": "uint256"
+        "internalType": "contract ISavingsDai"
       }
     ],
-    "outputs": [],
-    "stateMutability": "payable"
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -556,19 +550,6 @@
   },
   {
     "type": "function",
-    "name": "stETH",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract IStETH"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "stake",
     "inputs": [
       {
@@ -630,19 +611,6 @@
         "name": "",
         "type": "address",
         "internalType": "contract IERC20Metadata"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "unstETH",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract IUnstETH"
       }
     ],
     "stateMutability": "view"

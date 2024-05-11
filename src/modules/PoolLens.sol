@@ -237,19 +237,20 @@ contract PoolLens is BaseModule {
     return QueryLogic.getUserAssetGroupData(user, poolId, asset, groupId);
   }
 
-  function getUserAccountDebtData(
+  function getUserAccountGroupData(
     address user,
     uint32 poolId
   )
     public
     view
     returns (
+      uint256[] memory groupsIds,
       uint256[] memory groupsCollateralInBase,
       uint256[] memory groupsBorrowInBase,
       uint256[] memory groupsAvailableBorrowInBase
     )
   {
-    return QueryLogic.getUserAccountDebtData(user, poolId);
+    return QueryLogic.getUserAccountGroupData(user, poolId);
   }
 
   function getIsolateCollateralData(
