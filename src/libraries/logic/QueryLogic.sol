@@ -69,9 +69,10 @@ library QueryLogic {
     }
 
     groupIds = new uint256[](groupNum);
+    uint256 retIdx;
     for (uint256 i = 0; i < poolAllGroupIds.length; i++) {
       if ((poolAllGroupIds[i] >= Constants.GROUP_ID_LEND_MIN) && (poolAllGroupIds[i] <= Constants.GROUP_ID_LEND_MAX)) {
-        groupIds[i] = poolAllGroupIds[i];
+        groupIds[retIdx++] = poolAllGroupIds[i];
       }
     }
 
