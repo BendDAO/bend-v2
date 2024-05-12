@@ -49,7 +49,7 @@ contract YieldSavingsDai is YieldStakingBase {
   function createYieldAccount(address user) public virtual override returns (address) {
     super.createYieldAccount(user);
 
-    IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[msg.sender]);
+    IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[user]);
     yieldAccount.safeApprove(address(dai), address(sdai), type(uint256).max);
 
     return address(yieldAccount);

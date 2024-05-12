@@ -160,9 +160,9 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
   /****************************************************************************/
 
   function createYieldAccount(address user) public virtual returns (address) {
-    if (user == address(0)) {
-      user = msg.sender;
-    }
+    require(user != address(0), Errors.INVALID_ADDRESS);
+    require(yieldAccounts[user] == address(0), Errors.YIELD_ACCOUNT_ALREADY_EXIST);
+
     address account = yieldRegistry.createYieldAccount(address(this));
     yieldAccounts[user] = account;
     return account;
@@ -428,6 +428,10 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
   /****************************************************************************/
   /* Query Methods */
   /****************************************************************************/
+
+  function getYieldAccount(address user) public view virtual returns (address) {
+    return yieldAccounts[user];
+  }
 
   function getTotalDebt(uint32 poolId) public view virtual returns (uint256) {
     return poolYield.getYieldERC20BorrowBalance(poolId, address(underlyingAsset), address(this));

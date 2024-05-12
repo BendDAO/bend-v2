@@ -50,7 +50,7 @@ contract YieldEthStakingEtherfi is YieldStakingBase {
   function createYieldAccount(address user) public virtual override returns (address) {
     super.createYieldAccount(user);
 
-    IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[msg.sender]);
+    IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[user]);
     yieldAccount.safeApprove(address(eETH), address(liquidityPool), type(uint256).max);
 
     return address(yieldAccount);
