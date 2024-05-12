@@ -17,31 +17,44 @@ import {DeployBase} from './DeployBase.s.sol';
 
 import '@forge-std/Script.sol';
 
-contract InitConfigSepolia is DeployBase {
+contract InitConfigPool is DeployBase {
   using ConfigLib for Config;
 
-  address constant addrWETH = 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14;
-  address constant addrUSDT = 0x53cEd787Ba91B4f872b961914faE013ccF8b0236;
+  address internal addrWETH;
+  address internal addrUSDT;
+  address internal addrDAI;
 
-  address constant addrWPUNK = 0x647dc527Bd7dFEE4DD468cE6fC62FC50fa42BD8b;
-  address constant addrBAYC = 0xE15A78992dd4a9d6833eA7C9643650d3b0a2eD2B;
-  address constant addrMAYC = 0xD0ff8ae7E3D9591605505D3db9C33b96c4809CDC;
+  address internal addrWPUNK;
+  address internal addrBAYC;
+  address internal addrMAYC;
 
   AddressProvider internal addressProvider;
   PriceOracle internal priceOracle;
   Configurator internal configurator;
 
-  DefaultInterestRateModel irmYield;
-  DefaultInterestRateModel irmLow;
-  DefaultInterestRateModel irmMiddle;
-  DefaultInterestRateModel irmHigh;
-  uint32 commonPoolId;
-  uint8 constant lowRateGroupId = 1;
-  uint8 constant middleRateGroupId = 2;
-  uint8 constant highRateGroupId = 3;
+  DefaultInterestRateModel internal irmYield;
+  DefaultInterestRateModel internal irmLow;
+  DefaultInterestRateModel internal irmMiddle;
+  DefaultInterestRateModel internal irmHigh;
+  uint32 internal commonPoolId;
+  uint8 internal constant lowRateGroupId = 1;
+  uint8 internal constant middleRateGroupId = 2;
+  uint8 internal constant highRateGroupId = 3;
 
   function _deploy() internal virtual override {
-    require(block.chainid == 11155111, 'chainid not sepolia');
+    if (block.chainid == 11155111) {
+      addrWETH = 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14;
+      addrUSDT = 0x53cEd787Ba91B4f872b961914faE013ccF8b0236;
+      addrDAI = 0xf9a88B0cc31f248c89F063C2928fA10e5A029B88;
+
+      addrWPUNK = 0x647dc527Bd7dFEE4DD468cE6fC62FC50fa42BD8b;
+      addrBAYC = 0xE15A78992dd4a9d6833eA7C9643650d3b0a2eD2B;
+      addrMAYC = 0xD0ff8ae7E3D9591605505D3db9C33b96c4809CDC;
+
+      commonPoolId = 1;
+    } else {
+      revert('chainid not support');
+    }
 
     address addressProvider_ = config.getAddressProvider();
     require(addressProvider_ != address(0), 'Invalid AddressProvider in config');
@@ -139,6 +152,25 @@ contract InitConfigSepolia is DeployBase {
     configurator.addAssetGroup(commonPoolId, address(usdt), lowRateGroupId, address(irmLow));
     configurator.addAssetGroup(commonPoolId, address(usdt), middleRateGroupId, address(irmMiddle));
     configurator.addAssetGroup(commonPoolId, address(usdt), highRateGroupId, address(irmHigh));
+  }
+
+  function addDAI() internal {
+    IERC20Metadata dai = IERC20Metadata(addrDAI);
+    uint8 decimals = dai.decimals();
+
+    configurator.addAssetERC20(commonPoolId, address(dai));
+
+    configurator.setAssetCollateralParams(commonPoolId, address(dai), 6300, 7700, 500);
+    configurator.setAssetProtocolFee(commonPoolId, address(dai), 2000);
+    configurator.setAssetClassGroup(commonPoolId, address(dai), lowRateGroupId);
+    configurator.setAssetActive(commonPoolId, address(dai), true);
+    configurator.setAssetBorrowing(commonPoolId, address(dai), true);
+    configurator.setAssetSupplyCap(commonPoolId, address(dai), 100_000_000 * (10 ** decimals));
+    configurator.setAssetBorrowCap(commonPoolId, address(dai), 100_000_000 * (10 ** decimals));
+
+    configurator.addAssetGroup(commonPoolId, address(dai), lowRateGroupId, address(irmLow));
+    configurator.addAssetGroup(commonPoolId, address(dai), middleRateGroupId, address(irmMiddle));
+    configurator.addAssetGroup(commonPoolId, address(dai), highRateGroupId, address(irmHigh));
   }
 
   function addERC721Assets() internal {

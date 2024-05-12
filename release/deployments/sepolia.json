@@ -66,5 +66,9 @@
   "YieldEthStakingEtherfi": {
     "Proxy": "0x337fa37aB2379acbcAD08428cE2eDC2B2212005c",
     "Implementation": "0x147904174829FFbfFb5B6F87Ef02CB3F07E5B48d"
+  },
+  "YieldSavingsDai": {
+    "Proxy": "0xfDF26F93040C6e797D7Bc223a674a297d7264928",
+    "Implementation": "0xd3b4Dc41638d700e21e032760d7DCBf00921A493"
   }
 }

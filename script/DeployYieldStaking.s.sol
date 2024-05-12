@@ -10,6 +10,8 @@ import {Constants} from 'src/libraries/helpers/Constants.sol';
 
 import {YieldEthStakingLido} from 'src/yield/lido/YieldEthStakingLido.sol';
 import {YieldEthStakingEtherfi} from 'src/yield/etherfi/YieldEthStakingEtherfi.sol';
+import {YieldSavingsDai} from 'src/yield/sdai/YieldSavingsDai.sol';
+
 import {YieldRegistry} from 'src/yield/YieldRegistry.sol';
 import {YieldAccount} from 'src/yield/YieldAccount.sol';
 
@@ -18,7 +20,7 @@ import {DeployBase} from './DeployBase.s.sol';
 
 import '@forge-std/Script.sol';
 
-contract DeployYieldEthStaking is DeployBase {
+contract DeployYieldStaking is DeployBase {
   using ConfigLib for Config;
 
   function _deploy() internal virtual override {
@@ -28,11 +30,13 @@ contract DeployYieldEthStaking is DeployBase {
     address addrProviderInCfg = config.getAddressProvider();
     require(addrProviderInCfg != address(0), 'AddressProvider not exist in config');
 
-    _deployYieldRegistry(proxyAdminInCfg, addrProviderInCfg);
+    //_deployYieldRegistry(proxyAdminInCfg, addrProviderInCfg);
 
-    _deployYieldEthStakingLido(proxyAdminInCfg, addrProviderInCfg);
+    //_deployYieldEthStakingLido(proxyAdminInCfg, addrProviderInCfg);
 
-    _deployYieldEthStakingEtherfi(proxyAdminInCfg, addrProviderInCfg);
+    //_deployYieldEthStakingEtherfi(proxyAdminInCfg, addrProviderInCfg);
+
+    _deployYieldSavingsDai(proxyAdminInCfg, addrProviderInCfg);
   }
 
   function _deployYieldRegistry(address proxyAdmin_, address addressProvider_) internal returns (address) {
@@ -110,5 +114,33 @@ contract DeployYieldEthStaking is DeployBase {
     YieldEthStakingEtherfi yieldEtherfi = YieldEthStakingEtherfi(payable(yieldEtherfiProxy));
 
     return address(yieldEtherfi);
+  }
+
+  function _deployYieldSavingsDai(address proxyAdmin_, address addressProvider_) internal returns (address) {
+    address dai = address(0);
+    address sdai = address(0);
+
+    uint256 chainId = config.getChainId();
+    if (chainId == 1) {
+      // mainnet
+      revert('not support');
+    } else if (chainId == 11155111) {
+      // sepolia
+      dai = 0xf9a88B0cc31f248c89F063C2928fA10e5A029B88;
+      sdai = 0x4C2A90A649eC4aAA43526637DFaaeCAD5F8a6b4c;
+    } else {
+      revert('not support');
+    }
+
+    YieldSavingsDai yieldSDaiImpl = new YieldSavingsDai();
+
+    TransparentUpgradeableProxy yieldSDaiProxy = new TransparentUpgradeableProxy(
+      address(yieldSDaiImpl),
+      address(proxyAdmin_),
+      abi.encodeWithSelector(yieldSDaiImpl.initialize.selector, address(addressProvider_), dai, sdai)
+    );
+    YieldSavingsDai yieldSDai = YieldSavingsDai(payable(yieldSDaiProxy));
+
+    return address(yieldSDai);
   }
 }
