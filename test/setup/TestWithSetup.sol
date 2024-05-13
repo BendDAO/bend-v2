@@ -47,7 +47,9 @@ import {MockEtherfiWithdrawRequestNFT} from 'test/mocks/MockEtherfiWithdrawReque
 import {MockBendNFTOracle} from 'test/mocks/MockBendNFTOracle.sol';
 import {MockChainlinkAggregator} from 'test/mocks/MockChainlinkAggregator.sol';
 
+import {MockDAIPot} from 'test/mocks/MockDAIPot.sol';
 import {MockSDAI} from 'test/mocks/MockSDAI.sol';
+import {SDAIPriceAdapter} from 'src/oracles/SDAIPriceAdapter.sol';
 
 import {TestUser} from '../helpers/TestUser.sol';
 import {TestWithUtils} from './TestWithUtils.sol';
@@ -78,6 +80,7 @@ abstract contract TestWithSetup is TestWithUtils {
   MockeETH public tsEETH;
   MockEtherfiWithdrawRequestNFT public tsEtherfiWithdrawRequestNFT;
   MockEtherfiLiquidityPool public tsEtherfiLiquidityPool;
+  MockDAIPot public tsDAIPot;
   MockSDAI public tsSDAI;
 
   MockBendNFTOracle public tsBendNFTOracle;
@@ -86,7 +89,7 @@ abstract contract TestWithSetup is TestWithUtils {
   MockChainlinkAggregator tsCLAggregatorUSDT;
   MockChainlinkAggregator tsCLAggregatorStETH;
   MockChainlinkAggregator tsCLAggregatorEETH;
-  MockChainlinkAggregator tsCLAggregatorSDAI;
+  SDAIPriceAdapter tsCLAggregatorSDAI;
 
   ProxyAdmin public tsProxyAdmin;
   AddressProvider public tsAddressProvider;
@@ -409,6 +412,7 @@ abstract contract TestWithSetup is TestWithUtils {
     tsEETH.setLiquidityPool(address(tsEtherfiLiquidityPool));
     tsEtherfiWithdrawRequestNFT.setLiquidityPool(address(tsEtherfiLiquidityPool), address(tsEETH));
 
+    tsDAIPot = new MockDAIPot();
     tsSDAI = new MockSDAI(address(tsDAI));
   }
 
@@ -511,9 +515,8 @@ abstract contract TestWithSetup is TestWithUtils {
     tsHEVM.label(address(tsCLAggregatorEETH), 'MockCLAggregator(eETH/USD)');
     tsCLAggregatorEETH.updateAnswer(203005904164);
 
-    tsCLAggregatorSDAI = new MockChainlinkAggregator(8, 'sDAI / USD');
-    tsHEVM.label(address(tsCLAggregatorSDAI), 'MockCLAggregator(sDAI/USD)');
-    tsCLAggregatorSDAI.updateAnswer(100063000);
+    tsCLAggregatorSDAI = new SDAIPriceAdapter(address(tsCLAggregatorDAI), address(tsDAIPot), 'sDAI / USD');
+    tsHEVM.label(address(tsCLAggregatorSDAI), 'SDAIPriceAdapter(sDAI/USD)');
 
     tsBendNFTOracle = new MockBendNFTOracle();
     tsHEVM.label(address(tsBendNFTOracle), 'MockBendNFTOracle');
