@@ -70,7 +70,9 @@ contract InitConfigYield is DeployBase {
     initYieldPools();
 
     initYieldLido();
+
     initYieldEtherfi();
+
     initYieldSDai();
   }
 

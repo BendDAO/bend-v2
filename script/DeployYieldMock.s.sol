@@ -13,6 +13,7 @@ import {MockEtherfiWithdrawRequestNFT} from 'test/mocks/MockEtherfiWithdrawReque
 import {MockEtherfiLiquidityPool} from 'test/mocks/MockEtherfiLiquidityPool.sol';
 
 import {MockSDAI} from 'test/mocks/MockSDAI.sol';
+import {MockDAIPot} from 'test/mocks/MockDAIPot.sol';
 
 import {Configured, ConfigLib, Config} from 'config/Configured.sol';
 import {DeployBase} from './DeployBase.s.sol';
@@ -47,6 +48,7 @@ contract DeployYieldMock is DeployBase {
   }
 
   function _deployMockSDai() internal {
+    MockDAIPot pot = new MockDAIPot();
     MockERC20 dai = new MockERC20('Dai Stablecoin', 'DAI', 18);
     MockSDAI sdai = new MockSDAI(address(dai));
   }

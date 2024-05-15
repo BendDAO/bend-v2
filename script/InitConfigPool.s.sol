@@ -52,6 +52,11 @@ contract InitConfigPool is DeployBase {
       addrMAYC = 0xD0ff8ae7E3D9591605505D3db9C33b96c4809CDC;
 
       commonPoolId = 1;
+
+      irmYield = DefaultInterestRateModel(0x768B4E53027D266cA391F117Dc81Dd69acdFB638);
+      irmLow = DefaultInterestRateModel(0xe161E11114E5A781be48f28045922F073D03c5dd);
+      irmMiddle = DefaultInterestRateModel(0xfA7fCE876840548a348a62968fB349D67656E92f);
+      irmHigh = DefaultInterestRateModel(0xa91CdC8e33850c7E97Cf855038777341c9869038);
     } else {
       revert('chainid not support');
     }
@@ -76,12 +81,14 @@ contract InitConfigPool is DeployBase {
   function initOralces() internal {
     priceOracle.setBendNFTOracle(0xF143144Fb2703C8aeefD0c4D06d29F5Bb0a9C60A);
 
-    address[] memory assets = new address[](2);
+    address[] memory assets = new address[](3);
     assets[0] = address(addrWETH);
     assets[1] = address(addrUSDT);
-    address[] memory aggs = new address[](2);
+    assets[2] = address(addrDAI);
+    address[] memory aggs = new address[](3);
     aggs[0] = address(0x694AA1769357215DE4FAC081bf1f309aDC325306);
     aggs[1] = address(0x382c1856D25CbB835D4C1d732EB69f3e0d9Ba104);
+    aggs[2] = address(0x14866185B1962B63C3Ea9E03Bc1da838bab34C19);
     priceOracle.setAssetChainlinkAggregators(assets, aggs);
   }
 
@@ -152,6 +159,8 @@ contract InitConfigPool is DeployBase {
     configurator.addAssetGroup(commonPoolId, address(usdt), lowRateGroupId, address(irmLow));
     configurator.addAssetGroup(commonPoolId, address(usdt), middleRateGroupId, address(irmMiddle));
     configurator.addAssetGroup(commonPoolId, address(usdt), highRateGroupId, address(irmHigh));
+
+    addDAI();
   }
 
   function addDAI() internal {
