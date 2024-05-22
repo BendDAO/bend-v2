@@ -64,4 +64,31 @@ contract TestIntSetERC721SupplyMode is TestWithBaseAction {
       new bytes(0)
     );
   }
+
+  function test_Should_SetMode_Batch() public {
+    uint256[] memory tokenIds = tsDepositor1.getTokenIds();
+
+    tsDepositor1.setApprovalForAllERC721(address(tsBAYC), true);
+    tsDepositor1.setApprovalForAllERC721(address(tsMAYC), true);
+
+    address[] memory assets = new address[](2);
+    assets[0] = address(tsBAYC);
+    assets[1] = address(tsMAYC);
+
+    uint256[][] memory tokenIdsList = new uint256[][](2);
+    tokenIdsList[0] = tokenIds;
+    tokenIdsList[1] = tokenIds;
+
+    uint8[] memory modes = new uint8[](2);
+    modes[0] = Constants.SUPPLY_MODE_CROSS;
+    modes[1] = Constants.SUPPLY_MODE_ISOLATE;
+
+    tsDepositor1.batchDepositERC721(tsCommonPoolId, assets, tokenIdsList, modes);
+
+    modes = new uint8[](2);
+    modes[0] = Constants.SUPPLY_MODE_ISOLATE;
+    modes[1] = Constants.SUPPLY_MODE_CROSS;
+
+    tsDepositor1.batchSetERC721SupplyMode(tsCommonPoolId, assets, tokenIdsList, modes);
+  }
 }

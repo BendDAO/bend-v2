@@ -12,6 +12,72 @@
   },
   {
     "type": "function",
+    "name": "batchIsolateBorrow",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "nftAssets",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "nftTokenIdses",
+        "type": "uint256[][]",
+        "internalType": "uint256[][]"
+      },
+      {
+        "name": "assets",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "amountses",
+        "type": "uint256[][]",
+        "internalType": "uint256[][]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "batchIsolateRepay",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "nftAssets",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "nftTokenIdses",
+        "type": "uint256[][]",
+        "internalType": "uint256[][]"
+      },
+      {
+        "name": "assets",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "amountses",
+        "type": "uint256[][]",
+        "internalType": "uint256[][]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
     "name": "isolateBorrow",
     "inputs": [
       {

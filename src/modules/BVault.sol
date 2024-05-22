@@ -69,6 +69,17 @@ contract BVault is BaseModule {
     );
   }
 
+  function batchDepositERC721(
+    uint32 poolId,
+    address[] calldata assets,
+    uint256[][] calldata tokenIdses,
+    uint8[] calldata supplyModes
+  ) public {
+    for (uint i = 0; i < assets.length; i++) {
+      depositERC721(poolId, assets[i], tokenIdses[i], supplyModes[i]);
+    }
+  }
+
   function withdrawERC721(
     uint32 poolId,
     address asset,
@@ -87,6 +98,17 @@ contract BVault is BaseModule {
     );
   }
 
+  function batchWithdrawERC721(
+    uint32 poolId,
+    address[] calldata assets,
+    uint256[][] calldata tokenIdses,
+    uint8[] calldata supplyModes
+  ) public {
+    for (uint i = 0; i < assets.length; i++) {
+      withdrawERC721(poolId, assets[i], tokenIdses[i], supplyModes[i]);
+    }
+  }
+
   function setERC721SupplyMode(
     uint32 poolId,
     address asset,
@@ -103,6 +125,17 @@ contract BVault is BaseModule {
         supplyMode: supplyMode
       })
     );
+  }
+
+  function batchSetERC721SupplyMode(
+    uint32 poolId,
+    address[] calldata assets,
+    uint256[][] calldata tokenIdses,
+    uint8[] calldata supplyModes
+  ) public {
+    for (uint i = 0; i < assets.length; i++) {
+      setERC721SupplyMode(poolId, assets[i], tokenIdses[i], supplyModes[i]);
+    }
   }
 
   function collectFeeToTreasury(uint32 poolId, address[] calldata assets) public whenNotPaused nonReentrant {

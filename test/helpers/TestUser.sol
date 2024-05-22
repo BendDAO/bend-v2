@@ -108,12 +108,39 @@ contract TestUser is ERC721Holder {
     _BVault.depositERC721(poolId, asset, tokenIds, supplyMode);
   }
 
+  function batchDepositERC721(
+    uint32 poolId,
+    address[] calldata assets,
+    uint256[][] calldata tokenIds,
+    uint8[] calldata supplyModes
+  ) public {
+    _BVault.batchDepositERC721(poolId, assets, tokenIds, supplyModes);
+  }
+
   function withdrawERC721(uint32 poolId, address asset, uint256[] calldata tokenIds, uint8 supplyMode) public {
     _BVault.withdrawERC721(poolId, asset, tokenIds, supplyMode);
   }
 
+  function batchWithdrawERC721(
+    uint32 poolId,
+    address[] calldata assets,
+    uint256[][] calldata tokenIds,
+    uint8[] calldata supplyModes
+  ) public {
+    _BVault.batchWithdrawERC721(poolId, assets, tokenIds, supplyModes);
+  }
+
   function setERC721SupplyMode(uint32 poolId, address asset, uint256[] calldata tokenIds, uint8 supplyMode) public {
     _BVault.setERC721SupplyMode(poolId, asset, tokenIds, supplyMode);
+  }
+
+  function batchSetERC721SupplyMode(
+    uint32 poolId,
+    address[] calldata assets,
+    uint256[][] calldata tokenIds,
+    uint8[] calldata supplyModes
+  ) public {
+    _BVault.batchSetERC721SupplyMode(poolId, assets, tokenIds, supplyModes);
   }
 
   function crossBorrowERC20(uint32 poolId, address asset, uint8[] calldata groups, uint256[] calldata amounts) public {

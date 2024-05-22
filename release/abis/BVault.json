@@ -12,6 +12,90 @@
   },
   {
     "type": "function",
+    "name": "batchDepositERC721",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "assets",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "tokenIdses",
+        "type": "uint256[][]",
+        "internalType": "uint256[][]"
+      },
+      {
+        "name": "supplyModes",
+        "type": "uint8[]",
+        "internalType": "uint8[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "batchSetERC721SupplyMode",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "assets",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "tokenIdses",
+        "type": "uint256[][]",
+        "internalType": "uint256[][]"
+      },
+      {
+        "name": "supplyModes",
+        "type": "uint8[]",
+        "internalType": "uint8[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "batchWithdrawERC721",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "assets",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "tokenIdses",
+        "type": "uint256[][]",
+        "internalType": "uint256[][]"
+      },
+      {
+        "name": "supplyModes",
+        "type": "uint8[]",
+        "internalType": "uint8[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "collectFeeToTreasury",
     "inputs": [
       {

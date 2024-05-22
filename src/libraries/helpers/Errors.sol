@@ -7,6 +7,7 @@ library Errors {
   string public constant ETH_TRANSFER_FAILED = '2';
   string public constant TOKEN_TRANSFER_FAILED = '3';
   string public constant MSG_VALUE_NOT_ZERO = '4';
+  string public constant INVALID_NATIVE_TOKEN = '5';
 
   string public constant REENTRANCY_ALREADY_LOCKED = '10';
 

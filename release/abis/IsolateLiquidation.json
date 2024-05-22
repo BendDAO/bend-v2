@@ -12,6 +12,110 @@
   },
   {
     "type": "function",
+    "name": "batchIsolateAuction",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "nftAssets",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "nftTokenIdses",
+        "type": "uint256[][]",
+        "internalType": "uint256[][]"
+      },
+      {
+        "name": "assets",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "amountses",
+        "type": "uint256[][]",
+        "internalType": "uint256[][]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "batchIsolateLiquidate",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "nftAssets",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "nftTokenIdses",
+        "type": "uint256[][]",
+        "internalType": "uint256[][]"
+      },
+      {
+        "name": "assets",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "",
+        "type": "uint256[][]",
+        "internalType": "uint256[][]"
+      },
+      {
+        "name": "supplyAsCollaterals",
+        "type": "bool[]",
+        "internalType": "bool[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
+    "name": "batchIsolateRedeem",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "nftAssets",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "nftTokenIdses",
+        "type": "uint256[][]",
+        "internalType": "uint256[][]"
+      },
+      {
+        "name": "assets",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "",
+        "type": "uint256[][]",
+        "internalType": "uint256[][]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "payable"
+  },
+  {
+    "type": "function",
     "name": "isolateAuction",
     "inputs": [
       {
