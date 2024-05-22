@@ -161,4 +161,13 @@ library InputTypes {
     address receiverAddress;
     bytes params;
   }
+
+  struct ExecuteDelegateERC721Params {
+    address msgSender;
+    uint32 poolId;
+    address nftAsset;
+    uint256[] tokenIds;
+    address delegate;
+    bool value;
+  }
 }

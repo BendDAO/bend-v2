@@ -239,4 +239,14 @@ contract TestUser is ERC721Holder {
   ) public {
     _flashLoan.flashLoanERC721(poolId, nftAssets, nftTokenIds, receiverAddress, params);
   }
+
+  function delegateERC721(
+    uint32 poolId,
+    address nftAsset,
+    uint256[] calldata tokenIds,
+    address delegate,
+    bool value
+  ) public {
+    _BVault.delegateERC721(poolId, nftAsset, tokenIds, delegate, value);
+  }
 }

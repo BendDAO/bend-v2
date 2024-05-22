@@ -13,6 +13,7 @@ import {WadRayMath} from '../math/WadRayMath.sol';
 import {IAddressProvider} from '../../interfaces/IAddressProvider.sol';
 import {IACLManager} from '../../interfaces/IACLManager.sol';
 import {IWETH} from '../../interfaces/IWETH.sol';
+import {IDelegateRegistryV2} from 'src/interfaces/IDelegateRegistryV2.sol';
 
 import {VaultLogic} from './VaultLogic.sol';
 import {InterestLogic} from './InterestLogic.sol';
@@ -63,6 +64,29 @@ library PoolLogic {
       VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, treasuryAddress);
 
       emit Events.CollectFeeToTreasury(poolId, assetAddress, amountToCollect, normalizedIncome);
+    }
+  }
+
+  function executeDelegateERC721(InputTypes.ExecuteDelegateERC721Params memory params) internal {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+
+    require(params.delegate != address(0), Errors.INVALID_ADDRESS);
+    require(params.tokenIds.length > 0, Errors.INVALID_ID_LIST);
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
+    DataTypes.AssetData storage assetData = poolData.assetLookup[params.nftAsset];
+
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
+
+    IDelegateRegistryV2 delegateRegistryV2 = IDelegateRegistryV2(
+      IAddressProvider(ps.addressProvider).getDelegateRegistryV2()
+    );
+
+    for (uint256 i = 0; i < params.tokenIds.length; i++) {
+      DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(assetData, params.tokenIds[i]);
+      require(tokenData.owner == params.msgSender, Errors.INVALID_TOKEN_OWNER);
+
+      delegateRegistryV2.delegateERC721(params.delegate, params.nftAsset, params.tokenIds[i], '', params.value);
     }
   }
 }

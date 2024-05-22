@@ -109,4 +109,24 @@ contract BVault is BaseModule {
     address msgSender = unpackTrailingParamMsgSender();
     PoolLogic.executeCollectFeeToTreasury(msgSender, poolId, assets);
   }
+
+  function delegateERC721(
+    uint32 poolId,
+    address nftAsset,
+    uint256[] calldata tokenIds,
+    address delegate,
+    bool value
+  ) public {
+    address msgSender = unpackTrailingParamMsgSender();
+    PoolLogic.executeDelegateERC721(
+      InputTypes.ExecuteDelegateERC721Params({
+        msgSender: msgSender,
+        poolId: poolId,
+        nftAsset: nftAsset,
+        tokenIds: tokenIds,
+        delegate: delegate,
+        value: value
+      })
+    );
+  }
 }

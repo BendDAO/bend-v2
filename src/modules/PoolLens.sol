@@ -305,4 +305,12 @@ contract PoolLens is BaseModule {
   ) public view returns (address, uint8, address) {
     return QueryLogic.getERC721TokenData(poolId, asset, tokenId);
   }
+
+  function getERC721Delegations(
+    uint32 poolId,
+    address nftAsset,
+    uint256[] calldata tokenIds
+  ) public view returns (address[][] memory) {
+    return QueryLogic.getERC721Delegations(poolId, nftAsset, tokenIds);
+  }
 }

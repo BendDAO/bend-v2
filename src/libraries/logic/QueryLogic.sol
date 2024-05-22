@@ -5,6 +5,7 @@ import {EnumerableSetUpgradeable} from '@openzeppelin/contracts-upgradeable/util
 
 import {IAddressProvider} from '../../interfaces/IAddressProvider.sol';
 import {IPriceOracleGetter} from '../..//interfaces/IPriceOracleGetter.sol';
+import {IDelegateRegistryV2} from 'src/interfaces/IDelegateRegistryV2.sol';
 
 import {Constants} from '../helpers/Constants.sol';
 import {Errors} from '../helpers/Errors.sol';
@@ -683,5 +684,45 @@ library QueryLogic {
 
     DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(assetData, tokenId);
     return (tokenData.owner, tokenData.supplyMode, tokenData.lockerAddr);
+  }
+
+  function getERC721Delegations(
+    uint32 /*poolId*/,
+    address nftAsset,
+    uint256[] calldata tokenIds
+  ) public view returns (address[][] memory) {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+
+    IDelegateRegistryV2 delegateRegistryV2 = IDelegateRegistryV2(
+      IAddressProvider(ps.addressProvider).getDelegateRegistryV2()
+    );
+
+    IDelegateRegistryV2.Delegation[] memory allOutDelegations = delegateRegistryV2.getOutgoingDelegations(
+      address(this)
+    );
+
+    address[][] memory delegateAddrs = new address[][](tokenIds.length);
+
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      // step 1: calculate the array num
+      uint256 delegateNum = 0;
+      for (uint256 j = 0; j < allOutDelegations.length; j++) {
+        if ((allOutDelegations[j].contract_ == nftAsset) && (allOutDelegations[j].tokenId == tokenIds[i])) {
+          delegateNum++;
+        }
+      }
+
+      // step 2: fill the array elements
+      delegateAddrs[i] = new address[](delegateNum);
+      uint256 addrIdx = 0;
+      for (uint256 j = 0; j < allOutDelegations.length; j++) {
+        if ((allOutDelegations[j].contract_ == nftAsset) && (allOutDelegations[j].tokenId == tokenIds[i])) {
+          delegateAddrs[i][addrIdx] = allOutDelegations[j].to;
+          addrIdx++;
+        }
+      }
+    }
+
+    return delegateAddrs;
   }
 }

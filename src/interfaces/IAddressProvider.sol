@@ -55,4 +55,8 @@ interface IAddressProvider {
   function getYieldRegistry() external view returns (address);
 
   function setYieldRegistry(address newAddress) external;
+
+  function getDelegateRegistryV2() external view returns (address);
+
+  function setDelegateRegistryV2(address newAddress) external;
 }

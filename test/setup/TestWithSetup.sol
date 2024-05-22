@@ -51,6 +51,8 @@ import {MockDAIPot} from 'test/mocks/MockDAIPot.sol';
 import {MockSDAI} from 'test/mocks/MockSDAI.sol';
 import {SDAIPriceAdapter} from 'src/oracles/SDAIPriceAdapter.sol';
 
+import {MockDelegateRegistryV2} from 'test/mocks/MockDelegateRegistryV2.sol';
+
 import {TestUser} from '../helpers/TestUser.sol';
 import {TestWithUtils} from './TestWithUtils.sol';
 
@@ -82,6 +84,7 @@ abstract contract TestWithSetup is TestWithUtils {
   MockEtherfiLiquidityPool public tsEtherfiLiquidityPool;
   MockDAIPot public tsDAIPot;
   MockSDAI public tsSDAI;
+  MockDelegateRegistryV2 public tsDelegateRegistryV2;
 
   MockBendNFTOracle public tsBendNFTOracle;
   MockChainlinkAggregator tsCLAggregatorWETH;
@@ -191,6 +194,7 @@ abstract contract TestWithSetup is TestWithUtils {
     tsAddressProvider.setWrappedNativeToken(address(tsWETH));
     tsAddressProvider.setTreasury(tsTreasury);
     tsAddressProvider.setACLAdmin(tsAclAdmin);
+    tsAddressProvider.setDelegateRegistryV2(address(tsDelegateRegistryV2));
 
     /// ACL Manager
     ACLManager aclManagerImpl = new ACLManager();
@@ -414,6 +418,8 @@ abstract contract TestWithSetup is TestWithUtils {
 
     tsDAIPot = new MockDAIPot();
     tsSDAI = new MockSDAI(address(tsDAI));
+
+    tsDelegateRegistryV2 = new MockDelegateRegistryV2();
   }
 
   function initUsers() internal {
