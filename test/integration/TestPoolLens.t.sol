@@ -125,4 +125,36 @@ contract TestPoolLens is TestWithPrepare {
     assertEq(vars3.avgLiquidationThreshold, vars1.avgLiquidationThreshold, 'vars3.avgLiquidationThreshold not eq');
     assertGt(vars3.healthFactor, vars1.healthFactor, 'vars3.healthFactor not gt');
   }
+
+  function test_Should_GetIsolateDataList() public {
+    prepareWETH(tsDepositor1);
+
+    uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
+
+    address[] memory nftAssets = new address[](tokenIds.length);
+    address[] memory debtAssets = new address[](tokenIds.length);
+
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      nftAssets[i] = address(tsBAYC);
+      debtAssets[i] = address(tsWETH);
+    }
+
+    (
+      uint256[] memory totalCollaterals,
+      uint256[] memory totalBorrows,
+      uint256[] memory availableBorrows,
+      uint256[] memory healthFactors
+    ) = tsPoolLens.getIsolateCollateralDataList(tsCommonPoolId, nftAssets, tokenIds, debtAssets);
+
+    uint256[] memory borrowAmounts = new uint256[](tokenIds.length);
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      borrowAmounts[i] = availableBorrows[i] - (i + 1);
+    }
+
+    tsBorrower1.isolateBorrow(tsCommonPoolId, address(tsBAYC), tokenIds, address(tsWETH), borrowAmounts);
+
+    tsPoolLens.getIsolateLoanDataList(tsCommonPoolId, nftAssets, tokenIds);
+
+    tsPoolLens.getIsolateAuctionDataList(tsCommonPoolId, nftAssets, tokenIds);
+  }
 }

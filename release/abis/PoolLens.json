@@ -354,6 +354,35 @@
   },
   {
     "type": "function",
+    "name": "getERC721Delegations",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "nftAsset",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "tokenIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address[][]",
+        "internalType": "address[][]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getERC721TokenData",
     "inputs": [
       {
@@ -452,6 +481,65 @@
   },
   {
     "type": "function",
+    "name": "getIsolateAuctionDataList",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "nftAssets",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "tokenIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "bidStartTimestamps",
+        "type": "uint40[]",
+        "internalType": "uint40[]"
+      },
+      {
+        "name": "bidEndTimestamps",
+        "type": "uint40[]",
+        "internalType": "uint40[]"
+      },
+      {
+        "name": "firstBidders",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "lastBidders",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "bidAmounts",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "bidFines",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "redeemAmounts",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getIsolateCollateralData",
     "inputs": [
       {
@@ -501,6 +589,55 @@
   },
   {
     "type": "function",
+    "name": "getIsolateCollateralDataList",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "nftAssets",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "tokenIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "debtAssets",
+        "type": "address[]",
+        "internalType": "address[]"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "totalCollaterals",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "totalBorrows",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "availableBorrows",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "healthFactors",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getIsolateLoanData",
     "inputs": [
       {
@@ -544,6 +681,55 @@
         "name": "loanStatus",
         "type": "uint8",
         "internalType": "uint8"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getIsolateLoanDataList",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "nftAssets",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "tokenIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "reserveAssets",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "scaledAmounts",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "borrowAmounts",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "reserveGroups",
+        "type": "uint8[]",
+        "internalType": "uint8[]"
+      },
+      {
+        "name": "loanStatuses",
+        "type": "uint8[]",
+        "internalType": "uint8[]"
       }
     ],
     "stateMutability": "view"
