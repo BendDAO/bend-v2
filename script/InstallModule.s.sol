@@ -31,11 +31,14 @@ contract InstallModule is DeployBase {
 
     Installer installer = Installer(poolManager.moduleIdToProxy(Constants.MODULEID__INSTALLER));
 
-    address[] memory modules = new address[](1);
+    address[] memory modules = new address[](2);
     uint modIdx = 0;
 
-    PoolLens tsPoolLensImpl = new PoolLens(gitCommitHash);
-    modules[modIdx++] = address(tsPoolLensImpl);
+    BVault implBVault = new BVault(gitCommitHash);
+    modules[modIdx++] = address(implBVault);
+
+    PoolLens implPoolLens = new PoolLens(gitCommitHash);
+    modules[modIdx++] = address(implPoolLens);
 
     installer.installModules(modules);
   }

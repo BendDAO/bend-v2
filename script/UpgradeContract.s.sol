@@ -28,7 +28,7 @@ contract UpgradeContract is DeployBase {
     address addrProviderInCfg = config.getAddressProvider();
     require(addrProviderInCfg != address(0), 'AddressProvider not exist in config');
 
-    _upgradeYieldEthStakingLido(proxyAdminInCfg, addrProviderInCfg);
+    _upgradeAddressProvider(proxyAdminInCfg, addrProviderInCfg);
   }
 
   function _upgradeAddressProvider(address proxyAdmin_, address addressProvider_) internal {
