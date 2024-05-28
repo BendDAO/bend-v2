@@ -141,6 +141,8 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
   }
 
   function setBotAdmin(address newAdmin) public virtual onlyPoolAdmin {
+    require(newAdmin != address(0), Errors.INVALID_ADDRESS);
+
     address oldAdmin = botAdmin;
     botAdmin = newAdmin;
 

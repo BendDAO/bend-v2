@@ -116,7 +116,7 @@ contract BVault is BaseModule {
     uint256[] calldata tokenIds,
     address delegate,
     bool value
-  ) public {
+  ) public whenNotPaused nonReentrant {
     address msgSender = unpackTrailingParamMsgSender();
     PoolLogic.executeDelegateERC721(
       InputTypes.ExecuteDelegateERC721Params({

@@ -90,6 +90,7 @@ contract YieldSavingsDai is YieldStakingBase {
     return yieldAmount;
   }
 
+  /* @dev SavingsDAI no need 2 steps so keep it empty */
   function protocolRequestWithdrawal(YieldStakeData storage sd) internal virtual override {
     require(sd.withdrawAmount > 0, Errors.YIELD_ETH_WITHDRAW_FAILED);
   }

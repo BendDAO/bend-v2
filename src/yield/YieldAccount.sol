@@ -12,8 +12,6 @@ import {Errors} from 'src/libraries/helpers/Errors.sol';
 import {IYieldRegistry} from 'src/interfaces/IYieldRegistry.sol';
 import {IYieldAccount} from 'src/interfaces/IYieldAccount.sol';
 
-import '@forge-std/console2.sol';
-
 contract YieldAccount is IYieldAccount, Initializable {
   using SafeERC20 for IERC20;
   using Address for address;
