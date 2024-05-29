@@ -431,6 +431,24 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
   /* Query Methods */
   /****************************************************************************/
 
+  function getNftConfig(
+    address nft
+  )
+    public
+    view
+    virtual
+    returns (
+      bool isActive,
+      uint16 leverageFactor,
+      uint16 liquidationThreshold,
+      uint16 maxUnstakeFine,
+      uint256 unstakeHeathFactor
+    )
+  {
+    YieldNftConfig memory nc = nftConfigs[nft];
+    return (nc.isActive, nc.leverageFactor, nc.liquidationThreshold, nc.maxUnstakeFine, nc.unstakeHeathFactor);
+  }
+
   function getYieldAccount(address user) public view virtual returns (address) {
     return yieldAccounts[user];
   }
@@ -456,28 +474,37 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     return _getNftDebtInUnderlyingAsset(sd);
   }
 
-  function getNftYieldInUnderlyingAsset(address nft, uint256 tokenId) public view virtual returns (uint256, uint256) {
+  function getNftYieldInUnderlyingAsset(
+    address nft,
+    uint256 tokenId
+  ) public view virtual returns (uint256 yieldAmount, uint256 yieldValue) {
     YieldStakeData storage sd = stakeDatas[nft][tokenId];
     return _getNftYieldInUnderlyingAsset(sd);
   }
 
-  function getNftStakeData(address nft, uint256 tokenId) public view virtual returns (uint32, uint8, uint256, uint256) {
+  function getNftStakeData(
+    address nft,
+    uint256 tokenId
+  ) public view virtual returns (uint32 poolId, uint8 state, uint256 debtAmount, uint256 yieldAmount) {
     YieldStakeData storage sd = stakeDatas[nft][tokenId];
 
-    uint8 state = sd.state;
+    state = sd.state;
     if (sd.state == Constants.YIELD_STATUS_UNSTAKE) {
       if (protocolIsClaimReady(sd)) {
         state = Constants.YIELD_STATUS_CLAIM;
       }
     }
 
-    uint256 debtAmount = _getNftDebtInUnderlyingAsset(sd);
-    (uint256 yieldAmount, ) = _getNftYieldInUnderlyingAsset(sd);
+    debtAmount = _getNftDebtInUnderlyingAsset(sd);
+    (yieldAmount, ) = _getNftYieldInUnderlyingAsset(sd);
 
     return (sd.poolId, state, debtAmount, yieldAmount);
   }
 
-  function getNftUnstakeData(address nft, uint256 tokenId) public view virtual returns (uint256, uint256, uint256) {
+  function getNftUnstakeData(
+    address nft,
+    uint256 tokenId
+  ) public view virtual returns (uint256 unstakeFine, uint256 withdrawAmount, uint256 withdrawReqId) {
     YieldStakeData storage sd = stakeDatas[nft][tokenId];
     return (sd.unstakeFine, sd.withdrawAmount, sd.withdrawReqId);
   }

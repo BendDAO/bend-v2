@@ -15,6 +15,7 @@ import {AddressProvider} from 'src/AddressProvider.sol';
 
 import {YieldEthStakingLido} from 'src/yield/lido/YieldEthStakingLido.sol';
 import {YieldEthStakingEtherfi} from 'src/yield/etherfi/YieldEthStakingEtherfi.sol';
+import {YieldSavingsDai} from 'src/yield/sdai/YieldSavingsDai.sol';
 
 import '@forge-std/Script.sol';
 
@@ -28,7 +29,10 @@ contract UpgradeContract is DeployBase {
     address addrProviderInCfg = config.getAddressProvider();
     require(addrProviderInCfg != address(0), 'AddressProvider not exist in config');
 
-    _upgradeAddressProvider(proxyAdminInCfg, addrProviderInCfg);
+    //_upgradeAddressProvider(proxyAdminInCfg, addrProviderInCfg);
+    _upgradeYieldEthStakingLido(proxyAdminInCfg, addrProviderInCfg);
+    _upgradeYieldEthStakingEtherfi(proxyAdminInCfg, addrProviderInCfg);
+    _upgradeYieldSavingsDai(proxyAdminInCfg, addrProviderInCfg);
   }
 
   function _upgradeAddressProvider(address proxyAdmin_, address addressProvider_) internal {
@@ -50,5 +54,12 @@ contract UpgradeContract is DeployBase {
 
     ProxyAdmin proxyAdmin = ProxyAdmin(proxyAdmin_);
     proxyAdmin.upgrade(ITransparentUpgradeableProxy(0x337fa37aB2379acbcAD08428cE2eDC2B2212005c), address(newImpl));
+  }
+
+  function _upgradeYieldSavingsDai(address proxyAdmin_, address /*addressProvider_*/) internal {
+    YieldSavingsDai newImpl = new YieldSavingsDai();
+
+    ProxyAdmin proxyAdmin = ProxyAdmin(proxyAdmin_);
+    proxyAdmin.upgrade(ITransparentUpgradeableProxy(0xfDF26F93040C6e797D7Bc223a674a297d7264928), address(newImpl));
   }
 }

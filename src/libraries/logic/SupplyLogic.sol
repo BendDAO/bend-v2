@@ -128,7 +128,7 @@ library SupplyLogic {
 
     VaultLogic.erc721TransferOutLiquidity(assetData, params.msgSender, params.tokenIds);
 
-    emit Events.WithdrawERC721(params.msgSender, params.poolId, params.asset, params.tokenIds);
+    emit Events.WithdrawERC721(params.msgSender, params.poolId, params.asset, params.tokenIds, params.supplyMode);
   }
 
   function executeSetERC721SupplyMode(InputTypes.ExecuteSetERC721SupplyModeParams memory params) internal {
