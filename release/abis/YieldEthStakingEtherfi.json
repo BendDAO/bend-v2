@@ -281,6 +281,45 @@
   },
   {
     "type": "function",
+    "name": "getNftConfig",
+    "inputs": [
+      {
+        "name": "nft",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "isActive",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "leverageFactor",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "liquidationThreshold",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "maxUnstakeFine",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "unstakeHeathFactor",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getNftDebtInUnderlyingAsset",
     "inputs": [
       {
@@ -320,22 +359,22 @@
     ],
     "outputs": [
       {
-        "name": "",
+        "name": "poolId",
         "type": "uint32",
         "internalType": "uint32"
       },
       {
-        "name": "",
+        "name": "state",
         "type": "uint8",
         "internalType": "uint8"
       },
       {
-        "name": "",
+        "name": "debtAmount",
         "type": "uint256",
         "internalType": "uint256"
       },
       {
-        "name": "",
+        "name": "yieldAmount",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -359,17 +398,17 @@
     ],
     "outputs": [
       {
-        "name": "",
+        "name": "unstakeFine",
         "type": "uint256",
         "internalType": "uint256"
       },
       {
-        "name": "",
+        "name": "withdrawAmount",
         "type": "uint256",
         "internalType": "uint256"
       },
       {
-        "name": "",
+        "name": "withdrawReqId",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -412,12 +451,12 @@
     ],
     "outputs": [
       {
-        "name": "",
+        "name": "yieldAmount",
         "type": "uint256",
         "internalType": "uint256"
       },
       {
-        "name": "",
+        "name": "yieldValue",
         "type": "uint256",
         "internalType": "uint256"
       }
