@@ -133,4 +133,10 @@ contract YieldEthStakingLido is YieldStakingBase {
   }
 
   receive() external payable {}
+
+  /* @notice only used when user transfer ETH to contract by mistake */
+  function emergencyEtherTransfer(address to, uint256 amount) public onlyPoolAdmin {
+    (bool success, ) = to.call{value: amount}(new bytes(0));
+    require(success, 'ETH_TRANSFER_FAILED');
+  }
 }
