@@ -89,7 +89,13 @@ library Events {
     uint256[] tokenIds,
     uint8 supplyMode
   );
-  event WithdrawERC721(address indexed sender, uint256 indexed poolId, address indexed asset, uint256[] tokenIds, uint8 supplyMode);
+  event WithdrawERC721(
+    address indexed sender,
+    uint256 indexed poolId,
+    address indexed asset,
+    uint256[] tokenIds,
+    uint8 supplyMode
+  );
 
   event SetERC721SupplyMode(
     address indexed sender,

@@ -271,6 +271,8 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     // check hf
     uint256 hf = calculateHealthFactor(nft, nc, sd);
     require(hf >= nc.unstakeHeathFactor, Errors.YIELD_ETH_HEATH_FACTOR_TOO_LOW);
+
+    emit Stake(nft, tokenId, borrowAmount);
   }
 
   struct UnstakeLocalVars {
@@ -341,6 +343,8 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     // update shares
     accountYieldShares[address(vars.yieldAccout)] -= sd.yieldShare;
     sd.yieldShare = 0;
+
+    emit Unstake(nft, tokenId, sd.withdrawAmount);
   }
 
   struct RepayLocalVars {
@@ -425,6 +429,8 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     totalDebtShare -= sd.debtShare;
 
     delete stakeDatas[nft][tokenId];
+
+    emit Repay(nft, tokenId, vars.nftDebt);
   }
 
   /****************************************************************************/
