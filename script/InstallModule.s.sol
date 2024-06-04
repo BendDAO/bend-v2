@@ -31,15 +31,53 @@ contract InstallModule is DeployBase {
 
     Installer installer = Installer(poolManager.moduleIdToProxy(Constants.MODULEID__INSTALLER));
 
-    address[] memory modules = new address[](2);
-    uint modIdx = 0;
-
-    BVault implBVault = new BVault(gitCommitHash);
-    modules[modIdx++] = address(implBVault);
-
-    PoolLens implPoolLens = new PoolLens(gitCommitHash);
-    modules[modIdx++] = address(implPoolLens);
+    address[] memory modules = _allModules();
+    //address[] memory modules = _someModules();
 
     installer.installModules(modules);
+  }
+
+  function _someModules() internal returns (address[] memory) {
+    address[] memory modules = new address[](1);
+    uint modIdx = 0;
+
+    PoolLens tsPoolLensImpl = new PoolLens(gitCommitHash);
+    modules[modIdx++] = address(tsPoolLensImpl);
+
+    return modules;
+  }
+
+  function _allModules() internal returns (address[] memory) {
+    address[] memory modules = new address[](9);
+    uint modIdx = 0;
+
+    Configurator tsConfiguratorImpl = new Configurator(gitCommitHash);
+    modules[modIdx++] = address(tsConfiguratorImpl);
+
+    BVault tsVaultImpl = new BVault(gitCommitHash);
+    modules[modIdx++] = address(tsVaultImpl);
+
+    CrossLending tsCrossLendingImpl = new CrossLending(gitCommitHash);
+    modules[modIdx++] = address(tsCrossLendingImpl);
+
+    CrossLiquidation tsCrossLiquidationImpl = new CrossLiquidation(gitCommitHash);
+    modules[modIdx++] = address(tsCrossLiquidationImpl);
+
+    IsolateLending tsIsolateLendingImpl = new IsolateLending(gitCommitHash);
+    modules[modIdx++] = address(tsIsolateLendingImpl);
+
+    IsolateLiquidation tsIsolateLiquidationImpl = new IsolateLiquidation(gitCommitHash);
+    modules[modIdx++] = address(tsIsolateLiquidationImpl);
+
+    Yield tsYieldImpl = new Yield(gitCommitHash);
+    modules[modIdx++] = address(tsYieldImpl);
+
+    FlashLoan tsFlashLoanImpl = new FlashLoan(gitCommitHash);
+    modules[modIdx++] = address(tsFlashLoanImpl);
+
+    PoolLens tsPoolLensImpl = new PoolLens(gitCommitHash);
+    modules[modIdx++] = address(tsPoolLensImpl);
+
+    return modules;
   }
 }
