@@ -181,7 +181,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     uint256 debtShare;
     uint256 yieldShare;
     uint256 yieldAmount;
-    uint256 totalYieldBeforeSubmit;
+    uint256 totalYieldBeforeDeposit;
   }
 
   function batchStake(
@@ -245,12 +245,12 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     poolYield.yieldBorrowERC20(poolId, address(underlyingAsset), borrowAmount);
 
     // stake in protocol and got the yield
-    vars.totalYieldBeforeSubmit = getAccountTotalYield(address(vars.yieldAccout));
+    vars.totalYieldBeforeDeposit = getAccountTotalYield(address(vars.yieldAccout));
     vars.yieldAmount = protocolDeposit(sd, borrowAmount);
-    vars.yieldShare = _convertToYieldSharesBeforeSubmit(
+    vars.yieldShare = _convertToYieldSharesWithTotalYield(
       address(vars.yieldAccout),
       vars.yieldAmount,
-      vars.totalYieldBeforeSubmit
+      vars.totalYieldBeforeDeposit
     );
 
     // update nft shares
@@ -542,7 +542,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     return shares.convertToAssets(accountYieldShares[account], getAccountTotalYield(account), Math.Rounding.Down);
   }
 
-  function _convertToYieldSharesBeforeSubmit(
+  function _convertToYieldSharesWithTotalYield(
     address account,
     uint256 assets,
     uint256 totalYield
