@@ -488,6 +488,27 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     return _getNftYieldInUnderlyingAsset(sd);
   }
 
+  function getNftCollateralData(
+    address nft,
+    uint256 tokenId
+  ) public view virtual returns (uint256 totalCollateral, uint256 totalBorrow, uint256 availabeBorrow) {
+    YieldNftConfig storage nc = nftConfigs[nft];
+
+    uint256 nftPrice = getNftPriceInUnderlyingAsset(nft);
+
+    totalCollateral = nftPrice.percentMul(nc.liquidationThreshold);
+    availabeBorrow = nftPrice.percentMul(nc.leverageFactor);
+
+    YieldStakeData storage sd = stakeDatas[nft][tokenId];
+    totalBorrow = _getNftDebtInUnderlyingAsset(sd);
+
+    if (availabeBorrow > totalBorrow) {
+      availabeBorrow = availabeBorrow - totalBorrow;
+    } else {
+      availabeBorrow = 0;
+    }
+  }
+
   function getNftStakeData(
     address nft,
     uint256 tokenId

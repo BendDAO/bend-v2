@@ -299,6 +299,40 @@
   },
   {
     "type": "function",
+    "name": "getNftCollateralData",
+    "inputs": [
+      {
+        "name": "nft",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "totalCollateral",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "totalBorrow",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "availabeBorrow",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getNftConfig",
     "inputs": [
       {

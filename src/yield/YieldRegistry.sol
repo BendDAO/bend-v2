@@ -51,6 +51,9 @@ contract YieldRegistry is IYieldRegistry, PausableUpgradeable, ReentrancyGuardUp
   function initialize(address addressProvider_) public initializer {
     require(addressProvider_ != address(0), Errors.ADDR_PROVIDER_CANNOT_BE_ZERO);
 
+    __Pausable_init();
+    __ReentrancyGuard_init();
+
     addressProvider = IAddressProvider(addressProvider_);
   }
 

@@ -32,7 +32,7 @@ contract YieldEthStakingEtherfi is TestWithPrepare {
 
     uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
 
-    uint256 stakeAmount = tsYieldEthStakingEtherfi.getNftValueInUnderlyingAsset(address(tsBAYC));
+    (, , uint256 stakeAmount) = tsYieldEthStakingEtherfi.getNftCollateralData(address(tsBAYC), tokenIds[0]);
     stakeAmount = (stakeAmount * 80) / 100;
 
     tsHEVM.prank(address(tsBorrower1));
@@ -53,6 +53,8 @@ contract YieldEthStakingEtherfi is TestWithPrepare {
 
     (uint256 yieldAmount, ) = tsYieldEthStakingEtherfi.getNftYieldInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
     assertEq(yieldAmount, stakeAmount, 'yieldAmount not eq');
+
+    tsYieldEthStakingEtherfi.getNftCollateralData(address(tsBAYC), tokenIds[0]);
   }
 
   function test_Should_unstake() public {
