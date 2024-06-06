@@ -923,6 +923,12 @@
     "name": "Repay",
     "inputs": [
       {
+        "name": "user",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
         "name": "nft",
         "type": "address",
         "indexed": true,
@@ -1036,6 +1042,12 @@
     "name": "Stake",
     "inputs": [
       {
+        "name": "user",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
         "name": "nft",
         "type": "address",
         "indexed": true,
@@ -1073,6 +1085,12 @@
     "type": "event",
     "name": "Unstake",
     "inputs": [
+      {
+        "name": "user",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
       {
         "name": "nft",
         "type": "address",

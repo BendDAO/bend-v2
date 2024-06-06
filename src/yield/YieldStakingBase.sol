@@ -38,9 +38,9 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
   event SetNftUnstakeParams(address indexed nft, uint16 maxUnstakeFine, uint256 unstakeHeathFactor);
   event SetBotAdmin(address oldAdmin, address newAdmin);
 
-  event Stake(address indexed nft, uint256 indexed tokenId, uint256 amount);
-  event Unstake(address indexed nft, uint256 indexed tokenId, uint256 amount);
-  event Repay(address indexed nft, uint256 indexed tokenId, uint256 amount);
+  event Stake(address indexed user, address indexed nft, uint256 indexed tokenId, uint256 amount);
+  event Unstake(address indexed user, address indexed nft, uint256 indexed tokenId, uint256 amount);
+  event Repay(address indexed user, address indexed nft, uint256 indexed tokenId, uint256 amount);
 
   struct YieldNftConfig {
     bool isActive;
@@ -272,7 +272,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     uint256 hf = calculateHealthFactor(nft, nc, sd);
     require(hf >= nc.unstakeHeathFactor, Errors.YIELD_ETH_HEATH_FACTOR_TOO_LOW);
 
-    emit Stake(nft, tokenId, borrowAmount);
+    emit Stake(msg.sender, nft, tokenId, borrowAmount);
   }
 
   struct UnstakeLocalVars {
@@ -344,7 +344,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     accountYieldShares[address(vars.yieldAccout)] -= sd.yieldShare;
     sd.yieldShare = 0;
 
-    emit Unstake(nft, tokenId, sd.withdrawAmount);
+    emit Unstake(msg.sender, nft, tokenId, sd.withdrawAmount);
   }
 
   struct RepayLocalVars {
@@ -430,7 +430,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
 
     delete stakeDatas[nft][tokenId];
 
-    emit Repay(nft, tokenId, vars.nftDebt);
+    emit Repay(msg.sender, nft, tokenId, vars.nftDebt);
   }
 
   /****************************************************************************/
