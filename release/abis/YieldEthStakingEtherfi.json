@@ -333,6 +333,40 @@
   },
   {
     "type": "function",
+    "name": "getNftCollateralDataList",
+    "inputs": [
+      {
+        "name": "nfts",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "tokenIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "totalCollaterals",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "totalBorrows",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "availabeBorrows",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getNftConfig",
     "inputs": [
       {
@@ -435,6 +469,45 @@
   },
   {
     "type": "function",
+    "name": "getNftStakeDataList",
+    "inputs": [
+      {
+        "name": "nfts",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "tokenIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "poolIds",
+        "type": "uint32[]",
+        "internalType": "uint32[]"
+      },
+      {
+        "name": "states",
+        "type": "uint8[]",
+        "internalType": "uint8[]"
+      },
+      {
+        "name": "debtAmounts",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "yieldAmounts",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getNftUnstakeData",
     "inputs": [
       {
@@ -463,6 +536,40 @@
         "name": "withdrawReqId",
         "type": "uint256",
         "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getNftUnstakeDataList",
+    "inputs": [
+      {
+        "name": "nfts",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "tokenIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "unstakeFines",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "withdrawAmounts",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "withdrawReqIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
       }
     ],
     "stateMutability": "view"

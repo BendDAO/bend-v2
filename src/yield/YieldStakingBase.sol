@@ -509,6 +509,24 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     }
   }
 
+  function getNftCollateralDataList(
+    address[] calldata nfts,
+    uint256[] calldata tokenIds
+  )
+    public
+    view
+    virtual
+    returns (uint256[] memory totalCollaterals, uint256[] memory totalBorrows, uint256[] memory availabeBorrows)
+  {
+    totalCollaterals = new uint256[](nfts.length);
+    totalBorrows = new uint256[](nfts.length);
+    availabeBorrows = new uint256[](nfts.length);
+
+    for (uint i = 0; i < nfts.length; i++) {
+      (totalCollaterals[i], totalBorrows[i], availabeBorrows[i]) = getNftCollateralData(nfts[i], tokenIds[i]);
+    }
+  }
+
   function getNftStakeData(
     address nft,
     uint256 tokenId
@@ -528,12 +546,54 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     return (sd.poolId, state, debtAmount, yieldAmount);
   }
 
+  function getNftStakeDataList(
+    address[] calldata nfts,
+    uint256[] calldata tokenIds
+  )
+    public
+    view
+    virtual
+    returns (
+      uint32[] memory poolIds,
+      uint8[] memory states,
+      uint256[] memory debtAmounts,
+      uint256[] memory yieldAmounts
+    )
+  {
+    poolIds = new uint32[](nfts.length);
+    states = new uint8[](nfts.length);
+    debtAmounts = new uint256[](nfts.length);
+    yieldAmounts = new uint256[](nfts.length);
+
+    for (uint i = 0; i < nfts.length; i++) {
+      (poolIds[i], states[i], debtAmounts[i], yieldAmounts[i]) = getNftStakeData(nfts[i], tokenIds[i]);
+    }
+  }
+
   function getNftUnstakeData(
     address nft,
     uint256 tokenId
   ) public view virtual returns (uint256 unstakeFine, uint256 withdrawAmount, uint256 withdrawReqId) {
     YieldStakeData storage sd = stakeDatas[nft][tokenId];
     return (sd.unstakeFine, sd.withdrawAmount, sd.withdrawReqId);
+  }
+
+  function getNftUnstakeDataList(
+    address[] calldata nfts,
+    uint256[] calldata tokenIds
+  )
+    public
+    view
+    virtual
+    returns (uint256[] memory unstakeFines, uint256[] memory withdrawAmounts, uint256[] memory withdrawReqIds)
+  {
+    unstakeFines = new uint256[](nfts.length);
+    withdrawAmounts = new uint256[](nfts.length);
+    withdrawReqIds = new uint256[](nfts.length);
+
+    for (uint i = 0; i < nfts.length; i++) {
+      (unstakeFines[i], withdrawAmounts[i], withdrawReqIds[i]) = getNftUnstakeData(nfts[i], tokenIds[i]);
+    }
   }
 
   /****************************************************************************/
