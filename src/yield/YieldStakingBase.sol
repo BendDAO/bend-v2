@@ -223,11 +223,11 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
 
     YieldStakeData storage sd = stakeDatas[nft][tokenId];
     if (sd.state == 0) {
-      require(vars.nftLockerAddr == address(0), Errors.YIELD_ETH_LOCKER_EXIST);
+      require(vars.nftLockerAddr == address(0), Errors.YIELD_ETH_NFT_ALREADY_USED);
 
       vars.totalDebtAmount = borrowAmount;
     } else {
-      require(vars.nftLockerAddr == address(this), Errors.YIELD_ETH_LOCKER_NOT_SAME);
+      require(vars.nftLockerAddr == address(this), Errors.YIELD_ETH_NFT_NOT_USED_BY_ME);
       require(sd.state == Constants.YIELD_STATUS_ACTIVE, Errors.YIELD_ETH_STATUS_NOT_ACTIVE);
       require(sd.poolId == poolId, Errors.YIELD_ETH_POOL_NOT_SAME);
 
@@ -318,7 +318,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     (vars.nftOwner, vars.nftSupplyMode, vars.nftLockerAddr) = poolYield.getERC721TokenData(poolId, nft, tokenId);
     require(vars.nftOwner == msg.sender || botAdmin == msg.sender, Errors.INVALID_CALLER);
     require(vars.nftSupplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.INVALID_SUPPLY_MODE);
-    require(vars.nftLockerAddr == address(this), Errors.YIELD_ETH_LOCKER_NOT_SAME);
+    require(vars.nftLockerAddr == address(this), Errors.YIELD_ETH_NFT_NOT_USED_BY_ME);
 
     YieldStakeData storage sd = stakeDatas[nft][tokenId];
     require(sd.state == Constants.YIELD_STATUS_ACTIVE, Errors.YIELD_ETH_STATUS_NOT_ACTIVE);
@@ -395,7 +395,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     (vars.nftOwner, vars.nftSupplyMode, vars.nftLockerAddr) = poolYield.getERC721TokenData(poolId, nft, tokenId);
     require(vars.nftOwner == msg.sender || botAdmin == msg.sender, Errors.INVALID_CALLER);
     require(vars.nftSupplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.INVALID_SUPPLY_MODE);
-    require(vars.nftLockerAddr == address(this), Errors.YIELD_ETH_LOCKER_NOT_SAME);
+    require(vars.nftLockerAddr == address(this), Errors.YIELD_ETH_NFT_NOT_USED_BY_ME);
 
     // withdraw yield from protocol and repay if possible
 

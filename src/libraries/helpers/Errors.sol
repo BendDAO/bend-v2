@@ -128,13 +128,13 @@ library Errors {
   string public constant ISOLATE_LOAN_BORROW_AMOUNT_NOT_COVER = '609';
   string public constant ISOLATE_LOAN_EXISTS = '610';
 
-  // Yield ETH Staking
+  // Yield Staking, don't care about the ETH
   string public constant YIELD_ETH_NFT_NOT_ACTIVE = '1000';
   string public constant YIELD_ETH_POOL_NOT_SAME = '1001';
   string public constant YIELD_ETH_STATUS_NOT_ACTIVE = '1002';
   string public constant YIELD_ETH_STATUS_NOT_UNSTAKE = '1003';
-  string public constant YIELD_ETH_LOCKER_EXIST = '1004';
-  string public constant YIELD_ETH_LOCKER_NOT_SAME = '1005';
+  string public constant YIELD_ETH_NFT_ALREADY_USED = '1004';
+  string public constant YIELD_ETH_NFT_NOT_USED_BY_ME = '1005';
   string public constant YIELD_ETH_EXCEED_MAX_BORROWABLE = '1006';
   string public constant YIELD_ETH_HEATH_FACTOR_TOO_LOW = '1007';
   string public constant YIELD_ETH_HEATH_FACTOR_TOO_HIGH = '1008';
