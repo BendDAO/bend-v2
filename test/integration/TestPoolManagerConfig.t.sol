@@ -22,10 +22,13 @@ contract TestPoolManagerConfig is TestWithSetup {
     tsHEVM.startPrank(address(tsHacker1));
 
     tsHEVM.expectRevert(bytes(Errors.CALLER_NOT_POOL_ADMIN));
-    tsConfigurator.createPool('test');
+    uint32 poolId1 = tsConfigurator.createPool('test 1');
 
     tsHEVM.expectRevert(bytes(Errors.CALLER_NOT_POOL_ADMIN));
-    tsConfigurator.deletePool(1);
+    tsConfigurator.setPoolName(poolId1, 'test 1-1');
+
+    tsHEVM.expectRevert(bytes(Errors.CALLER_NOT_POOL_ADMIN));
+    tsConfigurator.deletePool(poolId1);
 
     tsHEVM.stopPrank();
   }
@@ -54,6 +57,9 @@ contract TestPoolManagerConfig is TestWithSetup {
 
     uint32 poolId1 = tsConfigurator.createPool('test 1');
     uint32 poolId2 = tsConfigurator.createPool('test 2');
+
+    tsConfigurator.setPoolName(poolId1, 'test 1-1');
+    tsConfigurator.setPoolName(poolId2, 'test 2-1');
 
     tsConfigurator.deletePool(poolId1);
     tsConfigurator.deletePool(poolId2);

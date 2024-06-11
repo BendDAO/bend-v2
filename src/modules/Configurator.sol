@@ -44,6 +44,11 @@ contract Configurator is BaseModule {
     ConfigureLogic.executeDeletePool(msgSender, poolId);
   }
 
+  function setPoolName(uint32 poolId, string calldata name) public nonReentrant {
+    address msgSender = unpackTrailingParamMsgSender();
+    ConfigureLogic.executeSetPoolName(msgSender, poolId, name);
+  }
+
   function setPoolPause(uint32 poolId, bool paused) public nonReentrant {
     address msgSender = unpackTrailingParamMsgSender();
     ConfigureLogic.executeSetPoolPause(msgSender, poolId, paused);

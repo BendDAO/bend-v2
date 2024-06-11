@@ -15,6 +15,7 @@ library Events {
   /* Pool Events */
   event CreatePool(uint32 indexed poolId, string name);
   event DeletePool(uint32 indexed poolId);
+  event SetPoolName(uint32 indexed poolId, string name);
 
   event AddPoolGroup(uint32 indexed poolId, uint8 groupId);
   event RemovePoolGroup(uint32 indexed poolId, uint8 groupId);

@@ -68,6 +68,17 @@ library ConfigureLogic {
     emit Events.DeletePool(poolId);
   }
 
+  function executeSetPoolName(address msgSender, uint32 poolId, string calldata name) internal {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+
+    _validateCallerAndPool(msgSender, ps, poolData);
+
+    poolData.name = name;
+
+    emit Events.SetPoolName(poolId, name);
+  }
+
   function executeSetPoolPause(address msgSender, uint32 poolId, bool paused) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
