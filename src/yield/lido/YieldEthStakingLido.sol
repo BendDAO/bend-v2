@@ -117,7 +117,7 @@ contract YieldEthStakingLido is YieldStakingBase {
     return false;
   }
 
-  function getAccountTotalYield(address account) public view virtual override returns (uint256) {
+  function getAccountYieldBalance(address account) public view virtual override returns (uint256) {
     return stETH.balanceOf(account);
   }
 

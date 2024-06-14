@@ -165,4 +165,44 @@ contract TestYieldSavingsDai is TestWithPrepare {
     assertEq(testVars.debtAmount, 0, 'debtAmount not eq');
     assertEq(testVars.yieldAmount, 0, 'yieldAmount not eq');
   }
+
+  function test_Should_batch() public {
+    YieldTestVars memory testVars;
+
+    prepareDAI(tsDepositor1);
+
+    uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
+    address[] memory nfts = new address[](tokenIds.length);
+    for (uint i = 0; i < tokenIds.length; i++) {
+      nfts[i] = address(tsBAYC);
+    }
+
+    uint256 stakeAmount = tsYieldSavingsDai.getNftValueInUnderlyingAsset(address(tsBAYC));
+    stakeAmount = (stakeAmount * 20) / 100;
+
+    uint256[] memory stakeAmounts = new uint256[](tokenIds.length);
+    for (uint i = 0; i < tokenIds.length; i++) {
+      stakeAmounts[i] = stakeAmount;
+    }
+
+    tsHEVM.startPrank(address(tsBorrower1));
+
+    tsYieldSavingsDai.createYieldAccount(address(tsBorrower1));
+
+    tsYieldSavingsDai.batchStake(tsCommonPoolId, nfts, tokenIds, stakeAmounts);
+
+    tsYieldSavingsDai.batchUnstake(tsCommonPoolId, nfts, tokenIds, 0);
+
+    for (uint i = 0; i < tokenIds.length; i++) {
+      (testVars.unstakeFine, testVars.withdrawAmount, testVars.withdrawReqId) = tsYieldSavingsDai.getNftUnstakeData(
+        nfts[i],
+        tokenIds[i]
+      );
+      tsUnstETH.setWithdrawalStatus(testVars.withdrawReqId, true, false);
+    }
+
+    tsYieldSavingsDai.batchRepay(tsCommonPoolId, nfts, tokenIds);
+
+    tsHEVM.stopPrank();
+  }
 }
