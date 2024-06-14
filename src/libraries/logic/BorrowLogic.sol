@@ -34,25 +34,33 @@ library BorrowLogic {
     InterestLogic.updateInterestIndexs(poolData, assetData);
 
     // check the user account
-    ValidateLogic.validateCrossBorrowERC20Account(params, poolData, assetData, params.msgSender, priceOracle);
+    ValidateLogic.validateCrossBorrowERC20Account(params, poolData, assetData, priceOracle);
 
     // update debt state
     uint256 totalBorrowAmount;
     for (uint256 gidx = 0; gidx < params.groups.length; gidx++) {
       DataTypes.GroupData storage groupData = assetData.groupLookup[params.groups[gidx]];
 
-      VaultLogic.erc20IncreaseCrossBorrow(groupData, params.msgSender, params.amounts[gidx]);
+      VaultLogic.erc20IncreaseCrossBorrow(groupData, params.onBehalf, params.amounts[gidx]);
       totalBorrowAmount += params.amounts[gidx];
     }
 
-    VaultLogic.accountCheckAndSetBorrowedAsset(poolData, assetData, params.msgSender);
+    VaultLogic.accountCheckAndSetBorrowedAsset(poolData, assetData, params.onBehalf);
 
     InterestLogic.updateInterestRates(poolData, assetData, 0, totalBorrowAmount);
 
     // transfer underlying asset to borrower
-    VaultLogic.erc20TransferOutLiquidity(assetData, params.msgSender, totalBorrowAmount);
+    VaultLogic.erc20TransferOutLiquidity(assetData, params.receiver, totalBorrowAmount);
 
-    emit Events.CrossBorrowERC20(params.msgSender, params.poolId, params.asset, params.groups, params.amounts);
+    emit Events.CrossBorrowERC20(
+      params.msgSender,
+      params.poolId,
+      params.asset,
+      params.groups,
+      params.amounts,
+      params.onBehalf,
+      params.receiver
+    );
 
     return totalBorrowAmount;
   }
@@ -74,30 +82,33 @@ library BorrowLogic {
     for (uint256 gidx = 0; gidx < params.groups.length; gidx++) {
       DataTypes.GroupData storage groupData = assetData.groupLookup[params.groups[gidx]];
 
-      uint256 debtAmount = VaultLogic.erc20GetUserCrossBorrowInGroup(
-        groupData,
-        params.msgSender,
-        groupData.borrowIndex
-      );
+      uint256 debtAmount = VaultLogic.erc20GetUserCrossBorrowInGroup(groupData, params.onBehalf, groupData.borrowIndex);
       require(debtAmount > 0, Errors.BORROW_BALANCE_IS_ZERO);
 
       if (debtAmount < params.amounts[gidx]) {
         params.amounts[gidx] = debtAmount;
       }
 
-      VaultLogic.erc20DecreaseCrossBorrow(groupData, params.msgSender, params.amounts[gidx]);
+      VaultLogic.erc20DecreaseCrossBorrow(groupData, params.onBehalf, params.amounts[gidx]);
 
       totalRepayAmount += params.amounts[gidx];
     }
 
-    VaultLogic.accountCheckAndSetBorrowedAsset(poolData, assetData, params.msgSender);
+    VaultLogic.accountCheckAndSetBorrowedAsset(poolData, assetData, params.onBehalf);
 
     InterestLogic.updateInterestRates(poolData, assetData, totalRepayAmount, 0);
 
     // transfer underlying asset from borrower to pool
     VaultLogic.erc20TransferInLiquidity(assetData, params.msgSender, totalRepayAmount);
 
-    emit Events.CrossRepayERC20(params.msgSender, params.poolId, params.asset, params.groups, params.amounts);
+    emit Events.CrossRepayERC20(
+      params.msgSender,
+      params.poolId,
+      params.asset,
+      params.groups,
+      params.amounts,
+      params.onBehalf
+    );
 
     return totalRepayAmount;
   }

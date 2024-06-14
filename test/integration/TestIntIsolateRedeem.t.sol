@@ -38,7 +38,7 @@ contract TestIntIsolateRedeem is TestWithIsolateAction {
       borrowAmounts[i] = loanDataBeforeBorrow.availableBorrow - (i + 1);
     }
 
-    user.isolateBorrow(tsCommonPoolId, nftAsset, tokenIds, debtAsset, borrowAmounts);
+    user.isolateBorrow(tsCommonPoolId, nftAsset, tokenIds, debtAsset, borrowAmounts, address(user), address(user));
   }
 
   function prepareAuction(TestUser user, address nftAsset, uint256[] memory tokenIds, address debtAsset) internal {

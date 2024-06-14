@@ -22,7 +22,9 @@ contract CrossLending is BaseModule {
     uint32 poolId,
     address asset,
     uint8[] calldata groups,
-    uint256[] calldata amounts
+    uint256[] calldata amounts,
+    address onBehalf,
+    address receiver
   ) public whenNotPaused nonReentrant {
     address msgSender = unpackTrailingParamMsgSender();
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
@@ -38,7 +40,9 @@ contract CrossLending is BaseModule {
         poolId: poolId,
         asset: asset,
         groups: groups,
-        amounts: amounts
+        amounts: amounts,
+        onBehalf: onBehalf,
+        receiver: receiver
       })
     );
 
@@ -51,7 +55,8 @@ contract CrossLending is BaseModule {
     uint32 poolId,
     address asset,
     uint8[] calldata groups,
-    uint256[] calldata amounts
+    uint256[] calldata amounts,
+    address onBehalf
   ) public payable whenNotPaused nonReentrant {
     address msgSender = unpackTrailingParamMsgSender();
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
@@ -68,7 +73,8 @@ contract CrossLending is BaseModule {
         poolId: poolId,
         asset: asset,
         groups: groups,
-        amounts: amounts
+        amounts: amounts,
+        onBehalf: onBehalf
       })
     );
   }

@@ -19,13 +19,27 @@ contract TestIntCrossBorrowERC20 is TestWithCrossAction {
 
     // empty id list
     tsHEVM.expectRevert(bytes(Errors.GROUP_LIST_IS_EMPTY));
-    tsBorrower1.crossBorrowERC20(tsCommonPoolId, Constants.NATIVE_TOKEN_ADDRESS, borrowGroups1, borrowAmounts1);
+    tsBorrower1.crossBorrowERC20(
+      tsCommonPoolId,
+      Constants.NATIVE_TOKEN_ADDRESS,
+      borrowGroups1,
+      borrowAmounts1,
+      address(tsBorrower1),
+      address(tsBorrower1)
+    );
 
     // inconsistent length
     borrowGroups1 = new uint8[](2);
     borrowAmounts1 = new uint256[](3);
     tsHEVM.expectRevert(bytes(Errors.INCONSISTENT_PARAMS_LENGTH));
-    tsBorrower1.crossBorrowERC20(tsCommonPoolId, Constants.NATIVE_TOKEN_ADDRESS, borrowGroups1, borrowAmounts1);
+    tsBorrower1.crossBorrowERC20(
+      tsCommonPoolId,
+      Constants.NATIVE_TOKEN_ADDRESS,
+      borrowGroups1,
+      borrowAmounts1,
+      address(tsBorrower1),
+      address(tsBorrower1)
+    );
 
     // dup ids
     borrowGroups1 = new uint8[](3);
@@ -35,7 +49,14 @@ contract TestIntCrossBorrowERC20 is TestWithCrossAction {
     borrowAmounts1 = new uint256[](3);
 
     tsHEVM.expectRevert(bytes(Errors.ARRAY_HAS_DUP_ELEMENT));
-    tsBorrower1.crossBorrowERC20(tsCommonPoolId, Constants.NATIVE_TOKEN_ADDRESS, borrowGroups1, borrowAmounts1);
+    tsBorrower1.crossBorrowERC20(
+      tsCommonPoolId,
+      Constants.NATIVE_TOKEN_ADDRESS,
+      borrowGroups1,
+      borrowAmounts1,
+      address(tsBorrower1),
+      address(tsBorrower1)
+    );
 
     // invalid amount
     borrowGroups1 = new uint8[](1);
@@ -43,7 +64,14 @@ contract TestIntCrossBorrowERC20 is TestWithCrossAction {
     borrowAmounts1 = new uint256[](1);
     borrowAmounts1[0] = 0;
     tsHEVM.expectRevert(bytes(Errors.INVALID_AMOUNT));
-    tsBorrower1.crossBorrowERC20(tsCommonPoolId, Constants.NATIVE_TOKEN_ADDRESS, borrowGroups1, borrowAmounts1);
+    tsBorrower1.crossBorrowERC20(
+      tsCommonPoolId,
+      Constants.NATIVE_TOKEN_ADDRESS,
+      borrowGroups1,
+      borrowAmounts1,
+      address(tsBorrower1),
+      address(tsBorrower1)
+    );
   }
 
   function test_Should_BorrowUSDT_HasWETH() public {
@@ -122,6 +150,13 @@ contract TestIntCrossBorrowERC20 is TestWithCrossAction {
       }
     }
 
-    tsBorrower1.crossBorrowERC20(tsCommonPoolId, address(tsUSDT), borrowGroups, borrowAmounts);
+    tsBorrower1.crossBorrowERC20(
+      tsCommonPoolId,
+      address(tsUSDT),
+      borrowGroups,
+      borrowAmounts,
+      address(tsBorrower1),
+      address(tsBorrower1)
+    );
   }
 }

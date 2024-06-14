@@ -27,7 +27,13 @@ contract TestIntSetERC721SupplyMode is TestWithBaseAction {
       new bytes(0)
     );
 
-    tsDepositor1.setERC721SupplyMode(tsCommonPoolId, address(tsBAYC), tokenIds, Constants.SUPPLY_MODE_ISOLATE);
+    tsDepositor1.setERC721SupplyMode(
+      tsCommonPoolId,
+      address(tsBAYC),
+      tokenIds,
+      Constants.SUPPLY_MODE_ISOLATE,
+      address(tsDepositor1)
+    );
 
     actionWithdrawERC721(
       address(tsDepositor1),
@@ -53,7 +59,13 @@ contract TestIntSetERC721SupplyMode is TestWithBaseAction {
       new bytes(0)
     );
 
-    tsDepositor1.setERC721SupplyMode(tsCommonPoolId, address(tsBAYC), tokenIds, Constants.SUPPLY_MODE_CROSS);
+    tsDepositor1.setERC721SupplyMode(
+      tsCommonPoolId,
+      address(tsBAYC),
+      tokenIds,
+      Constants.SUPPLY_MODE_CROSS,
+      address(tsDepositor1)
+    );
 
     actionWithdrawERC721(
       address(tsDepositor1),

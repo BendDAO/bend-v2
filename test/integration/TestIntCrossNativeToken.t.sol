@@ -27,7 +27,7 @@ contract TestIntCrossNativeToken is TestWithPrepare {
     testVars1.userBalanceBefore = tsDepositor1.balanceOfNative();
 
     uint256 amount1 = 123 ether;
-    tsDepositor1.depositERC20(tsCommonPoolId, Constants.NATIVE_TOKEN_ADDRESS, amount1);
+    tsDepositor1.depositERC20(tsCommonPoolId, Constants.NATIVE_TOKEN_ADDRESS, amount1, address(tsDepositor1));
 
     testVars1.userBalanceAfter = tsDepositor1.balanceOfNative();
 
@@ -38,7 +38,13 @@ contract TestIntCrossNativeToken is TestWithPrepare {
     testVars2.userBalanceBefore = tsDepositor1.balanceOfNative();
 
     uint256 amount2 = 123 ether;
-    tsDepositor1.withdrawERC20(tsCommonPoolId, Constants.NATIVE_TOKEN_ADDRESS, amount2);
+    tsDepositor1.withdrawERC20(
+      tsCommonPoolId,
+      Constants.NATIVE_TOKEN_ADDRESS,
+      amount2,
+      address(tsDepositor1),
+      address(tsDepositor1)
+    );
 
     testVars2.userBalanceAfter = tsDepositor1.balanceOfNative();
 
@@ -67,7 +73,14 @@ contract TestIntCrossNativeToken is TestWithPrepare {
     borrowAmounts1[0] = borrowAmounts1[0];
 
     tsBorrower1.approveERC20(address(tsWETH), type(uint256).max);
-    tsBorrower1.crossBorrowERC20(tsCommonPoolId, Constants.NATIVE_TOKEN_ADDRESS, borrowGroups1, borrowAmounts1);
+    tsBorrower1.crossBorrowERC20(
+      tsCommonPoolId,
+      Constants.NATIVE_TOKEN_ADDRESS,
+      borrowGroups1,
+      borrowAmounts1,
+      address(tsBorrower1),
+      address(tsBorrower1)
+    );
 
     testVars1.userBalanceAfter = tsBorrower1.balanceOfNative();
 
@@ -92,7 +105,13 @@ contract TestIntCrossNativeToken is TestWithPrepare {
       uint8(tsLowRateGroupId)
     );
 
-    tsBorrower1.crossRepayERC20(tsCommonPoolId, Constants.NATIVE_TOKEN_ADDRESS, repayGroups2, repayAmounts);
+    tsBorrower1.crossRepayERC20(
+      tsCommonPoolId,
+      Constants.NATIVE_TOKEN_ADDRESS,
+      repayGroups2,
+      repayAmounts,
+      address(tsBorrower1)
+    );
 
     testVars2.userBalanceAfter = tsBorrower1.balanceOfNative();
 

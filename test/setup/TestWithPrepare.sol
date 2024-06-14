@@ -17,7 +17,7 @@ abstract contract TestWithPrepare is TestWithData {
 
   function prepareERC20(TestUser user, address asset, uint256 depositAmount) internal virtual {
     user.approveERC20(asset, type(uint256).max);
-    user.depositERC20(tsCommonPoolId, asset, depositAmount);
+    user.depositERC20(tsCommonPoolId, asset, depositAmount, address(user));
   }
 
   function prepareWETH(TestUser user) internal virtual {
@@ -37,12 +37,12 @@ abstract contract TestWithPrepare is TestWithData {
 
   function prepareIsolateERC721(TestUser user, address asset, uint256[] memory tokenIds) internal virtual {
     user.setApprovalForAllERC721(asset, true);
-    user.depositERC721(tsCommonPoolId, asset, tokenIds, Constants.SUPPLY_MODE_ISOLATE);
+    user.depositERC721(tsCommonPoolId, asset, tokenIds, Constants.SUPPLY_MODE_ISOLATE, address(user));
   }
 
   function prepareCrossERC721(TestUser user, address asset, uint256[] memory tokenIds) internal virtual {
     user.setApprovalForAllERC721(asset, true);
-    user.depositERC721(tsCommonPoolId, asset, tokenIds, Constants.SUPPLY_MODE_CROSS);
+    user.depositERC721(tsCommonPoolId, asset, tokenIds, Constants.SUPPLY_MODE_CROSS, address(user));
   }
 
   function prepareIsolateBAYC(TestUser user) internal virtual returns (uint256[] memory tokenIds) {

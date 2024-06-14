@@ -45,7 +45,7 @@ abstract contract TestWithIsolateAction is TestWithBaseAction {
     if (revertMessage.length > 0) {
       vm.expectRevert(revertMessage);
       tsHEVM.prank(sender);
-      tsIsolateLending.isolateBorrow(poolId, nftAsset, nftTokenIds, debtAsset, amounts);
+      tsIsolateLending.isolateBorrow(poolId, nftAsset, nftTokenIds, debtAsset, amounts, sender, sender);
     } else {
       // fetch contract data
       TestContractData memory dataBefore = getContractData(sender, poolId, nftAsset, Constants.ASSET_TYPE_ERC721);
@@ -57,7 +57,7 @@ abstract contract TestWithIsolateAction is TestWithBaseAction {
       // send tx
       if (_debugFlag) console.log('actionIsolateBorrow', 'sendtx');
       tsHEVM.prank(sender);
-      tsIsolateLending.isolateBorrow(poolId, nftAsset, nftTokenIds, debtAsset, amounts);
+      tsIsolateLending.isolateBorrow(poolId, nftAsset, nftTokenIds, debtAsset, amounts, sender, sender);
       uint256 txTimestamp = block.timestamp;
 
       // fetch contract data
@@ -125,7 +125,7 @@ abstract contract TestWithIsolateAction is TestWithBaseAction {
     if (revertMessage.length > 0) {
       vm.expectRevert(revertMessage);
       tsHEVM.prank(sender);
-      tsIsolateLending.isolateRepay(poolId, nftAsset, nftTokenIds, debtAsset, amounts);
+      tsIsolateLending.isolateRepay(poolId, nftAsset, nftTokenIds, debtAsset, amounts, sender);
     } else {
       // fetch contract data
       TestContractData memory dataBefore = getContractData(sender, poolId, nftAsset, Constants.ASSET_TYPE_ERC721);
@@ -137,7 +137,7 @@ abstract contract TestWithIsolateAction is TestWithBaseAction {
       // send tx
       if (_debugFlag) console.log('actionIsolateRepay', 'sendtx');
       tsHEVM.prank(sender);
-      tsIsolateLending.isolateRepay(poolId, nftAsset, nftTokenIds, debtAsset, amounts);
+      tsIsolateLending.isolateRepay(poolId, nftAsset, nftTokenIds, debtAsset, amounts, sender);
       uint256 txTimestamp = block.timestamp;
 
       // fetch contract data

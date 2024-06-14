@@ -46,7 +46,7 @@ library IsolateLogic {
     InterestLogic.updateInterestIndexs(poolData, debtAssetData);
 
     // check the basic params
-    ValidateLogic.validateIsolateBorrowBasic(params, poolData, debtAssetData, nftAssetData, params.msgSender);
+    ValidateLogic.validateIsolateBorrowBasic(params, poolData, debtAssetData, nftAssetData);
 
     // update debt state
     vars.totalBorrowAmount;
@@ -77,7 +77,7 @@ library IsolateLogic {
         loanData.scaledAmount += vars.amountScaled;
       }
 
-      VaultLogic.erc20IncreaseIsolateScaledBorrow(debtGroupData, params.msgSender, vars.amountScaled);
+      VaultLogic.erc20IncreaseIsolateScaledBorrow(debtGroupData, params.onBehalf, vars.amountScaled);
 
       vars.totalBorrowAmount += params.amounts[vars.nidx];
     }
@@ -85,7 +85,7 @@ library IsolateLogic {
     InterestLogic.updateInterestRates(poolData, debtAssetData, 0, vars.totalBorrowAmount);
 
     // transfer underlying asset to borrower
-    VaultLogic.erc20TransferOutLiquidity(debtAssetData, params.msgSender, vars.totalBorrowAmount);
+    VaultLogic.erc20TransferOutLiquidity(debtAssetData, params.receiver, vars.totalBorrowAmount);
 
     emit Events.IsolateBorrow(
       params.msgSender,
@@ -93,7 +93,9 @@ library IsolateLogic {
       params.nftAsset,
       params.nftTokenIds,
       params.asset,
-      params.amounts
+      params.amounts,
+      params.onBehalf,
+      params.receiver
     );
 
     return vars.totalBorrowAmount;
@@ -146,7 +148,7 @@ library IsolateLogic {
         loanData.scaledAmount -= vars.scaledRepayAmount;
       }
 
-      VaultLogic.erc20DecreaseIsolateScaledBorrow(debtGroupData, params.msgSender, vars.scaledRepayAmount);
+      VaultLogic.erc20DecreaseIsolateScaledBorrow(debtGroupData, params.onBehalf, vars.scaledRepayAmount);
 
       vars.totalRepayAmount += params.amounts[vars.nidx];
     }
@@ -162,7 +164,8 @@ library IsolateLogic {
       params.nftAsset,
       params.nftTokenIds,
       params.asset,
-      params.amounts
+      params.amounts,
+      params.onBehalf
     );
 
     return vars.totalRepayAmount;

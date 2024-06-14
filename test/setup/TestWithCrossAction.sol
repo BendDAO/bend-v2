@@ -42,7 +42,7 @@ abstract contract TestWithCrossAction is TestWithBaseAction {
     if (revertMessage.length > 0) {
       vm.expectRevert(revertMessage);
       tsHEVM.prank(sender);
-      tsCrossLending.crossBorrowERC20(poolId, asset, groups, amounts);
+      tsCrossLending.crossBorrowERC20(poolId, asset, groups, amounts, sender, sender);
     } else {
       // fetch contract data
       TestContractData memory dataBefore = getContractData(sender, poolId, asset, Constants.ASSET_TYPE_ERC20);
@@ -50,7 +50,7 @@ abstract contract TestWithCrossAction is TestWithBaseAction {
       // send tx
       if (_debugFlag) console.log('actionCrossBorrowERC20', 'sendtx');
       tsHEVM.prank(sender);
-      tsCrossLending.crossBorrowERC20(poolId, asset, groups, amounts);
+      tsCrossLending.crossBorrowERC20(poolId, asset, groups, amounts, sender, sender);
       uint256 txTimestamp = block.timestamp;
 
       // fetch contract data
@@ -80,7 +80,7 @@ abstract contract TestWithCrossAction is TestWithBaseAction {
     if (revertMessage.length > 0) {
       vm.expectRevert(revertMessage);
       tsHEVM.prank(sender);
-      tsCrossLending.crossRepayERC20(poolId, asset, groups, amounts);
+      tsCrossLending.crossRepayERC20(poolId, asset, groups, amounts, sender);
     } else {
       // fetch contract data
       TestContractData memory dataBefore = getContractData(sender, poolId, asset, Constants.ASSET_TYPE_ERC20);
@@ -88,7 +88,7 @@ abstract contract TestWithCrossAction is TestWithBaseAction {
       // send tx
       if (_debugFlag) console.log('actionCrossRepayERC20', 'sendtx');
       tsHEVM.prank(sender);
-      tsCrossLending.crossRepayERC20(poolId, asset, groups, amounts);
+      tsCrossLending.crossRepayERC20(poolId, asset, groups, amounts, sender);
       uint256 txTimestamp = block.timestamp;
 
       // fetch contract data

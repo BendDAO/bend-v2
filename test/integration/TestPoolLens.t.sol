@@ -26,7 +26,7 @@ contract TestPoolLens is TestWithPrepare {
     tsDepositor1.approveERC20(address(tsWETH), type(uint256).max);
 
     uint256 amount1 = 100 ether;
-    tsDepositor1.depositERC20(tsCommonPoolId, address(tsWETH), amount1);
+    tsDepositor1.depositERC20(tsCommonPoolId, address(tsWETH), amount1, address(tsDepositor1));
 
     GetUserAccountDataForSupplyAssetTestVars memory vars1;
     (
@@ -80,7 +80,14 @@ contract TestPoolLens is TestWithPrepare {
 
     uint256[] memory borrowAmounts = new uint256[](1);
     borrowAmounts[0] = 1000 * (10 ** tsUSDT.decimals());
-    tsBorrower1.crossBorrowERC20(tsCommonPoolId, address(tsUSDT), borrowGroups, borrowAmounts);
+    tsBorrower1.crossBorrowERC20(
+      tsCommonPoolId,
+      address(tsUSDT),
+      borrowGroups,
+      borrowAmounts,
+      address(tsBorrower1),
+      address(tsBorrower1)
+    );
 
     GetUserAccountDataForSupplyAssetTestVars memory vars1;
     (
@@ -140,10 +147,11 @@ contract TestPoolLens is TestWithPrepare {
     }
 
     (
-      uint256[] memory totalCollaterals,
-      uint256[] memory totalBorrows,
-      uint256[] memory availableBorrows,
-      uint256[] memory healthFactors
+      ,
+      ,
+      /*uint256[] memory totalCollaterals*/ /*uint256[] memory totalBorrows*/ uint256[]
+        memory availableBorrows /*uint256[] memory healthFactors*/,
+
     ) = tsPoolLens.getIsolateCollateralDataList(tsCommonPoolId, nftAssets, tokenIds, debtAssets);
 
     uint256[] memory borrowAmounts = new uint256[](tokenIds.length);
@@ -151,7 +159,15 @@ contract TestPoolLens is TestWithPrepare {
       borrowAmounts[i] = availableBorrows[i] - (i + 1);
     }
 
-    tsBorrower1.isolateBorrow(tsCommonPoolId, address(tsBAYC), tokenIds, address(tsWETH), borrowAmounts);
+    tsBorrower1.isolateBorrow(
+      tsCommonPoolId,
+      address(tsBAYC),
+      tokenIds,
+      address(tsWETH),
+      borrowAmounts,
+      address(tsBorrower1),
+      address(tsBorrower1)
+    );
 
     tsPoolLens.getIsolateLoanDataList(tsCommonPoolId, nftAssets, tokenIds);
 
