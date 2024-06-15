@@ -101,6 +101,8 @@ library PoolLogic {
 
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
 
+    require(msgSender != operator, Errors.SAME_ONBEHALF_ADDRESS);
+
     VaultLogic.accountSetApprovalForAll(poolData, msgSender, asset, operator, approved);
 
     emit Events.SetApprovalForAll(msgSender, poolId, asset, operator, approved);

@@ -38,6 +38,7 @@ library Errors {
   string public constant INVALID_LOAN_STATUS = '120';
   string public constant ARRAY_HAS_DUP_ELEMENT = '121';
   string public constant INVALID_ONBEHALF_ADDRESS = '122';
+  string public constant SAME_ONBEHALF_ADDRESS = '123';
 
   string public constant ENUM_SET_ADD_FAILED = '150';
   string public constant ENUM_SET_REMOVE_FAILED = '151';

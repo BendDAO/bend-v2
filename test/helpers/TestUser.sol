@@ -284,4 +284,8 @@ contract TestUser is ERC721Holder {
   ) public {
     _BVault.delegateERC721(poolId, nftAsset, tokenIds, delegate, value);
   }
+
+  function setApprovalForAll(uint32 poolId, address asset, address operator, bool approved) public {
+    _BVault.setApprovalForAll(poolId, asset, operator, approved);
+  }
 }
