@@ -146,4 +146,5 @@ library Errors {
   string public constant YIELD_ETH_DEPOSIT_FAILED = '1011';
   string public constant YIELD_ETH_WITHDRAW_FAILED = '1012';
   string public constant YIELD_ETH_CLAIM_FAILED = '1013';
+  string public constant YIELD_ETH_ACCOUNT_INSUFFICIENT = '1014';
 }

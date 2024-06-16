@@ -71,15 +71,16 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
   uint256 public totalUnstakeFine;
   mapping(address => address) public yieldAccounts;
   mapping(address => uint256) public accountYieldShares;
-  mapping(address => YieldNftConfig) nftConfigs;
-  mapping(address => mapping(uint256 => YieldStakeData)) stakeDatas;
+  mapping(address => YieldNftConfig) public nftConfigs;
+  mapping(address => mapping(uint256 => YieldStakeData)) public stakeDatas;
+  mapping(address => uint256) public accountYieldInWithdraws;
 
   /**
    * @dev This empty reserved space is put in place to allow future versions to add new
    * variables without shifting down storage in the inheritance chain.
    * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
    */
-  uint256[20] private __gap;
+  uint256[19] private __gap;
 
   modifier onlyPoolAdmin() {
     __onlyPoolAdmin();
@@ -245,7 +246,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     poolYield.yieldBorrowERC20(poolId, address(underlyingAsset), borrowAmount);
 
     // stake in protocol and got the yield
-    vars.totalYieldBeforeDeposit = getAccountTotalYield(address(vars.yieldAccout));
+    vars.totalYieldBeforeDeposit = getAccountTotalUnstakedYield(address(vars.yieldAccout));
     vars.yieldAmount = protocolDeposit(sd, borrowAmount);
     vars.yieldShare = _convertToYieldSharesWithTotalYield(
       address(vars.yieldAccout),
@@ -337,6 +338,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
 
     sd.state = Constants.YIELD_STATUS_UNSTAKE;
     sd.withdrawAmount = convertToYieldAssets(address(vars.yieldAccout), sd.yieldShare);
+    accountYieldInWithdraws[address(vars.yieldAccout)] += sd.withdrawAmount;
 
     protocolRequestWithdrawal(sd);
 
@@ -426,6 +428,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     poolYield.yieldSetERC721TokenData(poolId, nft, tokenId, false, address(underlyingAsset));
 
     // update shares
+    accountYieldInWithdraws[address(vars.yieldAccout)] -= sd.withdrawAmount;
     totalDebtShare -= sd.debtShare;
 
     delete stakeDatas[nft][tokenId];
@@ -463,9 +466,15 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     return poolYield.getYieldERC20BorrowBalance(poolId, address(underlyingAsset), address(this));
   }
 
-  function getAccountTotalYield(address /*account*/) public view virtual returns (uint256) {
-    return 0;
+  function getAccountTotalYield(address account) public view virtual returns (uint256) {
+    return getAccountYieldBalance(account);
   }
+
+  function getAccountTotalUnstakedYield(address account) public view virtual returns (uint256) {
+    return getAccountYieldBalance(account);
+  }
+
+  function getAccountYieldBalance(address account) public view virtual returns (uint256) {}
 
   function getNftValueInUnderlyingAsset(address nft) public view virtual returns (uint256) {
     YieldNftConfig storage nc = nftConfigs[nft];
@@ -616,11 +625,13 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
   }
 
   function convertToYieldShares(address account, uint256 assets) public view virtual returns (uint256) {
-    return assets.convertToShares(accountYieldShares[account], getAccountTotalYield(account), Math.Rounding.Down);
+    return
+      assets.convertToShares(accountYieldShares[account], getAccountTotalUnstakedYield(account), Math.Rounding.Down);
   }
 
   function convertToYieldAssets(address account, uint256 shares) public view virtual returns (uint256) {
-    return shares.convertToAssets(accountYieldShares[account], getAccountTotalYield(account), Math.Rounding.Down);
+    return
+      shares.convertToAssets(accountYieldShares[account], getAccountTotalUnstakedYield(account), Math.Rounding.Down);
   }
 
   function _convertToYieldSharesWithTotalYield(

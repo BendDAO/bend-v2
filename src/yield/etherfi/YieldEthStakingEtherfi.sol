@@ -117,7 +117,7 @@ contract YieldEthStakingEtherfi is YieldStakingBase {
     return false;
   }
 
-  function getAccountTotalYield(address account) public view override returns (uint256) {
+  function getAccountYieldBalance(address account) public view override returns (uint256) {
     return eETH.balanceOf(account);
   }
 

@@ -120,7 +120,16 @@ contract YieldSavingsDai is YieldStakingBase {
     return false;
   }
 
-  function getAccountTotalYield(address account) public view virtual override returns (uint256) {
+  function getAccountTotalUnstakedYield(address account) public view virtual override returns (uint256) {
+    /* The withdrawing dai still in account when user do the unstake and waiting for claim (repay) */
+    uint256 balance = getAccountYieldBalance(account);
+    uint256 inWithdraw = accountYieldInWithdraws[account];
+
+    require(balance >= inWithdraw, Errors.YIELD_ETH_ACCOUNT_INSUFFICIENT);
+    return balance - inWithdraw;
+  }
+
+  function getAccountYieldBalance(address account) public view virtual override returns (uint256) {
     return sdai.balanceOf(account);
   }
 
