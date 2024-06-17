@@ -52,6 +52,7 @@ library SupplyLogic {
     if (userBalance < params.amount) {
       params.amount = userBalance;
     }
+    require(params.amount <= assetData.availableLiquidity, Errors.ASSET_INSUFFICIENT_LIQUIDITY);
 
     VaultLogic.erc20DecreaseCrossSupply(assetData, params.msgSender, params.amount);
 

@@ -93,8 +93,6 @@ library ValidateLogic {
 
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
     require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
-
-    require(inputParams.amount <= assetData.availableLiquidity, Errors.ASSET_INSUFFICIENT_LIQUIDITY);
   }
 
   function validateDepositERC721(
