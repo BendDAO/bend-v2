@@ -31,8 +31,8 @@ contract InstallModule is DeployBase {
 
     Installer installer = Installer(poolManager.moduleIdToProxy(Constants.MODULEID__INSTALLER));
 
-    address[] memory modules = _allModules();
-    //address[] memory modules = _someModules();
+    //address[] memory modules = _allModules();
+    address[] memory modules = _someModules();
 
     installer.installModules(modules);
   }
@@ -41,7 +41,7 @@ contract InstallModule is DeployBase {
     address[] memory modules = new address[](1);
     uint modIdx = 0;
 
-    PoolLens tsPoolLensImpl = new PoolLens(gitCommitHash);
+    BVault tsPoolLensImpl = new BVault(gitCommitHash);
     modules[modIdx++] = address(tsPoolLensImpl);
 
     return modules;

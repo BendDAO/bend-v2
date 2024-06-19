@@ -481,7 +481,8 @@ library IsolateLogic {
       params.nftTokenIds,
       params.asset,
       vars.extraBorrowAmounts,
-      vars.remainBidAmounts
+      vars.remainBidAmounts,
+      params.supplyAsCollateral
     );
   }
 }
