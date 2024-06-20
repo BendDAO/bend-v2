@@ -30,11 +30,11 @@ contract DeployYieldStaking is DeployBase {
     address addrProviderInCfg = config.getAddressProvider();
     require(addrProviderInCfg != address(0), 'AddressProvider not exist in config');
 
-    //_deployYieldRegistry(proxyAdminInCfg, addrProviderInCfg);
+    _deployYieldRegistry(proxyAdminInCfg, addrProviderInCfg);
 
-    //_deployYieldEthStakingLido(proxyAdminInCfg, addrProviderInCfg);
+    _deployYieldEthStakingLido(proxyAdminInCfg, addrProviderInCfg);
 
-    //_deployYieldEthStakingEtherfi(proxyAdminInCfg, addrProviderInCfg);
+    _deployYieldEthStakingEtherfi(proxyAdminInCfg, addrProviderInCfg);
 
     _deployYieldSavingsDai(proxyAdminInCfg, addrProviderInCfg);
   }

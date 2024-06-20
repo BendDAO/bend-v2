@@ -56,7 +56,7 @@ contract InitConfigYield is DeployBase {
       addrYieldSDai = 0xfDF26F93040C6e797D7Bc223a674a297d7264928;
 
       commonPoolId = 1;
-      addrIrmYield = 0x768B4E53027D266cA391F117Dc81Dd69acdFB638;
+      addrIrmYield = 0xBD9859043CdDD4310e37CA87F37A829B488F2B4F;
     } else {
       revert('chainid not support');
     }
