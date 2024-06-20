@@ -80,22 +80,38 @@ library Events {
   event SetManagerYieldCap(uint32 indexed poolId, address indexed staker, address indexed asset, uint256 newCap);
 
   /* Supply Events */
-  event DepositERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
-  event WithdrawERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
+  event DepositERC20(
+    address indexed sender,
+    uint256 indexed poolId,
+    address indexed asset,
+    uint256 amount,
+    address onBehalf
+  );
+  event WithdrawERC20(
+    address indexed sender,
+    uint256 indexed poolId,
+    address indexed asset,
+    uint256 amount,
+    address onBehalf,
+    address receiver
+  );
 
   event DepositERC721(
     address indexed sender,
     uint256 indexed poolId,
     address indexed asset,
     uint256[] tokenIds,
-    uint8 supplyMode
+    uint8 supplyMode,
+    address onBehalf
   );
   event WithdrawERC721(
     address indexed sender,
     uint256 indexed poolId,
     address indexed asset,
     uint256[] tokenIds,
-    uint8 supplyMode
+    uint8 supplyMode,
+    address onBehalf,
+    address receiver
   );
 
   event SetERC721SupplyMode(
@@ -103,7 +119,8 @@ library Events {
     uint256 indexed poolId,
     address indexed asset,
     uint256[] tokenIds,
-    uint8 supplyMode
+    uint8 supplyMode,
+    address onBehalf
   );
 
   // Cross Lending Events
@@ -112,7 +129,9 @@ library Events {
     uint256 indexed poolId,
     address indexed asset,
     uint8[] groups,
-    uint256[] amounts
+    uint256[] amounts,
+    address onBehalf,
+    address receiver
   );
 
   event CrossRepayERC20(
@@ -120,7 +139,8 @@ library Events {
     uint256 indexed poolId,
     address indexed asset,
     uint8[] groups,
-    uint256[] amounts
+    uint256[] amounts,
+    address onBehalf
   );
 
   event CrossLiquidateERC20(
@@ -152,7 +172,9 @@ library Events {
     address indexed nftAsset,
     uint256[] tokenIds,
     address debtAsset,
-    uint256[] amounts
+    uint256[] amounts,
+    address onBehalf,
+    address receiver
   );
 
   event IsolateRepay(
@@ -161,7 +183,8 @@ library Events {
     address indexed nftAsset,
     uint256[] tokenIds,
     address debtAsset,
-    uint256[] amounts
+    uint256[] amounts,
+    address onBehalf
   );
 
   event IsolateAuction(
@@ -206,5 +229,13 @@ library Events {
     address[] nftAssets,
     uint256[] nftTokenIds,
     address receiverAddress
+  );
+
+  event SetApprovalForAll(
+    address indexed sender,
+    uint32 indexed poolId,
+    address indexed asset,
+    address operator,
+    bool approved
   );
 }

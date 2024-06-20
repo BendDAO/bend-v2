@@ -1184,6 +1184,40 @@
   },
   {
     "type": "function",
+    "name": "isApprovedForAll",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "asset",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "operator",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "bool",
+        "internalType": "bool"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "moduleGitCommit",
     "inputs": [],
     "outputs": [

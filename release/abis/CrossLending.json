@@ -33,6 +33,16 @@
         "name": "amounts",
         "type": "uint256[]",
         "internalType": "uint256[]"
+      },
+      {
+        "name": "onBehalf",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "receiver",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [],
@@ -61,6 +71,11 @@
         "name": "amounts",
         "type": "uint256[]",
         "internalType": "uint256[]"
+      },
+      {
+        "name": "onBehalf",
+        "type": "address",
+        "internalType": "address"
       }
     ],
     "outputs": [],
@@ -240,6 +255,18 @@
         "type": "uint256[]",
         "indexed": false,
         "internalType": "uint256[]"
+      },
+      {
+        "name": "onBehalf",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      },
+      {
+        "name": "receiver",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
       }
     ],
     "anonymous": false
@@ -277,6 +304,12 @@
         "type": "uint256[]",
         "indexed": false,
         "internalType": "uint256[]"
+      },
+      {
+        "name": "onBehalf",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
       }
     ],
     "anonymous": false

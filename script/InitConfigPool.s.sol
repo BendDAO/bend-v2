@@ -53,10 +53,10 @@ contract InitConfigPool is DeployBase {
 
       commonPoolId = 1;
 
-      irmYield = DefaultInterestRateModel(0x768B4E53027D266cA391F117Dc81Dd69acdFB638);
-      irmLow = DefaultInterestRateModel(0xe161E11114E5A781be48f28045922F073D03c5dd);
-      irmMiddle = DefaultInterestRateModel(0xfA7fCE876840548a348a62968fB349D67656E92f);
-      irmHigh = DefaultInterestRateModel(0xa91CdC8e33850c7E97Cf855038777341c9869038);
+      irmYield = DefaultInterestRateModel(0xBD9859043CdDD4310e37CA87F37A829B488F2B4F);
+      irmLow = DefaultInterestRateModel(0x74747EF9aE831Cc50423C6b43586e43F5E494Be2);
+      irmMiddle = DefaultInterestRateModel(0x8316DDa8ca54740EF25d236D0D13e5763e87A097);
+      irmHigh = DefaultInterestRateModel(0x16787d2756475f303ed7e4B24A81d8F60055A0b2);
     } else {
       revert('chainid not support');
     }

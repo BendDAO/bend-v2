@@ -17,7 +17,12 @@ import {PoolLogic} from '../libraries/logic/PoolLogic.sol';
 contract BVault is BaseModule {
   constructor(bytes32 moduleGitCommit_) BaseModule(Constants.MODULEID__BVAULT, moduleGitCommit_) {}
 
-  function depositERC20(uint32 poolId, address asset, uint256 amount) public payable whenNotPaused nonReentrant {
+  function depositERC20(
+    uint32 poolId,
+    address asset,
+    uint256 amount,
+    address onBehalf
+  ) public payable whenNotPaused nonReentrant {
     address msgSender = unpackTrailingParamMsgSender();
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
@@ -29,11 +34,23 @@ contract BVault is BaseModule {
     }
 
     SupplyLogic.executeDepositERC20(
-      InputTypes.ExecuteDepositERC20Params({msgSender: msgSender, poolId: poolId, asset: asset, amount: amount})
+      InputTypes.ExecuteDepositERC20Params({
+        msgSender: msgSender,
+        poolId: poolId,
+        asset: asset,
+        amount: amount,
+        onBehalf: onBehalf
+      })
     );
   }
 
-  function withdrawERC20(uint32 poolId, address asset, uint256 amount) public whenNotPaused nonReentrant {
+  function withdrawERC20(
+    uint32 poolId,
+    address asset,
+    uint256 amount,
+    address onBehalf,
+    address receiver
+  ) public whenNotPaused nonReentrant {
     address msgSender = unpackTrailingParamMsgSender();
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     bool isNative;
@@ -43,7 +60,14 @@ contract BVault is BaseModule {
     }
 
     SupplyLogic.executeWithdrawERC20(
-      InputTypes.ExecuteWithdrawERC20Params({msgSender: msgSender, poolId: poolId, asset: asset, amount: amount})
+      InputTypes.ExecuteWithdrawERC20Params({
+        msgSender: msgSender,
+        poolId: poolId,
+        asset: asset,
+        amount: amount,
+        onBehalf: onBehalf,
+        receiver: receiver
+      })
     );
 
     if (isNative) {
@@ -55,7 +79,8 @@ contract BVault is BaseModule {
     uint32 poolId,
     address asset,
     uint256[] calldata tokenIds,
-    uint8 supplyMode
+    uint8 supplyMode,
+    address onBehalf
   ) public whenNotPaused nonReentrant {
     address msgSender = unpackTrailingParamMsgSender();
     SupplyLogic.executeDepositERC721(
@@ -64,7 +89,8 @@ contract BVault is BaseModule {
         poolId: poolId,
         asset: asset,
         tokenIds: tokenIds,
-        supplyMode: supplyMode
+        supplyMode: supplyMode,
+        onBehalf: onBehalf
       })
     );
   }
@@ -73,7 +99,9 @@ contract BVault is BaseModule {
     uint32 poolId,
     address asset,
     uint256[] calldata tokenIds,
-    uint8 supplyMode
+    uint8 supplyMode,
+    address onBehalf,
+    address receiver
   ) public whenNotPaused nonReentrant {
     address msgSender = unpackTrailingParamMsgSender();
     SupplyLogic.executeWithdrawERC721(
@@ -82,7 +110,9 @@ contract BVault is BaseModule {
         poolId: poolId,
         asset: asset,
         tokenIds: tokenIds,
-        supplyMode: supplyMode
+        supplyMode: supplyMode,
+        onBehalf: onBehalf,
+        receiver: receiver
       })
     );
   }
@@ -91,7 +121,8 @@ contract BVault is BaseModule {
     uint32 poolId,
     address asset,
     uint256[] calldata tokenIds,
-    uint8 supplyMode
+    uint8 supplyMode,
+    address onBehalf
   ) public whenNotPaused nonReentrant {
     address msgSender = unpackTrailingParamMsgSender();
     SupplyLogic.executeSetERC721SupplyMode(
@@ -100,7 +131,8 @@ contract BVault is BaseModule {
         poolId: poolId,
         asset: asset,
         tokenIds: tokenIds,
-        supplyMode: supplyMode
+        supplyMode: supplyMode,
+        onBehalf: onBehalf
       })
     );
   }
@@ -128,5 +160,15 @@ contract BVault is BaseModule {
         value: value
       })
     );
+  }
+
+  function setApprovalForAll(
+    uint32 poolId,
+    address asset,
+    address operator,
+    bool approved
+  ) public whenNotPaused nonReentrant {
+    address msgSender = unpackTrailingParamMsgSender();
+    PoolLogic.executeSetApprovalForAll(msgSender, poolId, asset, operator, approved);
   }
 }

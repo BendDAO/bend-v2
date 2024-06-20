@@ -37,6 +37,8 @@ library Errors {
   string public constant INCONSISTENT_PARAMS_LENGTH = '119';
   string public constant INVALID_LOAN_STATUS = '120';
   string public constant ARRAY_HAS_DUP_ELEMENT = '121';
+  string public constant INVALID_ONBEHALF_ADDRESS = '122';
+  string public constant SAME_ONBEHALF_ADDRESS = '123';
 
   string public constant ENUM_SET_ADD_FAILED = '150';
   string public constant ENUM_SET_REMOVE_FAILED = '151';
@@ -52,6 +54,7 @@ library Errors {
   string public constant TREASURY_CANNOT_BE_ZERO = '208';
   string public constant PRICE_ORACLE_CANNOT_BE_ZERO = '209';
   string public constant ADDR_PROVIDER_CANNOT_BE_ZERO = '210';
+  string public constant SENDER_NOT_APPROVED = '211';
 
   string public constant POOL_ALREADY_EXISTS = '300';
   string public constant POOL_NOT_EXISTS = '301';

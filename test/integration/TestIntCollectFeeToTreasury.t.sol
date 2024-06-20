@@ -42,7 +42,14 @@ contract TestIntCollectFeeToTreasury is TestWithPrepare {
       (accountDataBeforeBorrow1.availableBorrowInBase * (10 ** tsUSDT.decimals())) /
       tsPriceOracle.getAssetPrice(address(tsUSDT));
 
-    tsBorrower1.crossBorrowERC20(tsCommonPoolId, address(tsUSDT), borrowGroups1, borrowAmounts1);
+    tsBorrower1.crossBorrowERC20(
+      tsCommonPoolId,
+      address(tsUSDT),
+      borrowGroups1,
+      borrowAmounts1,
+      address(tsBorrower1),
+      address(tsBorrower1)
+    );
 
     // accure some interest
     advanceTimes(365 days);
@@ -63,7 +70,7 @@ contract TestIntCollectFeeToTreasury is TestWithPrepare {
       uint8(tsLowRateGroupId)
     );
 
-    tsBorrower1.crossRepayERC20(tsCommonPoolId, address(tsUSDT), repayGroups2, repayAmounts);
+    tsBorrower1.crossRepayERC20(tsCommonPoolId, address(tsUSDT), repayGroups2, repayAmounts, address(tsBorrower1));
 
     (, , testVars.normAccruedFeeAfter) = tsPoolLens.getAssetFeeData(tsCommonPoolId, address(tsUSDT));
 

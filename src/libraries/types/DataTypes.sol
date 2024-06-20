@@ -33,6 +33,8 @@ library DataTypes {
   struct AccountData {
     EnumerableSetUpgradeable.AddressSet suppliedAssets;
     EnumerableSetUpgradeable.AddressSet borrowedAssets;
+    // asset => operator => approved
+    mapping(address => mapping(address => bool)) operatorApprovals;
   }
 
   struct GroupData {

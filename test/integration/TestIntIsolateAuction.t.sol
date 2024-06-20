@@ -42,7 +42,7 @@ contract TestIntIsolateAuction is TestWithIsolateAction {
       borrowAmounts[i] = loanDataBeforeBorrow.availableBorrow - (i + 1);
     }
 
-    user.isolateBorrow(tsCommonPoolId, nftAsset, tokenIds, debtAsset, borrowAmounts);
+    user.isolateBorrow(tsCommonPoolId, nftAsset, tokenIds, debtAsset, borrowAmounts, address(user), address(user));
   }
 
   function test_RevertIf_AuctionUSDT_InvalidHF() public {

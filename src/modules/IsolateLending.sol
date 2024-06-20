@@ -22,7 +22,9 @@ contract IsolateLending is BaseModule {
     address nftAsset,
     uint256[] calldata nftTokenIds,
     address asset,
-    uint256[] calldata amounts
+    uint256[] calldata amounts,
+    address onBehalf,
+    address receiver
   ) public whenNotPaused nonReentrant {
     address msgSender = unpackTrailingParamMsgSender();
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
@@ -39,7 +41,9 @@ contract IsolateLending is BaseModule {
         nftAsset: nftAsset,
         nftTokenIds: nftTokenIds,
         asset: asset,
-        amounts: amounts
+        amounts: amounts,
+        onBehalf: onBehalf,
+        receiver: receiver
       })
     );
 
@@ -53,7 +57,8 @@ contract IsolateLending is BaseModule {
     address nftAsset,
     uint256[] calldata nftTokenIds,
     address asset,
-    uint256[] calldata amounts
+    uint256[] calldata amounts,
+    address onBehalf
   ) public payable whenNotPaused nonReentrant {
     address msgSender = unpackTrailingParamMsgSender();
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
@@ -71,7 +76,8 @@ contract IsolateLending is BaseModule {
         nftAsset: nftAsset,
         nftTokenIds: nftTokenIds,
         asset: asset,
-        amounts: amounts
+        amounts: amounts,
+        onBehalf: onBehalf
       })
     );
   }

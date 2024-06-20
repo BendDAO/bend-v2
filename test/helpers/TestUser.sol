@@ -91,44 +91,76 @@ contract TestUser is ERC721Holder {
     ERC721(token).setApprovalForAll(spender, val);
   }
 
-  function depositERC20(uint32 poolId, address asset, uint256 amount) public {
+  function depositERC20(uint32 poolId, address asset, uint256 amount, address onBehalf) public {
     if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
       uint256 sendVal = amount;
-      _BVault.depositERC20{value: sendVal}(poolId, asset, amount);
+      _BVault.depositERC20{value: sendVal}(poolId, asset, amount, onBehalf);
     } else {
-      _BVault.depositERC20(poolId, asset, amount);
+      _BVault.depositERC20(poolId, asset, amount, onBehalf);
     }
   }
 
-  function withdrawERC20(uint32 poolId, address asset, uint256 amount) public {
-    _BVault.withdrawERC20(poolId, asset, amount);
+  function withdrawERC20(uint32 poolId, address asset, uint256 amount, address onBehalf, address receiver) public {
+    _BVault.withdrawERC20(poolId, asset, amount, onBehalf, receiver);
   }
 
-  function depositERC721(uint32 poolId, address asset, uint256[] calldata tokenIds, uint8 supplyMode) public {
-    _BVault.depositERC721(poolId, asset, tokenIds, supplyMode);
+  function depositERC721(
+    uint32 poolId,
+    address asset,
+    uint256[] calldata tokenIds,
+    uint8 supplyMode,
+    address onBehalf
+  ) public {
+    _BVault.depositERC721(poolId, asset, tokenIds, supplyMode, onBehalf);
   }
 
-  function withdrawERC721(uint32 poolId, address asset, uint256[] calldata tokenIds, uint8 supplyMode) public {
-    _BVault.withdrawERC721(poolId, asset, tokenIds, supplyMode);
+  function withdrawERC721(
+    uint32 poolId,
+    address asset,
+    uint256[] calldata tokenIds,
+    uint8 supplyMode,
+    address onBehalf,
+    address receiver
+  ) public {
+    _BVault.withdrawERC721(poolId, asset, tokenIds, supplyMode, onBehalf, receiver);
   }
 
-  function setERC721SupplyMode(uint32 poolId, address asset, uint256[] calldata tokenIds, uint8 supplyMode) public {
-    _BVault.setERC721SupplyMode(poolId, asset, tokenIds, supplyMode);
+  function setERC721SupplyMode(
+    uint32 poolId,
+    address asset,
+    uint256[] calldata tokenIds,
+    uint8 supplyMode,
+    address onBehalf
+  ) public {
+    _BVault.setERC721SupplyMode(poolId, asset, tokenIds, supplyMode, onBehalf);
   }
 
-  function crossBorrowERC20(uint32 poolId, address asset, uint8[] calldata groups, uint256[] calldata amounts) public {
-    _crossLending.crossBorrowERC20(poolId, asset, groups, amounts);
+  function crossBorrowERC20(
+    uint32 poolId,
+    address asset,
+    uint8[] calldata groups,
+    uint256[] calldata amounts,
+    address onBehalf,
+    address receiver
+  ) public {
+    _crossLending.crossBorrowERC20(poolId, asset, groups, amounts, onBehalf, receiver);
   }
 
-  function crossRepayERC20(uint32 poolId, address asset, uint8[] calldata groups, uint256[] calldata amounts) public {
+  function crossRepayERC20(
+    uint32 poolId,
+    address asset,
+    uint8[] calldata groups,
+    uint256[] calldata amounts,
+    address onBehalf
+  ) public {
     if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
       uint256 sendVal;
       for (uint i = 0; i < amounts.length; i++) {
         sendVal += amounts[i];
       }
-      _crossLending.crossRepayERC20{value: sendVal}(poolId, asset, groups, amounts);
+      _crossLending.crossRepayERC20{value: sendVal}(poolId, asset, groups, amounts, onBehalf);
     } else {
-      _crossLending.crossRepayERC20(poolId, asset, groups, amounts);
+      _crossLending.crossRepayERC20(poolId, asset, groups, amounts, onBehalf);
     }
   }
 
@@ -137,9 +169,11 @@ contract TestUser is ERC721Holder {
     address nftAsset,
     uint256[] calldata nftTokenIds,
     address asset,
-    uint256[] calldata amounts
+    uint256[] calldata amounts,
+    address onBehalf,
+    address receiver
   ) public {
-    _isolateLending.isolateBorrow(poolId, nftAsset, nftTokenIds, asset, amounts);
+    _isolateLending.isolateBorrow(poolId, nftAsset, nftTokenIds, asset, amounts, onBehalf, receiver);
   }
 
   function isolateRepay(
@@ -147,16 +181,17 @@ contract TestUser is ERC721Holder {
     address nftAsset,
     uint256[] calldata nftTokenIds,
     address asset,
-    uint256[] calldata amounts
+    uint256[] calldata amounts,
+    address onBehalf
   ) public {
     if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
       uint256 sendVal;
       for (uint i = 0; i < amounts.length; i++) {
         sendVal += amounts[i];
       }
-      _isolateLending.isolateRepay{value: sendVal}(poolId, nftAsset, nftTokenIds, asset, amounts);
+      _isolateLending.isolateRepay{value: sendVal}(poolId, nftAsset, nftTokenIds, asset, amounts, onBehalf);
     } else {
-      _isolateLending.isolateRepay(poolId, nftAsset, nftTokenIds, asset, amounts);
+      _isolateLending.isolateRepay(poolId, nftAsset, nftTokenIds, asset, amounts, onBehalf);
     }
   }
 
@@ -248,5 +283,9 @@ contract TestUser is ERC721Holder {
     bool value
   ) public {
     _BVault.delegateERC721(poolId, nftAsset, tokenIds, delegate, value);
+  }
+
+  function setApprovalForAll(uint32 poolId, address asset, address operator, bool approved) public {
+    _BVault.setApprovalForAll(poolId, asset, operator, approved);
   }
 }

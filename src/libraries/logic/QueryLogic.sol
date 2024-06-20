@@ -690,7 +690,7 @@ library QueryLogic {
     uint32 /*poolId*/,
     address nftAsset,
     uint256[] calldata tokenIds
-  ) public view returns (address[][] memory) {
+  ) internal view returns (address[][] memory) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
     IDelegateRegistryV2 delegateRegistryV2 = IDelegateRegistryV2(
@@ -724,5 +724,16 @@ library QueryLogic {
     }
 
     return delegateAddrs;
+  }
+
+  function isApprovedForAll(
+    uint32 poolId,
+    address account,
+    address asset,
+    address operator
+  ) internal view returns (bool) {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    return VaultLogic.accountIsApprovedForAll(poolData, account, asset, operator);
   }
 }

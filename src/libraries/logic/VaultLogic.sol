@@ -114,6 +114,27 @@ library VaultLogic {
     }
   }
 
+  function accountSetApprovalForAll(
+    DataTypes.PoolData storage poolData,
+    address account,
+    address asset,
+    address operator,
+    bool approved
+  ) internal {
+    DataTypes.AccountData storage accountData = poolData.accountLookup[account];
+    accountData.operatorApprovals[asset][operator] = approved;
+  }
+
+  function accountIsApprovedForAll(
+    DataTypes.PoolData storage poolData,
+    address account,
+    address asset,
+    address operator
+  ) internal view returns (bool) {
+    DataTypes.AccountData storage accountData = poolData.accountLookup[account];
+    return accountData.operatorApprovals[asset][operator];
+  }
+
   //////////////////////////////////////////////////////////////////////////////
   // ERC20 methods
   //////////////////////////////////////////////////////////////////////////////

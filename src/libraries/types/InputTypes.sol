@@ -7,6 +7,7 @@ library InputTypes {
     uint32 poolId;
     address asset;
     uint256 amount;
+    address onBehalf;
   }
 
   struct ExecuteWithdrawERC20Params {
@@ -14,6 +15,8 @@ library InputTypes {
     uint32 poolId;
     address asset;
     uint256 amount;
+    address onBehalf;
+    address receiver;
   }
 
   struct ExecuteDepositERC721Params {
@@ -22,6 +25,7 @@ library InputTypes {
     address asset;
     uint256[] tokenIds;
     uint8 supplyMode;
+    address onBehalf;
   }
 
   struct ExecuteWithdrawERC721Params {
@@ -30,6 +34,8 @@ library InputTypes {
     address asset;
     uint256[] tokenIds;
     uint8 supplyMode;
+    address onBehalf;
+    address receiver;
   }
 
   struct ExecuteSetERC721SupplyModeParams {
@@ -38,6 +44,7 @@ library InputTypes {
     address asset;
     uint256[] tokenIds;
     uint8 supplyMode;
+    address onBehalf;
   }
 
   // Cross Lending
@@ -48,6 +55,8 @@ library InputTypes {
     address asset;
     uint8[] groups;
     uint256[] amounts;
+    address onBehalf;
+    address receiver;
   }
 
   struct ExecuteCrossRepayERC20Params {
@@ -56,6 +65,7 @@ library InputTypes {
     address asset;
     uint8[] groups;
     uint256[] amounts;
+    address onBehalf;
   }
 
   struct ExecuteCrossLiquidateERC20Params {
@@ -87,6 +97,8 @@ library InputTypes {
     uint256[] nftTokenIds;
     address asset;
     uint256[] amounts;
+    address onBehalf;
+    address receiver;
   }
 
   struct ExecuteIsolateRepayParams {
@@ -96,6 +108,7 @@ library InputTypes {
     uint256[] nftTokenIds;
     address asset;
     uint256[] amounts;
+    address onBehalf;
   }
 
   struct ExecuteIsolateAuctionParams {

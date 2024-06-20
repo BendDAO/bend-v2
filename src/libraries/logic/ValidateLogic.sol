@@ -63,6 +63,18 @@ library ValidateLogic {
     }
   }
 
+  function validateSenderApproved(
+    DataTypes.PoolData storage poolData,
+    address msgSender,
+    address asset,
+    address onBehalf
+  ) internal view {
+    require(
+      msgSender == onBehalf || VaultLogic.accountIsApprovedForAll(poolData, onBehalf, asset, msgSender),
+      Errors.SENDER_NOT_APPROVED
+    );
+  }
+
   function validateDepositERC20(
     InputTypes.ExecuteDepositERC20Params memory inputParams,
     DataTypes.PoolData storage poolData,
@@ -74,6 +86,7 @@ library ValidateLogic {
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
     require(!assetData.isFrozen, Errors.ASSET_IS_FROZEN);
 
+    require(inputParams.onBehalf != address(0), Errors.INVALID_ONBEHALF_ADDRESS);
     require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
 
     if (assetData.supplyCap != 0) {
@@ -91,6 +104,9 @@ library ValidateLogic {
     validatePoolBasic(poolData);
     validateAssetBasic(assetData);
 
+    validateSenderApproved(poolData, inputParams.msgSender, inputParams.asset, inputParams.onBehalf);
+    require(inputParams.receiver != address(0), Errors.INVALID_TO_ADDRESS);
+
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
     require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
   }
@@ -106,6 +122,7 @@ library ValidateLogic {
     require(assetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
     require(!assetData.isFrozen, Errors.ASSET_IS_FROZEN);
 
+    require(inputParams.onBehalf != address(0), Errors.INVALID_ONBEHALF_ADDRESS);
     require(inputParams.tokenIds.length > 0, Errors.INVALID_ID_LIST);
     validateArrayDuplicateUInt256(inputParams.tokenIds);
 
@@ -134,6 +151,9 @@ library ValidateLogic {
     validatePoolBasic(poolData);
     validateAssetBasic(assetData);
 
+    validateSenderApproved(poolData, inputParams.msgSender, inputParams.asset, inputParams.onBehalf);
+    require(inputParams.receiver != address(0), Errors.INVALID_TO_ADDRESS);
+
     require(assetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
     require(inputParams.tokenIds.length > 0, Errors.INVALID_ID_LIST);
     validateArrayDuplicateUInt256(inputParams.tokenIds);
@@ -145,7 +165,7 @@ library ValidateLogic {
 
     for (uint256 i = 0; i < inputParams.tokenIds.length; i++) {
       DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(assetData, inputParams.tokenIds[i]);
-      require(tokenData.owner == inputParams.msgSender, Errors.INVALID_CALLER);
+      require(tokenData.owner == inputParams.onBehalf, Errors.INVALID_CALLER);
       require(tokenData.supplyMode == inputParams.supplyMode, Errors.INVALID_SUPPLY_MODE);
 
       require(tokenData.lockerAddr == address(0), Errors.ASSET_ALREADY_LOCKED_IN_USE);
@@ -176,6 +196,9 @@ library ValidateLogic {
     require(!assetData.isFrozen, Errors.ASSET_IS_FROZEN);
     require(assetData.isBorrowingEnabled, Errors.ASSET_IS_BORROW_DISABLED);
 
+    validateSenderApproved(poolData, inputParams.msgSender, inputParams.asset, inputParams.onBehalf);
+    require(inputParams.receiver != address(0), Errors.INVALID_TO_ADDRESS);
+
     require(inputParams.groups.length > 0, Errors.GROUP_LIST_IS_EMPTY);
     require(inputParams.groups.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGTH);
     validateArrayDuplicateUInt8(inputParams.groups);
@@ -200,14 +223,13 @@ library ValidateLogic {
     InputTypes.ExecuteCrossBorrowERC20Params memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage assetData,
-    address user,
     address priceOracle
   ) internal view {
     ValidateCrossBorrowERC20Vars memory vars;
 
     ResultTypes.UserAccountResult memory userAccountResult = GenericLogic.calculateUserAccountDataForBorrow(
       poolData,
-      user,
+      inputParams.onBehalf,
       priceOracle
     );
 
@@ -260,6 +282,8 @@ library ValidateLogic {
     validateAssetBasic(assetData);
 
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+
+    require(inputParams.onBehalf != address(0), Errors.INVALID_ONBEHALF_ADDRESS);
 
     require(inputParams.groups.length > 0, Errors.GROUP_LIST_IS_EMPTY);
     require(inputParams.groups.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGTH);
@@ -353,8 +377,7 @@ library ValidateLogic {
     InputTypes.ExecuteIsolateBorrowParams memory inputParams,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage debtAssetData,
-    DataTypes.AssetData storage nftAssetData,
-    address user
+    DataTypes.AssetData storage nftAssetData
   ) internal view {
     ValidateIsolateBorrowVars memory vars;
 
@@ -369,6 +392,9 @@ library ValidateLogic {
     require(nftAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
     require(!nftAssetData.isFrozen, Errors.ASSET_IS_FROZEN);
 
+    validateSenderApproved(poolData, inputParams.msgSender, inputParams.nftAsset, inputParams.onBehalf);
+    require(inputParams.receiver != address(0), Errors.INVALID_TO_ADDRESS);
+
     require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
     require(inputParams.nftTokenIds.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGTH);
     validateArrayDuplicateUInt256(inputParams.nftTokenIds);
@@ -381,7 +407,7 @@ library ValidateLogic {
         nftAssetData,
         inputParams.nftTokenIds[vars.i]
       );
-      require(tokenData.owner == user, Errors.ISOLATE_LOAN_OWNER_NOT_MATCH);
+      require(tokenData.owner == inputParams.onBehalf, Errors.ISOLATE_LOAN_OWNER_NOT_MATCH);
       require(tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.ASSET_NOT_ISOLATE_MODE);
       require(
         tokenData.lockerAddr == address(this) || tokenData.lockerAddr == address(0),
@@ -462,6 +488,8 @@ library ValidateLogic {
 
     validateAssetBasic(nftAssetData);
     require(nftAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
+
+    require(inputParams.onBehalf != address(0), Errors.INVALID_ONBEHALF_ADDRESS);
 
     require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
     require(inputParams.nftTokenIds.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGTH);

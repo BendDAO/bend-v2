@@ -404,4 +404,13 @@ contract PoolLens is BaseModule {
   ) public view returns (address[][] memory) {
     return QueryLogic.getERC721Delegations(poolId, nftAsset, tokenIds);
   }
+
+  function isApprovedForAll(
+    uint32 poolId,
+    address account,
+    address asset,
+    address operator
+  ) public view returns (bool) {
+    return QueryLogic.isApprovedForAll(poolId, account, asset, operator);
+  }
 }

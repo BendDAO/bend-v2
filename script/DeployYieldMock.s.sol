@@ -48,8 +48,8 @@ contract DeployYieldMock is DeployBase {
   }
 
   function _deployMockSDai() internal {
-    MockDAIPot pot = new MockDAIPot();
+    new MockDAIPot();
     MockERC20 dai = new MockERC20('Dai Stablecoin', 'DAI', 18);
-    MockSDAI sdai = new MockSDAI(address(dai));
+    new MockSDAI(address(dai));
   }
 }

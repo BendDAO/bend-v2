@@ -89,4 +89,22 @@ library PoolLogic {
       delegateRegistryV2.delegateERC721(params.delegate, params.nftAsset, params.tokenIds[i], '', params.value);
     }
   }
+
+  function executeSetApprovalForAll(
+    address msgSender,
+    uint32 poolId,
+    address asset,
+    address operator,
+    bool approved
+  ) internal {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+
+    require(msgSender != operator, Errors.SAME_ONBEHALF_ADDRESS);
+
+    VaultLogic.accountSetApprovalForAll(poolData, msgSender, asset, operator, approved);
+
+    emit Events.SetApprovalForAll(msgSender, poolId, asset, operator, approved);
+  }
 }
