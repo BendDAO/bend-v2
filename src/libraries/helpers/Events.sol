@@ -213,7 +213,8 @@ library Events {
     uint256[] tokenIds,
     address debtAsset,
     uint256[] extraAmounts,
-    uint256[] remainAmounts
+    uint256[] remainAmounts,
+    bool supplyAsCollateral
   );
 
   /* Yield Events */

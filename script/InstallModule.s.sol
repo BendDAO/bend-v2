@@ -41,8 +41,8 @@ contract InstallModule is DeployBase {
     address[] memory modules = new address[](1);
     uint modIdx = 0;
 
-    Configurator tsConfiguratorImpl = new Configurator(gitCommitHash);
-    modules[modIdx++] = address(tsConfiguratorImpl);
+    BVault tsPoolLensImpl = new BVault(gitCommitHash);
+    modules[modIdx++] = address(tsPoolLensImpl);
 
     return modules;
   }

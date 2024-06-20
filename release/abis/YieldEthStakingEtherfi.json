@@ -10,6 +10,25 @@
   },
   {
     "type": "function",
+    "name": "accountYieldInWithdraws",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "accountYieldShares",
     "inputs": [
       {
@@ -280,7 +299,45 @@
   },
   {
     "type": "function",
+    "name": "getAccountTotalUnstakedYield",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getAccountTotalYield",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getAccountYieldBalance",
     "inputs": [
       {
         "name": "account",
@@ -698,6 +755,45 @@
   },
   {
     "type": "function",
+    "name": "nftConfigs",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "isActive",
+        "type": "bool",
+        "internalType": "bool"
+      },
+      {
+        "name": "leverageFactor",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "liquidationThreshold",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "maxUnstakeFine",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "unstakeHeathFactor",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "paused",
     "inputs": [],
     "outputs": [
@@ -898,6 +994,65 @@
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "stakeDatas",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "yieldAccount",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "poolId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "state",
+        "type": "uint8",
+        "internalType": "uint8"
+      },
+      {
+        "name": "debtShare",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "yieldShare",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "unstakeFine",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "withdrawAmount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "withdrawReqId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
