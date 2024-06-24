@@ -51,9 +51,9 @@ contract InitConfigYield is DeployBase {
       addrBAYC = 0xE15A78992dd4a9d6833eA7C9643650d3b0a2eD2B;
       addrMAYC = 0xD0ff8ae7E3D9591605505D3db9C33b96c4809CDC;
 
-      addrYieldLido = 0xbEbd4006710434493Ee223192272c7c7Ed3E8fFE;
-      addrYieldEtherfi = 0x337fa37aB2379acbcAD08428cE2eDC2B2212005c;
-      addrYieldSDai = 0xfDF26F93040C6e797D7Bc223a674a297d7264928;
+      addrYieldLido = 0x31484Ba5772B41313B951f1b98394cfaB5d8ed8b;
+      addrYieldEtherfi = 0x7dAe0FDE9a89553d65666531c2192Bf85F6edACc;
+      addrYieldSDai = 0x5F695a92C0B3A595ceE43750C433e7B1109CBe3C;
 
       commonPoolId = 1;
       addrIrmYield = 0xBD9859043CdDD4310e37CA87F37A829B488F2B4F;
@@ -67,7 +67,7 @@ contract InitConfigYield is DeployBase {
     priceOracle = PriceOracle(addressProvider.getPriceOracle());
     configurator = Configurator(addressProvider.getPoolModuleProxy(Constants.MODULEID__CONFIGURATOR));
 
-    initYieldPools();
+    //initYieldPools();
 
     initYieldLido();
 
