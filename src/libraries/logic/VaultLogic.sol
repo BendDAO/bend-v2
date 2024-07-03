@@ -498,6 +498,20 @@ library VaultLogic {
     assetData.availableLiquidity += amount;
   }
 
+  function erc20TransferInOnFlashLoan(address from, address[] memory assets, uint256[] memory amounts) internal {
+    for (uint256 i = 0; i < amounts.length; i++) {
+      IERC20Upgradeable(assets[i]).safeTransferFrom(from, address(this), amounts[i]);
+    }
+  }
+
+  function erc20TransferOutOnFlashLoan(address to, address[] memory assets, uint256[] memory amounts) internal {
+    require(to != address(0), Errors.INVALID_TO_ADDRESS);
+
+    for (uint256 i = 0; i < amounts.length; i++) {
+      IERC20Upgradeable(assets[i]).safeTransfer(to, amounts[i]);
+    }
+  }
+
   //////////////////////////////////////////////////////////////////////////////
   // ERC721 methods
   //////////////////////////////////////////////////////////////////////////////

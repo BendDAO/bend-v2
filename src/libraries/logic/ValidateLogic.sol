@@ -671,6 +671,18 @@ library ValidateLogic {
     );
   }
 
+  function validateFlashLoanERC20Basic(
+    InputTypes.ExecuteFlashLoanERC20Params memory inputParams,
+    DataTypes.PoolData storage poolData
+  ) internal view {
+    validatePoolBasic(poolData);
+
+    require(inputParams.assets.length == inputParams.amounts.length, Errors.INCONSISTENT_PARAMS_LENGTH);
+    require(inputParams.assets.length > 0, Errors.INVALID_ID_LIST);
+
+    require(inputParams.receiverAddress != address(0), Errors.INVALID_ADDRESS);
+  }
+
   function validateFlashLoanERC721Basic(
     InputTypes.ExecuteFlashLoanERC721Params memory inputParams,
     DataTypes.PoolData storage poolData

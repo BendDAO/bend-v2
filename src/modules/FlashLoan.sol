@@ -16,6 +16,27 @@ import {FlashLoanLogic} from '../libraries/logic/FlashLoanLogic.sol';
 contract FlashLoan is BaseModule {
   constructor(bytes32 moduleGitCommit_) BaseModule(Constants.MODULEID__FLASHLOAN, moduleGitCommit_) {}
 
+  /* @notice Don't use nonReentrant modifier here */
+  function flashLoanERC20(
+    uint32 poolId,
+    address[] calldata assets,
+    uint256[] calldata amounts,
+    address receiverAddress,
+    bytes calldata params
+  ) public whenNotPaused {
+    address msgSender = unpackTrailingParamMsgSender();
+    FlashLoanLogic.executeFlashLoanERC20(
+      InputTypes.ExecuteFlashLoanERC20Params({
+        msgSender: msgSender,
+        poolId: poolId,
+        assets: assets,
+        amounts: amounts,
+        receiverAddress: receiverAddress,
+        params: params
+      })
+    );
+  }
+
   function flashLoanERC721(
     uint32 poolId,
     address[] calldata nftAssets,

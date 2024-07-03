@@ -8,7 +8,7 @@ pragma solidity ^0.8.0;
  **/
 interface IFlashLoanReceiver {
   function executeOperationERC20(
-    address[] calldata nftAssets,
+    address[] calldata assets,
     uint256[] calldata amounts,
     address initiator,
     address operator,

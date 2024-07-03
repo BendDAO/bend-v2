@@ -166,6 +166,15 @@ library InputTypes {
   }
 
   // Misc
+  struct ExecuteFlashLoanERC20Params {
+    address msgSender;
+    uint32 poolId;
+    address[] assets;
+    uint256[] amounts;
+    address receiverAddress;
+    bytes params;
+  }
+
   struct ExecuteFlashLoanERC721Params {
     address msgSender;
     uint32 poolId;

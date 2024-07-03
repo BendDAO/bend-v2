@@ -223,6 +223,14 @@ library Events {
   event YieldRepayERC20(address indexed sender, uint256 indexed poolId, address indexed asset, uint256 amount);
 
   // Misc Events
+  event FlashLoanERC20(
+    address indexed sender,
+    uint32 indexed poolId,
+    address[] assets,
+    uint256[] amounts,
+    address receiverAddress
+  );
+
   event FlashLoanERC721(
     address indexed sender,
     uint32 indexed poolId,
