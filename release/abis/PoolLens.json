@@ -422,6 +422,45 @@
   },
   {
     "type": "function",
+    "name": "getERC721TokenDataList",
+    "inputs": [
+      {
+        "name": "poolId",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "assets",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "tokenIds",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "owners",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "supplyModes",
+        "type": "uint8[]",
+        "internalType": "uint8[]"
+      },
+      {
+        "name": "lockerAddrs",
+        "type": "address[]",
+        "internalType": "address[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getIsolateAuctionData",
     "inputs": [
       {

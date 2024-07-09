@@ -397,6 +397,20 @@ contract PoolLens is BaseModule {
     return QueryLogic.getERC721TokenData(poolId, asset, tokenId);
   }
 
+  function getERC721TokenDataList(
+    uint32 poolId,
+    address[] calldata assets,
+    uint256[] calldata tokenIds
+  ) public view returns (address[] memory owners, uint8[] memory supplyModes, address[] memory lockerAddrs) {
+    owners = new address[](assets.length);
+    supplyModes = new uint8[](assets.length);
+    lockerAddrs = new address[](assets.length);
+
+    for (uint i = 0; i < assets.length; i++) {
+      (owners[i], supplyModes[i], lockerAddrs[i]) = QueryLogic.getERC721TokenData(poolId, assets[i], tokenIds[i]);
+    }
+  }
+
   function getERC721Delegations(
     uint32 poolId,
     address nftAsset,
