@@ -93,6 +93,7 @@ library LiquidationLogic {
       params.borrower,
       collateralAssetData.supplyIndex
     );
+    require(vars.userCollateralBalance > 0, Errors.USER_COLLATERAL_SUPPLY_ZERO);
 
     (vars.actualCollateralToLiquidate, vars.actualDebtToLiquidate) = _calculateAvailableERC20CollateralToLiquidate(
       collateralAssetData,
@@ -101,6 +102,8 @@ library LiquidationLogic {
       vars.userCollateralBalance,
       IPriceOracleGetter(vars.priceOracle)
     );
+    require(vars.actualCollateralToLiquidate > 0, Errors.ACTUAL_COLLATERAL_TO_LIQUIDATE_ZERO);
+    require(vars.actualDebtToLiquidate > 0, Errors.ACTUAL_DEBT_TO_LIQUIDATE_ZERO);
 
     vars.remainDebtToLiquidate = _repayUserERC20Debt(
       poolData,
@@ -192,6 +195,7 @@ library LiquidationLogic {
     );
 
     vars.userCollateralBalance = VaultLogic.erc721GetUserCrossSupply(collateralAssetData, params.borrower);
+    require(vars.userCollateralBalance > 0, Errors.USER_COLLATERAL_SUPPLY_ZERO);
 
     // the liquidated debt amount will be decided by the liquidated collateral
     (vars.actualCollateralToLiquidate, vars.actualDebtToLiquidate) = _calculateDebtAmountFromERC721Collateral(
@@ -201,6 +205,8 @@ library LiquidationLogic {
       vars,
       IPriceOracleGetter(vars.priceOracle)
     );
+    require(vars.actualCollateralToLiquidate > 0, Errors.ACTUAL_COLLATERAL_TO_LIQUIDATE_ZERO);
+    require(vars.actualDebtToLiquidate > 0, Errors.ACTUAL_DEBT_TO_LIQUIDATE_ZERO);
 
     // try to repay debt for the user, the liquidated debt amount may less than user total debt
     vars.remainDebtToLiquidate = _repayUserERC20Debt(
