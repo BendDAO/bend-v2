@@ -112,6 +112,7 @@ library Errors {
   string public constant USER_COLLATERAL_SUPPLY_ZERO = '413';
   string public constant ACTUAL_COLLATERAL_TO_LIQUIDATE_ZERO = '414';
   string public constant ACTUAL_DEBT_TO_LIQUIDATE_ZERO = '415';
+  string public constant USER_DEBT_BORROWED_ZERO = '416';
 
   string public constant YIELD_EXCEED_ASSET_CAP_LIMIT = '500';
   string public constant YIELD_EXCEED_STAKER_CAP_LIMIT = '501';

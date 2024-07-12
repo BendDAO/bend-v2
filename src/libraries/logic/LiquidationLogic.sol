@@ -87,6 +87,7 @@ library LiquidationLogic {
       params,
       vars.userAccountResult.healthFactor
     );
+    require(vars.userTotalDebt > 0, Errors.USER_DEBT_BORROWED_ZERO);
 
     vars.userCollateralBalance = VaultLogic.erc20GetUserCrossSupply(
       collateralAssetData,
