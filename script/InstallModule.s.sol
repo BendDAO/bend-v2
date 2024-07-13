@@ -41,8 +41,8 @@ contract InstallModule is DeployBase {
     address[] memory modules = new address[](1);
     uint modIdx = 0;
 
-    CrossLiquidation tsCrossLiquidationImpl = new CrossLiquidation(gitCommitHash);
-    modules[modIdx++] = address(tsCrossLiquidationImpl);
+    PoolLens tsPoolLensImpl = new PoolLens(gitCommitHash);
+    modules[modIdx++] = address(tsPoolLensImpl);
 
     return modules;
   }

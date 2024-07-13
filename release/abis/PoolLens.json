@@ -785,9 +785,14 @@
     ],
     "outputs": [
       {
-        "name": "",
+        "name": "assets",
         "type": "address[]",
         "internalType": "address[]"
+      },
+      {
+        "name": "types",
+        "type": "uint8[]",
+        "internalType": "uint8[]"
       }
     ],
     "stateMutability": "view"

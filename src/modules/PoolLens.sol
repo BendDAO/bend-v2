@@ -42,7 +42,7 @@ contract PoolLens is BaseModule {
     return QueryLogic.getPoolGroupList(poolId);
   }
 
-  function getPoolAssetList(uint32 poolId) public view returns (address[] memory) {
+  function getPoolAssetList(uint32 poolId) public view returns (address[] memory assets, uint8[] memory types) {
     return QueryLogic.getPoolAssetList(poolId);
   }
 
