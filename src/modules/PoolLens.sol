@@ -11,6 +11,7 @@ import {InputTypes} from '../libraries/types/InputTypes.sol';
 import {StorageSlot} from '../libraries/logic/StorageSlot.sol';
 import {VaultLogic} from '../libraries/logic/VaultLogic.sol';
 import {QueryLogic} from '../libraries/logic/QueryLogic.sol';
+import {LiquidationLogic} from '../libraries/logic/LiquidationLogic.sol';
 
 /// @notice Pool Query Service Logic
 contract PoolLens is BaseModule {
@@ -188,6 +189,27 @@ contract PoolLens is BaseModule {
     )
   {
     return QueryLogic.getUserAccountDataForCalculation(user, poolId, calcType, asset, amount);
+  }
+
+  function getUserCrossLiquidateData(
+    uint32 poolId,
+    address borrower,
+    address collateralAsset,
+    uint256 collateralAmount,
+    address debtAsset,
+    uint256 debtAmount
+  ) public view returns (uint256 actualCollateralToLiquidate, uint256 actualDebtToLiquidate) {
+    return
+      LiquidationLogic.viewGetUserCrossLiquidateData(
+        InputTypes.ViewGetUserCrossLiquidateDataParams({
+          poolId: poolId,
+          borrower: borrower,
+          collateralAsset: collateralAsset,
+          collateralAmount: collateralAmount,
+          debtAsset: debtAsset,
+          debtAmount: debtAmount
+        })
+      );
   }
 
   function getUserAssetData(
