@@ -114,7 +114,7 @@ library VaultLogic {
     }
   }
 
-  function accountSetApprovalForAll(
+  function accountSetAuthorization(
     DataTypes.PoolData storage poolData,
     address account,
     address asset,
@@ -122,17 +122,17 @@ library VaultLogic {
     bool approved
   ) internal {
     DataTypes.AccountData storage accountData = poolData.accountLookup[account];
-    accountData.operatorApprovals[asset][operator] = approved;
+    accountData.operatorAuthorizations[asset][operator] = approved;
   }
 
-  function accountIsApprovedForAll(
+  function accountIsOperatorAuthorized(
     DataTypes.PoolData storage poolData,
     address account,
     address asset,
     address operator
   ) internal view returns (bool) {
     DataTypes.AccountData storage accountData = poolData.accountLookup[account];
-    return accountData.operatorApprovals[asset][operator];
+    return accountData.operatorAuthorizations[asset][operator];
   }
 
   //////////////////////////////////////////////////////////////////////////////

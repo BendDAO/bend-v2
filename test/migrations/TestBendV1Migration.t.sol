@@ -106,7 +106,7 @@ contract TestBendV1Migration is TestWithPrepare {
 
     // approve nft & auth to v1 migrate
     tsBorrower1.setApprovalForAllERC721(address(tsBAYC), address(v1Migration), true);
-    tsBorrower1.setApprovalForAll(tsCommonPoolId, address(tsWETH), address(v1Migration), true);
+    tsBorrower1.setAuthorization(tsCommonPoolId, address(tsWETH), address(v1Migration), true);
 
     address[] memory migNftAssets = new address[](1);
     migNftAssets[0] = address(tsBAYC);
@@ -142,7 +142,7 @@ contract TestBendV1Migration is TestWithPrepare {
 
     // approve nft & auth to v1 migrate
     tsBorrower1.setApprovalForAllERC721(address(tsBAYC), address(v1Migration), true);
-    tsBorrower1.setApprovalForAll(tsCommonPoolId, address(tsBAYC), address(v1Migration), true);
+    tsBorrower1.setAuthorization(tsCommonPoolId, address(tsBAYC), address(v1Migration), true);
 
     address[] memory migNftAssets = new address[](1);
     migNftAssets[0] = address(tsBAYC);

@@ -34,7 +34,7 @@ library DataTypes {
     EnumerableSetUpgradeable.AddressSet suppliedAssets;
     EnumerableSetUpgradeable.AddressSet borrowedAssets;
     // asset => operator => approved
-    mapping(address => mapping(address => bool)) operatorApprovals;
+    mapping(address => mapping(address => bool)) operatorAuthorizations;
   }
 
   struct GroupData {

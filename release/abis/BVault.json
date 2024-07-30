@@ -197,7 +197,7 @@
   },
   {
     "type": "function",
-    "name": "setApprovalForAll",
+    "name": "setAuthorization",
     "inputs": [
       {
         "name": "poolId",
@@ -521,7 +521,7 @@
   },
   {
     "type": "event",
-    "name": "SetApprovalForAll",
+    "name": "SetAuthorization",
     "inputs": [
       {
         "name": "sender",

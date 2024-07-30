@@ -1277,7 +1277,7 @@
   },
   {
     "type": "function",
-    "name": "isApprovedForAll",
+    "name": "isOperatorAuthorized",
     "inputs": [
       {
         "name": "poolId",

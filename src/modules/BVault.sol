@@ -162,13 +162,13 @@ contract BVault is BaseModule {
     );
   }
 
-  function setApprovalForAll(
+  function setAuthorization(
     uint32 poolId,
     address asset,
     address operator,
     bool approved
   ) public whenNotPaused nonReentrant {
     address msgSender = unpackTrailingParamMsgSender();
-    PoolLogic.executeSetApprovalForAll(msgSender, poolId, asset, operator, approved);
+    PoolLogic.executeSetAuthorization(msgSender, poolId, asset, operator, approved);
   }
 }

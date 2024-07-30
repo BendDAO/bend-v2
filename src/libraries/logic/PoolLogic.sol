@@ -90,7 +90,7 @@ library PoolLogic {
     }
   }
 
-  function executeSetApprovalForAll(
+  function executeSetAuthorization(
     address msgSender,
     uint32 poolId,
     address asset,
@@ -103,8 +103,8 @@ library PoolLogic {
 
     require(msgSender != operator, Errors.SAME_ONBEHALF_ADDRESS);
 
-    VaultLogic.accountSetApprovalForAll(poolData, msgSender, asset, operator, approved);
+    VaultLogic.accountSetAuthorization(poolData, msgSender, asset, operator, approved);
 
-    emit Events.SetApprovalForAll(msgSender, poolId, asset, operator, approved);
+    emit Events.SetAuthorization(msgSender, poolId, asset, operator, approved);
   }
 }

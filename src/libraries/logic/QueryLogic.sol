@@ -732,7 +732,7 @@ library QueryLogic {
     return delegateAddrs;
   }
 
-  function isApprovedForAll(
+  function isOperatorAuthorized(
     uint32 poolId,
     address account,
     address asset,
@@ -740,6 +740,6 @@ library QueryLogic {
   ) internal view returns (bool) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    return VaultLogic.accountIsApprovedForAll(poolData, account, asset, operator);
+    return VaultLogic.accountIsOperatorAuthorized(poolData, account, asset, operator);
   }
 }
