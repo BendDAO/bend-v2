@@ -54,31 +54,37 @@ contract BendV1Migration is Ownable2StepUpgradeable {
 
   /// @notice user need approve asset's bToken to this contract
   function migrateDeposit(uint32 poolId, address asset, uint256 amount) public {
-    // step 1:
+    require(amount > 0, 'BV1M: amount is zero');
+
+    (uint256 totalCrossSupplyBefore, , , ) = poolLensV2.getUserAssetData(msg.sender, poolId, asset);
+
+    // step 1: transfer bToken from user wallet and withdraw it
     IBendProtocolDataProviderV1.ReserveTokenData memory tokenData = dataProviderV1.getReserveTokenData(asset);
     IERC20Upgradeable(tokenData.bTokenAddress).safeTransferFrom(msg.sender, address(this), amount);
-
     poolV1.withdraw(asset, amount, address(this));
 
-    // step 2:
-    IERC20Upgradeable(tokenData.bTokenAddress).safeApprove(poolManagerV2, amount);
+    // step 2: deposit into v2 pools
+    IERC20Upgradeable(asset).safeApprove(poolManagerV2, amount);
     bvaultV2.depositERC20(poolId, asset, amount, msg.sender);
+
+    // check results
+    (uint256 totalCrossSupplyAfter, , , ) = poolLensV2.getUserAssetData(msg.sender, poolId, asset);
+    require(totalCrossSupplyAfter == (totalCrossSupplyBefore + amount), 'BV1M: total supply not match');
   }
 
   struct MigrateBorrowLocalVars {
-    address borrower;
     uint256 i;
     uint256 bidFine;
     uint256 loanId;
     address debtAsset;
     uint256[] debtAmounts;
+    address borrower;
     address[] flParamsAssets;
     uint256[] flParamsAmounts;
     bytes flParamsParams;
-    address paramsBorrower;
   }
 
-  /// @notice user need approve nft asset to this contract
+  /// @notice user need approve asset to this contract
   function migrateBorrow(
     uint32 poolId,
     address asset,
@@ -86,11 +92,15 @@ contract BendV1Migration is Ownable2StepUpgradeable {
     uint256[] calldata tokenIds,
     uint8 supplyMode
   ) public {
+    require(nftAssets.length > 0, 'BV1M: nftAssets is empty');
+    require(nftAssets.length == tokenIds.length, 'BV1M: inconsistent tokenIds');
+
     MigrateBorrowLocalVars memory vars;
 
     vars.flParamsAssets = new address[](1);
+    vars.flParamsAssets[0] = asset;
     vars.flParamsAmounts = new uint256[](1);
-    vars.borrower = msg.sender;
+    vars.debtAmounts = new uint256[](tokenIds.length);
 
     for (vars.i = 0; vars.i < tokenIds.length; vars.i++) {
       (, , , , vars.bidFine) = poolV1.getNftAuctionData(nftAssets[vars.i], tokenIds[vars.i]);
@@ -100,34 +110,16 @@ contract BendV1Migration is Ownable2StepUpgradeable {
         nftAssets[vars.i],
         tokenIds[vars.i]
       );
+      require(vars.debtAsset == asset, 'BV1M: debt asset not same');
 
       vars.borrower = poolLoanV1.borrowerOf(vars.loanId);
-      if (vars.i == 0) {
-        require(vars.debtAsset != asset, 'BV1M: debt asset not same');
-
-        // check borrower must be caller
-        require(vars.borrower == msg.sender, 'BV1M: caller not borrower');
-        vars.flParamsAssets[0] = vars.debtAsset;
-        vars.paramsBorrower = vars.borrower;
-      } else {
-        // check borrower and asset must be same
-        require(vars.flParamsAssets[0] == vars.debtAsset, 'BV1M: old debt asset not same');
-        require(vars.paramsBorrower == vars.borrower, 'BV1M: borrower not same');
-      }
+      require(vars.borrower == msg.sender, 'BV1M: caller not borrower');
 
       // new debt should cover old debt + flash loan premium (optional)
       vars.flParamsAmounts[0] += vars.debtAmounts[vars.i];
     }
 
-    vars.flParamsParams = abi.encode(
-      vars.paramsBorrower,
-      poolId,
-      asset,
-      nftAssets,
-      tokenIds,
-      supplyMode,
-      vars.debtAmounts
-    );
+    vars.flParamsParams = abi.encode(vars.borrower, poolId, asset, nftAssets, tokenIds, supplyMode, vars.debtAmounts);
 
     flashLoanV2.flashLoanERC20(poolId, vars.flParamsAssets, vars.flParamsAmounts, address(this), vars.flParamsParams);
   }
@@ -199,7 +191,7 @@ contract BendV1Migration is Ownable2StepUpgradeable {
     execVars.v2ParamAmounts[0] = execVars.debtAmounts[execVars.i];
 
     // step 1.1: repay debt to v1
-    IERC20Upgradeable(execVars.asset).safeApprove(poolManagerV2, execVars.debtAmounts[execVars.i]);
+    IERC20Upgradeable(execVars.asset).safeApprove(address(poolV1), execVars.debtAmounts[execVars.i]);
     poolV1.repay(execVars.nftAssets[execVars.i], execVars.tokenIds[execVars.i], execVars.debtAmounts[execVars.i]);
 
     // step 1.2: transfer nft from borrower's wallet
@@ -209,23 +201,37 @@ contract BendV1Migration is Ownable2StepUpgradeable {
       execVars.tokenIds[execVars.i]
     );
 
-    (
-      execVars.totalCrossSupplyBefore,
-      execVars.totalIsolateSupplyBefore,
-      execVars.totalCrossBorrowBefore,
-      execVars.totalIsolateBorrowBefore
-    ) = poolLensV2.getUserAssetData(execVars.borrower, execVars.poolId, execVars.asset);
-
     // step 2.1: deposit nft to v2
+
+    (execVars.totalCrossSupplyBefore, execVars.totalIsolateSupplyBefore, , ) = poolLensV2.getUserAssetData(
+      execVars.borrower,
+      execVars.poolId,
+      execVars.nftAssets[execVars.i]
+    );
+
+    IERC721Upgradeable(execVars.nftAssets[execVars.i]).approve(poolManagerV2, execVars.tokenIds[execVars.i]);
     bvaultV2.depositERC721(
       execVars.poolId,
-      execVars.asset,
+      execVars.nftAssets[execVars.i],
       execVars.v2ParamTokenIds,
       execVars.supplyMode,
       execVars.borrower
     );
 
+    (execVars.totalCrossSupplyAfter, execVars.totalIsolateSupplyAfter, , ) = poolLensV2.getUserAssetData(
+      execVars.borrower,
+      execVars.poolId,
+      execVars.nftAssets[execVars.i]
+    );
+
     // step 2.2: borrow from v2
+
+    (, , execVars.totalCrossBorrowBefore, execVars.totalIsolateBorrowBefore) = poolLensV2.getUserAssetData(
+      execVars.borrower,
+      execVars.poolId,
+      execVars.asset
+    );
+
     if (execVars.supplyMode == Constants.SUPPLY_MODE_CROSS) {
       (execVars.v2ParamGroups[0], , , , ) = poolLensV2.getAssetLendingConfig(execVars.poolId, execVars.asset);
 
@@ -250,12 +256,11 @@ contract BendV1Migration is Ownable2StepUpgradeable {
     }
 
     // Last step: check the results are expected
-    (
-      execVars.totalCrossSupplyAfter,
-      execVars.totalIsolateSupplyAfter,
-      execVars.totalCrossBorrowAfter,
-      execVars.totalIsolateBorrowAfter
-    ) = poolLensV2.getUserAssetData(execVars.borrower, execVars.poolId, execVars.asset);
+    (, , execVars.totalCrossBorrowAfter, execVars.totalIsolateBorrowAfter) = poolLensV2.getUserAssetData(
+      execVars.borrower,
+      execVars.poolId,
+      execVars.asset
+    );
 
     if (execVars.supplyMode == Constants.SUPPLY_MODE_CROSS) {
       require(execVars.totalCrossSupplyAfter == (execVars.totalCrossSupplyBefore + 1), 'BV1M: cross supply not match');
@@ -283,5 +288,38 @@ contract BendV1Migration is Ownable2StepUpgradeable {
     bytes calldata /*params*/
   ) public pure returns (bool) {
     return false;
+  }
+
+  function getNftDebtDataList(
+    uint32 poolId,
+    address[] calldata nftAssets,
+    uint256[] calldata nftTokenIds,
+    uint8 /*supplyMode*/
+  ) external view returns (uint256[] memory v2DebtAmounts, uint256[] memory v1RepayAmounts) {
+    require(nftAssets.length == nftTokenIds.length, 'BV1M: inconsistent assets and token ids');
+
+    v2DebtAmounts = new uint256[](nftTokenIds.length);
+    v1RepayAmounts = new uint256[](nftTokenIds.length);
+
+    for (uint256 i = 0; i < nftTokenIds.length; i++) {
+      (, address debtAsset, , uint256 debtAmout, , ) = poolV1.getNftDebtData(nftAssets[i], nftTokenIds[i]);
+      v2DebtAmounts[i] = debtAmout;
+
+      // calculate the required repay amount for the old debt
+      // availableBorrow value should be same whether new nft used in cross or isolate
+      (, , uint256 availableBorrow, ) = poolLensV2.getIsolateCollateralData(
+        poolId,
+        nftAssets[i],
+        nftTokenIds[i],
+        debtAsset
+      );
+      if (availableBorrow < v2DebtAmounts[i]) {
+        v1RepayAmounts[i] = v2DebtAmounts[i] - availableBorrow;
+      }
+    }
+  }
+
+  function onERC721Received(address, address, uint256, bytes memory) public virtual returns (bytes4) {
+    return this.onERC721Received.selector;
   }
 }

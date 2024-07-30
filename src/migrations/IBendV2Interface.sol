@@ -76,4 +76,11 @@ interface IPoolLensV2 {
       uint256 totalCrossBorrow,
       uint256 totalIsolateBorrow
     );
+
+  function getIsolateCollateralData(
+    uint32 poolId,
+    address nftAsset,
+    uint256 tokenId,
+    address debtAsset
+  ) external view returns (uint256 totalCollateral, uint256 totalBorrow, uint256 availableBorrow, uint256 healthFactor);
 }
