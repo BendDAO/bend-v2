@@ -14,6 +14,7 @@ import {IsolateLiquidation} from 'src/modules/IsolateLiquidation.sol';
 import {Yield} from 'src/modules/Yield.sol';
 import {FlashLoan} from 'src/modules/FlashLoan.sol';
 import {PoolLens} from 'src/modules/PoolLens.sol';
+import {UIPoolLens} from 'src/modules/UIPoolLens.sol';
 
 import {Configured, ConfigLib, Config} from 'config/Configured.sol';
 import {DeployBase} from './DeployBase.s.sol';
@@ -38,11 +39,14 @@ contract InstallModule is DeployBase {
   }
 
   function _someModules() internal returns (address[] memory) {
-    address[] memory modules = new address[](1);
+    address[] memory modules = new address[](2);
     uint modIdx = 0;
 
     PoolLens tsPoolLensImpl = new PoolLens(gitCommitHash);
     modules[modIdx++] = address(tsPoolLensImpl);
+
+    UIPoolLens tsUIPoolLensImpl = new UIPoolLens(gitCommitHash);
+    modules[modIdx++] = address(tsUIPoolLensImpl);
 
     return modules;
   }
@@ -77,6 +81,9 @@ contract InstallModule is DeployBase {
 
     PoolLens tsPoolLensImpl = new PoolLens(gitCommitHash);
     modules[modIdx++] = address(tsPoolLensImpl);
+
+    UIPoolLens tsUIPoolLensImpl = new UIPoolLens(gitCommitHash);
+    modules[modIdx++] = address(tsUIPoolLensImpl);
 
     return modules;
   }

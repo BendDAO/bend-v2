@@ -422,45 +422,6 @@
   },
   {
     "type": "function",
-    "name": "getERC721TokenDataList",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "internalType": "uint32"
-      },
-      {
-        "name": "assets",
-        "type": "address[]",
-        "internalType": "address[]"
-      },
-      {
-        "name": "tokenIds",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "owners",
-        "type": "address[]",
-        "internalType": "address[]"
-      },
-      {
-        "name": "supplyModes",
-        "type": "uint8[]",
-        "internalType": "uint8[]"
-      },
-      {
-        "name": "lockerAddrs",
-        "type": "address[]",
-        "internalType": "address[]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "getIsolateAuctionData",
     "inputs": [
       {
@@ -520,65 +481,6 @@
   },
   {
     "type": "function",
-    "name": "getIsolateAuctionDataList",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "internalType": "uint32"
-      },
-      {
-        "name": "nftAssets",
-        "type": "address[]",
-        "internalType": "address[]"
-      },
-      {
-        "name": "tokenIds",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "bidStartTimestamps",
-        "type": "uint40[]",
-        "internalType": "uint40[]"
-      },
-      {
-        "name": "bidEndTimestamps",
-        "type": "uint40[]",
-        "internalType": "uint40[]"
-      },
-      {
-        "name": "firstBidders",
-        "type": "address[]",
-        "internalType": "address[]"
-      },
-      {
-        "name": "lastBidders",
-        "type": "address[]",
-        "internalType": "address[]"
-      },
-      {
-        "name": "bidAmounts",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      },
-      {
-        "name": "bidFines",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      },
-      {
-        "name": "redeemAmounts",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "getIsolateCollateralData",
     "inputs": [
       {
@@ -628,7 +530,7 @@
   },
   {
     "type": "function",
-    "name": "getIsolateCollateralDataList",
+    "name": "getIsolateLiquidateData",
     "inputs": [
       {
         "name": "poolId",
@@ -636,41 +538,31 @@
         "internalType": "uint32"
       },
       {
-        "name": "nftAssets",
-        "type": "address[]",
-        "internalType": "address[]"
+        "name": "nftAsset",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        "name": "tokenIds",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      },
-      {
-        "name": "debtAssets",
-        "type": "address[]",
-        "internalType": "address[]"
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "outputs": [
       {
-        "name": "totalCollaterals",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
+        "name": "borrowAmount",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        "name": "totalBorrows",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
+        "name": "thresholdPrice",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
-        "name": "availableBorrows",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      },
-      {
-        "name": "healthFactors",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
+        "name": "liquidatePrice",
+        "type": "uint256",
+        "internalType": "uint256"
       }
     ],
     "stateMutability": "view"
@@ -720,55 +612,6 @@
         "name": "loanStatus",
         "type": "uint8",
         "internalType": "uint8"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getIsolateLoanDataList",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "internalType": "uint32"
-      },
-      {
-        "name": "nftAssets",
-        "type": "address[]",
-        "internalType": "address[]"
-      },
-      {
-        "name": "tokenIds",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "reserveAssets",
-        "type": "address[]",
-        "internalType": "address[]"
-      },
-      {
-        "name": "scaledAmounts",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      },
-      {
-        "name": "borrowAmounts",
-        "type": "uint256[]",
-        "internalType": "uint256[]"
-      },
-      {
-        "name": "reserveGroups",
-        "type": "uint8[]",
-        "internalType": "uint8[]"
-      },
-      {
-        "name": "loanStatuses",
-        "type": "uint8[]",
-        "internalType": "uint8[]"
       }
     ],
     "stateMutability": "view"
@@ -921,70 +764,6 @@
         "name": "poolId",
         "type": "uint32",
         "internalType": "uint32"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "totalCollateralInBase",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "totalBorrowInBase",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "availableBorrowInBase",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "avgLtv",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "avgLiquidationThreshold",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "healthFactor",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getUserAccountDataForCalculation",
-    "inputs": [
-      {
-        "name": "user",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "internalType": "uint32"
-      },
-      {
-        "name": "calcType",
-        "type": "uint8",
-        "internalType": "uint8"
-      },
-      {
-        "name": "asset",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "internalType": "uint256"
       }
     ],
     "outputs": [

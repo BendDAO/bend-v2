@@ -23,6 +23,7 @@ library Constants {
   uint internal constant MODULEID__CROSS_LIQUIDATION = 12;
   uint internal constant MODULEID__ISOLATE_LENDING = 21;
   uint internal constant MODULEID__ISOLATE_LIQUIDATION = 22;
+  uint internal constant MODULEID__UI_POOL_LENS = 31;
 
   uint internal constant MAX_EXTERNAL_SINGLE_PROXY_MODULEID = 499_999;
 
