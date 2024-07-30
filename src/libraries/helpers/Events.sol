@@ -239,7 +239,7 @@ library Events {
     address receiverAddress
   );
 
-  event SetApprovalForAll(
+  event SetAuthorization(
     address indexed sender,
     uint32 indexed poolId,
     address indexed asset,

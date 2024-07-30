@@ -33,6 +33,7 @@ import {IsolateLiquidation} from 'src/modules/IsolateLiquidation.sol';
 import {Yield} from 'src/modules/Yield.sol';
 import {PoolLens} from 'src/modules/PoolLens.sol';
 import {FlashLoan} from 'src/modules/FlashLoan.sol';
+import {UIPoolLens} from 'src/modules/UIPoolLens.sol';
 
 import {MockERC20} from 'test/mocks/MockERC20.sol';
 import {MockERC721} from 'test/mocks/MockERC721.sol';
@@ -115,6 +116,7 @@ abstract contract TestWithSetup is TestWithUtils {
   Yield public tsYield;
   PoolLens tsPoolLens;
   FlashLoan tsFlashLoan;
+  UIPoolLens tsUIPoolLens;
 
   uint32 public tsCommonPoolId;
   uint8 public tsLowRateGroupId;
@@ -238,7 +240,7 @@ abstract contract TestWithSetup is TestWithUtils {
 
     tsInstaller = Installer(tsPoolManager.moduleIdToProxy(Constants.MODULEID__INSTALLER));
 
-    address[] memory modules = new address[](9);
+    address[] memory modules = new address[](10);
     uint modIdx = 0;
 
     Configurator tsConfiguratorImpl = new Configurator(gitCommit);
@@ -268,6 +270,9 @@ abstract contract TestWithSetup is TestWithUtils {
     PoolLens tsPoolLensImpl = new PoolLens(gitCommit);
     modules[modIdx++] = address(tsPoolLensImpl);
 
+    UIPoolLens tsUIPoolLensImpl = new UIPoolLens(gitCommit);
+    modules[modIdx++] = address(tsUIPoolLensImpl);
+
     tsHEVM.prank(tsPoolAdmin);
     tsInstaller.installModules(modules);
 
@@ -280,6 +285,7 @@ abstract contract TestWithSetup is TestWithUtils {
     tsYield = Yield(tsPoolManager.moduleIdToProxy(Constants.MODULEID__YIELD));
     tsPoolLens = PoolLens(tsPoolManager.moduleIdToProxy(Constants.MODULEID__POOL_LENS));
     tsFlashLoan = FlashLoan(tsPoolManager.moduleIdToProxy(Constants.MODULEID__FLASHLOAN));
+    tsUIPoolLens = UIPoolLens(tsPoolManager.moduleIdToProxy(Constants.MODULEID__UI_POOL_LENS));
 
     // YieldRegistry
     YieldRegistry yieldRegistryImpl = new YieldRegistry();

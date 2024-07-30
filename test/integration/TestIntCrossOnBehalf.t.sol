@@ -104,7 +104,7 @@ contract TestIntCrossOnBehalf is TestWithPrepare {
     tsDepositor1.withdrawERC20(tsCommonPoolId, address(tsWETH), amount1, address(tsDepositor2), address(tsDepositor3));
 
     // invalid receiver
-    tsDepositor2.setApprovalForAll(tsCommonPoolId, address(tsWETH), address(tsDepositor1), true);
+    tsDepositor2.setAuthorization(tsCommonPoolId, address(tsWETH), address(tsDepositor1), true);
 
     tsHEVM.expectRevert(bytes(Errors.INVALID_TO_ADDRESS));
     tsDepositor1.withdrawERC20(tsCommonPoolId, address(tsWETH), amount1, address(tsDepositor2), address(0));
@@ -139,7 +139,7 @@ contract TestIntCrossOnBehalf is TestWithPrepare {
       Constants.ASSET_TYPE_ERC20
     );
 
-    tsDepositor2.setApprovalForAll(tsCommonPoolId, address(tsWETH), address(tsDepositor1), true);
+    tsDepositor2.setAuthorization(tsCommonPoolId, address(tsWETH), address(tsDepositor1), true);
 
     tsDepositor1.withdrawERC20(tsCommonPoolId, address(tsWETH), amount1, address(tsDepositor2), address(tsDepositor3));
 
@@ -246,7 +246,7 @@ contract TestIntCrossOnBehalf is TestWithPrepare {
     );
 
     // invalid receiver
-    tsBorrower2.setApprovalForAll(tsCommonPoolId, address(tsWETH), address(tsBorrower1), true);
+    tsBorrower2.setAuthorization(tsCommonPoolId, address(tsWETH), address(tsBorrower1), true);
 
     tsHEVM.expectRevert(bytes(Errors.INVALID_TO_ADDRESS));
     tsBorrower1.crossBorrowERC20(
@@ -299,7 +299,7 @@ contract TestIntCrossOnBehalf is TestWithPrepare {
       tsPriceOracle.getAssetPrice(address(tsWETH));
 
     // approve
-    tsBorrower2.setApprovalForAll(tsCommonPoolId, address(tsWETH), address(tsBorrower1), true);
+    tsBorrower2.setAuthorization(tsCommonPoolId, address(tsWETH), address(tsBorrower1), true);
 
     tsBorrower1.crossBorrowERC20(
       tsCommonPoolId,

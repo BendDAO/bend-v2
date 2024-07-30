@@ -669,6 +669,29 @@ library QueryLogic {
     redeemAmount = borrowAmount.percentMul(nftAssetData.redeemThreshold);
   }
 
+  function getIsolateLiquidateData(
+    uint32 poolId,
+    address nftAsset,
+    uint256 tokenId
+  ) internal view returns (uint256 borrowAmount, uint256 thresholdPrice, uint256 liquidatePrice) {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+
+    DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[nftAsset][tokenId];
+
+    DataTypes.AssetData storage nftAssetData = poolData.assetLookup[nftAsset];
+    DataTypes.AssetData storage debtAssetData = poolData.assetLookup[loanData.reserveAsset];
+    DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[loanData.reserveGroup];
+
+    (borrowAmount, thresholdPrice, liquidatePrice) = GenericLogic.calculateNftLoanLiquidatePrice(
+      debtAssetData,
+      debtGroupData,
+      nftAssetData,
+      loanData,
+      IAddressProvider(ps.addressProvider).getPriceOracle()
+    );
+  }
+
   function getYieldERC20BorrowBalance(uint32 poolId, address asset, address staker) internal view returns (uint256) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
@@ -732,7 +755,7 @@ library QueryLogic {
     return delegateAddrs;
   }
 
-  function isApprovedForAll(
+  function isOperatorAuthorized(
     uint32 poolId,
     address account,
     address asset,
@@ -740,6 +763,6 @@ library QueryLogic {
   ) internal view returns (bool) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    return VaultLogic.accountIsApprovedForAll(poolData, account, asset, operator);
+    return VaultLogic.accountIsOperatorAuthorized(poolData, account, asset, operator);
   }
 }

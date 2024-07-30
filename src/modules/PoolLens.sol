@@ -169,28 +169,6 @@ contract PoolLens is BaseModule {
     return QueryLogic.getUserAccountData(user, poolId);
   }
 
-  /* @dev calcType: 1-supply, 2-withdraw, 3-borrow, 4-repay */
-  function getUserAccountDataForCalculation(
-    address user,
-    uint32 poolId,
-    uint8 calcType,
-    address asset,
-    uint256 amount
-  )
-    public
-    view
-    returns (
-      uint256 totalCollateralInBase,
-      uint256 totalBorrowInBase,
-      uint256 availableBorrowInBase,
-      uint256 avgLtv,
-      uint256 avgLiquidationThreshold,
-      uint256 healthFactor
-    )
-  {
-    return QueryLogic.getUserAccountDataForCalculation(user, poolId, calcType, asset, amount);
-  }
-
   function getUserCrossLiquidateData(
     uint32 poolId,
     address borrower,
@@ -284,32 +262,6 @@ contract PoolLens is BaseModule {
     return QueryLogic.getIsolateCollateralData(poolId, nftAsset, tokenId, debtAsset);
   }
 
-  function getIsolateCollateralDataList(
-    uint32 poolId,
-    address[] calldata nftAssets,
-    uint256[] calldata tokenIds,
-    address[] calldata debtAssets
-  )
-    public
-    view
-    returns (
-      uint256[] memory totalCollaterals,
-      uint256[] memory totalBorrows,
-      uint256[] memory availableBorrows,
-      uint256[] memory healthFactors
-    )
-  {
-    totalCollaterals = new uint256[](nftAssets.length);
-    totalBorrows = new uint256[](nftAssets.length);
-    availableBorrows = new uint256[](nftAssets.length);
-    healthFactors = new uint256[](nftAssets.length);
-
-    for (uint i = 0; i < nftAssets.length; i++) {
-      (totalCollaterals[i], totalBorrows[i], availableBorrows[i], healthFactors[i]) = QueryLogic
-        .getIsolateCollateralData(poolId, nftAssets[i], tokenIds[i], debtAssets[i]);
-    }
-  }
-
   function getIsolateLoanData(
     uint32 poolId,
     address nftAsset,
@@ -320,33 +272,6 @@ contract PoolLens is BaseModule {
     returns (address reserveAsset, uint256 scaledAmount, uint256 borrowAmount, uint8 reserveGroup, uint8 loanStatus)
   {
     return QueryLogic.getIsolateLoanData(poolId, nftAsset, tokenId);
-  }
-
-  function getIsolateLoanDataList(
-    uint32 poolId,
-    address[] calldata nftAssets,
-    uint256[] calldata tokenIds
-  )
-    public
-    view
-    returns (
-      address[] memory reserveAssets,
-      uint256[] memory scaledAmounts,
-      uint256[] memory borrowAmounts,
-      uint8[] memory reserveGroups,
-      uint8[] memory loanStatuses
-    )
-  {
-    reserveAssets = new address[](nftAssets.length);
-    scaledAmounts = new uint256[](nftAssets.length);
-    borrowAmounts = new uint256[](nftAssets.length);
-    reserveGroups = new uint8[](nftAssets.length);
-    loanStatuses = new uint8[](nftAssets.length);
-
-    for (uint i = 0; i < nftAssets.length; i++) {
-      (reserveAssets[i], scaledAmounts[i], borrowAmounts[i], reserveGroups[i], loanStatuses[i]) = QueryLogic
-        .getIsolateLoanData(poolId, nftAssets[i], tokenIds[i]);
-    }
   }
 
   function getIsolateAuctionData(
@@ -369,42 +294,12 @@ contract PoolLens is BaseModule {
     return QueryLogic.getIsolateAuctionData(poolId, nftAsset, tokenId);
   }
 
-  function getIsolateAuctionDataList(
+  function getIsolateLiquidateData(
     uint32 poolId,
-    address[] calldata nftAssets,
-    uint256[] calldata tokenIds
-  )
-    public
-    view
-    returns (
-      uint40[] memory bidStartTimestamps,
-      uint40[] memory bidEndTimestamps,
-      address[] memory firstBidders,
-      address[] memory lastBidders,
-      uint256[] memory bidAmounts,
-      uint256[] memory bidFines,
-      uint256[] memory redeemAmounts
-    )
-  {
-    bidStartTimestamps = new uint40[](nftAssets.length);
-    bidEndTimestamps = new uint40[](nftAssets.length);
-    firstBidders = new address[](nftAssets.length);
-    lastBidders = new address[](nftAssets.length);
-    bidAmounts = new uint256[](nftAssets.length);
-    bidFines = new uint256[](nftAssets.length);
-    redeemAmounts = new uint256[](nftAssets.length);
-
-    for (uint i = 0; i < nftAssets.length; i++) {
-      (
-        bidStartTimestamps[i],
-        bidEndTimestamps[i],
-        firstBidders[i],
-        lastBidders[i],
-        bidAmounts[i],
-        bidFines[i],
-        redeemAmounts[i]
-      ) = QueryLogic.getIsolateAuctionData(poolId, nftAssets[i], tokenIds[i]);
-    }
+    address nftAsset,
+    uint256 tokenId
+  ) public view returns (uint256 borrowAmount, uint256 thresholdPrice, uint256 liquidatePrice) {
+    return QueryLogic.getIsolateLiquidateData(poolId, nftAsset, tokenId);
   }
 
   function getYieldERC20BorrowBalance(uint32 poolId, address asset, address staker) public view returns (uint256) {
@@ -419,20 +314,6 @@ contract PoolLens is BaseModule {
     return QueryLogic.getERC721TokenData(poolId, asset, tokenId);
   }
 
-  function getERC721TokenDataList(
-    uint32 poolId,
-    address[] calldata assets,
-    uint256[] calldata tokenIds
-  ) public view returns (address[] memory owners, uint8[] memory supplyModes, address[] memory lockerAddrs) {
-    owners = new address[](assets.length);
-    supplyModes = new uint8[](assets.length);
-    lockerAddrs = new address[](assets.length);
-
-    for (uint i = 0; i < assets.length; i++) {
-      (owners[i], supplyModes[i], lockerAddrs[i]) = QueryLogic.getERC721TokenData(poolId, assets[i], tokenIds[i]);
-    }
-  }
-
   function getERC721Delegations(
     uint32 poolId,
     address nftAsset,
@@ -441,12 +322,12 @@ contract PoolLens is BaseModule {
     return QueryLogic.getERC721Delegations(poolId, nftAsset, tokenIds);
   }
 
-  function isApprovedForAll(
+  function isOperatorAuthorized(
     uint32 poolId,
     address account,
     address asset,
     address operator
   ) public view returns (bool) {
-    return QueryLogic.isApprovedForAll(poolId, account, asset, operator);
+    return QueryLogic.isOperatorAuthorized(poolId, account, asset, operator);
   }
 }

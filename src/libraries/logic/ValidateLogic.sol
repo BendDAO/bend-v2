@@ -70,7 +70,7 @@ library ValidateLogic {
     address onBehalf
   ) internal view {
     require(
-      msgSender == onBehalf || VaultLogic.accountIsApprovedForAll(poolData, onBehalf, asset, msgSender),
+      msgSender == onBehalf || VaultLogic.accountIsOperatorAuthorized(poolData, onBehalf, asset, msgSender),
       Errors.SENDER_NOT_APPROVED
     );
   }
