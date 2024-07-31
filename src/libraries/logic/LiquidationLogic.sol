@@ -283,8 +283,6 @@ library LiquidationLogic {
     InputTypes.ExecuteCrossLiquidateERC20Params memory params,
     LiquidateERC20LocalVars memory vars
   ) internal {
-    // no need to update the interest rate, cos the total suplly not changed
-
     // transfer the equivalent amount between liquidator and borrower
     VaultLogic.erc20TransferCrossSupply(
       collateralAssetData,
@@ -295,6 +293,9 @@ library LiquidationLogic {
 
     // If the collateral is supplied at first we need set the supply flag
     VaultLogic.accountCheckAndSetSuppliedAsset(poolData, collateralAssetData, params.msgSender);
+
+    // update rates to emit interest events
+    InterestLogic.updateInterestRates(poolData, collateralAssetData, 0, 0);
   }
 
   /**

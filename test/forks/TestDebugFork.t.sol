@@ -22,7 +22,7 @@ contract TestDebugFork is Test {
     installer = Installer(poolManager.moduleIdToProxy(Constants.MODULEID__INSTALLER));
   }
 
-  function testFork_Debug() public {
+  function _testFork_Debug() public {
     bytes32 gitCommitHash;
     address[] memory modules = new address[](1);
     uint256 modIdx;

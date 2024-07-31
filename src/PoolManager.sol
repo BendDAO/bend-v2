@@ -14,7 +14,7 @@ import {Proxy} from 'src/base/Proxy.sol';
 
 /// @notice Main storage contract
 contract PoolManager is Base {
-  string public constant name = 'Bend Protocol V2';
+  string public constant name = 'BendDAO Protocol V2';
 
   constructor(address provider_, address installerModule) {
     reentrancyLock = Constants.REENTRANCYLOCK__UNLOCKED;
