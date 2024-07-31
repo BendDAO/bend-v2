@@ -22,8 +22,16 @@ contract QueryPool is QueryBase {
 
     PoolLens poolLens = PoolLens(poolManager.moduleIdToProxy(Constants.MODULEID__POOL_LENS));
 
-    poolLens.getUserAccountData(0x8b04B42962BeCb429a4dBFb5025b66D3d7D31d27, 1);
+    poolLens.getUserAssetList(0xc24c9Af9007B8Eb713eFf069CDeC013DD86402E8, 1);
 
-    poolLens.getUserAccountGroupData(0x8b04B42962BeCb429a4dBFb5025b66D3d7D31d27, 1);
+    poolLens.getUserAccountData(0xc24c9Af9007B8Eb713eFf069CDeC013DD86402E8, 1);
+
+    poolLens.getUserAccountGroupData(0xc24c9Af9007B8Eb713eFf069CDeC013DD86402E8, 1);
+
+    poolLens.getUserAssetScaledData(
+      0xc24c9Af9007B8Eb713eFf069CDeC013DD86402E8,
+      1,
+      0xf9a88B0cc31f248c89F063C2928fA10e5A029B88
+    );
   }
 }

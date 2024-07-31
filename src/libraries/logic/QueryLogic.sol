@@ -406,6 +406,18 @@ library QueryLogic {
     );
   }
 
+  function getUserAssetList(
+    address user,
+    uint32 poolId
+  ) internal view returns (address[] memory suppliedAssets, address[] memory borrowedAssets) {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    DataTypes.AccountData storage accountData = poolData.accountLookup[user];
+
+    suppliedAssets = VaultLogic.accountGetSuppliedAssets(accountData);
+    borrowedAssets = VaultLogic.accountGetBorrowedAssets(accountData);
+  }
+
   struct GetUserAssetDataLocalVars {
     uint256 aidx;
     uint256 gidx;

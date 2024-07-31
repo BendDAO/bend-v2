@@ -39,14 +39,11 @@ contract InstallModule is DeployBase {
   }
 
   function _someModules() internal returns (address[] memory) {
-    address[] memory modules = new address[](2);
+    address[] memory modules = new address[](1);
     uint modIdx = 0;
 
     PoolLens tsPoolLensImpl = new PoolLens(gitCommitHash);
     modules[modIdx++] = address(tsPoolLensImpl);
-
-    UIPoolLens tsUIPoolLensImpl = new UIPoolLens(gitCommitHash);
-    modules[modIdx++] = address(tsUIPoolLensImpl);
 
     return modules;
   }

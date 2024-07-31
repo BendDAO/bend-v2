@@ -190,6 +190,13 @@ contract PoolLens is BaseModule {
       );
   }
 
+  function getUserAssetList(
+    address user,
+    uint32 poolId
+  ) public view returns (address[] memory suppliedAssets, address[] memory borrowedAssets) {
+    return QueryLogic.getUserAssetList(user, poolId);
+  }
+
   function getUserAssetData(
     address user,
     uint32 poolId,
