@@ -934,6 +934,35 @@
   },
   {
     "type": "function",
+    "name": "getUserAssetList",
+    "inputs": [
+      {
+        "name": "user",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "poolId",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "suppliedAssets",
+        "type": "address[]",
+        "internalType": "address[]"
+      },
+      {
+        "name": "borrowedAssets",
+        "type": "address[]",
+        "internalType": "address[]"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getUserAssetScaledData",
     "inputs": [
       {

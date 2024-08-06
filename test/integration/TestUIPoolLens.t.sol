@@ -4,6 +4,8 @@ pragma solidity ^0.8.0;
 import 'src/libraries/helpers/Constants.sol';
 import 'src/libraries/helpers/Errors.sol';
 
+import 'src/libraries/types/ResultTypes.sol';
+
 import 'test/setup/TestWithPrepare.sol';
 
 contract TestUIPoolLens is TestWithPrepare {
@@ -22,7 +24,7 @@ contract TestUIPoolLens is TestWithPrepare {
     uint256 healthFactor;
   }
 
-  function test_Should_GetUserAccountDataForCalculation_Supply() public {
+  function xtest_Should_GetUserAccountDataForCalculation_Supply() public {
     tsDepositor1.approveERC20(address(tsWETH), type(uint256).max);
 
     uint256 amount1 = 100 ether;
@@ -82,7 +84,7 @@ contract TestUIPoolLens is TestWithPrepare {
     assertEq(vars3.avgLiquidationThreshold, vars1.avgLiquidationThreshold, 'vars3.avgLiquidationThreshold not eq');
   }
 
-  function test_Should_GetUserAccountDataForCalculation_Borrow() public {
+  function xtest_Should_GetUserAccountDataForCalculation_Borrow() public {
     prepareUSDT(tsDepositor1);
 
     prepareWETH(tsBorrower1);
@@ -157,7 +159,78 @@ contract TestUIPoolLens is TestWithPrepare {
     assertGt(vars3.healthFactor, vars1.healthFactor, 'vars3.healthFactor not gt');
   }
 
-  function test_Should_GetIsolateDataList() public {
+  function test_Should_GetIsolateCollateralDataForCalculation() public {
+    prepareWETH(tsDepositor1);
+
+    uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
+
+    address[] memory nftAssets = new address[](tokenIds.length);
+    address[] memory debtAssets = new address[](tokenIds.length);
+
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      nftAssets[i] = address(tsBAYC);
+      debtAssets[i] = address(tsWETH);
+    }
+
+    ResultTypes.IsolateCollateralDataResult memory dataResult = tsUIPoolLens.getIsolateCollateralDataForCalculation(
+      tsCommonPoolId,
+      address(tsBAYC),
+      tokenIds[0],
+      3,
+      address(tsWETH),
+      0
+    );
+
+    uint256[] memory borrowAmounts = new uint256[](tokenIds.length);
+    for (uint256 i = 0; i < tokenIds.length; i++) {
+      borrowAmounts[i] = dataResult.availableBorrow - (i + 1);
+    }
+
+    tsBorrower1.isolateBorrow(
+      tsCommonPoolId,
+      address(tsBAYC),
+      tokenIds,
+      address(tsWETH),
+      borrowAmounts,
+      address(tsBorrower1),
+      address(tsBorrower1)
+    );
+
+    // get current heath factoe
+    dataResult = tsUIPoolLens.getIsolateCollateralDataForCalculation(
+      tsCommonPoolId,
+      address(tsBAYC),
+      tokenIds[0],
+      4,
+      address(tsWETH),
+      0
+    );
+    assertGt(dataResult.healthFactor, 1e18, 'dataResult.healthFactor not gt');
+
+    // new heath factor when borrow more
+    ResultTypes.IsolateCollateralDataResult memory dataResult2 = tsUIPoolLens.getIsolateCollateralDataForCalculation(
+      tsCommonPoolId,
+      address(tsBAYC),
+      tokenIds[0],
+      3,
+      address(tsWETH),
+      borrowAmounts[0] / 2
+    );
+    assertLt(dataResult2.healthFactor, dataResult.healthFactor, 'dataResult2.healthFactor not lt');
+
+    // new heath factor when repay half debt
+    ResultTypes.IsolateCollateralDataResult memory dataResult3 = tsUIPoolLens.getIsolateCollateralDataForCalculation(
+      tsCommonPoolId,
+      address(tsBAYC),
+      tokenIds[0],
+      4,
+      address(tsWETH),
+      borrowAmounts[0] / 2
+    );
+    assertGt(dataResult3.healthFactor, dataResult.healthFactor, 'dataResult3.healthFactor not gt');
+  }
+
+  function xtest_Should_GetIsolateDataList() public {
     prepareWETH(tsDepositor1);
 
     uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);

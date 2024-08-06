@@ -7,6 +7,7 @@ import {Constants} from '../libraries/helpers/Constants.sol';
 import {Errors} from '../libraries/helpers/Errors.sol';
 import {DataTypes} from '../libraries/types/DataTypes.sol';
 import {InputTypes} from '../libraries/types/InputTypes.sol';
+import {ResultTypes} from '../libraries/types/ResultTypes.sol';
 
 import {StorageSlot} from '../libraries/logic/StorageSlot.sol';
 import {VaultLogic} from '../libraries/logic/VaultLogic.sol';
@@ -37,6 +38,18 @@ contract UIPoolLens is BaseModule {
     )
   {
     return QueryLogic.getUserAccountDataForCalculation(user, poolId, calcType, asset, amount);
+  }
+
+  /* @dev calcType: 3-borrow, 4-repay */
+  function getIsolateCollateralDataForCalculation(
+    uint32 poolId,
+    address nftAsset,
+    uint256 tokenId,
+    uint8 calcType,
+    address debtAsset,
+    uint256 amount
+  ) public view returns (ResultTypes.IsolateCollateralDataResult memory dataResult) {
+    return QueryLogic.getIsolateCollateralDataForCalculation(poolId, nftAsset, tokenId, calcType, debtAsset, amount);
   }
 
   function getIsolateCollateralDataList(

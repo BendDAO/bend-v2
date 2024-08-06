@@ -42,8 +42,8 @@ contract InstallModule is DeployBase {
     address[] memory modules = new address[](1);
     uint modIdx = 0;
 
-    PoolLens tsPoolLensImpl = new PoolLens(gitCommitHash);
-    modules[modIdx++] = address(tsPoolLensImpl);
+    UIPoolLens tsUIPoolLensImpl = new UIPoolLens(gitCommitHash);
+    modules[modIdx++] = address(tsUIPoolLensImpl);
 
     return modules;
   }

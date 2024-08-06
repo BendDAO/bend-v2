@@ -24,4 +24,11 @@ library ResultTypes {
       uint256 debtAssetPriceInBaseCurrency;
       uint256 nftAssetPriceInBaseCurrency;
     }
+
+    struct IsolateCollateralDataResult {
+    uint256 totalCollateral;
+    uint256 totalBorrow;
+    uint256 availableBorrow;
+    uint256 healthFactor;
+  }
 }

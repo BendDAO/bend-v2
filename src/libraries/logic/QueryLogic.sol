@@ -606,6 +606,63 @@ library QueryLogic {
     healthFactor = nftLoanResult.healthFactor;
   }
 
+  function getIsolateCollateralDataForCalculation(
+    uint32 poolId,
+    address nftAsset,
+    uint256 tokenId,
+    uint8 calcType,
+    address debtAsset,
+    uint256 amount
+  ) internal view returns (ResultTypes.IsolateCollateralDataResult memory dataResult) {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+
+    DataTypes.AssetData storage nftAssetData = poolData.assetLookup[nftAsset];
+    DataTypes.AssetData storage debtAssetData = poolData.assetLookup[debtAsset];
+    DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[nftAssetData.classGroup];
+    DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[nftAsset][tokenId];
+
+    ResultTypes.NftLoanResult memory nftLoanResult = GenericLogic.calculateNftLoanData(
+      debtAssetData,
+      debtGroupData,
+      nftAssetData,
+      loanData,
+      IAddressProvider(ps.addressProvider).getPriceOracle()
+    );
+
+    dataResult.totalCollateral =
+      (nftLoanResult.totalCollateralInBaseCurrency * (10 ** debtAssetData.underlyingDecimals)) /
+      nftLoanResult.debtAssetPriceInBaseCurrency;
+
+    dataResult.totalBorrow =
+      (nftLoanResult.totalDebtInBaseCurrency * (10 ** debtAssetData.underlyingDecimals)) /
+      nftLoanResult.debtAssetPriceInBaseCurrency;
+
+    if (calcType == 3) {
+      // borrow some debt
+      dataResult.totalBorrow += amount;
+    } else if (calcType == 4) {
+      // repay some debt
+      if (dataResult.totalBorrow > amount) {
+        dataResult.totalBorrow -= amount;
+      } else {
+        dataResult.totalBorrow = 0;
+      }
+    }
+
+    dataResult.availableBorrow = GenericLogic.calculateAvailableBorrows(
+      dataResult.totalCollateral,
+      dataResult.totalBorrow,
+      nftAssetData.collateralFactor
+    );
+
+    dataResult.healthFactor = GenericLogic.calculateHealthFactorFromBalances(
+      dataResult.totalCollateral,
+      dataResult.totalBorrow,
+      nftAssetData.liquidationThreshold
+    );
+  }
+
   function getIsolateLoanData(
     uint32 poolId,
     address nftAsset,
