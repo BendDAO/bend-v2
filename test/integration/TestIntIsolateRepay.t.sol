@@ -101,7 +101,7 @@ contract TestIntIsolateRepay is TestWithIsolateAction {
 
     uint256[] memory repayAmounts1 = new uint256[](tokenIds.length);
     for (uint256 i = 0; i < tokenIds.length; i++) {
-      repayAmounts1[i] = (loanDataBeforeRepay1[i].borrowAmount * (50 + i)) / 100;
+      repayAmounts1[i] = loanDataBeforeRepay1[i].borrowAmount / 2;
     }
 
     actionIsolateRepay(

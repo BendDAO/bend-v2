@@ -175,6 +175,7 @@ library InterestLogic {
       DataTypes.GroupData storage loopGroupData = assetData.groupLookup[vars.loopGroupId];
 
       vars.nextGroupBorrowRate = IInterestRateModel(loopGroupData.rateModel).calculateGroupBorrowRate(
+        assetData.underlyingAsset,
         vars.loopGroupId,
         vars.assetUtilizationRate
       );

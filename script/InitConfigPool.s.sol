@@ -32,11 +32,13 @@ contract InitConfigPool is DeployBase {
   PriceOracle internal priceOracle;
   Configurator internal configurator;
 
+  DefaultInterestRateModel internal irmDefault;
   DefaultInterestRateModel internal irmYield;
   DefaultInterestRateModel internal irmLow;
   DefaultInterestRateModel internal irmMiddle;
   DefaultInterestRateModel internal irmHigh;
   uint32 internal commonPoolId;
+  uint8 internal constant yieldRateGroupId = 0;
   uint8 internal constant lowRateGroupId = 1;
   uint8 internal constant middleRateGroupId = 2;
   uint8 internal constant highRateGroupId = 3;
@@ -53,10 +55,11 @@ contract InitConfigPool is DeployBase {
 
       commonPoolId = 1;
 
-      irmYield = DefaultInterestRateModel(0xBD9859043CdDD4310e37CA87F37A829B488F2B4F);
-      irmLow = DefaultInterestRateModel(0x74747EF9aE831Cc50423C6b43586e43F5E494Be2);
-      irmMiddle = DefaultInterestRateModel(0x8316DDa8ca54740EF25d236D0D13e5763e87A097);
-      irmHigh = DefaultInterestRateModel(0x16787d2756475f303ed7e4B24A81d8F60055A0b2);
+      irmDefault = DefaultInterestRateModel(0xBD9859043CdDD4310e37CA87F37A829B488F2B4F);
+      irmYield = irmDefault;
+      irmLow = irmDefault;
+      irmMiddle = irmDefault;
+      irmHigh = irmDefault;
     } else {
       revert('chainid not support');
     }
@@ -96,25 +99,104 @@ contract InitConfigPool is DeployBase {
 
   function initInterestRateModels() internal {
     // Interest Rate Model
-    irmYield = new DefaultInterestRateModel(
+    irmDefault = new DefaultInterestRateModel(address(addressProvider));
+
+    // WETH
+    irmDefault.setInterestRateParams(
+      addrWETH,
+      yieldRateGroupId,
       (65 * WadRayMath.RAY) / 100,
       (1 * WadRayMath.RAY) / 100, // baseRate
       (1 * WadRayMath.RAY) / 100,
       (20 * WadRayMath.RAY) / 100
     );
-    irmLow = new DefaultInterestRateModel(
+    irmDefault.setInterestRateParams(
+      addrWETH,
+      lowRateGroupId,
       (65 * WadRayMath.RAY) / 100,
       (5 * WadRayMath.RAY) / 100, // baseRate
       (5 * WadRayMath.RAY) / 100,
       (100 * WadRayMath.RAY) / 100
     );
-    irmMiddle = new DefaultInterestRateModel(
+    irmDefault.setInterestRateParams(
+      addrWETH,
+      middleRateGroupId,
       (65 * WadRayMath.RAY) / 100,
       (8 * WadRayMath.RAY) / 100, // baseRate
       (5 * WadRayMath.RAY) / 100,
       (100 * WadRayMath.RAY) / 100
     );
-    irmHigh = new DefaultInterestRateModel(
+    irmDefault.setInterestRateParams(
+      addrWETH,
+      highRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (10 * WadRayMath.RAY) / 100, // baseRate
+      (5 * WadRayMath.RAY) / 100,
+      (100 * WadRayMath.RAY) / 100
+    );
+
+    // USDT
+    irmDefault.setInterestRateParams(
+      addrUSDT,
+      yieldRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (1 * WadRayMath.RAY) / 100, // baseRate
+      (1 * WadRayMath.RAY) / 100,
+      (20 * WadRayMath.RAY) / 100
+    );
+    irmDefault.setInterestRateParams(
+      addrUSDT,
+      lowRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (5 * WadRayMath.RAY) / 100, // baseRate
+      (1 * WadRayMath.RAY) / 100,
+      (20 * WadRayMath.RAY) / 100
+    );
+    irmDefault.setInterestRateParams(
+      addrUSDT,
+      middleRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (8 * WadRayMath.RAY) / 100, // baseRate
+      (5 * WadRayMath.RAY) / 100,
+      (100 * WadRayMath.RAY) / 100
+    );
+    irmDefault.setInterestRateParams(
+      addrUSDT,
+      highRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (10 * WadRayMath.RAY) / 100, // baseRate
+      (5 * WadRayMath.RAY) / 100,
+      (100 * WadRayMath.RAY) / 100
+    );
+
+    // DAI
+    irmDefault.setInterestRateParams(
+      addrDAI,
+      yieldRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (1 * WadRayMath.RAY) / 100, // baseRate
+      (1 * WadRayMath.RAY) / 100,
+      (20 * WadRayMath.RAY) / 100
+    );
+    irmDefault.setInterestRateParams(
+      addrDAI,
+      lowRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (5 * WadRayMath.RAY) / 100, // baseRate
+      (1 * WadRayMath.RAY) / 100,
+      (20 * WadRayMath.RAY) / 100
+    );
+    irmDefault.setInterestRateParams(
+      addrDAI,
+      middleRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (8 * WadRayMath.RAY) / 100, // baseRate
+      (5 * WadRayMath.RAY) / 100,
+      (100 * WadRayMath.RAY) / 100
+    );
+    irmDefault.setInterestRateParams(
+      addrDAI,
+      highRateGroupId,
       (65 * WadRayMath.RAY) / 100,
       (10 * WadRayMath.RAY) / 100, // baseRate
       (5 * WadRayMath.RAY) / 100,

@@ -24,7 +24,7 @@ contract TestUIPoolLens is TestWithPrepare {
     uint256 healthFactor;
   }
 
-  function xtest_Should_GetUserAccountDataForCalculation_Supply() public {
+  function test_Should_GetUserAccountDataForCalculation_Supply() public {
     tsDepositor1.approveERC20(address(tsWETH), type(uint256).max);
 
     uint256 amount1 = 100 ether;
@@ -84,7 +84,7 @@ contract TestUIPoolLens is TestWithPrepare {
     assertEq(vars3.avgLiquidationThreshold, vars1.avgLiquidationThreshold, 'vars3.avgLiquidationThreshold not eq');
   }
 
-  function xtest_Should_GetUserAccountDataForCalculation_Borrow() public {
+  function test_Should_GetUserAccountDataForCalculation_Borrow() public {
     prepareUSDT(tsDepositor1);
 
     prepareWETH(tsBorrower1);
@@ -230,7 +230,7 @@ contract TestUIPoolLens is TestWithPrepare {
     assertGt(dataResult3.healthFactor, dataResult.healthFactor, 'dataResult3.healthFactor not gt');
   }
 
-  function xtest_Should_GetIsolateDataList() public {
+  function test_Should_GetIsolateDataList() public {
     prepareWETH(tsDepositor1);
 
     uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);

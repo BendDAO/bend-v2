@@ -39,6 +39,9 @@ library Errors {
   string public constant ARRAY_HAS_DUP_ELEMENT = '121';
   string public constant INVALID_ONBEHALF_ADDRESS = '122';
   string public constant SAME_ONBEHALF_ADDRESS = '123';
+  string public constant INVALID_OPTIMAL_USAGE_RATIO = '124';
+  string public constant SLOPE_2_MUST_BE_GTE_SLOPE_1 = '125';
+  string public constant INVALID_MAX_RATE = '126';
 
   string public constant ENUM_SET_ADD_FAILED = '150';
   string public constant ENUM_SET_REMOVE_FAILED = '151';

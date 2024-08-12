@@ -123,6 +123,7 @@ abstract contract TestWithSetup is TestWithUtils {
   uint8 public tsMiddleRateGroupId;
   uint8 public tsHighRateGroupId;
 
+  DefaultInterestRateModel public tsDefaultIRM;
   DefaultInterestRateModel public tsYieldRateIRM;
   DefaultInterestRateModel public tsLowRateIRM;
   DefaultInterestRateModel public tsMiddleRateIRM;
@@ -166,13 +167,15 @@ abstract contract TestWithSetup is TestWithUtils {
     tsOracleAdmin = makeAddr('tsOracleAdmin');
     tsTreasury = makeAddr('tsTreasury');
 
-    initTokens();
+    initMockTokens();
 
-    initOracles();
+    initMockOracles();
 
-    initContracts();
+    initProtocolContracts();
 
-    initUsers();
+    initInterestRateParams();
+
+    initMockUsers();
 
     setContractsLabels();
 
@@ -181,7 +184,7 @@ abstract contract TestWithSetup is TestWithUtils {
 
   function onSetUp() public virtual {}
 
-  function initContracts() internal {
+  function initProtocolContracts() internal {
     /// Deploy proxies ///
     tsProxyAdmin = new ProxyAdmin();
 
@@ -351,30 +354,14 @@ abstract contract TestWithSetup is TestWithUtils {
     tsYieldRegistry.addYieldManager(address(tsYieldSavingsDai));
 
     // Interest Rate Model
-    tsYieldRateIRM = new DefaultInterestRateModel(
-      (65 * WadRayMath.RAY) / 100,
-      (2 * WadRayMath.RAY) / 100,
-      (1 * WadRayMath.RAY) / 100,
-      (20 * WadRayMath.RAY) / 100
-    );
-    tsMiddleRateIRM = new DefaultInterestRateModel(
-      (65 * WadRayMath.RAY) / 100,
-      (5 * WadRayMath.RAY) / 100,
-      (5 * WadRayMath.RAY) / 100,
-      (100 * WadRayMath.RAY) / 100
-    );
-    tsLowRateIRM = new DefaultInterestRateModel(
-      (65 * WadRayMath.RAY) / 100,
-      (10 * WadRayMath.RAY) / 100,
-      (5 * WadRayMath.RAY) / 100,
-      (100 * WadRayMath.RAY) / 100
-    );
-    tsHighRateIRM = new DefaultInterestRateModel(
-      (65 * WadRayMath.RAY) / 100,
-      (15 * WadRayMath.RAY) / 100,
-      (8 * WadRayMath.RAY) / 100,
-      (200 * WadRayMath.RAY) / 100
-    );
+    tsLowRateGroupId = 1;
+    tsMiddleRateGroupId = 2;
+    tsHighRateGroupId = 3;
+    tsDefaultIRM = new DefaultInterestRateModel(address(tsAddressProvider));
+    tsYieldRateIRM = tsDefaultIRM;
+    tsLowRateIRM = tsDefaultIRM;
+    tsMiddleRateIRM = tsDefaultIRM;
+    tsHighRateIRM = tsDefaultIRM;
 
     // set price oracle
     tsHEVM.startPrank(tsOracleAdmin);
@@ -398,7 +385,7 @@ abstract contract TestWithSetup is TestWithUtils {
     tsHEVM.stopPrank();
   }
 
-  function initTokens() internal {
+  function initMockTokens() internal {
     tsFaucet = new MockFaucet();
 
     tsWETH = MockERC20(tsFaucet.createMockERC20('MockWETH', 'WETH', 18));
@@ -428,7 +415,7 @@ abstract contract TestWithSetup is TestWithUtils {
     tsDelegateRegistryV2 = new MockDelegateRegistryV2();
   }
 
-  function initUsers() internal {
+  function initMockUsers() internal {
     uint256 baseUid;
 
     // depositors
@@ -506,7 +493,7 @@ abstract contract TestWithSetup is TestWithUtils {
     tsFaucet.privateMintERC721(address(tsMAYC), address(user), tokenIds);
   }
 
-  function initOracles() internal {
+  function initMockOracles() internal {
     tsCLAggregatorWETH = new MockChainlinkAggregator(8, 'ETH / USD');
     tsHEVM.label(address(tsCLAggregatorWETH), 'MockCLAggregator(ETH/USD)');
     tsCLAggregatorWETH.updateAnswer(206066569863);
@@ -549,8 +536,115 @@ abstract contract TestWithSetup is TestWithUtils {
     tsHEVM.label(address(tsPriceOracle), 'PriceOracle');
     tsHEVM.label(address(tsPoolManager), 'PoolManager');
 
-    tsHEVM.label(address(tsLowRateIRM), 'LowRiskIRM');
-    tsHEVM.label(address(tsHighRateIRM), 'HighRiskIRM');
+    tsHEVM.label(address(tsDefaultIRM), 'DefaultIRM');
+  }
+
+  function initInterestRateParams() internal {
+    tsHEVM.startPrank(tsPoolAdmin);
+
+    // WETH
+    tsDefaultIRM.setInterestRateParams(
+      address(tsWETH),
+      0,
+      (65 * WadRayMath.RAY) / 100,
+      (1 * WadRayMath.RAY) / 100, // baseRate
+      (5 * WadRayMath.RAY) / 100,
+      (100 * WadRayMath.RAY) / 100
+    );
+    tsDefaultIRM.setInterestRateParams(
+      address(tsWETH),
+      tsLowRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (3 * WadRayMath.RAY) / 100, // baseRate
+      (5 * WadRayMath.RAY) / 100,
+      (100 * WadRayMath.RAY) / 100
+    );
+    tsDefaultIRM.setInterestRateParams(
+      address(tsWETH),
+      tsMiddleRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (5 * WadRayMath.RAY) / 100, // baseRate
+      (5 * WadRayMath.RAY) / 100,
+      (100 * WadRayMath.RAY) / 100
+    );
+    tsDefaultIRM.setInterestRateParams(
+      address(tsWETH),
+      tsHighRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (7 * WadRayMath.RAY) / 100, // baseRate
+      (5 * WadRayMath.RAY) / 100,
+      (100 * WadRayMath.RAY) / 100
+    );
+
+    // USDT
+    tsDefaultIRM.setInterestRateParams(
+      address(tsUSDT),
+      0,
+      (65 * WadRayMath.RAY) / 100,
+      (3 * WadRayMath.RAY) / 100, // baseRate
+      (3 * WadRayMath.RAY) / 100,
+      (80 * WadRayMath.RAY) / 100
+    );
+    tsDefaultIRM.setInterestRateParams(
+      address(tsUSDT),
+      tsLowRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (5 * WadRayMath.RAY) / 100, // baseRate
+      (3 * WadRayMath.RAY) / 100,
+      (80 * WadRayMath.RAY) / 100
+    );
+    tsDefaultIRM.setInterestRateParams(
+      address(tsUSDT),
+      tsMiddleRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (7 * WadRayMath.RAY) / 100, // baseRate
+      (3 * WadRayMath.RAY) / 100,
+      (80 * WadRayMath.RAY) / 100
+    );
+    tsDefaultIRM.setInterestRateParams(
+      address(tsUSDT),
+      tsHighRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (9 * WadRayMath.RAY) / 100, // baseRate
+      (3 * WadRayMath.RAY) / 100,
+      (80 * WadRayMath.RAY) / 100
+    );
+
+    // DAI
+    tsDefaultIRM.setInterestRateParams(
+      address(tsDAI),
+      0,
+      (65 * WadRayMath.RAY) / 100,
+      (2 * WadRayMath.RAY) / 100, // baseRate
+      (5 * WadRayMath.RAY) / 100,
+      (90 * WadRayMath.RAY) / 100
+    );
+    tsDefaultIRM.setInterestRateParams(
+      address(tsDAI),
+      tsLowRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (4 * WadRayMath.RAY) / 100, // baseRate
+      (5 * WadRayMath.RAY) / 100,
+      (90 * WadRayMath.RAY) / 100
+    );
+    tsDefaultIRM.setInterestRateParams(
+      address(tsDAI),
+      tsMiddleRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (6 * WadRayMath.RAY) / 100, // baseRate
+      (5 * WadRayMath.RAY) / 100,
+      (90 * WadRayMath.RAY) / 100
+    );
+    tsDefaultIRM.setInterestRateParams(
+      address(tsDAI),
+      tsHighRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (8 * WadRayMath.RAY) / 100, // baseRate
+      (5 * WadRayMath.RAY) / 100,
+      (90 * WadRayMath.RAY) / 100
+    );
+
+    tsHEVM.stopPrank();
   }
 
   function initCommonPools() internal {
@@ -558,9 +652,6 @@ abstract contract TestWithSetup is TestWithUtils {
 
     tsCommonPoolId = tsConfigurator.createPool('Common Pool');
 
-    tsLowRateGroupId = 1;
-    tsMiddleRateGroupId = 2;
-    tsHighRateGroupId = 3;
     tsConfigurator.addPoolGroup(tsCommonPoolId, tsLowRateGroupId);
     tsConfigurator.addPoolGroup(tsCommonPoolId, tsMiddleRateGroupId);
     tsConfigurator.addPoolGroup(tsCommonPoolId, tsHighRateGroupId);
