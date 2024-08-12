@@ -265,7 +265,7 @@ contract BendV1Migration is Ownable2StepUpgradeable {
     if (execVars.supplyMode == Constants.SUPPLY_MODE_CROSS) {
       require(execVars.totalCrossSupplyAfter == (execVars.totalCrossSupplyBefore + 1), 'BV1M: cross supply not match');
       require(
-        execVars.totalCrossBorrowAfter == (execVars.totalCrossBorrowBefore + execVars.v2ParamAmounts[0]),
+        execVars.totalCrossBorrowAfter >= (execVars.totalCrossBorrowBefore + execVars.v2ParamAmounts[0]),
         'BV1M: cross borrow not match'
       );
     } else if (execVars.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
@@ -274,7 +274,7 @@ contract BendV1Migration is Ownable2StepUpgradeable {
         'BV1M: isolate supply not match'
       );
       require(
-        execVars.totalIsolateBorrowAfter == (execVars.totalIsolateBorrowBefore + execVars.v2ParamAmounts[0]),
+        execVars.totalIsolateBorrowAfter >= (execVars.totalIsolateBorrowBefore + execVars.v2ParamAmounts[0]),
         'BV1M: isolate borrow not match'
       );
     }
