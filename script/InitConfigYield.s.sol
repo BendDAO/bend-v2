@@ -56,7 +56,7 @@ contract InitConfigYield is DeployBase {
       addrYieldSDai = 0x5F695a92C0B3A595ceE43750C433e7B1109CBe3C;
 
       commonPoolId = 1;
-      addrIrmYield = 0xBD9859043CdDD4310e37CA87F37A829B488F2B4F;
+      addrIrmYield = 0x10988B9c7e7048B83D590b14F0167FDe56728Ae9;
     } else {
       revert('chainid not support');
     }
@@ -69,11 +69,23 @@ contract InitConfigYield is DeployBase {
 
     //initYieldPools();
 
-    initYieldLido();
+    //initYieldLido();
 
-    initYieldEtherfi();
+    //initYieldEtherfi();
 
-    initYieldSDai();
+    //initYieldSDai();
+
+    YieldEthStakingLido yieldEthStakingLido = YieldEthStakingLido(payable(addrYieldLido));
+    yieldEthStakingLido.setNftUnstakeParams(address(addrWPUNK), 0.01 ether, 1.05e18);
+    yieldEthStakingLido.setNftUnstakeParams(address(addrBAYC), 0.01 ether, 1.05e18);
+
+    YieldEthStakingEtherfi yieldEthStakingEtherfi = YieldEthStakingEtherfi(payable(addrYieldEtherfi));
+    yieldEthStakingEtherfi.setNftUnstakeParams(address(addrWPUNK), 0.01 ether, 1.05e18);
+    yieldEthStakingEtherfi.setNftUnstakeParams(address(addrBAYC), 0.01 ether, 1.05e18);
+
+    YieldSavingsDai yieldSDai = YieldSavingsDai(payable(addrYieldSDai));
+    yieldSDai.setNftUnstakeParams(address(addrWPUNK), 100e18, 1.05e18);
+    yieldSDai.setNftUnstakeParams(address(addrBAYC), 100e18, 1.05e18);
   }
 
   function initYieldPools() internal {
@@ -97,11 +109,11 @@ contract InitConfigYield is DeployBase {
 
     yieldEthStakingLido.setNftActive(address(addrWPUNK), true);
     yieldEthStakingLido.setNftStakeParams(address(addrWPUNK), 50000, 9000);
-    yieldEthStakingLido.setNftUnstakeParams(address(addrWPUNK), 100, 1.05e18);
+    yieldEthStakingLido.setNftUnstakeParams(address(addrWPUNK), 0.01 ether, 1.05e18);
 
     yieldEthStakingLido.setNftActive(address(addrBAYC), true);
     yieldEthStakingLido.setNftStakeParams(address(addrBAYC), 50000, 9000);
-    yieldEthStakingLido.setNftUnstakeParams(address(addrBAYC), 100, 1.05e18);
+    yieldEthStakingLido.setNftUnstakeParams(address(addrBAYC), 0.01 ether, 1.05e18);
   }
 
   function initYieldEtherfi() internal {
@@ -111,11 +123,11 @@ contract InitConfigYield is DeployBase {
 
     yieldEthStakingEtherfi.setNftActive(address(addrWPUNK), true);
     yieldEthStakingEtherfi.setNftStakeParams(address(addrWPUNK), 20000, 9000);
-    yieldEthStakingEtherfi.setNftUnstakeParams(address(addrWPUNK), 100, 1.05e18);
+    yieldEthStakingEtherfi.setNftUnstakeParams(address(addrWPUNK), 0.01 ether, 1.05e18);
 
     yieldEthStakingEtherfi.setNftActive(address(addrBAYC), true);
     yieldEthStakingEtherfi.setNftStakeParams(address(addrBAYC), 20000, 9000);
-    yieldEthStakingEtherfi.setNftUnstakeParams(address(addrBAYC), 100, 1.05e18);
+    yieldEthStakingEtherfi.setNftUnstakeParams(address(addrBAYC), 0.01 ether, 1.05e18);
   }
 
   function initYieldSDai() internal {
@@ -125,10 +137,10 @@ contract InitConfigYield is DeployBase {
 
     yieldSDai.setNftActive(address(addrWPUNK), true);
     yieldSDai.setNftStakeParams(address(addrWPUNK), 50000, 9000);
-    yieldSDai.setNftUnstakeParams(address(addrWPUNK), 100, 1.05e18);
+    yieldSDai.setNftUnstakeParams(address(addrWPUNK), 100e18, 1.05e18);
 
     yieldSDai.setNftActive(address(addrBAYC), true);
     yieldSDai.setNftStakeParams(address(addrBAYC), 50000, 9000);
-    yieldSDai.setNftUnstakeParams(address(addrBAYC), 100, 1.05e18);
+    yieldSDai.setNftUnstakeParams(address(addrBAYC), 100e18, 1.05e18);
   }
 }

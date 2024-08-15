@@ -63,10 +63,10 @@ contract YieldEthStakingLido is YieldStakingBase {
     super.repay(poolId, nft, tokenId);
   }
 
-  function protocolDeposit(YieldStakeData storage /*sd*/, uint256 amount) internal virtual override returns (uint256) {
+  function protocolDeposit(YieldStakeData storage sd, uint256 amount) internal virtual override returns (uint256) {
     IWETH(address(underlyingAsset)).withdraw(amount);
 
-    IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[msg.sender]);
+    IYieldAccount yieldAccount = IYieldAccount(sd.yieldAccount);
 
     bytes memory result = yieldAccount.executeWithValue{value: amount}(
       address(stETH),
@@ -79,7 +79,7 @@ contract YieldEthStakingLido is YieldStakingBase {
   }
 
   function protocolRequestWithdrawal(YieldStakeData storage sd) internal virtual override {
-    IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[msg.sender]);
+    IYieldAccount yieldAccount = IYieldAccount(sd.yieldAccount);
 
     uint256[] memory requestAmounts = new uint256[](1);
     requestAmounts[0] = sd.withdrawAmount;
@@ -93,7 +93,7 @@ contract YieldEthStakingLido is YieldStakingBase {
   }
 
   function protocolClaimWithdraw(YieldStakeData storage sd) internal virtual override returns (uint256) {
-    IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[msg.sender]);
+    IYieldAccount yieldAccount = IYieldAccount(sd.yieldAccount);
 
     uint256 claimedEth = address(yieldAccount).balance;
     yieldAccount.execute(address(unstETH), abi.encodeWithSelector(IUnstETH.claimWithdrawal.selector, sd.withdrawReqId));
