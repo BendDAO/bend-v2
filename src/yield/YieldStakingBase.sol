@@ -83,7 +83,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
    * variables without shifting down storage in the inheritance chain.
    * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
    */
-  uint256[19] private __gap;
+  uint256[18] private __gap;
 
   modifier onlyPoolAdmin() {
     __onlyPoolAdmin();
