@@ -55,7 +55,7 @@ contract InitConfigPool is DeployBase {
 
       commonPoolId = 1;
 
-      irmDefault = DefaultInterestRateModel(0xBD9859043CdDD4310e37CA87F37A829B488F2B4F);
+      irmDefault = DefaultInterestRateModel(0x10988B9c7e7048B83D590b14F0167FDe56728Ae9);
       irmYield = irmDefault;
       irmLow = irmDefault;
       irmMiddle = irmDefault;
@@ -71,6 +71,10 @@ contract InitConfigPool is DeployBase {
     configurator = Configurator(addressProvider.getPoolModuleProxy(Constants.MODULEID__CONFIGURATOR));
 
     //initInterestRateModels();
+
+    //setPoolInterestRateModels(1);
+    setPoolInterestRateModels(2);
+    setPoolInterestRateModels(3);
 
     //initOralces();
 
@@ -202,6 +206,27 @@ contract InitConfigPool is DeployBase {
       (5 * WadRayMath.RAY) / 100,
       (100 * WadRayMath.RAY) / 100
     );
+  }
+
+  function setPoolInterestRateModels(uint32 poolId) internal {
+    if (poolId == 1 || poolId == 2) {
+      setAssetInterestRateModels(poolId, addrWETH);
+    }
+
+    if (poolId == 1 || poolId == 2 || poolId == 3) {
+      setAssetInterestRateModels(poolId, addrUSDT);
+    }
+
+    if (poolId == 1 || poolId == 3) {
+      setAssetInterestRateModels(poolId, addrDAI);
+    }
+  }
+
+  function setAssetInterestRateModels(uint32 poolId, address asset) internal {
+    configurator.setAssetLendingRate(poolId, asset, lowRateGroupId, address(irmDefault));
+    configurator.setAssetLendingRate(poolId, asset, middleRateGroupId, address(irmDefault));
+    configurator.setAssetLendingRate(poolId, asset, highRateGroupId, address(irmDefault));
+    configurator.setAssetYieldRate(poolId, asset, address(irmDefault));
   }
 
   function initCommonPools() internal {

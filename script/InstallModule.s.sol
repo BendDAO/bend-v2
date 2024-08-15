@@ -49,7 +49,7 @@ contract InstallModule is DeployBase {
   }
 
   function _allModules() internal returns (address[] memory) {
-    address[] memory modules = new address[](9);
+    address[] memory modules = new address[](10);
     uint modIdx = 0;
 
     Configurator tsConfiguratorImpl = new Configurator(gitCommitHash);
