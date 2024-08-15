@@ -75,8 +75,8 @@ contract YieldSavingsDai is YieldStakingBase {
     _repay(poolId, nft, tokenId);
   }
 
-  function protocolDeposit(YieldStakeData storage /*sd*/, uint256 amount) internal virtual override returns (uint256) {
-    IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[msg.sender]);
+  function protocolDeposit(YieldStakeData storage sd, uint256 amount) internal virtual override returns (uint256) {
+    IYieldAccount yieldAccount = IYieldAccount(sd.yieldAccount);
 
     dai.safeTransfer(address(yieldAccount), amount);
 
@@ -96,7 +96,7 @@ contract YieldSavingsDai is YieldStakingBase {
   }
 
   function protocolClaimWithdraw(YieldStakeData storage sd) internal virtual override returns (uint256) {
-    IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[msg.sender]);
+    IYieldAccount yieldAccount = IYieldAccount(sd.yieldAccount);
 
     uint256 claimedDai = dai.balanceOf(address(this));
 

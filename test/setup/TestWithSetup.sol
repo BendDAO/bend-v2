@@ -743,15 +743,15 @@ abstract contract TestWithSetup is TestWithUtils {
 
     tsYieldEthStakingLido.setNftActive(address(tsBAYC), true);
     tsYieldEthStakingLido.setNftStakeParams(address(tsBAYC), 50000, 9000);
-    tsYieldEthStakingLido.setNftUnstakeParams(address(tsBAYC), 100, 1.05e18);
+    tsYieldEthStakingLido.setNftUnstakeParams(address(tsBAYC), 0.01 ether, 1.05e18);
 
     tsYieldEthStakingEtherfi.setNftActive(address(tsBAYC), true);
     tsYieldEthStakingEtherfi.setNftStakeParams(address(tsBAYC), 20000, 9000);
-    tsYieldEthStakingEtherfi.setNftUnstakeParams(address(tsBAYC), 100, 1.05e18);
+    tsYieldEthStakingEtherfi.setNftUnstakeParams(address(tsBAYC), 0.01 ether, 1.05e18);
 
     tsYieldSavingsDai.setNftActive(address(tsBAYC), true);
     tsYieldSavingsDai.setNftStakeParams(address(tsBAYC), 50000, 9000);
-    tsYieldSavingsDai.setNftUnstakeParams(address(tsBAYC), 100, 1.05e18);
+    tsYieldSavingsDai.setNftUnstakeParams(address(tsBAYC), 100e18, 1.05e18);
 
     tsHEVM.stopPrank();
   }

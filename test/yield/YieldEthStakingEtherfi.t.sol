@@ -15,6 +15,9 @@ contract YieldEthStakingEtherfi is TestWithPrepare {
     uint256 unstakeFine;
     uint256 withdrawAmount;
     uint256 withdrawReqId;
+    uint256 totalFineBefore;
+    uint256 totalFineAfter;
+    uint256 claimedFine;
   }
 
   function onSetUp() public virtual override {
@@ -124,5 +127,61 @@ contract YieldEthStakingEtherfi is TestWithPrepare {
     assertEq(testVars.state, 0, 'state not eq');
     assertEq(testVars.debtAmount, 0, 'debtAmount not eq');
     assertEq(testVars.yieldAmount, 0, 'yieldAmount not eq');
+  }
+
+  function test_Should_collectFeeToTreasury() public {
+    YieldTestVars memory testVars;
+
+    prepareWETH(tsDepositor1);
+
+    uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
+
+    uint256 stakeAmount = tsYieldEthStakingEtherfi.getNftValueInUnderlyingAsset(address(tsBAYC));
+    stakeAmount = (stakeAmount * 80) / 100;
+
+    tsHEVM.prank(address(tsBorrower1));
+    address yieldAccount = tsYieldEthStakingEtherfi.createYieldAccount(address(tsBorrower1));
+
+    tsHEVM.prank(address(tsBorrower1));
+    tsYieldEthStakingEtherfi.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
+
+    // add some yield
+    uint256 deltaAmount = (stakeAmount * 35) / 1000;
+    tsEtherfiLiquidityPool.rebase{value: deltaAmount}(yieldAccount);
+
+    // drop down price
+    adjustNftPrice(address(tsBAYC), 100);
+
+    // ask bot to do the unstake forcely
+    tsHEVM.prank(address(tsPoolAdmin));
+    tsYieldEthStakingEtherfi.setBotAdmin(address(tsBorrower2));
+
+    tsHEVM.prank(address(tsBorrower2));
+    tsYieldEthStakingEtherfi.unstake(tsCommonPoolId, address(tsBAYC), tokenIds[0], 0.001 ether);
+
+    (testVars.unstakeFine, testVars.withdrawAmount, testVars.withdrawReqId) = tsYieldEthStakingEtherfi
+      .getNftUnstakeData(address(tsBAYC), tokenIds[0]);
+    tsEtherfiWithdrawRequestNFT.setWithdrawalStatus(testVars.withdrawReqId, true, false);
+
+    // do the repay
+    tsHEVM.prank(address(tsBorrower1));
+    tsYieldEthStakingEtherfi.repay(tsCommonPoolId, address(tsBAYC), tokenIds[0]);
+
+    // collect fee
+    (testVars.totalFineBefore, testVars.claimedFine) = tsYieldEthStakingEtherfi.getTotalUnstakeFine();
+    assertEq(testVars.claimedFine, 0, 'claimedFine not eq');
+
+    tsHEVM.prank(address(tsPoolAdmin));
+    tsYieldEthStakingEtherfi.collectFeeToTreasury();
+
+    (testVars.totalFineAfter, testVars.claimedFine) = tsYieldEthStakingEtherfi.getTotalUnstakeFine();
+    assertEq(testVars.totalFineAfter, testVars.totalFineBefore, 'totalFineAfter not eq');
+    assertEq(testVars.claimedFine, testVars.totalFineBefore, 'claimedFine not eq');
+  }
+
+  function adjustNftPrice(address nftAsset, uint256 percentage) internal {
+    uint256 oldPrice = tsBendNFTOracle.getAssetPrice(nftAsset);
+    uint256 newPrice = (oldPrice * percentage) / 1e4;
+    tsBendNFTOracle.setAssetPrice(nftAsset, newPrice);
   }
 }

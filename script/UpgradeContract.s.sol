@@ -46,10 +46,10 @@ contract UpgradeContract is DeployBase {
     require(addrProviderInCfg != address(0), 'AddressProvider not exist in config');
 
     //_upgradeAddressProvider(proxyAdminInCfg, addrProviderInCfg);
-    //_upgradeYieldEthStakingLido(proxyAdminInCfg, addrProviderInCfg);
-    //_upgradeYieldEthStakingEtherfi(proxyAdminInCfg, addrProviderInCfg);
-    //_upgradeYieldSavingsDai(proxyAdminInCfg, addrProviderInCfg);
-    _upgradeBendV1Migration(proxyAdminInCfg, addrProviderInCfg);
+    _upgradeYieldEthStakingLido(proxyAdminInCfg, addrProviderInCfg);
+    _upgradeYieldEthStakingEtherfi(proxyAdminInCfg, addrProviderInCfg);
+    _upgradeYieldSavingsDai(proxyAdminInCfg, addrProviderInCfg);
+    //_upgradeBendV1Migration(proxyAdminInCfg, addrProviderInCfg);
   }
 
   function _upgradeAddressProvider(address proxyAdmin_, address addressProvider_) internal {
