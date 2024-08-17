@@ -518,6 +518,9 @@ library ConfigureLogic {
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
+    // update index using old param before set new config
+    InterestLogic.updateInterestIndexs(poolData, assetData);
+
     assetData.feeFactor = feeFactor;
 
     emit Events.SetAssetProtocolFee(poolId, asset, feeFactor);
@@ -544,6 +547,9 @@ library ConfigureLogic {
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
     require(assetData.groupList.contains(groupId), Errors.GROUP_NOT_EXISTS);
+
+    // update index using old param before set new config
+    InterestLogic.updateInterestIndexs(poolData, assetData);
 
     DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
     groupData.rateModel = rateModel_;
@@ -634,6 +640,9 @@ library ConfigureLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+
+    // update index using old param before set new config
+    InterestLogic.updateInterestIndexs(poolData, assetData);
 
     DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
     groupData.rateModel = rateModel_;
