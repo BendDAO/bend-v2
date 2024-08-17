@@ -156,4 +156,6 @@ library Errors {
   string public constant YIELD_ETH_WITHDRAW_FAILED = '1012';
   string public constant YIELD_ETH_CLAIM_FAILED = '1013';
   string public constant YIELD_ETH_ACCOUNT_INSUFFICIENT = '1014';
+  string public constant YIELD_ETH_LT_MIN_AMOUNT = '1015';
+  string public constant YIELD_ETH_GT_MAX_AMOUNT = '1016';
 }
