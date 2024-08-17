@@ -494,7 +494,9 @@ library VaultLogic {
   }
 
   function erc20TransferOutBidAmountToLiqudity(DataTypes.AssetData storage assetData, uint amount) internal {
+    require(assetData.totalBidAmout >= amount, Errors.ASSET_INSUFFICIENT_BIDAMOUNT);
     assetData.totalBidAmout -= amount;
+
     assetData.availableLiquidity += amount;
   }
 

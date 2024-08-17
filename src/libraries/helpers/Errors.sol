@@ -137,6 +137,7 @@ library Errors {
   string public constant ISOLATE_BID_AUCTION_DURATION_NOT_END = '608';
   string public constant ISOLATE_LOAN_BORROW_AMOUNT_NOT_COVER = '609';
   string public constant ISOLATE_LOAN_EXISTS = '610';
+  string public constant ISOLATE_LOAN_BIDDER_NOT_SAME = '611';
 
   // Yield Staking, don't care about the ETH
   string public constant YIELD_ETH_NFT_NOT_ACTIVE = '1000';
