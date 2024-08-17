@@ -6,7 +6,7 @@ import {Constants} from 'src/libraries/helpers/Constants.sol';
 import 'test/setup/TestWithPrepare.sol';
 import '@forge-std/Test.sol';
 
-contract YieldEthStakingEtherfi is TestWithPrepare {
+contract TestYieldEthStakingEtherfi is TestWithPrepare {
   struct YieldTestVars {
     uint32 poolId;
     uint8 state;
@@ -48,14 +48,14 @@ contract YieldEthStakingEtherfi is TestWithPrepare {
       .getNftStakeData(address(tsBAYC), tokenIds[0]);
     assertEq(testVars.poolId, tsCommonPoolId, 'poolId not eq');
     assertEq(testVars.state, Constants.YIELD_STATUS_ACTIVE, 'state not eq');
-    assertEq(testVars.debtAmount, stakeAmount, 'debtAmount not eq');
-    assertEq(testVars.yieldAmount, stakeAmount, 'yieldAmount not eq');
+    testEquality(testVars.debtAmount, stakeAmount, 'debtAmount not eq');
+    testEquality(testVars.yieldAmount, stakeAmount, 'yieldAmount not eq');
 
     uint256 debtAmount = tsYieldEthStakingEtherfi.getNftDebtInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
-    assertEq(debtAmount, stakeAmount, 'debtAmount not eq');
+    testEquality(debtAmount, stakeAmount, 'debtAmount not eq');
 
     (uint256 yieldAmount, ) = tsYieldEthStakingEtherfi.getNftYieldInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
-    assertEq(yieldAmount, stakeAmount, 'yieldAmount not eq');
+    testEquality(yieldAmount, stakeAmount, 'yieldAmount not eq');
 
     tsYieldEthStakingEtherfi.getNftCollateralData(address(tsBAYC), tokenIds[0]);
   }
@@ -80,7 +80,7 @@ contract YieldEthStakingEtherfi is TestWithPrepare {
     tsEtherfiLiquidityPool.rebase{value: deltaAmount}(yieldAccount);
 
     (uint256 yieldAmount, ) = tsYieldEthStakingEtherfi.getNftYieldInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
-    testEquality(yieldAmount, (stakeAmount + deltaAmount), 'yieldAmount not eq');
+    assertApproxEqAbs(yieldAmount, (stakeAmount + deltaAmount), 3, 'yieldAmount not eq');
 
     tsHEVM.prank(address(tsBorrower1));
     tsYieldEthStakingEtherfi.unstake(tsCommonPoolId, address(tsBAYC), tokenIds[0], 0);
@@ -112,12 +112,17 @@ contract YieldEthStakingEtherfi is TestWithPrepare {
     tsHEVM.prank(address(tsBorrower1));
     tsYieldEthStakingEtherfi.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
 
+    advanceTimes(7 days); // accure some debt but without any yield
+
     tsHEVM.prank(address(tsBorrower1));
     tsYieldEthStakingEtherfi.unstake(tsCommonPoolId, address(tsBAYC), tokenIds[0], 0);
 
     (testVars.unstakeFine, testVars.withdrawAmount, testVars.withdrawReqId) = tsYieldEthStakingEtherfi
       .getNftUnstakeData(address(tsBAYC), tokenIds[0]);
     tsEtherfiWithdrawRequestNFT.setWithdrawalStatus(testVars.withdrawReqId, true, false);
+
+    tsHEVM.prank(address(tsBorrower1));
+    tsWETH.approve(address(tsYieldEthStakingEtherfi), type(uint256).max);
 
     tsHEVM.prank(address(tsBorrower1));
     tsYieldEthStakingEtherfi.repay(tsCommonPoolId, address(tsBAYC), tokenIds[0]);

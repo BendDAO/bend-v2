@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import {Ownable2Step} from '@openzeppelin/contracts/access/Ownable2Step.sol';
 import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import {IeETH, IERC20Metadata} from 'src/yield/etherfi/IeETH.sol';
 import {ILiquidityPool} from 'src/yield/etherfi/ILiquidityPool.sol';
@@ -15,18 +16,26 @@ contract MockeETH is IeETH, ERC20, Ownable2Step {
     _decimals = decimals_;
   }
 
-  function mint(address to, uint256 amount) public {
+  function mintShare(address to, uint256 share) public {
     require(msg.sender == owner() || msg.sender == address(_liquidityPool), 'MockERC20: caller not owner');
-    _mint(to, amount);
+    _mint(to, share);
   }
 
-  function burn(address to, uint256 amount) public {
+  function burnShare(address to, uint256 share) public {
     require(msg.sender == owner() || msg.sender == address(_liquidityPool), 'MockERC20: caller not owner');
-    _burn(to, amount);
+    _burn(to, share);
   }
 
   function decimals() public view override(ERC20, IERC20Metadata) returns (uint8) {
     return _decimals;
+  }
+
+  function balanceOf(address _user) public view override(ERC20, IERC20) returns (uint256) {
+    return _liquidityPool.amountForShare(shares(_user));
+  }
+
+  function shares(address _user) public view returns (uint256) {
+    return super.balanceOf(_user);
   }
 
   function transferETH(address to) public onlyOwner {
