@@ -458,7 +458,7 @@ library IsolateLogic {
     );
 
     // update interest rate according latest borrow amount (utilizaton)
-    InterestLogic.updateInterestRates(poolData, debtAssetData, (vars.totalBorrowAmount + vars.totalExtraAmount), 0);
+    InterestLogic.updateInterestRates(poolData, debtAssetData, vars.totalBorrowAmount, 0);
 
     // bid already in pool and now repay the borrow but need to increase liquidity
     VaultLogic.erc20TransferOutBidAmountToLiqudity(debtAssetData, vars.totalBorrowAmount);
