@@ -343,7 +343,7 @@ library IsolateLogic {
         VaultLogic.erc20TransferOutBidAmount(debtAssetData, loanData.lastBidder, loanData.bidAmount);
       }
 
-      if (loanData.firstBidder != address(0)) {
+      if (loanData.firstBidder != address(0) && vars.bidFines[vars.nidx] > 0) {
         // transfer bid fine from borrower to the first bidder
         VaultLogic.erc20TransferBetweenWallets(
           params.asset,
