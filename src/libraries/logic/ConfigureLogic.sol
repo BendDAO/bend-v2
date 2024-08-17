@@ -338,6 +338,10 @@ library ConfigureLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
 
+    if (!isActive) {
+      _checkNoSuppliers(assetData);
+    }
+
     assetData.isActive = isActive;
 
     emit Events.SetAssetActive(poolId, asset, isActive);
@@ -467,6 +471,18 @@ library ConfigureLogic {
 
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
+
+    if (liquidationThreshold != 0) {
+      //liquidation bonus must be less than 50.00%
+      require(liquidationBonus < PercentageMath.HALF_PERCENTAGE_FACTOR, Errors.INVALID_ASSET_PARAMS);
+    } else {
+      require(liquidationBonus == 0, Errors.INVALID_ASSET_PARAMS);
+
+      //if the liquidation threshold is being set to 0,
+      // the asset is being disabled as collateral. To do so,
+      //we need to ensure no liquidity is supplied
+      _checkNoSuppliers(assetData);
+    }
 
     assetData.collateralFactor = collateralFactor;
     assetData.liquidationThreshold = liquidationThreshold;
@@ -681,5 +697,20 @@ library ConfigureLogic {
     PoolLogic.checkCallerIsPoolAdmin(ps, msgSender);
 
     require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
+  }
+
+  function _checkNoSuppliers(DataTypes.AssetData storage assetData) internal view {
+    uint256 totalScaledCrossSupply;
+    uint256 totalScaledIsolateSupply;
+
+    if (assetData.assetType == Constants.ASSET_TYPE_ERC20) {
+      totalScaledCrossSupply = VaultLogic.erc20GetTotalScaledCrossSupply(assetData);
+      totalScaledIsolateSupply = VaultLogic.erc20GetTotalScaledIsolateSupply(assetData);
+    } else if (assetData.assetType == Constants.ASSET_TYPE_ERC721) {
+      totalScaledCrossSupply = VaultLogic.erc721GetTotalCrossSupply(assetData);
+      totalScaledIsolateSupply = VaultLogic.erc721GetTotalIsolateSupply(assetData);
+    }
+
+    require((totalScaledCrossSupply + totalScaledIsolateSupply) == 0, Errors.ASSET_LIQUIDITY_NOT_ZERO);
   }
 }

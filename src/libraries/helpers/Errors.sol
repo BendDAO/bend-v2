@@ -98,6 +98,7 @@ library Errors {
   string public constant ASSET_IS_FLASHLOAN_DISABLED = '362';
   string public constant ASSET_SUPPLY_MODE_IS_SAME = '363';
   string public constant ASSET_TOKEN_ALREADY_EXISTS = '364';
+  string public constant ASSET_LIQUIDITY_NOT_ZERO = '365';
 
   string public constant HEALTH_FACTOR_BELOW_LIQUIDATION_THRESHOLD = '400';
   string public constant HEALTH_FACTOR_NOT_BELOW_LIQUIDATION_THRESHOLD = '401';
