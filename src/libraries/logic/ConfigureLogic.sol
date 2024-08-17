@@ -500,7 +500,8 @@ library ConfigureLogic {
     uint16 minBidFineFactor,
     uint40 auctionDuration
   ) internal {
-    require(redeemThreshold <= Constants.MAX_REDEEM_THRESHOLD, Errors.INVALID_ASSET_PARAMS);
+    //liquidation bonus must be less than 100.00%
+    require(redeemThreshold < PercentageMath.PERCENTAGE_FACTOR, Errors.INVALID_ASSET_PARAMS);
     require(bidFineFactor <= Constants.MAX_BIDFINE_FACTOR, Errors.INVALID_ASSET_PARAMS);
     require(minBidFineFactor <= Constants.MAX_MIN_BIDFINE_FACTOR, Errors.INVALID_ASSET_PARAMS);
     require(auctionDuration <= Constants.MAX_AUCTION_DUARATION, Errors.INVALID_ASSET_PARAMS);
