@@ -79,14 +79,16 @@ contract YieldEthStakingLido is YieldStakingBase {
 
     IYieldAccount yieldAccount = IYieldAccount(sd.yieldAccount);
 
+    // CAUTION: submit return share not amount, but stETH.balanceOf return amount
     bytes memory result = yieldAccount.executeWithValue{value: amount}(
       address(stETH),
       abi.encodeWithSelector(IStETH.submit.selector, address(0)),
       amount
     );
-    uint256 yieldAmount = abi.decode(result, (uint256));
-    require(yieldAmount > 0, Errors.YIELD_ETH_DEPOSIT_FAILED);
-    return yieldAmount;
+    uint256 yieldShare = abi.decode(result, (uint256));
+    require(yieldShare > 0, Errors.YIELD_ETH_DEPOSIT_FAILED);
+
+    return stETH.getPooledEthByShares(yieldShare);
   }
 
   function protocolRequestWithdrawal(YieldStakeData storage sd) internal virtual override {

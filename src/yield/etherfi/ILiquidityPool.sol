@@ -6,6 +6,11 @@ interface ILiquidityPool {
 
   function withdrawRequestNFT() external view returns (address);
 
+  /**
+   * @notice Send funds to the pool
+   * @dev This function is alternative way to deposit funds.
+   * @return Amount of eETH shares generated
+   */
   function deposit() external payable returns (uint256);
 
   function withdraw(address _recipient, uint256 _amount) external returns (uint256);

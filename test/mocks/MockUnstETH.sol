@@ -25,12 +25,13 @@ contract MockUnstETH is IUnstETH, ERC721Enumerable, Ownable2Step {
     requestIds = new uint256[](_amounts.length);
 
     for (uint i = 0; i < _amounts.length; i++) {
-      _stETH.transferFrom(msg.sender, address(this), _amounts[i]);
+      uint256 share = _stETH.getSharesByPooledEth(_amounts[i]);
+      _stETH.transferFrom(msg.sender, address(this), share);
 
       requestIds[i] = _nextRequestId++;
 
       _withdrawStatuses[requestIds[i]].amountOfStETH = _amounts[i];
-      _withdrawStatuses[requestIds[i]].amountOfShares = _amounts[i];
+      _withdrawStatuses[requestIds[i]].amountOfShares = share;
       _withdrawStatuses[requestIds[i]].owner = _owner;
       _withdrawStatuses[requestIds[i]].timestamp = block.timestamp;
 
