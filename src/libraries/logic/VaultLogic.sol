@@ -788,7 +788,7 @@ library VaultLogic {
 
     IWETH(wrappedNativeToken).deposit{value: amount}();
 
-    bool success = IWETH(wrappedNativeToken).transferFrom(address(this), user, amount);
+    bool success = IWETH(wrappedNativeToken).transfer(user, amount);
     require(success, Errors.TOKEN_TRANSFER_FAILED);
   }
 
