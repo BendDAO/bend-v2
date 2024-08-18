@@ -603,6 +603,9 @@ library VaultLogic {
 
       tokenData.owner = address(0);
       tokenData.supplyMode = 0;
+      tokenData.lockerAddr = address(0);
+
+      delete assetData.erc721TokenData[tokenIds[i]];
     }
 
     assetData.totalScaledCrossSupply -= tokenIds.length;
@@ -620,6 +623,9 @@ library VaultLogic {
 
       tokenData.owner = address(0);
       tokenData.supplyMode = 0;
+      tokenData.lockerAddr = address(0);
+
+      delete assetData.erc721TokenData[tokenIds[i]];
     }
 
     assetData.totalScaledIsolateSupply -= tokenIds.length;
@@ -638,6 +644,9 @@ library VaultLogic {
 
       tokenData.owner = address(0);
       tokenData.supplyMode = 0;
+      tokenData.lockerAddr = address(0);
+
+      delete assetData.erc721TokenData[tokenIds[i]];
     }
 
     assetData.totalScaledIsolateSupply -= tokenIds.length;
