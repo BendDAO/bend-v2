@@ -121,6 +121,10 @@ contract YieldEthStakingLido is YieldStakingBase {
   }
 
   function protocolIsClaimReady(YieldStakeData storage sd) internal view virtual override returns (bool) {
+    if (super.protocolIsClaimReady(sd)) {
+      return true;
+    }
+
     if (sd.state == Constants.YIELD_STATUS_UNSTAKE) {
       uint256[] memory requestIds = new uint256[](1);
       requestIds[0] = sd.withdrawReqId;

@@ -176,4 +176,66 @@ contract TestYieldEthStakingLido is TestWithPrepare {
 
     tsHEVM.stopPrank();
   }
+
+  function test_Should_unstake_bot() public {
+    YieldTestVars memory testVars;
+
+    prepareWETH(tsDepositor1);
+
+    uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
+
+    uint256 stakeAmount = tsYieldEthStakingLido.getNftValueInUnderlyingAsset(address(tsBAYC));
+    stakeAmount = (stakeAmount * 80) / 100;
+
+    tsHEVM.prank(address(tsBorrower1));
+    tsYieldEthStakingLido.createYieldAccount(address(tsBorrower1));
+
+    tsHEVM.prank(address(tsBorrower1));
+    tsYieldEthStakingLido.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
+
+    // add some debt interest
+    advanceTimes(360 days);
+
+    // drop down price
+    adjustNftPrice(address(tsBAYC), 100);
+
+    // ask bot to do the unstake forcely
+    tsHEVM.prank(address(tsPoolAdmin));
+    tsYieldEthStakingLido.setBotAdmin(address(tsBorrower2));
+
+    tsHEVM.prank(address(tsBorrower2));
+    tsYieldEthStakingLido.unstake(tsCommonPoolId, address(tsBAYC), tokenIds[0], 0.001 ether);
+
+    (testVars.unstakeFine, testVars.withdrawAmount, testVars.withdrawReqId) = tsYieldEthStakingLido.getNftUnstakeData(
+      address(tsBAYC),
+      tokenIds[0]
+    );
+    tsUnstETH.setWithdrawalStatus(testVars.withdrawReqId, true, false);
+
+    // ask bot to do the repay
+    tsHEVM.prank(address(tsBorrower2));
+    tsYieldEthStakingLido.repay(tsCommonPoolId, address(tsBAYC), tokenIds[0]);
+
+    (testVars.poolId, testVars.state, testVars.debtAmount, testVars.yieldAmount) = tsYieldEthStakingLido
+      .getNftStakeData(address(tsBAYC), tokenIds[0]);
+    assertEq(testVars.state, Constants.YIELD_STATUS_CLAIM, 'bot - state not eq');
+    assertGt(testVars.debtAmount, 0, 'bot - debtAmount not gt');
+
+    // owner to do the remain repay
+    tsHEVM.prank(address(tsBorrower1));
+    tsWETH.approve(address(tsYieldEthStakingLido), type(uint256).max);
+
+    tsHEVM.prank(address(tsBorrower1));
+    tsYieldEthStakingLido.repay(tsCommonPoolId, address(tsBAYC), tokenIds[0]);
+
+    (testVars.poolId, testVars.state, testVars.debtAmount, testVars.yieldAmount) = tsYieldEthStakingLido
+      .getNftStakeData(address(tsBAYC), tokenIds[0]);
+    assertEq(testVars.state, 0, 'owner - state not eq');
+  }
+
+  function adjustNftPrice(address nftAsset, uint256 percentage) internal {
+    uint256 oldPrice = tsBendNFTOracle.getAssetPrice(nftAsset);
+    uint256 newPrice = (oldPrice * percentage) / 1e4;
+    tsBendNFTOracle.setAssetPrice(nftAsset, newPrice);
+  }
 }
