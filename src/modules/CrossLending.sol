@@ -47,6 +47,7 @@ contract CrossLending is BaseModule {
     );
 
     if (isNative) {
+      require(msgSender == receiver, Errors.SENDER_RECEIVER_NOT_SAME);
       VaultLogic.unwrapNativeTokenInWallet(asset, receiver, totalBorrowAmount);
     }
   }

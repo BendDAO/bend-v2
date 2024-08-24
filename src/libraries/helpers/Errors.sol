@@ -7,6 +7,7 @@ library Errors {
   string public constant ETH_TRANSFER_FAILED = '2';
   string public constant TOKEN_TRANSFER_FAILED = '3';
   string public constant MSG_VALUE_NOT_ZERO = '4';
+  string public constant TOKEN_ALLOWANCE_INSUFFICIENT = '5';
 
   string public constant REENTRANCY_ALREADY_LOCKED = '10';
 
@@ -58,6 +59,7 @@ library Errors {
   string public constant PRICE_ORACLE_CANNOT_BE_ZERO = '209';
   string public constant ADDR_PROVIDER_CANNOT_BE_ZERO = '210';
   string public constant SENDER_NOT_APPROVED = '211';
+  string public constant SENDER_RECEIVER_NOT_SAME = '212';
 
   string public constant POOL_ALREADY_EXISTS = '300';
   string public constant POOL_NOT_EXISTS = '301';
