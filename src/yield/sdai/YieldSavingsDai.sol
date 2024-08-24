@@ -114,6 +114,9 @@ contract YieldSavingsDai is YieldStakingBase {
   }
 
   function protocolIsClaimReady(YieldStakeData storage sd) internal view virtual override returns (bool) {
+    if (super.protocolIsClaimReady(sd)) {
+      return true;
+    }
     if (sd.state == Constants.YIELD_STATUS_UNSTAKE) {
       return true;
     }

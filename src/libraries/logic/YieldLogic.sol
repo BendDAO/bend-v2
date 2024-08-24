@@ -48,7 +48,7 @@ library YieldLogic {
 
     ValidateLogic.validateYieldBorrowERC20(params, poolData, assetData, groupData);
 
-    vars.totalSupply = VaultLogic.erc20GetTotalCrossSupply(assetData, groupData.borrowIndex);
+    vars.totalSupply = VaultLogic.erc20GetTotalCrossSupply(assetData, assetData.supplyIndex);
 
     // check asset level yield cap limit
     vars.totalBorrow = VaultLogic.erc20GetTotalCrossBorrowInGroup(groupData, groupData.borrowIndex);

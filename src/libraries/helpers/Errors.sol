@@ -7,6 +7,7 @@ library Errors {
   string public constant ETH_TRANSFER_FAILED = '2';
   string public constant TOKEN_TRANSFER_FAILED = '3';
   string public constant MSG_VALUE_NOT_ZERO = '4';
+  string public constant TOKEN_ALLOWANCE_INSUFFICIENT = '5';
 
   string public constant REENTRANCY_ALREADY_LOCKED = '10';
 
@@ -58,6 +59,7 @@ library Errors {
   string public constant PRICE_ORACLE_CANNOT_BE_ZERO = '209';
   string public constant ADDR_PROVIDER_CANNOT_BE_ZERO = '210';
   string public constant SENDER_NOT_APPROVED = '211';
+  string public constant SENDER_RECEIVER_NOT_SAME = '212';
 
   string public constant POOL_ALREADY_EXISTS = '300';
   string public constant POOL_NOT_EXISTS = '301';
@@ -98,6 +100,7 @@ library Errors {
   string public constant ASSET_IS_FLASHLOAN_DISABLED = '362';
   string public constant ASSET_SUPPLY_MODE_IS_SAME = '363';
   string public constant ASSET_TOKEN_ALREADY_EXISTS = '364';
+  string public constant ASSET_LIQUIDITY_NOT_ZERO = '365';
 
   string public constant HEALTH_FACTOR_BELOW_LIQUIDATION_THRESHOLD = '400';
   string public constant HEALTH_FACTOR_NOT_BELOW_LIQUIDATION_THRESHOLD = '401';
@@ -137,6 +140,7 @@ library Errors {
   string public constant ISOLATE_BID_AUCTION_DURATION_NOT_END = '608';
   string public constant ISOLATE_LOAN_BORROW_AMOUNT_NOT_COVER = '609';
   string public constant ISOLATE_LOAN_EXISTS = '610';
+  string public constant ISOLATE_LOAN_BIDDER_NOT_SAME = '611';
 
   // Yield Staking, don't care about the ETH
   string public constant YIELD_ETH_NFT_NOT_ACTIVE = '1000';
@@ -154,4 +158,6 @@ library Errors {
   string public constant YIELD_ETH_WITHDRAW_FAILED = '1012';
   string public constant YIELD_ETH_CLAIM_FAILED = '1013';
   string public constant YIELD_ETH_ACCOUNT_INSUFFICIENT = '1014';
+  string public constant YIELD_ETH_LT_MIN_AMOUNT = '1015';
+  string public constant YIELD_ETH_GT_MAX_AMOUNT = '1016';
 }

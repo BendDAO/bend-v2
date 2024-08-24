@@ -201,7 +201,6 @@ contract TestYieldSavingsDai is TestWithPrepare {
         nfts[i],
         tokenIds[i]
       );
-      tsUnstETH.setWithdrawalStatus(testVars.withdrawReqId, true, false);
     }
 
     tsYieldSavingsDai.batchRepay(tsCommonPoolId, nfts, tokenIds);
@@ -246,11 +245,16 @@ contract TestYieldSavingsDai is TestWithPrepare {
       address(tsBAYC),
       tokenIds[0]
     );
-    tsEtherfiWithdrawRequestNFT.setWithdrawalStatus(testVars.withdrawReqId, true, false);
 
     // do the repay
     tsHEVM.prank(address(tsBorrower1));
     tsYieldSavingsDai.repay(tsCommonPoolId, address(tsBAYC), tokenIds[0]);
+
+    (testVars.poolId, testVars.state, testVars.debtAmount, testVars.yieldAmount) = tsYieldSavingsDai.getNftStakeData(
+      address(tsBAYC),
+      tokenIds[0]
+    );
+    assertEq(testVars.state, 0, 'state not eq');
 
     // collect fee
     (testVars.totalFineBefore, testVars.claimedFine) = tsYieldSavingsDai.getTotalUnstakeFine();
@@ -262,6 +266,65 @@ contract TestYieldSavingsDai is TestWithPrepare {
     (testVars.totalFineAfter, testVars.claimedFine) = tsYieldSavingsDai.getTotalUnstakeFine();
     assertEq(testVars.totalFineAfter, testVars.totalFineBefore, 'totalFineAfter not eq');
     assertEq(testVars.claimedFine, testVars.totalFineBefore, 'claimedFine not eq');
+  }
+
+  function test_Should_unstake_bot() public {
+    YieldTestVars memory testVars;
+
+    prepareDAI(tsDepositor1);
+
+    uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
+
+    uint256 stakeAmount = tsYieldSavingsDai.getNftValueInUnderlyingAsset(address(tsBAYC));
+    stakeAmount = (stakeAmount * 80) / 100;
+
+    tsHEVM.prank(address(tsBorrower1));
+    tsYieldSavingsDai.createYieldAccount(address(tsBorrower1));
+
+    tsHEVM.prank(address(tsBorrower1));
+    tsYieldSavingsDai.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
+
+    // add some debt interest
+    advanceTimes(360 days);
+
+    // drop down price
+    adjustNftPrice(address(tsBAYC), 100);
+
+    // ask bot to do the unstake forcely
+    tsHEVM.prank(address(tsPoolAdmin));
+    tsYieldSavingsDai.setBotAdmin(address(tsBorrower2));
+
+    tsHEVM.prank(address(tsBorrower2));
+    tsYieldSavingsDai.unstake(tsCommonPoolId, address(tsBAYC), tokenIds[0], 20e18);
+
+    (testVars.unstakeFine, testVars.withdrawAmount, testVars.withdrawReqId) = tsYieldSavingsDai.getNftUnstakeData(
+      address(tsBAYC),
+      tokenIds[0]
+    );
+
+    // ask bot to do the repay
+    tsHEVM.prank(address(tsBorrower2));
+    tsYieldSavingsDai.repay(tsCommonPoolId, address(tsBAYC), tokenIds[0]);
+
+    (testVars.poolId, testVars.state, testVars.debtAmount, testVars.yieldAmount) = tsYieldSavingsDai.getNftStakeData(
+      address(tsBAYC),
+      tokenIds[0]
+    );
+    assertEq(testVars.state, Constants.YIELD_STATUS_CLAIM, 'bot - state not eq');
+    assertGt(testVars.debtAmount, 0, 'bot - debtAmount not gt');
+
+    // owner to do the remain repay
+    tsHEVM.prank(address(tsBorrower1));
+    tsDAI.approve(address(tsYieldSavingsDai), type(uint256).max);
+
+    tsHEVM.prank(address(tsBorrower1));
+    tsYieldSavingsDai.repay(tsCommonPoolId, address(tsBAYC), tokenIds[0]);
+
+    (testVars.poolId, testVars.state, testVars.debtAmount, testVars.yieldAmount) = tsYieldSavingsDai.getNftStakeData(
+      address(tsBAYC),
+      tokenIds[0]
+    );
+    assertEq(testVars.state, 0, 'owner - state not eq');
   }
 
   function adjustNftPrice(address nftAsset, uint256 percentage) internal {

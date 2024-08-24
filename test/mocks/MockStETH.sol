@@ -3,15 +3,20 @@ pragma solidity ^0.8.0;
 
 import {Ownable2Step} from '@openzeppelin/contracts/access/Ownable2Step.sol';
 import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import {IStETH, IERC20Metadata} from 'src/interfaces/IStETH.sol';
 
 contract MockStETH is IStETH, ERC20, Ownable2Step {
+  uint256 private constant RAY = 10 ** 27;
+
   uint8 private _decimals;
   address private _unstETH;
+  uint256 public shareRatio;
 
   constructor(string memory name_, string memory symbol_, uint8 decimals_) ERC20(name_, symbol_) {
     _decimals = decimals_;
+    shareRatio = (RAY * 1000) / 963; // 3.7% APR
   }
 
   function submit(address /*_referral*/) public payable returns (uint256) {
@@ -21,8 +26,10 @@ contract MockStETH is IStETH, ERC20, Ownable2Step {
       _transferETH(_unstETH);
     }
 
-    _mint(msg.sender, msg.value);
-    return msg.value;
+    uint256 share = getSharesByPooledEth(msg.value);
+
+    _mint(msg.sender, share);
+    return share;
   }
 
   function rebase(address to) public payable returns (uint256) {
@@ -32,12 +39,30 @@ contract MockStETH is IStETH, ERC20, Ownable2Step {
       _transferETH(_unstETH);
     }
 
-    _mint(to, msg.value);
-    return msg.value;
+    uint256 share = getSharesByPooledEth(msg.value);
+
+    _mint(to, share);
+    return share;
   }
 
   function decimals() public view override(ERC20, IERC20Metadata) returns (uint8) {
     return _decimals;
+  }
+
+  function balanceOf(address _user) public view override(ERC20, IERC20) returns (uint256) {
+    return getPooledEthByShares(sharesOf(_user));
+  }
+
+  function sharesOf(address _user) public view returns (uint256) {
+    return super.balanceOf(_user);
+  }
+
+  function getSharesByPooledEth(uint256 _ethAmount) public view returns (uint256) {
+    return (_ethAmount * RAY) / shareRatio;
+  }
+
+  function getPooledEthByShares(uint256 _sharesAmount) public view returns (uint256) {
+    return (_sharesAmount * shareRatio) / RAY;
   }
 
   function transferETH(address to) public onlyOwner {

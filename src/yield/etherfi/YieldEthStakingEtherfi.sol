@@ -70,14 +70,15 @@ contract YieldEthStakingEtherfi is YieldStakingBase {
 
     IYieldAccount yieldAccount = IYieldAccount(sd.yieldAccount);
 
+    // CAUTION: deposit return share not amount, but eETH.balanceOf return amount
     bytes memory result = yieldAccount.executeWithValue{value: amount}(
       address(liquidityPool),
       abi.encodeWithSelector(ILiquidityPool.deposit.selector),
       amount
     );
-    uint256 yieldAmount = abi.decode(result, (uint256));
-    require(yieldAmount > 0, Errors.YIELD_ETH_DEPOSIT_FAILED);
-    return yieldAmount;
+    uint256 yieldShare = abi.decode(result, (uint256));
+    require(yieldShare > 0, Errors.YIELD_ETH_DEPOSIT_FAILED);
+    return liquidityPool.amountForShare(yieldShare); // convert to amount
   }
 
   function protocolRequestWithdrawal(YieldStakeData storage sd) internal virtual override {
@@ -110,6 +111,10 @@ contract YieldEthStakingEtherfi is YieldStakingBase {
   }
 
   function protocolIsClaimReady(YieldStakeData storage sd) internal view virtual override returns (bool) {
+    if (super.protocolIsClaimReady(sd)) {
+      return true;
+    }
+
     if (sd.state == Constants.YIELD_STATUS_UNSTAKE) {
       return withdrawRequestNFT.isFinalized(sd.withdrawReqId);
     }

@@ -37,7 +37,7 @@ contract MockEtherfiWithdrawRequestNFT is IWithdrawRequestNFT, ERC721Enumerable,
     _withdrawRequests[reqId].isValid = true;
     _withdrawRequests[reqId].feeGwei = uint32(fee / 1 gwei);
 
-    _mint(requester, reqId);
+    _safeMint(requester, reqId);
 
     return reqId;
   }

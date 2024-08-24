@@ -71,7 +71,8 @@ contract BVault is BaseModule {
     );
 
     if (isNative) {
-      VaultLogic.unwrapNativeTokenInWallet(asset, msgSender, amount);
+      require(msgSender == receiver, Errors.SENDER_RECEIVER_NOT_SAME);
+      VaultLogic.unwrapNativeTokenInWallet(asset, receiver, amount);
     }
   }
 

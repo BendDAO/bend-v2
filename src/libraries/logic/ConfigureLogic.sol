@@ -338,6 +338,10 @@ library ConfigureLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
 
+    if (!isActive) {
+      _checkNoSuppliers(assetData);
+    }
+
     assetData.isActive = isActive;
 
     emit Events.SetAssetActive(poolId, asset, isActive);
@@ -468,6 +472,18 @@ library ConfigureLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
 
+    if (liquidationThreshold != 0) {
+      //liquidation bonus must be less than 50.00%
+      require(liquidationBonus < PercentageMath.HALF_PERCENTAGE_FACTOR, Errors.INVALID_ASSET_PARAMS);
+    } else {
+      require(liquidationBonus == 0, Errors.INVALID_ASSET_PARAMS);
+
+      //if the liquidation threshold is being set to 0,
+      // the asset is being disabled as collateral. To do so,
+      //we need to ensure no liquidity is supplied
+      _checkNoSuppliers(assetData);
+    }
+
     assetData.collateralFactor = collateralFactor;
     assetData.liquidationThreshold = liquidationThreshold;
     assetData.liquidationBonus = liquidationBonus;
@@ -484,7 +500,8 @@ library ConfigureLogic {
     uint16 minBidFineFactor,
     uint40 auctionDuration
   ) internal {
-    require(redeemThreshold <= Constants.MAX_REDEEM_THRESHOLD, Errors.INVALID_ASSET_PARAMS);
+    //liquidation bonus must be less than 100.00%
+    require(redeemThreshold < PercentageMath.PERCENTAGE_FACTOR, Errors.INVALID_ASSET_PARAMS);
     require(bidFineFactor <= Constants.MAX_BIDFINE_FACTOR, Errors.INVALID_ASSET_PARAMS);
     require(minBidFineFactor <= Constants.MAX_MIN_BIDFINE_FACTOR, Errors.INVALID_ASSET_PARAMS);
     require(auctionDuration <= Constants.MAX_AUCTION_DUARATION, Errors.INVALID_ASSET_PARAMS);
@@ -518,6 +535,9 @@ library ConfigureLogic {
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
+    // update index using old param before set new config
+    InterestLogic.updateInterestIndexs(poolData, assetData);
+
     assetData.feeFactor = feeFactor;
 
     emit Events.SetAssetProtocolFee(poolId, asset, feeFactor);
@@ -544,6 +564,9 @@ library ConfigureLogic {
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
     require(assetData.groupList.contains(groupId), Errors.GROUP_NOT_EXISTS);
+
+    // update index using old param before set new config
+    InterestLogic.updateInterestIndexs(poolData, assetData);
 
     DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
     groupData.rateModel = rateModel_;
@@ -635,6 +658,9 @@ library ConfigureLogic {
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
 
+    // update index using old param before set new config
+    InterestLogic.updateInterestIndexs(poolData, assetData);
+
     DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
     groupData.rateModel = rateModel_;
 
@@ -672,5 +698,20 @@ library ConfigureLogic {
     PoolLogic.checkCallerIsPoolAdmin(ps, msgSender);
 
     require(poolData.poolId != 0, Errors.POOL_NOT_EXISTS);
+  }
+
+  function _checkNoSuppliers(DataTypes.AssetData storage assetData) internal view {
+    uint256 totalScaledCrossSupply;
+    uint256 totalScaledIsolateSupply;
+
+    if (assetData.assetType == Constants.ASSET_TYPE_ERC20) {
+      totalScaledCrossSupply = VaultLogic.erc20GetTotalScaledCrossSupply(assetData);
+      totalScaledIsolateSupply = VaultLogic.erc20GetTotalScaledIsolateSupply(assetData);
+    } else if (assetData.assetType == Constants.ASSET_TYPE_ERC721) {
+      totalScaledCrossSupply = VaultLogic.erc721GetTotalCrossSupply(assetData);
+      totalScaledIsolateSupply = VaultLogic.erc721GetTotalIsolateSupply(assetData);
+    }
+
+    require((totalScaledCrossSupply + totalScaledIsolateSupply) == 0, Errors.ASSET_LIQUIDITY_NOT_ZERO);
   }
 }

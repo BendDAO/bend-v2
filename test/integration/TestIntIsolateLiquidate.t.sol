@@ -53,7 +53,7 @@ contract TestIntIsolateLiquidate is TestWithIsolateAction {
       assertLt(loanDataBeforeAuction.healthFactor, 1e18, 'healthFactor not lt 1');
       bidAmounts[i] = (loanDataBeforeAuction.borrowAmount * 1011) / 1000;
 
-      (uint256 borrowAmount, uint256 thresholdPrice, uint256 liquidatePrice) = tsPoolLens.getIsolateLiquidateData(
+      (uint256 borrowAmount /*uint256 thresholdPrice*/, , uint256 liquidatePrice) = tsPoolLens.getIsolateLiquidateData(
         tsCommonPoolId,
         address(tsBAYC),
         tokenIds[i]

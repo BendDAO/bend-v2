@@ -19,6 +19,14 @@ import {YieldStakingBase} from '../YieldStakingBase.sol';
 contract YieldEthStakingLido is YieldStakingBase {
   using Math for uint256;
 
+  // @dev copy from Lido's unstETH contract
+  /// @notice minimal amount of stETH that is possible to withdraw
+  uint256 public constant MIN_STETH_WITHDRAWAL_AMOUNT = 100;
+  /// @notice maximum amount of stETH that is possible to withdraw by a single request
+  /// Prevents accumulating too much funds per single request fulfillment in the future.
+  /// @dev To withdraw larger amounts, it's recommended to split it to several requests
+  uint256 public constant MAX_STETH_WITHDRAWAL_AMOUNT = (1000 * 1e18 * 80) / 100; // 80% of max
+
   IStETH public stETH;
   IUnstETH public unstETH;
 
@@ -64,18 +72,23 @@ contract YieldEthStakingLido is YieldStakingBase {
   }
 
   function protocolDeposit(YieldStakeData storage sd, uint256 amount) internal virtual override returns (uint256) {
+    require(amount >= MIN_STETH_WITHDRAWAL_AMOUNT, Errors.YIELD_ETH_LT_MIN_AMOUNT);
+    require(amount <= MAX_STETH_WITHDRAWAL_AMOUNT, Errors.YIELD_ETH_GT_MAX_AMOUNT);
+
     IWETH(address(underlyingAsset)).withdraw(amount);
 
     IYieldAccount yieldAccount = IYieldAccount(sd.yieldAccount);
 
+    // CAUTION: submit return share not amount, but stETH.balanceOf return amount
     bytes memory result = yieldAccount.executeWithValue{value: amount}(
       address(stETH),
       abi.encodeWithSelector(IStETH.submit.selector, address(0)),
       amount
     );
-    uint256 yieldAmount = abi.decode(result, (uint256));
-    require(yieldAmount > 0, Errors.YIELD_ETH_DEPOSIT_FAILED);
-    return yieldAmount;
+    uint256 yieldShare = abi.decode(result, (uint256));
+    require(yieldShare > 0, Errors.YIELD_ETH_DEPOSIT_FAILED);
+
+    return stETH.getPooledEthByShares(yieldShare);
   }
 
   function protocolRequestWithdrawal(YieldStakeData storage sd) internal virtual override {
@@ -108,6 +121,10 @@ contract YieldEthStakingLido is YieldStakingBase {
   }
 
   function protocolIsClaimReady(YieldStakeData storage sd) internal view virtual override returns (bool) {
+    if (super.protocolIsClaimReady(sd)) {
+      return true;
+    }
+
     if (sd.state == Constants.YIELD_STATUS_UNSTAKE) {
       uint256[] memory requestIds = new uint256[](1);
       requestIds[0] = sd.withdrawReqId;

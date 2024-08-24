@@ -73,8 +73,8 @@ contract InitConfigPool is DeployBase {
     //initInterestRateModels();
 
     //setPoolInterestRateModels(1);
-    setPoolInterestRateModels(2);
-    setPoolInterestRateModels(3);
+    //setPoolInterestRateModels(2);
+    //setPoolInterestRateModels(3);
 
     //initOralces();
 
