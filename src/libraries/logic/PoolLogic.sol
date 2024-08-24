@@ -67,6 +67,8 @@ library PoolLogic {
     }
   }
 
+  /// @notice We don't automatically reset or clear the delegation when NFTs withdraw (leave) from the pool,
+  /// NFT owner has the responsibility to check & clear the delegation settings.
   function executeDelegateERC721(InputTypes.ExecuteDelegateERC721Params memory params) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
