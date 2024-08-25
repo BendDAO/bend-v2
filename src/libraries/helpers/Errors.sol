@@ -8,6 +8,7 @@ library Errors {
   string public constant TOKEN_TRANSFER_FAILED = '3';
   string public constant MSG_VALUE_NOT_ZERO = '4';
   string public constant TOKEN_ALLOWANCE_INSUFFICIENT = '5';
+  string public constant TOKEN_BALANCE_INSUFFICIENT = '6';
 
   string public constant REENTRANCY_ALREADY_LOCKED = '10';
 

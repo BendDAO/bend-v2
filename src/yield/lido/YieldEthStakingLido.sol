@@ -71,6 +71,15 @@ contract YieldEthStakingLido is YieldStakingBase {
     super.repay(poolId, nft, tokenId);
   }
 
+  function batchRepayETH(uint32 poolId, address[] calldata nfts, uint256[] calldata tokenIds) public payable {
+    if (msg.value > 0) {
+      IWETH(address(underlyingAsset)).deposit{value: msg.value}();
+      IWETH(address(underlyingAsset)).transfer(msg.sender, msg.value);
+    }
+
+    super.batchRepay(poolId, nfts, tokenIds);
+  }
+
   function protocolDeposit(YieldStakeData storage sd, uint256 amount) internal virtual override returns (uint256) {
     require(amount >= MIN_STETH_WITHDRAWAL_AMOUNT, Errors.YIELD_ETH_LT_MIN_AMOUNT);
     require(amount <= MAX_STETH_WITHDRAWAL_AMOUNT, Errors.YIELD_ETH_GT_MAX_AMOUNT);

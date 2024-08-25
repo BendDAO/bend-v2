@@ -804,6 +804,7 @@ library VaultLogic {
   function unwrapNativeTokenInWallet(address wrappedNativeToken, address user, uint256 amount) internal {
     require(amount > 0, Errors.INVALID_AMOUNT);
 
+    require(IWETH(wrappedNativeToken).balanceOf(user) >= amount, Errors.TOKEN_BALANCE_INSUFFICIENT);
     require(IWETH(wrappedNativeToken).allowance(user, address(this)) >= amount, Errors.TOKEN_ALLOWANCE_INSUFFICIENT);
 
     bool success = IWETH(wrappedNativeToken).transferFrom(user, address(this), amount);
