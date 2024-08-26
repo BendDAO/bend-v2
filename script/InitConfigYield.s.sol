@@ -51,9 +51,9 @@ contract InitConfigYield is DeployBase {
       addrBAYC = 0xE15A78992dd4a9d6833eA7C9643650d3b0a2eD2B;
       addrMAYC = 0xD0ff8ae7E3D9591605505D3db9C33b96c4809CDC;
 
-      addrYieldLido = 0x31484Ba5772B41313B951f1b98394cfaB5d8ed8b;
-      addrYieldEtherfi = 0x7dAe0FDE9a89553d65666531c2192Bf85F6edACc;
-      addrYieldSDai = 0x5F695a92C0B3A595ceE43750C433e7B1109CBe3C;
+      addrYieldLido = 0x59303f797B8Dd80fc3743047df63C76E44Ca7CBd;
+      addrYieldEtherfi = 0x3234F1047E71421Ec67A576D87eaEe1B86E8A1Ea;
+      addrYieldSDai = 0x7464a51fA6338A34b694b4bF4A152781fb2C4B70;
 
       commonPoolId = 1;
       addrIrmYield = 0x10988B9c7e7048B83D590b14F0167FDe56728Ae9;
@@ -69,23 +69,11 @@ contract InitConfigYield is DeployBase {
 
     //initYieldPools();
 
-    //initYieldLido();
+    initYieldLido();
 
-    //initYieldEtherfi();
+    initYieldEtherfi();
 
-    //initYieldSDai();
-
-    YieldEthStakingLido yieldEthStakingLido = YieldEthStakingLido(payable(addrYieldLido));
-    yieldEthStakingLido.setNftUnstakeParams(address(addrWPUNK), 0.01 ether, 1.05e18);
-    yieldEthStakingLido.setNftUnstakeParams(address(addrBAYC), 0.01 ether, 1.05e18);
-
-    YieldEthStakingEtherfi yieldEthStakingEtherfi = YieldEthStakingEtherfi(payable(addrYieldEtherfi));
-    yieldEthStakingEtherfi.setNftUnstakeParams(address(addrWPUNK), 0.01 ether, 1.05e18);
-    yieldEthStakingEtherfi.setNftUnstakeParams(address(addrBAYC), 0.01 ether, 1.05e18);
-
-    YieldSavingsDai yieldSDai = YieldSavingsDai(payable(addrYieldSDai));
-    yieldSDai.setNftUnstakeParams(address(addrWPUNK), 100e18, 1.05e18);
-    yieldSDai.setNftUnstakeParams(address(addrBAYC), 100e18, 1.05e18);
+    initYieldSDai();
   }
 
   function initYieldPools() internal {

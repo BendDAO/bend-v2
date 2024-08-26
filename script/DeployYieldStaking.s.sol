@@ -30,7 +30,7 @@ contract DeployYieldStaking is DeployBase {
     address addrProviderInCfg = config.getAddressProvider();
     require(addrProviderInCfg != address(0), 'AddressProvider not exist in config');
 
-    _deployYieldRegistry(proxyAdminInCfg, addrProviderInCfg);
+    //_deployYieldRegistry(proxyAdminInCfg, addrProviderInCfg);
 
     _deployYieldEthStakingLido(proxyAdminInCfg, addrProviderInCfg);
 
@@ -70,8 +70,8 @@ contract DeployYieldStaking is DeployBase {
     } else if (chainId == 11155111) {
       // sepolia
       weth = 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14;
-      stETH = 0x13c8843a3d2DEe70CAC440EEc0e7D5F587fC3e92;
-      unstETH = 0xD2E252CdB70eDb72E847ee9B6BB249Ead1BFd380;
+      stETH = 0x7E294171098b172a223ABEc020e5e0644853E68C;
+      unstETH = 0xfAA017B0B36BDf3fd705eE2c1a63e227b2EbE791;
     } else {
       revert('not support');
     }
@@ -99,7 +99,7 @@ contract DeployYieldStaking is DeployBase {
     } else if (chainId == 11155111) {
       // sepolia
       weth = 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14;
-      etherfiPool = 0x5794bfcBb9c72691420419102E6406163FC5c67c;
+      etherfiPool = 0xBD9277C1aF64e2D7c9Cf0df5f717f20b9a66fD7E;
     } else {
       revert('not support');
     }
@@ -127,7 +127,7 @@ contract DeployYieldStaking is DeployBase {
     } else if (chainId == 11155111) {
       // sepolia
       dai = 0xf9a88B0cc31f248c89F063C2928fA10e5A029B88;
-      sdai = 0x4C2A90A649eC4aAA43526637DFaaeCAD5F8a6b4c;
+      sdai = 0x8A9214AF64f6F313a2eBe2F80cfDD470bFCC1a33;
     } else {
       revert('not support');
     }

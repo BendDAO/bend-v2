@@ -19,6 +19,14 @@ contract MockStETH is IStETH, ERC20, Ownable2Step {
     shareRatio = (RAY * 1000) / 963; // 3.7% APR
   }
 
+  function setShareRatio(uint256 shareRatio_) public onlyOwner {
+    shareRatio = shareRatio_;
+  }
+
+  function getShareRatio() public view returns (uint256) {
+    return shareRatio;
+  }
+
   function submit(address /*_referral*/) public payable returns (uint256) {
     require(msg.value > 0, 'msg value is 0');
 

@@ -32,14 +32,14 @@ contract DeployYieldMock is DeployBase {
   }
 
   function _deployMockLido() internal {
-    MockStETH stETH = new MockStETH('stETH', 'stETH', 18);
+    MockStETH stETH = new MockStETH('MockStETH', 'stETH', 18);
     MockUnstETH unstETH = new MockUnstETH(address(stETH));
 
     stETH.setUnstETH(address(unstETH));
   }
 
   function _deployMockEtherfi() internal {
-    MockeETH eETH = new MockeETH('eETH', 'eETH', 18);
+    MockeETH eETH = new MockeETH('MockeETH', 'eETH', 18);
     MockEtherfiWithdrawRequestNFT nft = new MockEtherfiWithdrawRequestNFT();
     MockEtherfiLiquidityPool pool = new MockEtherfiLiquidityPool(address(eETH), address(nft));
 
@@ -48,8 +48,13 @@ contract DeployYieldMock is DeployBase {
   }
 
   function _deployMockSDai() internal {
-    new MockDAIPot();
-    MockERC20 dai = new MockERC20('Dai Stablecoin', 'DAI', 18);
+    // MockDAIPot pot = new MockDAIPot();
+    // MockDAIPot pot = MockDAIPot(0x30252a71d6bC66f772b1Ed7d07CdEa2952a0F032);
+
+    // DAI should be same with pool lending
+    // MockERC20 dai = new MockERC20('Dai Stablecoin', 'DAI', 18);
+    MockERC20 dai = MockERC20(0xf9a88B0cc31f248c89F063C2928fA10e5A029B88);
+
     new MockSDAI(address(dai));
   }
 }

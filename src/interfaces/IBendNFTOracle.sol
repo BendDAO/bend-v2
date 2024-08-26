@@ -9,4 +9,6 @@ interface IBendNFTOracle {
   /* CAUTION: Price uint is ETH based (WEI, 18 decimals) */
   // get asset price
   function getAssetPrice(address _nftContract) external view returns (uint256);
+
+  function getLatestTimestamp(address _nftContract) external view returns (uint256);
 }

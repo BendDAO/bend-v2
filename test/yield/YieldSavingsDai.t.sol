@@ -50,14 +50,14 @@ contract TestYieldSavingsDai is TestWithPrepare {
     );
     assertEq(testVars.poolId, tsCommonPoolId, 'poolId not eq');
     assertEq(testVars.state, Constants.YIELD_STATUS_ACTIVE, 'state not eq');
-    assertEq(testVars.debtAmount, stakeAmount, 'debtAmount not eq');
-    assertEq(testVars.yieldAmount, stakeAmount, 'yieldAmount not eq');
+    testEquality(testVars.debtAmount, stakeAmount, 'testVars.debtAmount not eq');
+    testEquality(testVars.yieldAmount, stakeAmount, 'testVars.yieldAmount not eq');
 
     uint256 debtAmount = tsYieldSavingsDai.getNftDebtInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
-    assertEq(debtAmount, stakeAmount, 'debtAmount not eq');
+    testEquality(debtAmount, stakeAmount, 'debtAmount not eq');
 
     (uint256 yieldAmount, ) = tsYieldSavingsDai.getNftYieldInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
-    assertEq(yieldAmount, stakeAmount, 'yieldAmount not eq');
+    testEquality(yieldAmount, stakeAmount, 'yieldAmount not eq');
   }
 
   function test_Should_unstake() public {
@@ -76,14 +76,18 @@ contract TestYieldSavingsDai is TestWithPrepare {
     tsHEVM.prank(address(tsBorrower1));
     tsYieldSavingsDai.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount);
 
+    // add some yield
     uint256 deltaAmount = (stakeAmount * 35) / 1000;
     tsHEVM.prank(address(tsDepositor1));
     tsDAI.approve(address(tsSDAI), type(uint256).max);
     tsHEVM.prank(address(tsDepositor1));
     tsSDAI.rebase(yieldAccount, deltaAmount);
 
-    (uint256 yieldAmount, ) = tsYieldSavingsDai.getNftYieldInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
-    testEquality(yieldAmount, (stakeAmount + deltaAmount), 'yieldAmount not eq');
+    (uint256 underAmount, uint256 yieldAmount) = tsYieldSavingsDai.getNftYieldInUnderlyingAsset(
+      address(tsBAYC),
+      tokenIds[0]
+    );
+    testEquality(underAmount, (stakeAmount + deltaAmount), 3, 'yieldAmount not eq');
 
     tsHEVM.prank(address(tsBorrower1));
     tsYieldSavingsDai.unstake(tsCommonPoolId, address(tsBAYC), tokenIds[0], 0);
@@ -93,13 +97,14 @@ contract TestYieldSavingsDai is TestWithPrepare {
       tokenIds[0]
     );
     assertEq(testVars.state, Constants.YIELD_STATUS_CLAIM, 'state not eq');
+    assertEq(testVars.yieldAmount, yieldAmount, 'testVars.yieldAmount not eq');
 
     (testVars.unstakeFine, testVars.withdrawAmount, testVars.withdrawReqId) = tsYieldSavingsDai.getNftUnstakeData(
       address(tsBAYC),
       tokenIds[0]
     );
     assertEq(testVars.unstakeFine, 0, 'unstakeFine not eq');
-    assertEq(testVars.withdrawAmount, yieldAmount, 'withdrawAmount not eq');
+    assertEq(testVars.withdrawAmount, testVars.yieldAmount, 'withdrawAmount not eq');
     assertEq(testVars.withdrawReqId, 0, 'withdrawReqId not eq');
   }
 
@@ -194,6 +199,9 @@ contract TestYieldSavingsDai is TestWithPrepare {
 
     tsYieldSavingsDai.batchStake(tsCommonPoolId, nfts, tokenIds, stakeAmounts);
 
+    // make some interest
+    advanceTimes(365 days);
+
     tsYieldSavingsDai.batchUnstake(tsCommonPoolId, nfts, tokenIds, 0);
 
     for (uint i = 0; i < tokenIds.length; i++) {
@@ -203,6 +211,7 @@ contract TestYieldSavingsDai is TestWithPrepare {
       );
     }
 
+    tsDAI.approve(address(tsYieldSavingsDai), type(uint256).max);
     tsYieldSavingsDai.batchRepay(tsCommonPoolId, nfts, tokenIds);
 
     tsHEVM.stopPrank();

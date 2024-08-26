@@ -11,3 +11,6 @@ fill .env file at project root.
 ## Query
 
 forge script ./script/QueryPool.s.sol --rpc-url sepolia -vvvvv
+
+## Verify
+forge verify-contract --etherscan-api-key ${ETHERSCAN_KEY} --rpc-url sepolia ${ContractAddress} ${ContractFile}:${ContractName}

@@ -22,6 +22,7 @@ contract YieldRegistry is IYieldRegistry, PausableUpgradeable, ReentrancyGuardUp
   event CreateYieldAccount(address indexed account, address indexed manager);
   event SetYieldAccountImplementation(address indexed implementation);
   event AddYieldManager(address indexed manager);
+  event RemoveYieldManager(address indexed manager);
   event RescueYieldAccount(address indexed account, address indexed target, bytes data);
 
   IAddressProvider public addressProvider;
@@ -81,6 +82,13 @@ contract YieldRegistry is IYieldRegistry, PausableUpgradeable, ReentrancyGuardUp
     require(isAddOk, Errors.ENUM_SET_ADD_FAILED);
 
     emit AddYieldManager(_manager);
+  }
+
+  function removeYieldManager(address _manager) public onlyPoolAdmin {
+    bool isRmOk = yieldManagers.remove(_manager);
+    require(isRmOk, Errors.ENUM_SET_REMOVE_FAILED);
+
+    emit RemoveYieldManager(_manager);
   }
 
   function existYieldManager(address _manager) public view override returns (bool) {

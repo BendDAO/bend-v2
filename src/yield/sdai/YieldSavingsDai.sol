@@ -84,10 +84,11 @@ contract YieldSavingsDai is YieldStakingBase {
       address(sdai),
       abi.encodeWithSelector(ISavingsDai.deposit.selector, amount, address(yieldAccount))
     );
-    uint256 yieldAmount = abi.decode(result, (uint256));
-    require(yieldAmount > 0, Errors.YIELD_ETH_DEPOSIT_FAILED);
+    uint256 yieldShare = abi.decode(result, (uint256));
+    require(yieldShare > 0, Errors.YIELD_ETH_DEPOSIT_FAILED);
 
-    return yieldAmount;
+    // We no need to convert to assets, cos it based on the balanceOf
+    return yieldShare;
   }
 
   /* @dev SavingsDAI no need 2 steps so keep it empty */

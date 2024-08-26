@@ -83,6 +83,14 @@ contract PriceOracle is IPriceOracle, Initializable {
     }
   }
 
+  function removeAssetChainlinkAggregators(address[] calldata assets) public onlyOracleAdmin {
+    for (uint256 i = 0; i < assets.length; i++) {
+      require(assets[i] != address(0), Errors.INVALID_ADDRESS);
+      assetChainlinkAggregators[assets[i]] = AggregatorV2V3Interface(address(0));
+      emit Events.AssetAggregatorUpdated(assets[i], address(0));
+    }
+  }
+
   function getAssetChainlinkAggregators(address[] calldata assets) public view returns (address[] memory aggregators) {
     aggregators = new address[](assets.length);
     for (uint256 i = 0; i < assets.length; i++) {
@@ -129,6 +137,9 @@ contract PriceOracle is IPriceOracle, Initializable {
 
   /// @notice Query the price of asset from benddao nft oracle
   function getAssetPriceFromBendNFTOracle(address asset) public view returns (uint256) {
+    uint256 updatedAt = bendNFTOracle.getLatestTimestamp(asset);
+    require(updatedAt != 0, Errors.ORACLE_PRICE_IS_STALE);
+
     uint256 nftPriceInNftBase = bendNFTOracle.getAssetPrice(asset);
     require(nftPriceInNftBase > 0, Errors.ASSET_PRICE_IS_ZERO);
 

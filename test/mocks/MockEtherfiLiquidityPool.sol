@@ -23,6 +23,14 @@ contract MockEtherfiLiquidityPool is ILiquidityPool, Ownable2Step {
     shareRatio = (RAY * 1000) / 965; // 3.5% APR
   }
 
+  function setShareRatio(uint256 shareRatio_) public onlyOwner {
+    shareRatio = shareRatio_;
+  }
+
+  function getShareRatio() public view returns (uint256) {
+    return shareRatio;
+  }
+
   function deposit() external payable override returns (uint256) {
     require(msg.value > 0, 'msg value is 0');
 

@@ -16,7 +16,15 @@ contract MockSDAI is ISavingsDai, ERC20, Ownable2Step {
   constructor(address dai_) ERC20('Savings Dai', 'sDAI') {
     _dai = dai_;
     _decimals = 18;
-    _ratio = RAY;
+    _ratio = (RAY * 1000) / 925; // 7.5% APR;
+  }
+
+  function setShareRatio(uint256 ratio_) public onlyOwner {
+    _ratio = ratio_;
+  }
+
+  function getShareRatio() public view returns (uint256) {
+    return _ratio;
   }
 
   function dai() public view returns (address) {
@@ -26,7 +34,7 @@ contract MockSDAI is ISavingsDai, ERC20, Ownable2Step {
   function deposit(uint256 assets, address receiver) public returns (uint256 shares) {
     ERC20(_dai).transferFrom(msg.sender, address(this), assets);
 
-    shares = (assets * RAY) / _ratio;
+    shares = convertToShares(assets);
     _mint(receiver, shares);
 
     return shares;
@@ -35,10 +43,20 @@ contract MockSDAI is ISavingsDai, ERC20, Ownable2Step {
   function redeem(uint256 shares, address receiver, address owner) public returns (uint256 assets) {
     _burn(owner, shares);
 
-    assets = (shares * _ratio) / RAY;
+    assets = convertToAssets(shares);
+
     ERC20(_dai).transfer(receiver, assets);
 
     return assets;
+  }
+
+  function withdraw(uint256 assets, address receiver, address owner) public returns (uint256 shares) {
+    shares = convertToShares(assets);
+    _burn(owner, shares);
+
+    ERC20(_dai).transfer(receiver, assets);
+
+    return shares;
   }
 
   function convertToShares(uint256 assets) public view returns (uint256) {
@@ -52,17 +70,14 @@ contract MockSDAI is ISavingsDai, ERC20, Ownable2Step {
   function rebase(address receiver, uint256 amount) public returns (uint256) {
     ERC20(_dai).transferFrom(msg.sender, address(this), amount);
 
-    _mint(receiver, amount);
+    uint256 shares = convertToShares(amount);
+    _mint(receiver, shares);
 
-    return amount;
+    return shares;
   }
 
   function decimals() public view override(ERC20, IERC20Metadata) returns (uint8) {
     return _decimals;
-  }
-
-  function setRatio(uint256 ratio_) public onlyOwner {
-    _ratio = ratio_;
   }
 
   function transferDAI(address receiver) public onlyOwner {
