@@ -59,7 +59,7 @@ contract TestIntIsolateOnBehalf is TestWithPrepare {
     );
 
     // invalid receiver
-    tsBorrower2.setAuthorization(tsCommonPoolId, address(tsBAYC), address(tsBorrower1), true);
+    tsBorrower2.setAuthorization(tsCommonPoolId, address(tsUSDT), address(tsBorrower1), true);
 
     tsHEVM.expectRevert(bytes(Errors.INVALID_TO_ADDRESS));
     tsBorrower1.isolateBorrow(
@@ -94,7 +94,7 @@ contract TestIntIsolateOnBehalf is TestWithPrepare {
     }
 
     // approve
-    tsBorrower2.setAuthorization(tsCommonPoolId, address(tsBAYC), address(tsBorrower1), true);
+    tsBorrower2.setAuthorization(tsCommonPoolId, address(tsUSDT), address(tsBorrower1), true);
 
     TestCaseLocalVars memory testVars;
     testVars.senderBalanceBefore = tsUSDT.balanceOf(address(tsBorrower1));

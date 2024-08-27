@@ -392,7 +392,7 @@ library ValidateLogic {
     require(nftAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
     require(!nftAssetData.isFrozen, Errors.ASSET_IS_FROZEN);
 
-    validateSenderApproved(poolData, inputParams.msgSender, inputParams.nftAsset, inputParams.onBehalf);
+    validateSenderApproved(poolData, inputParams.msgSender, inputParams.asset, inputParams.onBehalf);
     require(inputParams.receiver != address(0), Errors.INVALID_TO_ADDRESS);
 
     require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
