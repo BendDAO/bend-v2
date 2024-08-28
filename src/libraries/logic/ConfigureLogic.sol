@@ -571,6 +571,8 @@ library ConfigureLogic {
     DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
     groupData.rateModel = rateModel_;
 
+    InterestLogic.updateInterestRates(poolData, assetData, 0, 0);
+
     emit Events.SetAssetLendingRate(poolId, asset, groupId, rateModel_);
   }
 
@@ -663,6 +665,8 @@ library ConfigureLogic {
 
     DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
     groupData.rateModel = rateModel_;
+
+    InterestLogic.updateInterestRates(poolData, assetData, 0, 0);
 
     emit Events.SetAssetYieldRate(poolId, asset, rateModel_);
   }
