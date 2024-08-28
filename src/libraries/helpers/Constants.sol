@@ -19,6 +19,7 @@ library Constants {
   uint internal constant MODULEID__POOL_LENS = 4;
   uint internal constant MODULEID__FLASHLOAN = 5;
   uint internal constant MODULEID__YIELD = 6;
+  uint internal constant MODULEID__CONFIGURATOR_POOL = 7;
   uint internal constant MODULEID__CROSS_LENDING = 11;
   uint internal constant MODULEID__CROSS_LIQUIDATION = 12;
   uint internal constant MODULEID__ISOLATE_LENDING = 21;

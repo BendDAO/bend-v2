@@ -172,6 +172,26 @@
   },
   {
     "type": "function",
+    "name": "claimedUnstakeFine",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "collectFeeToTreasury",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "convertToDebtAssets",
     "inputs": [
       {
@@ -451,8 +471,8 @@
       },
       {
         "name": "maxUnstakeFine",
-        "type": "uint16",
-        "internalType": "uint16"
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
         "name": "unstakeHeathFactor",
@@ -682,6 +702,77 @@
   },
   {
     "type": "function",
+    "name": "getNftYieldStakeDataStruct",
+    "inputs": [
+      {
+        "name": "nft",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct YieldStakingBase.YieldStakeData",
+        "components": [
+          {
+            "name": "yieldAccount",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "poolId",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "state",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "debtShare",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "yieldShare",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "unstakeFine",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "withdrawAmount",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "withdrawReqId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "remainYieldAmount",
+            "type": "uint256",
+            "internalType": "uint256"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getTotalDebt",
     "inputs": [
       {
@@ -693,6 +784,24 @@
     "outputs": [
       {
         "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getTotalUnstakeFine",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "totalFine",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "claimedFine",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -769,8 +878,8 @@
       },
       {
         "name": "maxUnstakeFine",
-        "type": "uint16",
-        "internalType": "uint16"
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
         "name": "unstakeHeathFactor",
@@ -920,8 +1029,8 @@
       },
       {
         "name": "maxUnstakeFine",
-        "type": "uint16",
-        "internalType": "uint16"
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
         "name": "unstakeHeathFactor",
@@ -1026,6 +1135,11 @@
       },
       {
         "name": "withdrawReqId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "remainYieldAmount",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -1156,6 +1270,25 @@
   },
   {
     "type": "event",
+    "name": "CollectFeeToTreasury",
+    "inputs": [
+      {
+        "name": "to",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amountToCollect",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "Initialized",
     "inputs": [
       {
@@ -1183,6 +1316,37 @@
   {
     "type": "event",
     "name": "Repay",
+    "inputs": [
+      {
+        "name": "user",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "nft",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RepayPart",
     "inputs": [
       {
         "name": "user",
@@ -1286,9 +1450,9 @@
       },
       {
         "name": "maxUnstakeFine",
-        "type": "uint16",
+        "type": "uint256",
         "indexed": false,
-        "internalType": "uint16"
+        "internalType": "uint256"
       },
       {
         "name": "unstakeHeathFactor",

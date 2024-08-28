@@ -24,6 +24,7 @@ import {YieldEthStakingEtherfi} from 'src/yield/etherfi/YieldEthStakingEtherfi.s
 import {YieldSavingsDai} from 'src/yield/sdai/YieldSavingsDai.sol';
 
 import {Installer} from 'src/modules/Installer.sol';
+import {ConfiguratorPool} from 'src/modules/ConfiguratorPool.sol';
 import {Configurator} from 'src/modules/Configurator.sol';
 import {BVault} from 'src/modules/BVault.sol';
 import {CrossLending} from 'src/modules/CrossLending.sol';
@@ -107,6 +108,7 @@ abstract contract TestWithSetup is TestWithUtils {
   YieldSavingsDai public tsYieldSavingsDai;
 
   Installer public tsInstaller;
+  ConfiguratorPool public tsConfiguratorPool;
   Configurator public tsConfigurator;
   BVault public tsBVault;
   CrossLending public tsCrossLending;
@@ -243,8 +245,11 @@ abstract contract TestWithSetup is TestWithUtils {
 
     tsInstaller = Installer(tsPoolManager.moduleIdToProxy(Constants.MODULEID__INSTALLER));
 
-    address[] memory modules = new address[](10);
+    address[] memory modules = new address[](11);
     uint modIdx = 0;
+
+    ConfiguratorPool tsConfiguratorPoolImpl = new ConfiguratorPool(gitCommit);
+    modules[modIdx++] = address(tsConfiguratorPoolImpl);
 
     Configurator tsConfiguratorImpl = new Configurator(gitCommit);
     modules[modIdx++] = address(tsConfiguratorImpl);
@@ -279,6 +284,7 @@ abstract contract TestWithSetup is TestWithUtils {
     tsHEVM.prank(tsPoolAdmin);
     tsInstaller.installModules(modules);
 
+    tsConfiguratorPool = ConfiguratorPool(tsPoolManager.moduleIdToProxy(Constants.MODULEID__CONFIGURATOR_POOL));
     tsConfigurator = Configurator(tsPoolManager.moduleIdToProxy(Constants.MODULEID__CONFIGURATOR));
     tsBVault = BVault(tsPoolManager.moduleIdToProxy(Constants.MODULEID__BVAULT));
     tsCrossLending = CrossLending(tsPoolManager.moduleIdToProxy(Constants.MODULEID__CROSS_LENDING));
@@ -650,11 +656,11 @@ abstract contract TestWithSetup is TestWithUtils {
   function initCommonPools() internal {
     tsHEVM.startPrank(tsPoolAdmin);
 
-    tsCommonPoolId = tsConfigurator.createPool('Common Pool');
+    tsCommonPoolId = tsConfiguratorPool.createPool('Common Pool');
 
-    tsConfigurator.addPoolGroup(tsCommonPoolId, tsLowRateGroupId);
-    tsConfigurator.addPoolGroup(tsCommonPoolId, tsMiddleRateGroupId);
-    tsConfigurator.addPoolGroup(tsCommonPoolId, tsHighRateGroupId);
+    tsConfiguratorPool.addPoolGroup(tsCommonPoolId, tsLowRateGroupId);
+    tsConfiguratorPool.addPoolGroup(tsCommonPoolId, tsMiddleRateGroupId);
+    tsConfiguratorPool.addPoolGroup(tsCommonPoolId, tsHighRateGroupId);
 
     // asset some erc20 assets
     tsConfigurator.addAssetERC20(tsCommonPoolId, address(tsWETH));
@@ -717,7 +723,7 @@ abstract contract TestWithSetup is TestWithUtils {
     tsConfigurator.setAssetSupplyCap(tsCommonPoolId, address(tsMAYC), 10_000);
 
     // yield
-    tsConfigurator.setPoolYieldEnable(tsCommonPoolId, true);
+    tsConfiguratorPool.setPoolYieldEnable(tsCommonPoolId, true);
 
     tsConfigurator.setAssetYieldEnable(tsCommonPoolId, address(tsWETH), true);
     tsConfigurator.setAssetYieldCap(tsCommonPoolId, address(tsWETH), 2000);

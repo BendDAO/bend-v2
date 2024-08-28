@@ -9,6 +9,7 @@ import {WadRayMath} from 'src/libraries/math/WadRayMath.sol';
 
 import {AddressProvider} from 'src/AddressProvider.sol';
 import {PriceOracle} from 'src/PriceOracle.sol';
+import {ConfiguratorPool} from 'src/modules/ConfiguratorPool.sol';
 import {Configurator} from 'src/modules/Configurator.sol';
 import {DefaultInterestRateModel} from 'src/irm/DefaultInterestRateModel.sol';
 
@@ -40,6 +41,7 @@ contract InitConfigYield is DeployBase {
 
   AddressProvider internal addressProvider;
   PriceOracle internal priceOracle;
+  ConfiguratorPool internal configuratorPool;
   Configurator internal configurator;
 
   function _deploy() internal virtual override {
@@ -65,6 +67,7 @@ contract InitConfigYield is DeployBase {
     require(addressProvider_ != address(0), 'Invalid AddressProvider in config');
     addressProvider = AddressProvider(addressProvider_);
     priceOracle = PriceOracle(addressProvider.getPriceOracle());
+    configuratorPool = ConfiguratorPool(addressProvider.getPoolModuleProxy(Constants.MODULEID__CONFIGURATOR_POOL));
     configurator = Configurator(addressProvider.getPoolModuleProxy(Constants.MODULEID__CONFIGURATOR));
 
     //initYieldPools();
@@ -77,7 +80,7 @@ contract InitConfigYield is DeployBase {
   }
 
   function initYieldPools() internal {
-    configurator.setPoolYieldEnable(commonPoolId, true);
+    configuratorPool.setPoolYieldEnable(commonPoolId, true);
 
     IERC20Metadata weth = IERC20Metadata(addrWETH);
     configurator.setAssetYieldEnable(commonPoolId, address(weth), true);

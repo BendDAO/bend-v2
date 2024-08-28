@@ -5,6 +5,7 @@ import {Constants} from 'src/libraries/helpers/Constants.sol';
 
 import {PoolManager} from 'src/PoolManager.sol';
 import {Installer} from 'src/modules/Installer.sol';
+import {ConfiguratorPool} from 'src/modules/ConfiguratorPool.sol';
 import {Configurator} from 'src/modules/Configurator.sol';
 import {BVault} from 'src/modules/BVault.sol';
 import {CrossLending} from 'src/modules/CrossLending.sol';
@@ -49,8 +50,11 @@ contract InstallModule is DeployBase {
   }
 
   function _allModules() internal returns (address[] memory) {
-    address[] memory modules = new address[](10);
+    address[] memory modules = new address[](11);
     uint modIdx = 0;
+
+    ConfiguratorPool tsConfiguratorPoolImpl = new ConfiguratorPool(gitCommitHash);
+    modules[modIdx++] = address(tsConfiguratorPoolImpl);
 
     Configurator tsConfiguratorImpl = new Configurator(gitCommitHash);
     modules[modIdx++] = address(tsConfiguratorImpl);

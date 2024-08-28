@@ -76,69 +76,6 @@
   },
   {
     "type": "function",
-    "name": "addPoolGroup",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "internalType": "uint32"
-      },
-      {
-        "name": "groupId",
-        "type": "uint8",
-        "internalType": "uint8"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "createPool",
-    "inputs": [
-      {
-        "name": "name",
-        "type": "string",
-        "internalType": "string"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "internalType": "uint32"
-      }
-    ],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "deletePool",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "internalType": "uint32"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "getGlobalPause",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool",
-        "internalType": "bool"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "moduleGitCommit",
     "inputs": [],
     "outputs": [
@@ -259,24 +196,6 @@
         "name": "asset",
         "type": "address",
         "internalType": "address"
-      },
-      {
-        "name": "groupId",
-        "type": "uint8",
-        "internalType": "uint8"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "removePoolGroup",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "internalType": "uint32"
       },
       {
         "name": "groupId",
@@ -687,19 +606,6 @@
   },
   {
     "type": "function",
-    "name": "setGlobalPause",
-    "inputs": [
-      {
-        "name": "paused",
-        "type": "bool",
-        "internalType": "bool"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
     "name": "setManagerYieldCap",
     "inputs": [
       {
@@ -721,78 +627,6 @@
         "name": "cap",
         "type": "uint256",
         "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setPoolName",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "internalType": "uint32"
-      },
-      {
-        "name": "name",
-        "type": "string",
-        "internalType": "string"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setPoolPause",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "internalType": "uint32"
-      },
-      {
-        "name": "paused",
-        "type": "bool",
-        "internalType": "bool"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setPoolYieldEnable",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "internalType": "uint32"
-      },
-      {
-        "name": "isEnable",
-        "type": "bool",
-        "internalType": "bool"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "setPoolYieldPause",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "internalType": "uint32"
-      },
-      {
-        "name": "isPause",
-        "type": "bool",
-        "internalType": "bool"
       }
     ],
     "outputs": [],
@@ -850,26 +684,44 @@
   },
   {
     "type": "event",
-    "name": "AddPoolGroup",
+    "name": "AssetInterestBorrowDataUpdated",
     "inputs": [
       {
         "name": "poolId",
         "type": "uint32",
         "indexed": true,
         "internalType": "uint32"
+      },
+      {
+        "name": "asset",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
       },
       {
         "name": "groupId",
-        "type": "uint8",
+        "type": "uint256",
         "indexed": false,
-        "internalType": "uint8"
+        "internalType": "uint256"
+      },
+      {
+        "name": "borrowRate",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "borrowIndex",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       }
     ],
     "anonymous": false
   },
   {
     "type": "event",
-    "name": "CreatePool",
+    "name": "AssetInterestSupplyDataUpdated",
     "inputs": [
       {
         "name": "poolId",
@@ -878,23 +730,22 @@
         "internalType": "uint32"
       },
       {
-        "name": "name",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "DeletePool",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
+        "name": "asset",
+        "type": "address",
         "indexed": true,
-        "internalType": "uint32"
+        "internalType": "address"
+      },
+      {
+        "name": "supplyRate",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "supplyIndex",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
       }
     ],
     "anonymous": false
@@ -952,25 +803,6 @@
         "type": "address",
         "indexed": true,
         "internalType": "address"
-      },
-      {
-        "name": "groupId",
-        "type": "uint8",
-        "indexed": false,
-        "internalType": "uint8"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "RemovePoolGroup",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "indexed": true,
-        "internalType": "uint32"
       },
       {
         "name": "groupId",
@@ -1444,82 +1276,6 @@
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "SetPoolName",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "indexed": true,
-        "internalType": "uint32"
-      },
-      {
-        "name": "name",
-        "type": "string",
-        "indexed": false,
-        "internalType": "string"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "SetPoolPause",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "indexed": true,
-        "internalType": "uint32"
-      },
-      {
-        "name": "isPause",
-        "type": "bool",
-        "indexed": false,
-        "internalType": "bool"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "SetPoolYieldEnable",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "indexed": true,
-        "internalType": "uint32"
-      },
-      {
-        "name": "isEnable",
-        "type": "bool",
-        "indexed": false,
-        "internalType": "bool"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "SetPoolYieldPause",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "indexed": true,
-        "internalType": "uint32"
-      },
-      {
-        "name": "isPause",
-        "type": "bool",
-        "indexed": false,
-        "internalType": "bool"
       }
     ],
     "anonymous": false

@@ -225,6 +225,19 @@
   },
   {
     "type": "function",
+    "name": "removeAssetChainlinkAggregators",
+    "inputs": [
+      {
+        "name": "assets",
+        "type": "address[]",
+        "internalType": "address[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "setAssetChainlinkAggregators",
     "inputs": [
       {

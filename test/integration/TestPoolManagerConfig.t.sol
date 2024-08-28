@@ -22,13 +22,13 @@ contract TestPoolManagerConfig is TestWithSetup {
     tsHEVM.startPrank(address(tsHacker1));
 
     tsHEVM.expectRevert(bytes(Errors.CALLER_NOT_POOL_ADMIN));
-    uint32 poolId1 = tsConfigurator.createPool('test 1');
+    uint32 poolId1 = tsConfiguratorPool.createPool('test 1');
 
     tsHEVM.expectRevert(bytes(Errors.CALLER_NOT_POOL_ADMIN));
-    tsConfigurator.setPoolName(poolId1, 'test 1-1');
+    tsConfiguratorPool.setPoolName(poolId1, 'test 1-1');
 
     tsHEVM.expectRevert(bytes(Errors.CALLER_NOT_POOL_ADMIN));
-    tsConfigurator.deletePool(poolId1);
+    tsConfiguratorPool.deletePool(poolId1);
 
     tsHEVM.stopPrank();
   }
@@ -37,14 +37,14 @@ contract TestPoolManagerConfig is TestWithSetup {
   function test_Should_ManagerGlobalStatus() public {
     tsHEVM.startPrank(address(tsEmergencyAdmin));
 
-    tsConfigurator.setGlobalPause(true);
+    tsConfiguratorPool.setGlobalPause(true);
 
-    bool isPaused1 = tsConfigurator.getGlobalPause();
+    bool isPaused1 = tsConfiguratorPool.getGlobalPause();
     assertEq(isPaused1, true, 'isPaused1 not match');
 
-    tsConfigurator.setGlobalPause(false);
+    tsConfiguratorPool.setGlobalPause(false);
 
-    bool isPaused2 = tsConfigurator.getGlobalPause();
+    bool isPaused2 = tsConfiguratorPool.getGlobalPause();
     assertEq(isPaused2, false, 'isPaused2 not match');
 
     tsHEVM.stopPrank();
@@ -55,30 +55,30 @@ contract TestPoolManagerConfig is TestWithSetup {
   function test_Should_CreateAndDeletePool() public {
     tsHEVM.startPrank(address(tsPoolAdmin));
 
-    uint32 poolId1 = tsConfigurator.createPool('test 1');
-    uint32 poolId2 = tsConfigurator.createPool('test 2');
+    uint32 poolId1 = tsConfiguratorPool.createPool('test 1');
+    uint32 poolId2 = tsConfiguratorPool.createPool('test 2');
 
-    tsConfigurator.setPoolName(poolId1, 'test 1-1');
-    tsConfigurator.setPoolName(poolId2, 'test 2-1');
+    tsConfiguratorPool.setPoolName(poolId1, 'test 1-1');
+    tsConfiguratorPool.setPoolName(poolId2, 'test 2-1');
 
-    tsConfigurator.deletePool(poolId1);
-    tsConfigurator.deletePool(poolId2);
+    tsConfiguratorPool.deletePool(poolId1);
+    tsConfiguratorPool.deletePool(poolId2);
 
     tsHEVM.stopPrank();
   }
 
   function test_Should_ManagerPoolStatus() public {
     tsHEVM.prank(address(tsPoolAdmin));
-    uint32 poolId = tsConfigurator.createPool('test 1');
+    uint32 poolId = tsConfiguratorPool.createPool('test 1');
 
     tsHEVM.prank(address(tsEmergencyAdmin));
-    tsConfigurator.setPoolPause(poolId, true);
+    tsConfiguratorPool.setPoolPause(poolId, true);
 
     (bool isPaused1, , , ) = tsPoolLens.getPoolConfigFlag(poolId);
     assertEq(isPaused1, true, 'isPaused1 not match');
 
     tsHEVM.prank(address(tsEmergencyAdmin));
-    tsConfigurator.setPoolPause(poolId, false);
+    tsConfiguratorPool.setPoolPause(poolId, false);
 
     (bool isPaused2, , , ) = tsPoolLens.getPoolConfigFlag(poolId);
     assertEq(isPaused2, false, 'isPaused2 not match');
@@ -87,19 +87,19 @@ contract TestPoolManagerConfig is TestWithSetup {
   function test_Should_CreateAndDeletePoolGroup() public {
     tsHEVM.startPrank(address(tsPoolAdmin));
 
-    uint32 poolId = tsConfigurator.createPool('test 1');
+    uint32 poolId = tsConfiguratorPool.createPool('test 1');
 
-    tsConfigurator.addPoolGroup(poolId, 1);
-    tsConfigurator.addPoolGroup(poolId, 2);
-    tsConfigurator.addPoolGroup(poolId, 3);
+    tsConfiguratorPool.addPoolGroup(poolId, 1);
+    tsConfiguratorPool.addPoolGroup(poolId, 2);
+    tsConfiguratorPool.addPoolGroup(poolId, 3);
 
     uint256[] memory retGroupIds1 = tsPoolLens.getPoolGroupList(poolId);
     assertEq(retGroupIds1.length, 3, 'retGroupIds1 length not match');
     assertEq(retGroupIds1[0], 1, 'retGroupIds1 index 0 not match');
 
-    tsConfigurator.removePoolGroup(poolId, 1);
-    tsConfigurator.removePoolGroup(poolId, 2);
-    tsConfigurator.removePoolGroup(poolId, 3);
+    tsConfiguratorPool.removePoolGroup(poolId, 1);
+    tsConfiguratorPool.removePoolGroup(poolId, 2);
+    tsConfiguratorPool.removePoolGroup(poolId, 3);
 
     uint256[] memory retGroupIds2 = tsPoolLens.getPoolGroupList(poolId);
     assertEq(retGroupIds2.length, 0, 'retGroupIds2 length not match');
@@ -110,21 +110,21 @@ contract TestPoolManagerConfig is TestWithSetup {
   function test_RevertIf_DeletePoolGroupUsedByAsset() public {
     tsHEVM.startPrank(address(tsPoolAdmin));
 
-    uint32 poolId = tsConfigurator.createPool('test 1');
-    tsConfigurator.addPoolGroup(poolId, 1);
-    tsConfigurator.addPoolGroup(poolId, 2);
+    uint32 poolId = tsConfiguratorPool.createPool('test 1');
+    tsConfiguratorPool.addPoolGroup(poolId, 1);
+    tsConfiguratorPool.addPoolGroup(poolId, 2);
 
     tsConfigurator.addAssetERC20(poolId, address(tsDAI));
     tsConfigurator.addAssetGroup(poolId, address(tsDAI), 1, address(tsLowRateIRM));
 
     tsHEVM.expectRevert(bytes(Errors.GROUP_USED_BY_ASSET));
-    tsConfigurator.removePoolGroup(poolId, 1);
+    tsConfiguratorPool.removePoolGroup(poolId, 1);
 
     tsConfigurator.addAssetERC721(poolId, address(tsMAYC));
     tsConfigurator.setAssetClassGroup(poolId, address(tsMAYC), 2);
 
     tsHEVM.expectRevert(bytes(Errors.GROUP_USED_BY_ASSET));
-    tsConfigurator.removePoolGroup(poolId, 2);
+    tsConfiguratorPool.removePoolGroup(poolId, 2);
 
     tsHEVM.stopPrank();
   }
@@ -132,7 +132,7 @@ contract TestPoolManagerConfig is TestWithSetup {
   function test_Should_CreateAndDeleteAssetERC20() public {
     tsHEVM.startPrank(address(tsPoolAdmin));
 
-    uint32 poolId = tsConfigurator.createPool('test 1');
+    uint32 poolId = tsConfiguratorPool.createPool('test 1');
 
     tsConfigurator.addAssetERC20(poolId, address(tsDAI));
     tsConfigurator.addAssetERC20(poolId, address(tsUSDT));
@@ -157,7 +157,7 @@ contract TestPoolManagerConfig is TestWithSetup {
   function test_Should_CreateAndDeleteAssetERC721() public {
     tsHEVM.startPrank(address(tsPoolAdmin));
 
-    uint32 poolId = tsConfigurator.createPool('test 1');
+    uint32 poolId = tsConfiguratorPool.createPool('test 1');
 
     tsConfigurator.addAssetERC721(poolId, address(tsWPUNK));
     tsConfigurator.addAssetERC721(poolId, address(tsBAYC));
@@ -182,17 +182,17 @@ contract TestPoolManagerConfig is TestWithSetup {
   function test_Should_ManagePoolYield() public {
     tsHEVM.startPrank(address(tsPoolAdmin));
 
-    uint32 poolId = tsConfigurator.createPool('test 1');
+    uint32 poolId = tsConfiguratorPool.createPool('test 1');
 
-    tsConfigurator.setPoolYieldEnable(poolId, true);
-    tsConfigurator.setPoolYieldPause(poolId, true);
+    tsConfiguratorPool.setPoolYieldEnable(poolId, true);
+    tsConfiguratorPool.setPoolYieldPause(poolId, true);
 
     (, bool isYieldEnabled1, bool isYieldPaused1, ) = tsPoolLens.getPoolConfigFlag(poolId);
     assertEq(isYieldEnabled1, true, 'isYieldEnabled1 not match');
     assertEq(isYieldPaused1, true, 'isYieldPaused1 not match');
 
-    tsConfigurator.setPoolYieldEnable(poolId, false);
-    tsConfigurator.setPoolYieldPause(poolId, false);
+    tsConfiguratorPool.setPoolYieldEnable(poolId, false);
+    tsConfiguratorPool.setPoolYieldPause(poolId, false);
 
     (, bool isYieldEnabled2, bool isYieldPaused2, ) = tsPoolLens.getPoolConfigFlag(poolId);
     assertEq(isYieldEnabled2, false, 'isYieldEnabled2 not match');
@@ -206,10 +206,10 @@ contract TestPoolManagerConfig is TestWithSetup {
   function test_Should_CreateAndDeleteAssetGroup() public {
     tsHEVM.startPrank(address(tsPoolAdmin));
 
-    uint32 poolId = tsConfigurator.createPool('test 1');
-    tsConfigurator.addPoolGroup(poolId, 1);
-    tsConfigurator.addPoolGroup(poolId, 2);
-    tsConfigurator.addPoolGroup(poolId, 3);
+    uint32 poolId = tsConfiguratorPool.createPool('test 1');
+    tsConfiguratorPool.addPoolGroup(poolId, 1);
+    tsConfiguratorPool.addPoolGroup(poolId, 2);
+    tsConfiguratorPool.addPoolGroup(poolId, 3);
 
     tsConfigurator.addAssetERC20(poolId, address(tsWETH));
 
@@ -234,7 +234,7 @@ contract TestPoolManagerConfig is TestWithSetup {
   function test_Should_ManagerAssetStatus() public {
     tsHEVM.startPrank(address(tsPoolAdmin));
 
-    uint32 poolId = tsConfigurator.createPool('test 1');
+    uint32 poolId = tsConfiguratorPool.createPool('test 1');
     tsConfigurator.addAssetERC20(poolId, address(tsWETH));
 
     tsConfigurator.setAssetActive(poolId, address(tsWETH), true);
@@ -261,7 +261,7 @@ contract TestPoolManagerConfig is TestWithSetup {
   function test_Should_ManageAssetCap() public {
     tsHEVM.startPrank(address(tsPoolAdmin));
 
-    uint32 poolId = tsConfigurator.createPool('test 1');
+    uint32 poolId = tsConfiguratorPool.createPool('test 1');
     tsConfigurator.addAssetERC20(poolId, address(tsWETH));
 
     tsConfigurator.setAssetSupplyCap(poolId, address(tsWETH), 220 ether);
@@ -288,9 +288,9 @@ contract TestPoolManagerConfig is TestWithSetup {
   function test_Should_ManageAssetClassGroupAndRate() public {
     tsHEVM.startPrank(address(tsPoolAdmin));
 
-    uint32 poolId = tsConfigurator.createPool('test 1');
-    tsConfigurator.addPoolGroup(poolId, 1);
-    tsConfigurator.addPoolGroup(poolId, 2);
+    uint32 poolId = tsConfiguratorPool.createPool('test 1');
+    tsConfiguratorPool.addPoolGroup(poolId, 1);
+    tsConfiguratorPool.addPoolGroup(poolId, 2);
 
     tsConfigurator.addAssetERC20(poolId, address(tsWETH));
     tsConfigurator.addAssetGroup(poolId, address(tsWETH), 1, address(tsLowRateIRM));
@@ -318,8 +318,8 @@ contract TestPoolManagerConfig is TestWithSetup {
   function test_Should_ManageAssetYield() public {
     tsHEVM.startPrank(address(tsPoolAdmin));
 
-    uint32 poolId = tsConfigurator.createPool('test 1');
-    tsConfigurator.setPoolYieldEnable(poolId, true);
+    uint32 poolId = tsConfiguratorPool.createPool('test 1');
+    tsConfiguratorPool.setPoolYieldEnable(poolId, true);
     tsConfigurator.addAssetERC20(poolId, address(tsWETH));
 
     tsConfigurator.setAssetYieldEnable(poolId, address(tsWETH), true);

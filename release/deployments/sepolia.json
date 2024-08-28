@@ -10,6 +10,7 @@
   "Modules": {
     "Installer": "0x7784861E78A4836fD21aE43135D05AbcCb5492CE",
     "Configurator": "0x0C29eB90EbD26F5db19D63CaB50e2D9F12e66DA0",
+    "ConfiguratorPool": "",
     "BVault": "0xc14Fc51A8F5eaB88AcaeFa887DBFB1BA57ad537e",
     "PoolLens": "0xd36a2B9495df19D378198908398F43D004A048EA",
     "FlashLoan": "0x42411426999dC2b91Cc18B6d558c5C9812DfD31b",
