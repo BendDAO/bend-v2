@@ -23,11 +23,20 @@ contract InitConfigPool is DeployBase {
 
   address internal addrWETH;
   address internal addrUSDT;
+  address internal addrUSDC;
   address internal addrDAI;
 
   address internal addrWPUNK;
   address internal addrBAYC;
+  address internal addrStBAYC;
   address internal addrMAYC;
+  address internal addrStMAYC;
+  address internal addrPPG;
+  address internal addrAZUKI;
+  address internal addrMIL;
+  address internal addrDOODLE;
+  address internal addrMOONBIRD;
+  address internal addrCloneX;
 
   AddressProvider internal addressProvider;
   PriceOracle internal priceOracle;
@@ -49,11 +58,20 @@ contract InitConfigPool is DeployBase {
     if (block.chainid == 11155111) {
       addrWETH = 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14;
       addrUSDT = 0x53cEd787Ba91B4f872b961914faE013ccF8b0236;
+      addrUSDC = 0xC188f878304F37e7199dFBd114e2Af68D043d98c;
       addrDAI = 0xf9a88B0cc31f248c89F063C2928fA10e5A029B88;
 
       addrWPUNK = 0x647dc527Bd7dFEE4DD468cE6fC62FC50fa42BD8b;
       addrBAYC = 0xE15A78992dd4a9d6833eA7C9643650d3b0a2eD2B;
+      addrStBAYC = 0x214455B76E5A5dECB48557417397B831efC6219b;
       addrMAYC = 0xD0ff8ae7E3D9591605505D3db9C33b96c4809CDC;
+      addrStMAYC = 0xE5165Aae8D50371A277f266eC5A0E00405B532C8;
+      addrPPG = 0x4041e6E3B54df2684c5b345d761CF13a1BC219b6;
+      addrAZUKI = 0x292F693048208184320C01e0C223D624268e5EE7;
+      addrMIL = 0xBE4CC856225945ea80460899ff2Fbf0143358550;
+      addrDOODLE = 0x28cCcd47Aa3FFb42D77e395Fba7cdAcCeA884d5A;
+      addrMOONBIRD = 0x4e3A064eF42DD916347751DfA7Ca1dcbA49d3DA8;
+      addrCloneX = 0x3BD0A71D39E67fc49D5A6645550f2bc95F5cb398;
 
       commonPoolId = 1;
 
@@ -88,6 +106,9 @@ contract InitConfigPool is DeployBase {
     //initStableCoinPools();
 
     //setFlashLoan(1);
+
+    configurator.setAssetClassGroup(1, address(addrWPUNK), middleRateGroupId);
+    configurator.setAssetClassGroup(1, address(addrBAYC), middleRateGroupId);
   }
 
   function initOralces() internal {
@@ -238,12 +259,21 @@ contract InitConfigPool is DeployBase {
     // erc20 assets
     addWETH(commonPoolId);
     addUSDT(commonPoolId);
+    addUSDC(commonPoolId);
     addDAI(commonPoolId);
 
     // erc721 assets
     addWPUNK(commonPoolId);
     addBAYC(commonPoolId);
     addMAYC(commonPoolId);
+    addStBAYC(commonPoolId);
+    addStMAYC(commonPoolId);
+    addPPG(commonPoolId);
+    addAzuki(commonPoolId);
+    addMIL(commonPoolId);
+    addDoodle(commonPoolId);
+    addMoonbird(commonPoolId);
+    addCloneX(commonPoolId);
   }
 
   function initPunksPools() internal {
@@ -278,101 +308,217 @@ contract InitConfigPool is DeployBase {
   }
 
   function addWETH(uint32 poolId) internal {
-    IERC20Metadata weth = IERC20Metadata(addrWETH);
-    uint8 decimals = weth.decimals();
+    IERC20Metadata token = IERC20Metadata(addrWETH);
+    uint8 decimals = token.decimals();
 
-    configurator.addAssetERC20(poolId, address(weth));
+    configurator.addAssetERC20(poolId, address(token));
 
-    configurator.setAssetCollateralParams(poolId, address(weth), 8050, 8300, 500);
-    configurator.setAssetProtocolFee(poolId, address(weth), 2000);
-    configurator.setAssetClassGroup(poolId, address(weth), lowRateGroupId);
-    configurator.setAssetActive(poolId, address(weth), true);
-    configurator.setAssetBorrowing(poolId, address(weth), true);
-    configurator.setAssetSupplyCap(poolId, address(weth), 100_000_000 * (10 ** decimals));
-    configurator.setAssetBorrowCap(poolId, address(weth), 100_000_000 * (10 ** decimals));
+    configurator.setAssetCollateralParams(poolId, address(token), 8050, 8300, 500);
+    configurator.setAssetProtocolFee(poolId, address(token), 1500);
+    configurator.setAssetClassGroup(poolId, address(token), lowRateGroupId);
+    configurator.setAssetActive(poolId, address(token), true);
+    configurator.setAssetBorrowing(poolId, address(token), true);
+    configurator.setAssetSupplyCap(poolId, address(token), 100_000_000 * (10 ** decimals));
+    configurator.setAssetBorrowCap(poolId, address(token), 100_000_000 * (10 ** decimals));
 
-    configurator.addAssetGroup(poolId, address(weth), lowRateGroupId, address(irmLow));
-    configurator.addAssetGroup(poolId, address(weth), middleRateGroupId, address(irmMiddle));
-    configurator.addAssetGroup(poolId, address(weth), highRateGroupId, address(irmHigh));
+    configurator.addAssetGroup(poolId, address(token), lowRateGroupId, address(irmLow));
+    configurator.addAssetGroup(poolId, address(token), middleRateGroupId, address(irmMiddle));
+    configurator.addAssetGroup(poolId, address(token), highRateGroupId, address(irmHigh));
   }
 
   function addUSDT(uint32 poolId) internal {
-    IERC20Metadata usdt = IERC20Metadata(addrUSDT);
-    uint8 decimals = usdt.decimals();
+    IERC20Metadata token = IERC20Metadata(addrUSDT);
+    uint8 decimals = token.decimals();
 
-    configurator.addAssetERC20(poolId, address(usdt));
+    configurator.addAssetERC20(poolId, address(token));
 
-    configurator.setAssetCollateralParams(poolId, address(usdt), 7400, 7600, 450);
-    configurator.setAssetProtocolFee(poolId, address(usdt), 2000);
-    configurator.setAssetClassGroup(poolId, address(usdt), lowRateGroupId);
-    configurator.setAssetActive(poolId, address(usdt), true);
-    configurator.setAssetBorrowing(poolId, address(usdt), true);
-    configurator.setAssetSupplyCap(poolId, address(usdt), 100_000_000 * (10 ** decimals));
-    configurator.setAssetBorrowCap(poolId, address(usdt), 100_000_000 * (10 ** decimals));
+    configurator.setAssetCollateralParams(poolId, address(token), 7500, 7800, 450);
+    configurator.setAssetProtocolFee(poolId, address(token), 1000);
+    configurator.setAssetClassGroup(poolId, address(token), lowRateGroupId);
+    configurator.setAssetActive(poolId, address(token), true);
+    configurator.setAssetBorrowing(poolId, address(token), true);
+    configurator.setAssetSupplyCap(poolId, address(token), 100_000_000 * (10 ** decimals));
+    configurator.setAssetBorrowCap(poolId, address(token), 100_000_000 * (10 ** decimals));
 
-    configurator.addAssetGroup(poolId, address(usdt), lowRateGroupId, address(irmLow));
-    configurator.addAssetGroup(poolId, address(usdt), middleRateGroupId, address(irmMiddle));
-    configurator.addAssetGroup(poolId, address(usdt), highRateGroupId, address(irmHigh));
+    configurator.addAssetGroup(poolId, address(token), lowRateGroupId, address(irmLow));
+    configurator.addAssetGroup(poolId, address(token), middleRateGroupId, address(irmMiddle));
+    configurator.addAssetGroup(poolId, address(token), highRateGroupId, address(irmHigh));
+  }
+
+  function addUSDC(uint32 poolId) internal {
+    IERC20Metadata token = IERC20Metadata(addrUSDC);
+    uint8 decimals = token.decimals();
+
+    //configurator.addAssetERC20(poolId, address(token));
+
+    //configurator.setAssetCollateralParams(poolId, address(token), 7500, 7800, 450);
+    //configurator.setAssetProtocolFee(poolId, address(token), 1000);
+    configurator.setAssetClassGroup(poolId, address(token), lowRateGroupId);
+    configurator.setAssetActive(poolId, address(token), true);
+    configurator.setAssetBorrowing(poolId, address(token), true);
+    configurator.setAssetSupplyCap(poolId, address(token), 100_000_000 * (10 ** decimals));
+    configurator.setAssetBorrowCap(poolId, address(token), 100_000_000 * (10 ** decimals));
+
+    configurator.addAssetGroup(poolId, address(token), lowRateGroupId, address(irmLow));
+    configurator.addAssetGroup(poolId, address(token), middleRateGroupId, address(irmMiddle));
+    configurator.addAssetGroup(poolId, address(token), highRateGroupId, address(irmHigh));
   }
 
   function addDAI(uint32 poolId) internal {
-    IERC20Metadata dai = IERC20Metadata(addrDAI);
-    uint8 decimals = dai.decimals();
+    IERC20Metadata token = IERC20Metadata(addrDAI);
+    uint8 decimals = token.decimals();
 
-    configurator.addAssetERC20(poolId, address(dai));
+    configurator.addAssetERC20(poolId, address(token));
 
-    configurator.setAssetCollateralParams(poolId, address(dai), 6300, 7700, 500);
-    configurator.setAssetProtocolFee(poolId, address(dai), 2000);
-    configurator.setAssetClassGroup(poolId, address(dai), lowRateGroupId);
-    configurator.setAssetActive(poolId, address(dai), true);
-    configurator.setAssetBorrowing(poolId, address(dai), true);
-    configurator.setAssetSupplyCap(poolId, address(dai), 100_000_000 * (10 ** decimals));
-    configurator.setAssetBorrowCap(poolId, address(dai), 100_000_000 * (10 ** decimals));
+    configurator.setAssetCollateralParams(poolId, address(token), 6300, 7700, 500);
+    configurator.setAssetProtocolFee(poolId, address(token), 2500);
+    configurator.setAssetClassGroup(poolId, address(token), lowRateGroupId);
+    configurator.setAssetActive(poolId, address(token), true);
+    configurator.setAssetBorrowing(poolId, address(token), true);
+    configurator.setAssetSupplyCap(poolId, address(token), 100_000_000 * (10 ** decimals));
+    configurator.setAssetBorrowCap(poolId, address(token), 100_000_000 * (10 ** decimals));
 
-    configurator.addAssetGroup(poolId, address(dai), lowRateGroupId, address(irmLow));
-    configurator.addAssetGroup(poolId, address(dai), middleRateGroupId, address(irmMiddle));
-    configurator.addAssetGroup(poolId, address(dai), highRateGroupId, address(irmHigh));
+    configurator.addAssetGroup(poolId, address(token), lowRateGroupId, address(irmLow));
+    configurator.addAssetGroup(poolId, address(token), middleRateGroupId, address(irmMiddle));
+    configurator.addAssetGroup(poolId, address(token), highRateGroupId, address(irmHigh));
   }
 
   function setFlashLoan(uint32 poolId) internal {
     configurator.setAssetFlashLoan(poolId, addrWETH, true);
     configurator.setAssetFlashLoan(poolId, addrUSDT, true);
+    configurator.setAssetFlashLoan(poolId, addrUSDC, true);
     configurator.setAssetFlashLoan(poolId, addrDAI, true);
   }
 
   function addWPUNK(uint32 poolId) internal {
-    IERC721 wpunk = IERC721(addrWPUNK);
+    IERC721 token = IERC721(addrWPUNK);
 
-    configurator.addAssetERC721(poolId, address(wpunk));
+    configurator.addAssetERC721(poolId, address(token));
 
-    configurator.setAssetCollateralParams(poolId, address(wpunk), 6000, 8000, 1000);
-    configurator.setAssetAuctionParams(poolId, address(wpunk), 5000, 500, 2000, 1 days);
-    configurator.setAssetClassGroup(poolId, address(wpunk), lowRateGroupId);
-    configurator.setAssetActive(poolId, address(wpunk), true);
-    configurator.setAssetSupplyCap(poolId, address(wpunk), 10_000);
+    configurator.setAssetCollateralParams(poolId, address(token), 5000, 8000, 1000);
+    configurator.setAssetAuctionParams(poolId, address(token), 5000, 500, 2000, 1 days);
+    configurator.setAssetClassGroup(poolId, address(token), middleRateGroupId);
+    configurator.setAssetActive(poolId, address(token), true);
+    configurator.setAssetSupplyCap(poolId, address(token), 10_000);
   }
 
   function addBAYC(uint32 poolId) internal {
-    IERC721 bayc = IERC721(addrBAYC);
+    IERC721 token = IERC721(addrBAYC);
 
-    configurator.addAssetERC721(poolId, address(bayc));
+    configurator.addAssetERC721(poolId, address(token));
 
-    configurator.setAssetCollateralParams(poolId, address(bayc), 6000, 8000, 1000);
-    configurator.setAssetAuctionParams(poolId, address(bayc), 5000, 500, 2000, 1 days);
-    configurator.setAssetClassGroup(poolId, address(bayc), lowRateGroupId);
-    configurator.setAssetActive(poolId, address(bayc), true);
-    configurator.setAssetSupplyCap(poolId, address(bayc), 10_000);
+    configurator.setAssetCollateralParams(poolId, address(token), 5000, 8000, 1000);
+    configurator.setAssetAuctionParams(poolId, address(token), 5000, 500, 2000, 1 days);
+    configurator.setAssetClassGroup(poolId, address(token), middleRateGroupId);
+    configurator.setAssetActive(poolId, address(token), true);
+    configurator.setAssetSupplyCap(poolId, address(token), 10_000);
+  }
+
+  function addStBAYC(uint32 poolId) internal {
+    IERC721 token = IERC721(addrStBAYC);
+
+    configurator.addAssetERC721(poolId, address(token));
+
+    configurator.setAssetCollateralParams(poolId, address(token), 5000, 8000, 1000);
+    configurator.setAssetAuctionParams(poolId, address(token), 5000, 500, 2000, 1 days);
+    configurator.setAssetClassGroup(poolId, address(token), middleRateGroupId);
+    configurator.setAssetActive(poolId, address(token), true);
+    configurator.setAssetSupplyCap(poolId, address(token), 10_000);
   }
 
   function addMAYC(uint32 poolId) internal {
-    IERC721 mayc = IERC721(addrMAYC);
+    IERC721 token = IERC721(addrMAYC);
 
-    configurator.addAssetERC721(poolId, address(mayc));
+    configurator.addAssetERC721(poolId, address(token));
 
-    configurator.setAssetCollateralParams(poolId, address(mayc), 5000, 8000, 1000);
-    configurator.setAssetAuctionParams(poolId, address(mayc), 5000, 500, 2000, 1 days);
-    configurator.setAssetClassGroup(poolId, address(mayc), highRateGroupId);
-    configurator.setAssetActive(poolId, address(mayc), true);
-    configurator.setAssetSupplyCap(poolId, address(mayc), 10_000);
+    configurator.setAssetCollateralParams(poolId, address(token), 5000, 8000, 1000);
+    configurator.setAssetAuctionParams(poolId, address(token), 5000, 500, 2000, 1 days);
+    configurator.setAssetClassGroup(poolId, address(token), middleRateGroupId);
+    configurator.setAssetActive(poolId, address(token), true);
+    configurator.setAssetSupplyCap(poolId, address(token), 10_000);
+  }
+
+  function addStMAYC(uint32 poolId) internal {
+    IERC721 token = IERC721(addrStMAYC);
+
+    configurator.addAssetERC721(poolId, address(token));
+
+    configurator.setAssetCollateralParams(poolId, address(token), 5000, 8000, 1000);
+    configurator.setAssetAuctionParams(poolId, address(token), 5000, 500, 2000, 1 days);
+    configurator.setAssetClassGroup(poolId, address(token), middleRateGroupId);
+    configurator.setAssetActive(poolId, address(token), true);
+    configurator.setAssetSupplyCap(poolId, address(token), 10_000);
+  }
+
+  function addPPG(uint32 poolId) internal {
+    IERC721 token = IERC721(addrPPG);
+
+    configurator.addAssetERC721(poolId, address(token));
+
+    configurator.setAssetCollateralParams(poolId, address(token), 5000, 8000, 1000);
+    configurator.setAssetAuctionParams(poolId, address(token), 5000, 500, 2000, 1 days);
+    configurator.setAssetClassGroup(poolId, address(token), middleRateGroupId);
+    configurator.setAssetActive(poolId, address(token), true);
+    configurator.setAssetSupplyCap(poolId, address(token), 10_000);
+  }
+
+  function addAzuki(uint32 poolId) internal {
+    IERC721 token = IERC721(addrAZUKI);
+
+    configurator.addAssetERC721(poolId, address(token));
+
+    configurator.setAssetCollateralParams(poolId, address(token), 5000, 8000, 1000);
+    configurator.setAssetAuctionParams(poolId, address(token), 5000, 500, 2000, 1 days);
+    configurator.setAssetClassGroup(poolId, address(token), middleRateGroupId);
+    configurator.setAssetActive(poolId, address(token), true);
+    configurator.setAssetSupplyCap(poolId, address(token), 10_000);
+  }
+
+  function addMIL(uint32 poolId) internal {
+    IERC721 token = IERC721(addrMIL);
+
+    configurator.addAssetERC721(poolId, address(token));
+
+    configurator.setAssetCollateralParams(poolId, address(token), 5000, 8000, 1000);
+    configurator.setAssetAuctionParams(poolId, address(token), 5000, 500, 2000, 1 days);
+    configurator.setAssetClassGroup(poolId, address(token), middleRateGroupId);
+    configurator.setAssetActive(poolId, address(token), true);
+    configurator.setAssetSupplyCap(poolId, address(token), 10_000);
+  }
+
+  function addMoonbird(uint32 poolId) internal {
+    IERC721 token = IERC721(addrMOONBIRD);
+
+    configurator.addAssetERC721(poolId, address(token));
+
+    configurator.setAssetCollateralParams(poolId, address(token), 5000, 8000, 1000);
+    configurator.setAssetAuctionParams(poolId, address(token), 5000, 500, 2000, 1 days);
+    configurator.setAssetClassGroup(poolId, address(token), highRateGroupId);
+    configurator.setAssetActive(poolId, address(token), true);
+    configurator.setAssetSupplyCap(poolId, address(token), 10_000);
+  }
+
+  function addDoodle(uint32 poolId) internal {
+    IERC721 token = IERC721(addrDOODLE);
+
+    configurator.addAssetERC721(poolId, address(token));
+
+    configurator.setAssetCollateralParams(poolId, address(token), 5000, 8000, 1000);
+    configurator.setAssetAuctionParams(poolId, address(token), 5000, 500, 2000, 1 days);
+    configurator.setAssetClassGroup(poolId, address(token), highRateGroupId);
+    configurator.setAssetActive(poolId, address(token), true);
+    configurator.setAssetSupplyCap(poolId, address(token), 10_000);
+  }
+
+  function addCloneX(uint32 poolId) internal {
+    IERC721 token = IERC721(addrCloneX);
+
+    configurator.addAssetERC721(poolId, address(token));
+
+    configurator.setAssetCollateralParams(poolId, address(token), 5000, 8000, 1000);
+    configurator.setAssetAuctionParams(poolId, address(token), 5000, 500, 2000, 1 days);
+    configurator.setAssetClassGroup(poolId, address(token), highRateGroupId);
+    configurator.setAssetActive(poolId, address(token), true);
+    configurator.setAssetSupplyCap(poolId, address(token), 10_000);
   }
 }
