@@ -52,9 +52,10 @@ contract UpgradeContract is DeployBase {
 
     //_upgradeYieldRegistry(proxyAdminInCfg, addrProviderInCfg);
 
-    //_upgradeYieldEthStakingLido(proxyAdminInCfg, addrProviderInCfg);
-    //_upgradeYieldEthStakingEtherfi(proxyAdminInCfg, addrProviderInCfg);
-    //_upgradeYieldSavingsDai(proxyAdminInCfg, addrProviderInCfg);
+    _upgradeYieldEthStakingLido(proxyAdminInCfg, addrProviderInCfg);
+    _upgradeYieldEthStakingEtherfi(proxyAdminInCfg, addrProviderInCfg);
+    _upgradeYieldSavingsDai(proxyAdminInCfg, addrProviderInCfg);
+
     //_upgradeBendV1Migration(proxyAdminInCfg, addrProviderInCfg);
   }
 

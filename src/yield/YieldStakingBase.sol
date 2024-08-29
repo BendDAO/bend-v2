@@ -34,7 +34,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
   using Math for uint256;
 
   event SetNftActive(address indexed nft, bool isActive);
-  event SetNftStakeParams(address indexed nft, uint16 leverageFactor, uint16 liquidationThreshold);
+  event SetNftStakeParams(address indexed nft, uint16 leverageFactor, uint16 collateralFactor);
   event SetNftUnstakeParams(address indexed nft, uint256 maxUnstakeFine, uint256 unstakeHeathFactor);
   event SetBotAdmin(address oldAdmin, address newAdmin);
 
@@ -48,7 +48,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
   struct YieldNftConfig {
     bool isActive;
     uint16 leverageFactor; // e.g. 50000 -> 500%
-    uint16 liquidationThreshold; // e.g. 9000 -> 90%
+    uint16 collateralFactor; // e.g. 9000 -> 90%
     uint256 maxUnstakeFine; // e.g. In underlying asset's decimals
     uint256 unstakeHeathFactor; // 18 decimals, e.g. 1.0 -> 1e18
   }
@@ -122,16 +122,12 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     emit SetNftActive(nft, active);
   }
 
-  function setNftStakeParams(
-    address nft,
-    uint16 leverageFactor,
-    uint16 liquidationThreshold
-  ) public virtual onlyPoolAdmin {
+  function setNftStakeParams(address nft, uint16 leverageFactor, uint16 collateralFactor) public virtual onlyPoolAdmin {
     YieldNftConfig storage nc = nftConfigs[nft];
     nc.leverageFactor = leverageFactor;
-    nc.liquidationThreshold = liquidationThreshold;
+    nc.collateralFactor = collateralFactor;
 
-    emit SetNftStakeParams(nft, leverageFactor, liquidationThreshold);
+    emit SetNftStakeParams(nft, leverageFactor, collateralFactor);
   }
 
   function setNftUnstakeParams(
@@ -518,13 +514,13 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     returns (
       bool isActive,
       uint16 leverageFactor,
-      uint16 liquidationThreshold,
+      uint16 collateralFactor,
       uint256 maxUnstakeFine,
       uint256 unstakeHeathFactor
     )
   {
     YieldNftConfig memory nc = nftConfigs[nft];
-    return (nc.isActive, nc.leverageFactor, nc.liquidationThreshold, nc.maxUnstakeFine, nc.unstakeHeathFactor);
+    return (nc.isActive, nc.leverageFactor, nc.collateralFactor, nc.maxUnstakeFine, nc.unstakeHeathFactor);
   }
 
   function getYieldAccount(address user) public view virtual returns (address) {
@@ -549,7 +545,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     YieldNftConfig storage nc = nftConfigs[nft];
 
     uint256 nftPrice = getNftPriceInUnderlyingAsset(nft);
-    uint256 totalNftValue = nftPrice.percentMul(nc.liquidationThreshold);
+    uint256 totalNftValue = nftPrice.percentMul(nc.collateralFactor);
     return totalNftValue;
   }
 
@@ -574,7 +570,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
 
     uint256 nftPrice = getNftPriceInUnderlyingAsset(nft);
 
-    totalCollateral = nftPrice.percentMul(nc.liquidationThreshold);
+    totalCollateral = nftPrice.percentMul(nc.collateralFactor);
     availabeBorrow = nftPrice.percentMul(nc.leverageFactor);
 
     YieldStakeData storage sd = stakeDatas[nft][tokenId];
@@ -774,7 +770,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     YieldStakeData storage sd
   ) internal view virtual returns (uint256) {
     uint256 nftPrice = getNftPriceInUnderlyingAsset(nft);
-    uint256 totalNftValue = nftPrice.percentMul(nc.liquidationThreshold);
+    uint256 totalNftValue = nftPrice.percentMul(nc.collateralFactor);
 
     (, uint256 totalYieldValue) = _getNftYieldInUnderlyingAsset(sd);
     uint256 totalDebtValue = _getNftDebtInUnderlyingAsset(sd);
