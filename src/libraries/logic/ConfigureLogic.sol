@@ -263,6 +263,8 @@ library ConfigureLogic {
 
     bool isDelOk = poolData.assetList.remove(asset);
     require(isDelOk, Errors.ENUM_SET_REMOVE_FAILED);
+
+    delete poolData.assetLookup[asset];
   }
 
   function executeAddAssetGroup(
