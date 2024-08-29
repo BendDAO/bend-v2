@@ -230,11 +230,14 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
   function _stake(uint32 poolId, address nft, uint256 tokenId, uint256 borrowAmount) internal virtual {
     StakeLocalVars memory vars;
 
+    require(borrowAmount > 0, Errors.INVALID_AMOUNT);
+
     vars.yieldAccout = IYieldAccount(yieldAccounts[msg.sender]);
     require(address(vars.yieldAccout) != address(0), Errors.YIELD_ACCOUNT_NOT_EXIST);
 
     YieldNftConfig storage nc = nftConfigs[nft];
     require(nc.isActive, Errors.YIELD_ETH_NFT_NOT_ACTIVE);
+    require(nc.leverageFactor > 0, Errors.YIELD_ETH_NFT_LEVERAGE_FACTOR_ZERO);
 
     // check the nft ownership
     (vars.nftOwner, vars.nftSupplyMode, vars.nftLockerAddr) = poolYield.getERC721TokenData(poolId, nft, tokenId);

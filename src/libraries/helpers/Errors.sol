@@ -162,4 +162,5 @@ library Errors {
   string public constant YIELD_ETH_ACCOUNT_INSUFFICIENT = '1014';
   string public constant YIELD_ETH_LT_MIN_AMOUNT = '1015';
   string public constant YIELD_ETH_GT_MAX_AMOUNT = '1016';
+  string public constant YIELD_ETH_NFT_LEVERAGE_FACTOR_ZERO = '1017';
 }
