@@ -630,6 +630,7 @@ library ValidateLogic {
     require(assetData.isYieldEnabled, Errors.ASSET_YIELD_NOT_ENABLE);
     require(!assetData.isYieldPaused, Errors.ASSET_YIELD_IS_PAUSED);
     require(!assetData.isFrozen, Errors.ASSET_IS_FROZEN);
+    require(assetData.isBorrowingEnabled, Errors.ASSET_IS_BORROW_DISABLED);
 
     validateGroupBasic(groupData);
 
