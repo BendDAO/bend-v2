@@ -656,7 +656,7 @@ library ValidateLogic {
   }
 
   function validateYieldSetERC721TokenData(
-    InputTypes.ExecuteYieldSetERC721TokenDataParams memory inputParams,
+    InputTypes.ExecuteYieldSetERC721TokenDataParams memory /*inputParams*/,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage assetData,
     DataTypes.ERC721TokenData storage tokenData
@@ -670,11 +670,6 @@ library ValidateLogic {
     require(!assetData.isYieldPaused, Errors.ASSET_YIELD_IS_PAUSED);
 
     require(tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.ASSET_NOT_ISOLATE_MODE);
-
-    require(
-      tokenData.lockerAddr == inputParams.msgSender || tokenData.lockerAddr == address(0),
-      Errors.ASSET_ALREADY_LOCKED_IN_USE
-    );
   }
 
   function validateFlashLoanERC20Basic(

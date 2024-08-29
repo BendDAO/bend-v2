@@ -60,7 +60,7 @@ library DataTypes {
   }
 
   struct YieldManagerData {
-    uint256 yieldCap;
+    uint256 yieldCap; // percentage, 500 -> 5%
   }
 
   struct AssetData {
@@ -84,9 +84,9 @@ library DataTypes {
     uint16 bidFineFactor;
     uint16 minBidFineFactor;
     uint40 auctionDuration;
-    uint256 supplyCap;
-    uint256 borrowCap;
-    uint256 yieldCap;
+    uint256 supplyCap; // amount with token decimals, 100e18 -> 100
+    uint256 borrowCap; // amount with token decimals
+    uint256 yieldCap; // percentage, 500 -> 5%
 
     // group state
     mapping(uint8 => GroupData) groupLookup;

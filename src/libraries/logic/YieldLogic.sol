@@ -135,11 +135,16 @@ library YieldLogic {
     }
 
     DataTypes.YieldManagerData storage ymData = debtAssetData.yieldManagerLookup[lockerAddr];
-    require(ymData.yieldCap > 0, Errors.YIELD_EXCEED_STAKER_CAP_LIMIT);
 
     if (params.isLock) {
+      require(ymData.yieldCap > 0, Errors.YIELD_EXCEED_STAKER_CAP_LIMIT);
+
+      require(tokenData.lockerAddr == address(0), Errors.ASSET_ALREADY_LOCKED_IN_USE);
+
       VaultLogic.erc721SetTokenLockerAddr(nftAssetData, params.tokenId, lockerAddr);
     } else {
+      require(tokenData.lockerAddr == lockerAddr, Errors.YIELD_TOKEN_LOCKED_BY_OTHER);
+
       VaultLogic.erc721SetTokenLockerAddr(nftAssetData, params.tokenId, address(0));
     }
   }
