@@ -1,0 +1,29 @@
+{
+  "Tokens": {},
+  "AddressProvider": "0xa9Afc955d549D43DB056655b98FaB02870A45Fcd",
+  "ACLManager": "0xfc76aCB1C685fC427894652616feB4E303e4611a",
+  "PriceOracle": "0x3F8133A472C1d94Be4A562C44c337409c04Ae244",
+  "Oracles" : {
+    "SDAIPriceAdapter": "0x1432A03715dC2491B9cDE3A0dcbea4de4F0DedBf"
+  },
+  "PoolManager": "0x0b870d974fB968B2E06798ABBD2563c80933D148",
+  "Modules": {
+    "Installer": "0x1f71c54EDf2D4cf3C856987e8d3A7962F5308fea",
+    "Configurator": "0xAB3AB751136c4E6af6f2Bbd894A822DEB7A67c2f",
+    "BVault": "0x34659656E021C9b0730bD2a576B8536D9929A5eC",
+    "PoolLens": "0x4643f7791aC622863503d8D3e62942FcfF592A91",
+    "FlashLoan": "0xae23C7BFfd96B77667bf63Ff3e294c1335865fBC",
+    "Yield": "0x63e6BE62bE4d60017360EEE1E451eBc70bE40861",
+    "ConfiguratorPool": "0x780fE377c80b242F8Cabeb43aa73913178685710",
+    "CrossLending": "0xE3AD267696758Ec9882525C43b20171A98535c49",
+    "CrossLiquidation": "0x4e208A8D078836c68A0cC77E94f261829A5c5773",
+    "IsolateLending": "0xAF488A0ff6D54d6E457cfD5cEcCe49646d01FBf5",
+    "IsolateLiquidation": "0x94e044321fF98DDCC4060d362aFdde3Ceb6C05a4",
+    "UIPoolLens": "0x222bB44602746C18006E857E81F36899B86Afb87"
+  },
+  "YieldRegistry": "",
+  "YieldEthStakingLido": "",
+  "YieldEthStakingEtherfi": "",
+  "YieldSavingsDai": "",
+  "BendV1Migration": ""
+}

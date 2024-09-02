@@ -35,7 +35,8 @@ contract DeployPriceAdapter is DeployBase {
     uint256 chainId = config.getChainId();
     if (chainId == 1) {
       // mainnet
-      revert('not support');
+      daiAgg = 0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9;
+      ratePot = 0x197E90f9FAD81970bA7976f33CbD77088E5D7cf7;
     } else if (chainId == 11155111) {
       // sepolia
       daiAgg = 0x14866185B1962B63C3Ea9E03Bc1da838bab34C19;

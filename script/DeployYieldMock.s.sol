@@ -28,7 +28,7 @@ contract DeployYieldMock is DeployBase {
 
     //_deployMockEtherfi();
 
-    _deployMockSDai();
+    //_deployMockSDai();
   }
 
   function _deployMockLido() internal {
