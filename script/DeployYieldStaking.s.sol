@@ -30,7 +30,7 @@ contract DeployYieldStaking is DeployBase {
     address addrProviderInCfg = config.getAddressProvider();
     require(addrProviderInCfg != address(0), 'AddressProvider not exist in config');
 
-    //_deployYieldRegistry(proxyAdminInCfg, addrProviderInCfg);
+    _deployYieldRegistry(proxyAdminInCfg, addrProviderInCfg);
 
     _deployYieldEthStakingLido(proxyAdminInCfg, addrProviderInCfg);
 
@@ -48,6 +48,7 @@ contract DeployYieldStaking is DeployBase {
       abi.encodeWithSelector(yieldRegistryImpl.initialize.selector, address(addressProvider_))
     );
     YieldRegistry yieldRegistry = YieldRegistry(address(yieldRegistryProxy));
+    console.log('yieldRegistry:', address(yieldRegistry));
 
     IAddressProvider(addressProvider_).setYieldRegistry(address(yieldRegistry));
 
@@ -86,6 +87,7 @@ contract DeployYieldStaking is DeployBase {
       abi.encodeWithSelector(yieldLidoImpl.initialize.selector, address(addressProvider_), weth, stETH, unstETH)
     );
     YieldEthStakingLido yieldLido = YieldEthStakingLido(payable(yieldLidoProxy));
+    console.log('YieldEthStakingLido:', address(yieldLido));
 
     return address(yieldLido);
   }
@@ -115,6 +117,7 @@ contract DeployYieldStaking is DeployBase {
       abi.encodeWithSelector(yieldEtherfiImpl.initialize.selector, address(addressProvider_), weth, etherfiPool)
     );
     YieldEthStakingEtherfi yieldEtherfi = YieldEthStakingEtherfi(payable(yieldEtherfiProxy));
+    console.log('YieldEthStakingEtherfi:', address(yieldEtherfi));
 
     return address(yieldEtherfi);
   }
@@ -144,6 +147,7 @@ contract DeployYieldStaking is DeployBase {
       abi.encodeWithSelector(yieldSDaiImpl.initialize.selector, address(addressProvider_), dai, sdai)
     );
     YieldSavingsDai yieldSDai = YieldSavingsDai(payable(yieldSDaiProxy));
+    console.log('YieldSavingsDai:', address(yieldSDai));
 
     return address(yieldSDai);
   }

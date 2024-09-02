@@ -93,8 +93,7 @@ contract InitConfigPool is DeployBase {
       irmLow = irmDefault;
       irmMiddle = irmDefault;
       irmHigh = irmDefault;
-    }
-    else if (block.chainid == 11155111) {
+    } else if (block.chainid == 11155111) {
       // sepolia
       addrWETH = 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14;
       addrUSDT = 0x53cEd787Ba91B4f872b961914faE013ccF8b0236;

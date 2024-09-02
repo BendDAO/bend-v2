@@ -4,7 +4,8 @@
   "ACLManager": "0xfc76aCB1C685fC427894652616feB4E303e4611a",
   "PriceOracle": "0x3F8133A472C1d94Be4A562C44c337409c04Ae244",
   "Oracles" : {
-    "SDAIPriceAdapter": "0x1432A03715dC2491B9cDE3A0dcbea4de4F0DedBf"
+    "SDAIPriceAdapter": "0x1432A03715dC2491B9cDE3A0dcbea4de4F0DedBf",
+    "EETHPriceAdapter": "0xA9e3696544dA3B41C774115c0F7Ef6e97436F5DB"
   },
   "PoolManager": "0x0b870d974fB968B2E06798ABBD2563c80933D148",
   "Modules": {
@@ -21,9 +22,9 @@
     "IsolateLiquidation": "0x94e044321fF98DDCC4060d362aFdde3Ceb6C05a4",
     "UIPoolLens": "0x222bB44602746C18006E857E81F36899B86Afb87"
   },
-  "YieldRegistry": "",
-  "YieldEthStakingLido": "",
-  "YieldEthStakingEtherfi": "",
-  "YieldSavingsDai": "",
-  "BendV1Migration": ""
+  "YieldRegistry": "0x8e72a9ea6a6d99Cbb5E50343BB5D741156C01154",
+  "YieldEthStakingLido": "0x61Ae6DCE4C7Cb1b8165aE244c734f20DF56efd73",
+  "YieldEthStakingEtherfi": "0x529a8822416c3c4ED1B77dE570118fDf1d474639",
+  "YieldSavingsDai": "0x6FA43C1a296db746937Ac4D97Ff61409E8c530cC",
+  "BendV1Migration": "0xf6EE27bb3F17E456078711D8c4b257377375D654"
 }

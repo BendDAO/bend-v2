@@ -28,7 +28,7 @@ contract DeployPriceAdapter is DeployBase {
 
     //_deploySDAIPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
 
-    _deployEETHPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
+    //_deployEETHPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
   }
 
   function _deploySDAIPriceAdapter(address /*proxyAdmin_*/, address /*addressProvider_*/) internal returns (address) {
@@ -49,6 +49,7 @@ contract DeployPriceAdapter is DeployBase {
     }
 
     SDAIPriceAdapter sdaiAdapter = new SDAIPriceAdapter(daiAgg, ratePot, 'sDAI / USD');
+    console.log('SDAIPriceAdapter:', address(sdaiAdapter));
 
     return address(sdaiAdapter);
   }
@@ -61,7 +62,9 @@ contract DeployPriceAdapter is DeployBase {
     uint256 chainId = config.getChainId();
     if (chainId == 1) {
       // mainnet
-      revert('not support');
+      ethAggAddress = 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419;
+      weETHAggAddress = 0x5c9C449BbC9a6075A2c061dF312a35fd1E05fF22;
+      weETHAddress = 0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee;
     } else if (chainId == 11155111) {
       // sepolia
       ethAggAddress = 0x694AA1769357215DE4FAC081bf1f309aDC325306;
@@ -77,6 +80,7 @@ contract DeployPriceAdapter is DeployBase {
       weETHAddress,
       'eETH / weETH / ETH / USD'
     );
+    console.log('EETHPriceAdapter:', address(eEthAdapter));
 
     return address(eEthAdapter);
   }
