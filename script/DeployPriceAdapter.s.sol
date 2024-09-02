@@ -9,6 +9,7 @@ import {IAddressProvider} from 'src/interfaces/IAddressProvider.sol';
 import {Constants} from 'src/libraries/helpers/Constants.sol';
 
 import {SDAIPriceAdapter} from 'src/oracles/SDAIPriceAdapter.sol';
+import {EETHPriceAdapter} from 'src/oracles/EETHPriceAdapter.sol';
 
 import {Configured, ConfigLib, Config} from 'config/Configured.sol';
 import {DeployBase} from './DeployBase.s.sol';
@@ -25,7 +26,9 @@ contract DeployPriceAdapter is DeployBase {
     address addrProviderInCfg = config.getAddressProvider();
     require(addrProviderInCfg != address(0), 'AddressProvider not exist in config');
 
-    _deploySDAIPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
+    //_deploySDAIPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
+
+    _deployEETHPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
   }
 
   function _deploySDAIPriceAdapter(address /*proxyAdmin_*/, address /*addressProvider_*/) internal returns (address) {
@@ -48,5 +51,33 @@ contract DeployPriceAdapter is DeployBase {
     SDAIPriceAdapter sdaiAdapter = new SDAIPriceAdapter(daiAgg, ratePot, 'sDAI / USD');
 
     return address(sdaiAdapter);
+  }
+
+  function _deployEETHPriceAdapter(address /*proxyAdmin_*/, address /*addressProvider_*/) internal returns (address) {
+    address ethAggAddress = address(0);
+    address weETHAggAddress = address(0);
+    address weETHAddress = address(0);
+
+    uint256 chainId = config.getChainId();
+    if (chainId == 1) {
+      // mainnet
+      revert('not support');
+    } else if (chainId == 11155111) {
+      // sepolia
+      ethAggAddress = 0x694AA1769357215DE4FAC081bf1f309aDC325306;
+      weETHAggAddress = 0x2CFb337f5699c1419AE0dfe2940F628FEF7FC682;
+      weETHAddress = 0xb944C510F81553E39F8Db2A89e3f8007A910827f;
+    } else {
+      revert('not support');
+    }
+
+    EETHPriceAdapter eEthAdapter = new EETHPriceAdapter(
+      ethAggAddress,
+      weETHAggAddress,
+      weETHAddress,
+      'eETH / weETH / ETH / USD'
+    );
+
+    return address(eEthAdapter);
   }
 }
