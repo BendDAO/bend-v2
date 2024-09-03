@@ -759,6 +759,14 @@ library QueryLogic {
       loanData,
       IAddressProvider(ps.addressProvider).getPriceOracle()
     );
+
+    if (loanData.loanStatus == Constants.LOAN_STATUS_AUCTION) {
+      if (borrowAmount > loanData.bidAmount) {
+        liquidatePrice = borrowAmount;
+      } else {
+        liquidatePrice = loanData.bidAmount + borrowAmount.percentMul(PercentageMath.ONE_PERCENTAGE_FACTOR);
+      }
+    }
   }
 
   function getYieldERC20BorrowBalance(uint32 poolId, address asset, address staker) internal view returns (uint256) {
