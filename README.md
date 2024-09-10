@@ -1,11 +1,11 @@
 ```
-######                       ######     #    ####### 
-#     # ###### #    # #####  #     #   # #   #     # 
-#     # #      ##   # #    # #     #  #   #  #     # 
-######  #####  # #  # #    # #     # #     # #     # 
-#     # #      #  # # #    # #     # ####### #     # 
-#     # #      #   ## #    # #     # #     # #     # 
-######  ###### #    # #####  ######  #     # ####### 
+######                       ######     #    #######
+#     # ###### #    # #####  #     #   # #   #     #
+#     # #      ##   # #    # #     #  #   #  #     #
+######  #####  # #  # #    # #     # #     # #     #
+#     # #      #  # # #    # #     # ####### #     #
+#     # #      #   ## #    # #     # #     # #     #
+######  ###### #    # #####  ######  #     # #######
 ```
 
 # BendDAO Protocol V2
@@ -39,6 +39,7 @@ Leverage users can use ERC721 as collaterals to borrow assets to create leverage
 ---
 
 ## Audits
+
 All audits are stored in the [audits](./audits/) folder and [online](https://docs.benddao.xyz/portal/v/v2/security-and-risks/audits).
 
 ---
