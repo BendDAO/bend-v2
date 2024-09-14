@@ -11,6 +11,7 @@ source .env
 
 export GIT_COMMIT_HASH=`git rev-parse HEAD | cast to-bytes32`
 
+echo $NETWORK
 echo $ETHERSCAN_KEY
 echo $GIT_COMMIT_HASH
 

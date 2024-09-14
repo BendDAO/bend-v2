@@ -11,6 +11,7 @@ import {MockUnstETH} from 'test/mocks/MockUnstETH.sol';
 import {MockeETH} from 'test/mocks/MockeETH.sol';
 import {MockEtherfiWithdrawRequestNFT} from 'test/mocks/MockEtherfiWithdrawRequestNFT.sol';
 import {MockEtherfiLiquidityPool} from 'test/mocks/MockEtherfiLiquidityPool.sol';
+import {MockWeETH} from 'test/mocks/MockWeETH.sol';
 
 import {MockSDAI} from 'test/mocks/MockSDAI.sol';
 import {MockDAIPot} from 'test/mocks/MockDAIPot.sol';
@@ -25,10 +26,8 @@ contract DeployYieldMock is DeployBase {
 
   function _deploy() internal virtual override {
     //_deployMockLido();
-
     //_deployMockEtherfi();
-
-    _deployMockSDai();
+    //_deployMockSDai();
   }
 
   function _deployMockLido() internal {
@@ -45,6 +44,9 @@ contract DeployYieldMock is DeployBase {
 
     eETH.setLiquidityPool(address(pool));
     nft.setLiquidityPool(address(pool), address(eETH));
+
+    //MockWeETH weETH = new MockWeETH(address(pool), address(eETH));
+    new MockWeETH(address(pool), address(eETH));
   }
 
   function _deployMockSDai() internal {

@@ -33,8 +33,10 @@ contract DeployPoolFull is DeployBase {
   using ConfigLib for Config;
 
   function _deploy() internal virtual override {
-    address proxyAdmin_ = _deployProxyAdmin();
-    console.log('ProxyAdmin:', proxyAdmin_);
+    // address proxyAdmin_ = _deployProxyAdmin();
+    // console.log('ProxyAdmin:', proxyAdmin_);
+    address proxyAdmin_ = config.getProxyAdmin();
+    require(proxyAdmin_ != address(0), 'ProxyAdmin not exist in config');
 
     address addressProvider_ = _deployAddressProvider(proxyAdmin_);
     console.log('AddressProvider:', addressProvider_);

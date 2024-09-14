@@ -30,7 +30,11 @@ contract InitConfigYield is DeployBase {
 
   address internal addrWPUNK;
   address internal addrBAYC;
+  address internal addrStBAYC;
   address internal addrMAYC;
+  address internal addrStMAYC;
+  address internal addrPPG;
+  address internal addrAZUKI;
 
   address internal addrYieldLido;
   address internal addrYieldEtherfi;
@@ -45,13 +49,35 @@ contract InitConfigYield is DeployBase {
   Configurator internal configurator;
 
   function _deploy() internal virtual override {
-    if (block.chainid == 11155111) {
+    if (block.chainid == 1) {
+      addrWETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+      addrDAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+
+      addrWPUNK = 0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6;
+      addrBAYC = 0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D;
+      addrStBAYC = 0x08f5F0126aF89B4fD5499E942891D904A027624B;
+      addrMAYC = 0x60E4d786628Fea6478F785A6d7e704777c86a7c6;
+      addrStMAYC = 0xc1ED28E4b4d8e284A41E7474CA5522b010f3A64F;
+      addrPPG = 0xBd3531dA5CF5857e7CfAA92426877b022e612cf8;
+      addrAZUKI = 0xED5AF388653567Af2F388E6224dC7C4b3241C544;
+
+      addrYieldLido = 0x61Ae6DCE4C7Cb1b8165aE244c734f20DF56efd73;
+      addrYieldEtherfi = 0x529a8822416c3c4ED1B77dE570118fDf1d474639;
+      addrYieldSDai = 0x6FA43C1a296db746937Ac4D97Ff61409E8c530cC;
+
+      commonPoolId = 1;
+      addrIrmYield = 0x8f6E743f1CDF1dC49dF342da221D3D966B658D00;
+    } else if (block.chainid == 11155111) {
       addrWETH = 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14;
       addrDAI = 0xf9a88B0cc31f248c89F063C2928fA10e5A029B88;
 
       addrWPUNK = 0x647dc527Bd7dFEE4DD468cE6fC62FC50fa42BD8b;
       addrBAYC = 0xE15A78992dd4a9d6833eA7C9643650d3b0a2eD2B;
+      addrStBAYC = 0x214455B76E5A5dECB48557417397B831efC6219b;
       addrMAYC = 0xD0ff8ae7E3D9591605505D3db9C33b96c4809CDC;
+      addrStMAYC = 0xE5165Aae8D50371A277f266eC5A0E00405B532C8;
+      addrPPG = 0x4041e6E3B54df2684c5b345d761CF13a1BC219b6;
+      addrAZUKI = 0x292F693048208184320C01e0C223D624268e5EE7;
 
       addrYieldLido = 0x59303f797B8Dd80fc3743047df63C76E44Ca7CBd;
       addrYieldEtherfi = 0x3234F1047E71421Ec67A576D87eaEe1B86E8A1Ea;
@@ -70,13 +96,11 @@ contract InitConfigYield is DeployBase {
     configuratorPool = ConfiguratorPool(addressProvider.getPoolModuleProxy(Constants.MODULEID__CONFIGURATOR_POOL));
     configurator = Configurator(addressProvider.getPoolModuleProxy(Constants.MODULEID__CONFIGURATOR));
 
-    //initYieldPools();
+    // initYieldPools();
 
-    initYieldLido();
-
-    initYieldEtherfi();
-
-    initYieldSDai();
+    // initYieldLido();
+    // initYieldEtherfi();
+    // initYieldSDai();
   }
 
   function initYieldPools() internal {
@@ -105,6 +129,26 @@ contract InitConfigYield is DeployBase {
     yieldEthStakingLido.setNftActive(address(addrBAYC), true);
     yieldEthStakingLido.setNftStakeParams(address(addrBAYC), 50000, 9000);
     yieldEthStakingLido.setNftUnstakeParams(address(addrBAYC), 0.01 ether, 1.05e18);
+
+    yieldEthStakingLido.setNftActive(address(addrStBAYC), true);
+    yieldEthStakingLido.setNftStakeParams(address(addrStBAYC), 50000, 9000);
+    yieldEthStakingLido.setNftUnstakeParams(address(addrStBAYC), 0.01 ether, 1.05e18);
+
+    yieldEthStakingLido.setNftActive(address(addrMAYC), true);
+    yieldEthStakingLido.setNftStakeParams(address(addrMAYC), 50000, 9000);
+    yieldEthStakingLido.setNftUnstakeParams(address(addrMAYC), 0.01 ether, 1.05e18);
+
+    yieldEthStakingLido.setNftActive(address(addrStMAYC), true);
+    yieldEthStakingLido.setNftStakeParams(address(addrStMAYC), 50000, 9000);
+    yieldEthStakingLido.setNftUnstakeParams(address(addrStMAYC), 0.01 ether, 1.05e18);
+
+    yieldEthStakingLido.setNftActive(address(addrPPG), true);
+    yieldEthStakingLido.setNftStakeParams(address(addrPPG), 50000, 9000);
+    yieldEthStakingLido.setNftUnstakeParams(address(addrPPG), 0.01 ether, 1.05e18);
+
+    yieldEthStakingLido.setNftActive(address(addrAZUKI), true);
+    yieldEthStakingLido.setNftStakeParams(address(addrAZUKI), 50000, 9000);
+    yieldEthStakingLido.setNftUnstakeParams(address(addrAZUKI), 0.01 ether, 1.05e18);
   }
 
   function initYieldEtherfi() internal {
@@ -119,6 +163,26 @@ contract InitConfigYield is DeployBase {
     yieldEthStakingEtherfi.setNftActive(address(addrBAYC), true);
     yieldEthStakingEtherfi.setNftStakeParams(address(addrBAYC), 20000, 9000);
     yieldEthStakingEtherfi.setNftUnstakeParams(address(addrBAYC), 0.01 ether, 1.05e18);
+
+    yieldEthStakingEtherfi.setNftActive(address(addrStBAYC), true);
+    yieldEthStakingEtherfi.setNftStakeParams(address(addrStBAYC), 20000, 9000);
+    yieldEthStakingEtherfi.setNftUnstakeParams(address(addrStBAYC), 0.01 ether, 1.05e18);
+
+    yieldEthStakingEtherfi.setNftActive(address(addrMAYC), true);
+    yieldEthStakingEtherfi.setNftStakeParams(address(addrMAYC), 20000, 9000);
+    yieldEthStakingEtherfi.setNftUnstakeParams(address(addrMAYC), 0.01 ether, 1.05e18);
+
+    yieldEthStakingEtherfi.setNftActive(address(addrStMAYC), true);
+    yieldEthStakingEtherfi.setNftStakeParams(address(addrStMAYC), 20000, 9000);
+    yieldEthStakingEtherfi.setNftUnstakeParams(address(addrStMAYC), 0.01 ether, 1.05e18);
+
+    yieldEthStakingEtherfi.setNftActive(address(addrPPG), true);
+    yieldEthStakingEtherfi.setNftStakeParams(address(addrPPG), 20000, 9000);
+    yieldEthStakingEtherfi.setNftUnstakeParams(address(addrPPG), 0.01 ether, 1.05e18);
+
+    yieldEthStakingEtherfi.setNftActive(address(addrAZUKI), true);
+    yieldEthStakingEtherfi.setNftStakeParams(address(addrAZUKI), 20000, 9000);
+    yieldEthStakingEtherfi.setNftUnstakeParams(address(addrAZUKI), 0.01 ether, 1.05e18);
   }
 
   function initYieldSDai() internal {
@@ -133,5 +197,25 @@ contract InitConfigYield is DeployBase {
     yieldSDai.setNftActive(address(addrBAYC), true);
     yieldSDai.setNftStakeParams(address(addrBAYC), 50000, 9000);
     yieldSDai.setNftUnstakeParams(address(addrBAYC), 100e18, 1.05e18);
+
+    yieldSDai.setNftActive(address(addrStBAYC), true);
+    yieldSDai.setNftStakeParams(address(addrStBAYC), 50000, 9000);
+    yieldSDai.setNftUnstakeParams(address(addrStBAYC), 100e18, 1.05e18);
+
+    yieldSDai.setNftActive(address(addrMAYC), true);
+    yieldSDai.setNftStakeParams(address(addrMAYC), 50000, 9000);
+    yieldSDai.setNftUnstakeParams(address(addrMAYC), 100e18, 1.05e18);
+
+    yieldSDai.setNftActive(address(addrStMAYC), true);
+    yieldSDai.setNftStakeParams(address(addrStMAYC), 50000, 9000);
+    yieldSDai.setNftUnstakeParams(address(addrStMAYC), 100e18, 1.05e18);
+
+    yieldSDai.setNftActive(address(addrPPG), true);
+    yieldSDai.setNftStakeParams(address(addrPPG), 50000, 9000);
+    yieldSDai.setNftUnstakeParams(address(addrPPG), 100e18, 1.05e18);
+
+    yieldSDai.setNftActive(address(addrAZUKI), true);
+    yieldSDai.setNftStakeParams(address(addrAZUKI), 50000, 9000);
+    yieldSDai.setNftUnstakeParams(address(addrAZUKI), 100e18, 1.05e18);
   }
 }

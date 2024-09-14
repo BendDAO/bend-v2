@@ -30,7 +30,7 @@ contract DeployYieldStaking is DeployBase {
     address addrProviderInCfg = config.getAddressProvider();
     require(addrProviderInCfg != address(0), 'AddressProvider not exist in config');
 
-    //_deployYieldRegistry(proxyAdminInCfg, addrProviderInCfg);
+    _deployYieldRegistry(proxyAdminInCfg, addrProviderInCfg);
 
     _deployYieldEthStakingLido(proxyAdminInCfg, addrProviderInCfg);
 
@@ -48,6 +48,7 @@ contract DeployYieldStaking is DeployBase {
       abi.encodeWithSelector(yieldRegistryImpl.initialize.selector, address(addressProvider_))
     );
     YieldRegistry yieldRegistry = YieldRegistry(address(yieldRegistryProxy));
+    console.log('yieldRegistry:', address(yieldRegistry));
 
     IAddressProvider(addressProvider_).setYieldRegistry(address(yieldRegistry));
 
@@ -66,7 +67,9 @@ contract DeployYieldStaking is DeployBase {
     uint256 chainId = config.getChainId();
     if (chainId == 1) {
       // mainnet
-      revert('not support');
+      weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+      stETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
+      unstETH = 0x889edC2eDab5f40e902b864aD4d7AdE8E412F9B1;
     } else if (chainId == 11155111) {
       // sepolia
       weth = 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14;
@@ -84,6 +87,7 @@ contract DeployYieldStaking is DeployBase {
       abi.encodeWithSelector(yieldLidoImpl.initialize.selector, address(addressProvider_), weth, stETH, unstETH)
     );
     YieldEthStakingLido yieldLido = YieldEthStakingLido(payable(yieldLidoProxy));
+    console.log('YieldEthStakingLido:', address(yieldLido));
 
     return address(yieldLido);
   }
@@ -95,7 +99,8 @@ contract DeployYieldStaking is DeployBase {
     uint256 chainId = config.getChainId();
     if (chainId == 1) {
       // mainnet
-      revert('not support');
+      weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+      etherfiPool = 0x308861A430be4cce5502d0A12724771Fc6DaF216;
     } else if (chainId == 11155111) {
       // sepolia
       weth = 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14;
@@ -112,6 +117,7 @@ contract DeployYieldStaking is DeployBase {
       abi.encodeWithSelector(yieldEtherfiImpl.initialize.selector, address(addressProvider_), weth, etherfiPool)
     );
     YieldEthStakingEtherfi yieldEtherfi = YieldEthStakingEtherfi(payable(yieldEtherfiProxy));
+    console.log('YieldEthStakingEtherfi:', address(yieldEtherfi));
 
     return address(yieldEtherfi);
   }
@@ -123,7 +129,8 @@ contract DeployYieldStaking is DeployBase {
     uint256 chainId = config.getChainId();
     if (chainId == 1) {
       // mainnet
-      revert('not support');
+      dai = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+      sdai = 0x83F20F44975D03b1b09e64809B757c47f942BEeA;
     } else if (chainId == 11155111) {
       // sepolia
       dai = 0xf9a88B0cc31f248c89F063C2928fA10e5A029B88;
@@ -140,6 +147,7 @@ contract DeployYieldStaking is DeployBase {
       abi.encodeWithSelector(yieldSDaiImpl.initialize.selector, address(addressProvider_), dai, sdai)
     );
     YieldSavingsDai yieldSDai = YieldSavingsDai(payable(yieldSDaiProxy));
+    console.log('YieldSavingsDai:', address(yieldSDai));
 
     return address(yieldSDai);
   }

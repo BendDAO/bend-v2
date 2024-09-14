@@ -43,8 +43,8 @@ contract InstallModule is DeployBase {
     address[] memory modules = new address[](2);
     uint modIdx = 0;
 
-    ConfiguratorPool tsConfiguratorPoolImpl = new ConfiguratorPool(gitCommitHash);
-    modules[modIdx++] = address(tsConfiguratorPoolImpl);
+    PoolLens tsPoolLensImpl = new PoolLens(gitCommitHash);
+    modules[modIdx++] = address(tsPoolLensImpl);
 
     Yield tsYieldImpl = new Yield(gitCommitHash);
     modules[modIdx++] = address(tsYieldImpl);

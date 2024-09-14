@@ -9,6 +9,7 @@ import {IAddressProvider} from 'src/interfaces/IAddressProvider.sol';
 import {Constants} from 'src/libraries/helpers/Constants.sol';
 
 import {SDAIPriceAdapter} from 'src/oracles/SDAIPriceAdapter.sol';
+import {EETHPriceAdapter} from 'src/oracles/EETHPriceAdapter.sol';
 
 import {Configured, ConfigLib, Config} from 'config/Configured.sol';
 import {DeployBase} from './DeployBase.s.sol';
@@ -25,7 +26,9 @@ contract DeployPriceAdapter is DeployBase {
     address addrProviderInCfg = config.getAddressProvider();
     require(addrProviderInCfg != address(0), 'AddressProvider not exist in config');
 
-    _deploySDAIPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
+    //_deploySDAIPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
+
+    //_deployEETHPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
   }
 
   function _deploySDAIPriceAdapter(address /*proxyAdmin_*/, address /*addressProvider_*/) internal returns (address) {
@@ -35,7 +38,8 @@ contract DeployPriceAdapter is DeployBase {
     uint256 chainId = config.getChainId();
     if (chainId == 1) {
       // mainnet
-      revert('not support');
+      daiAgg = 0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9;
+      ratePot = 0x197E90f9FAD81970bA7976f33CbD77088E5D7cf7;
     } else if (chainId == 11155111) {
       // sepolia
       daiAgg = 0x14866185B1962B63C3Ea9E03Bc1da838bab34C19;
@@ -45,7 +49,39 @@ contract DeployPriceAdapter is DeployBase {
     }
 
     SDAIPriceAdapter sdaiAdapter = new SDAIPriceAdapter(daiAgg, ratePot, 'sDAI / USD');
+    console.log('SDAIPriceAdapter:', address(sdaiAdapter));
 
     return address(sdaiAdapter);
+  }
+
+  function _deployEETHPriceAdapter(address /*proxyAdmin_*/, address /*addressProvider_*/) internal returns (address) {
+    address ethAggAddress = address(0);
+    address weETHAggAddress = address(0);
+    address weETHAddress = address(0);
+
+    uint256 chainId = config.getChainId();
+    if (chainId == 1) {
+      // mainnet
+      ethAggAddress = 0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419;
+      weETHAggAddress = 0x5c9C449BbC9a6075A2c061dF312a35fd1E05fF22;
+      weETHAddress = 0xCd5fE23C85820F7B72D0926FC9b05b43E359b7ee;
+    } else if (chainId == 11155111) {
+      // sepolia
+      ethAggAddress = 0x694AA1769357215DE4FAC081bf1f309aDC325306;
+      weETHAggAddress = 0x2CFb337f5699c1419AE0dfe2940F628FEF7FC682;
+      weETHAddress = 0xb944C510F81553E39F8Db2A89e3f8007A910827f;
+    } else {
+      revert('not support');
+    }
+
+    EETHPriceAdapter eEthAdapter = new EETHPriceAdapter(
+      ethAggAddress,
+      weETHAggAddress,
+      weETHAddress,
+      'eETH / weETH / ETH / USD'
+    );
+    console.log('EETHPriceAdapter:', address(eEthAdapter));
+
+    return address(eEthAdapter);
   }
 }

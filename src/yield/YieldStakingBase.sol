@@ -363,7 +363,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     accountYieldShares[address(vars.yieldAccout)] -= sd.yieldShare;
     sd.yieldShare = 0;
 
-    emit Unstake(msg.sender, nft, tokenId, sd.withdrawAmount);
+    emit Unstake(vars.nftOwner, nft, tokenId, sd.withdrawAmount);
   }
 
   struct RepayLocalVars {
@@ -498,7 +498,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
 
     delete stakeDatas[nft][tokenId];
 
-    emit Repay(msg.sender, nft, tokenId, vars.nftDebt);
+    emit Repay(vars.nftOwner, nft, tokenId, vars.nftDebt);
   }
 
   /****************************************************************************/
