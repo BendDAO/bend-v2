@@ -15,6 +15,7 @@ interface IInterestRateModel {
    * @return borrowRate The group borrow rate expressed in rays
    */
   function calculateGroupBorrowRate(
+    uint32 pool,
     address asset,
     uint256 groupId,
     uint256 utilizationRate

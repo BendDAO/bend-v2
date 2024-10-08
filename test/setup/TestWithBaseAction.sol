@@ -733,6 +733,7 @@ abstract contract TestWithBaseAction is TestWithPrepare {
       }
 
       groupData.borrowRate = IInterestRateModel(groupData.rateModel).calculateGroupBorrowRate(
+        expectedAssetData.poolId,
         expectedAssetData.asset,
         i,
         expectedAssetData.utilizationRate

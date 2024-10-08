@@ -548,8 +548,11 @@ abstract contract TestWithSetup is TestWithUtils {
   function initInterestRateParams() internal {
     tsHEVM.startPrank(tsPoolAdmin);
 
+    uint32 poolId = 1;
+
     // WETH
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsWETH),
       0,
       (65 * WadRayMath.RAY) / 100,
@@ -558,6 +561,7 @@ abstract contract TestWithSetup is TestWithUtils {
       (100 * WadRayMath.RAY) / 100
     );
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsWETH),
       tsLowRateGroupId,
       (65 * WadRayMath.RAY) / 100,
@@ -566,6 +570,7 @@ abstract contract TestWithSetup is TestWithUtils {
       (100 * WadRayMath.RAY) / 100
     );
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsWETH),
       tsMiddleRateGroupId,
       (65 * WadRayMath.RAY) / 100,
@@ -574,6 +579,7 @@ abstract contract TestWithSetup is TestWithUtils {
       (100 * WadRayMath.RAY) / 100
     );
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsWETH),
       tsHighRateGroupId,
       (65 * WadRayMath.RAY) / 100,
@@ -584,6 +590,7 @@ abstract contract TestWithSetup is TestWithUtils {
 
     // USDT
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsUSDT),
       0,
       (65 * WadRayMath.RAY) / 100,
@@ -592,6 +599,7 @@ abstract contract TestWithSetup is TestWithUtils {
       (80 * WadRayMath.RAY) / 100
     );
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsUSDT),
       tsLowRateGroupId,
       (65 * WadRayMath.RAY) / 100,
@@ -600,6 +608,7 @@ abstract contract TestWithSetup is TestWithUtils {
       (80 * WadRayMath.RAY) / 100
     );
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsUSDT),
       tsMiddleRateGroupId,
       (65 * WadRayMath.RAY) / 100,
@@ -608,6 +617,7 @@ abstract contract TestWithSetup is TestWithUtils {
       (80 * WadRayMath.RAY) / 100
     );
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsUSDT),
       tsHighRateGroupId,
       (65 * WadRayMath.RAY) / 100,
@@ -618,6 +628,7 @@ abstract contract TestWithSetup is TestWithUtils {
 
     // DAI
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsDAI),
       0,
       (65 * WadRayMath.RAY) / 100,
@@ -626,6 +637,7 @@ abstract contract TestWithSetup is TestWithUtils {
       (90 * WadRayMath.RAY) / 100
     );
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsDAI),
       tsLowRateGroupId,
       (65 * WadRayMath.RAY) / 100,
@@ -634,6 +646,7 @@ abstract contract TestWithSetup is TestWithUtils {
       (90 * WadRayMath.RAY) / 100
     );
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsDAI),
       tsMiddleRateGroupId,
       (65 * WadRayMath.RAY) / 100,
@@ -642,6 +655,7 @@ abstract contract TestWithSetup is TestWithUtils {
       (90 * WadRayMath.RAY) / 100
     );
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsDAI),
       tsHighRateGroupId,
       (65 * WadRayMath.RAY) / 100,

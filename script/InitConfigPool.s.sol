@@ -155,12 +155,13 @@ contract InitConfigPool is DeployBase {
     priceOracle.setAssetChainlinkAggregators(assets, aggs);
   }
 
-  function initInterestRateModels() internal {
+  function initInterestRateModels(uint32 poolId) internal {
     // Interest Rate Model
     irmDefault = new DefaultInterestRateModel(address(addressProvider));
 
     // WETH
     irmDefault.setInterestRateParams(
+      poolId,
       addrWETH,
       yieldRateGroupId,
       (75 * WadRayMath.RAY) / 100,
@@ -169,6 +170,7 @@ contract InitConfigPool is DeployBase {
       (20 * WadRayMath.RAY) / 100
     );
     irmDefault.setInterestRateParams(
+      poolId,
       addrWETH,
       lowRateGroupId,
       (75 * WadRayMath.RAY) / 100,
@@ -177,6 +179,7 @@ contract InitConfigPool is DeployBase {
       (80 * WadRayMath.RAY) / 100
     );
     irmDefault.setInterestRateParams(
+      poolId,
       addrWETH,
       middleRateGroupId,
       (75 * WadRayMath.RAY) / 100,
@@ -185,6 +188,7 @@ contract InitConfigPool is DeployBase {
       (80 * WadRayMath.RAY) / 100
     );
     irmDefault.setInterestRateParams(
+      poolId,
       addrWETH,
       highRateGroupId,
       (75 * WadRayMath.RAY) / 100,
@@ -195,6 +199,7 @@ contract InitConfigPool is DeployBase {
 
     // USDT
     irmDefault.setInterestRateParams(
+      poolId,
       addrUSDT,
       yieldRateGroupId,
       (75 * WadRayMath.RAY) / 100,
@@ -203,6 +208,7 @@ contract InitConfigPool is DeployBase {
       (20 * WadRayMath.RAY) / 100
     );
     irmDefault.setInterestRateParams(
+      poolId,
       addrUSDT,
       lowRateGroupId,
       (75 * WadRayMath.RAY) / 100,
@@ -211,6 +217,7 @@ contract InitConfigPool is DeployBase {
       (80 * WadRayMath.RAY) / 100
     );
     irmDefault.setInterestRateParams(
+      poolId,
       addrUSDT,
       middleRateGroupId,
       (75 * WadRayMath.RAY) / 100,
@@ -219,6 +226,7 @@ contract InitConfigPool is DeployBase {
       (80 * WadRayMath.RAY) / 100
     );
     irmDefault.setInterestRateParams(
+      poolId,
       addrUSDT,
       highRateGroupId,
       (75 * WadRayMath.RAY) / 100,
@@ -229,6 +237,7 @@ contract InitConfigPool is DeployBase {
 
     // USDC
     irmDefault.setInterestRateParams(
+      poolId,
       addrUSDC,
       yieldRateGroupId,
       (75 * WadRayMath.RAY) / 100,
@@ -237,6 +246,7 @@ contract InitConfigPool is DeployBase {
       (20 * WadRayMath.RAY) / 100
     );
     irmDefault.setInterestRateParams(
+      poolId,
       addrUSDC,
       lowRateGroupId,
       (75 * WadRayMath.RAY) / 100,
@@ -245,6 +255,7 @@ contract InitConfigPool is DeployBase {
       (80 * WadRayMath.RAY) / 100
     );
     irmDefault.setInterestRateParams(
+      poolId,
       addrUSDC,
       middleRateGroupId,
       (75 * WadRayMath.RAY) / 100,
@@ -253,6 +264,7 @@ contract InitConfigPool is DeployBase {
       (80 * WadRayMath.RAY) / 100
     );
     irmDefault.setInterestRateParams(
+      poolId,
       addrUSDC,
       highRateGroupId,
       (75 * WadRayMath.RAY) / 100,
@@ -263,6 +275,7 @@ contract InitConfigPool is DeployBase {
 
     // DAI
     irmDefault.setInterestRateParams(
+      poolId,
       addrDAI,
       yieldRateGroupId,
       (75 * WadRayMath.RAY) / 100,
@@ -271,6 +284,7 @@ contract InitConfigPool is DeployBase {
       (20 * WadRayMath.RAY) / 100
     );
     irmDefault.setInterestRateParams(
+      poolId,
       addrDAI,
       lowRateGroupId,
       (75 * WadRayMath.RAY) / 100,
@@ -279,6 +293,7 @@ contract InitConfigPool is DeployBase {
       (80 * WadRayMath.RAY) / 100
     );
     irmDefault.setInterestRateParams(
+      poolId,
       addrDAI,
       middleRateGroupId,
       (75 * WadRayMath.RAY) / 100,
@@ -287,6 +302,7 @@ contract InitConfigPool is DeployBase {
       (80 * WadRayMath.RAY) / 100
     );
     irmDefault.setInterestRateParams(
+      poolId,
       addrDAI,
       highRateGroupId,
       (75 * WadRayMath.RAY) / 100,

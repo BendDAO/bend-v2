@@ -176,6 +176,7 @@ library InterestLogic {
       require(loopGroupData.rateModel != address(0), Errors.INVALID_RATE_MODEL);
 
       vars.nextGroupBorrowRate = IInterestRateModel(loopGroupData.rateModel).calculateGroupBorrowRate(
+        poolData.poolId,
         assetData.underlyingAsset,
         vars.loopGroupId,
         vars.assetUtilizationRate
