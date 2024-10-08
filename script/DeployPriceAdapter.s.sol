@@ -27,11 +27,11 @@ contract DeployPriceAdapter is DeployBase {
     address addrProviderInCfg = config.getAddressProvider();
     require(addrProviderInCfg != address(0), 'AddressProvider not exist in config');
 
-    //_deploySDAIPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
+    // _deploySDAIPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
 
-    //_deployEETHPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
+    // _deployEETHPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
 
-    _deployUSDSPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
+    // _deployUSDSPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
   }
 
   function _deploySDAIPriceAdapter(address /*proxyAdmin_*/, address /*addressProvider_*/) internal returns (address) {
@@ -99,8 +99,8 @@ contract DeployPriceAdapter is DeployBase {
       rateProvider = 0xa3931d71877C0E7a3148CB7Eb4463524FEc27fbD;
     } else if (chainId == 11155111) {
       // sepolia
-      usdsAgg = 0x14866185B1962B63C3Ea9E03Bc1da838bab34C19;
-      rateProvider = 0x30252a71d6bC66f772b1Ed7d07CdEa2952a0F032;
+      usdsAgg = 0x7354784A7A705963b484Fed3a903FF8c9b6Ec617;
+      rateProvider = 0xf8B05Dab36ea0492E4e358FeF83a608e4297b3D4;
     } else {
       revert('not support');
     }

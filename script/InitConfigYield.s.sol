@@ -27,6 +27,7 @@ contract InitConfigYield is DeployBase {
 
   address internal addrWETH;
   address internal addrDAI;
+  address internal addrUSDS;
 
   address internal addrWPUNK;
   address internal addrBAYC;
@@ -39,6 +40,7 @@ contract InitConfigYield is DeployBase {
   address internal addrYieldLido;
   address internal addrYieldEtherfi;
   address internal addrYieldSDai;
+  address internal addrYieldSUSDS;
 
   address internal addrIrmYield;
   uint32 commonPoolId;
@@ -52,6 +54,7 @@ contract InitConfigYield is DeployBase {
     if (block.chainid == 1) {
       addrWETH = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
       addrDAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+      addrUSDS = 0xdC035D45d973E3EC169d2276DDab16f1e407384F;
 
       addrWPUNK = 0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6;
       addrBAYC = 0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D;
@@ -70,6 +73,7 @@ contract InitConfigYield is DeployBase {
     } else if (block.chainid == 11155111) {
       addrWETH = 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14;
       addrDAI = 0xf9a88B0cc31f248c89F063C2928fA10e5A029B88;
+      addrUSDS = 0x99f5A9506504BB96d0019538608090015BA9EBDd;
 
       addrWPUNK = 0x647dc527Bd7dFEE4DD468cE6fC62FC50fa42BD8b;
       addrBAYC = 0xE15A78992dd4a9d6833eA7C9643650d3b0a2eD2B;
@@ -82,6 +86,7 @@ contract InitConfigYield is DeployBase {
       addrYieldLido = 0x59303f797B8Dd80fc3743047df63C76E44Ca7CBd;
       addrYieldEtherfi = 0x3234F1047E71421Ec67A576D87eaEe1B86E8A1Ea;
       addrYieldSDai = 0x7464a51fA6338A34b694b4bF4A152781fb2C4B70;
+      addrYieldSUSDS = 0x63d56158751A75493B4b5fEdc46A29ba6a68cc15;
 
       commonPoolId = 1;
       addrIrmYield = 0x10988B9c7e7048B83D590b14F0167FDe56728Ae9;
@@ -96,25 +101,31 @@ contract InitConfigYield is DeployBase {
     configuratorPool = ConfiguratorPool(addressProvider.getPoolModuleProxy(Constants.MODULEID__CONFIGURATOR_POOL));
     configurator = Configurator(addressProvider.getPoolModuleProxy(Constants.MODULEID__CONFIGURATOR));
 
-    // initYieldPools();
+    initYieldPools();
 
     // initYieldLido();
     // initYieldEtherfi();
     // initYieldSDai();
+    initYieldSUSDS();
   }
 
   function initYieldPools() internal {
-    configuratorPool.setPoolYieldEnable(commonPoolId, true);
+    // configuratorPool.setPoolYieldEnable(commonPoolId, true);
 
-    IERC20Metadata weth = IERC20Metadata(addrWETH);
-    configurator.setAssetYieldEnable(commonPoolId, address(weth), true);
-    configurator.setAssetYieldCap(commonPoolId, address(weth), 2000);
-    configurator.setAssetYieldRate(commonPoolId, address(weth), address(addrIrmYield));
+    // IERC20Metadata weth = IERC20Metadata(addrWETH);
+    // configurator.setAssetYieldEnable(commonPoolId, address(weth), true);
+    // configurator.setAssetYieldCap(commonPoolId, address(weth), 2000);
+    // configurator.setAssetYieldRate(commonPoolId, address(weth), address(addrIrmYield));
 
-    IERC20Metadata dai = IERC20Metadata(addrDAI);
-    configurator.setAssetYieldEnable(commonPoolId, address(dai), true);
-    configurator.setAssetYieldCap(commonPoolId, address(dai), 2000);
-    configurator.setAssetYieldRate(commonPoolId, address(dai), address(addrIrmYield));
+    // IERC20Metadata dai = IERC20Metadata(addrDAI);
+    // configurator.setAssetYieldEnable(commonPoolId, address(dai), true);
+    // configurator.setAssetYieldCap(commonPoolId, address(dai), 2000);
+    // configurator.setAssetYieldRate(commonPoolId, address(dai), address(addrIrmYield));
+
+    IERC20Metadata usds = IERC20Metadata(addrUSDS);
+    configurator.setAssetYieldEnable(commonPoolId, address(usds), true);
+    configurator.setAssetYieldCap(commonPoolId, address(usds), 2000);
+    configurator.setAssetYieldRate(commonPoolId, address(usds), address(addrIrmYield));
   }
 
   function initYieldLido() internal {
@@ -217,5 +228,39 @@ contract InitConfigYield is DeployBase {
     yieldSDai.setNftActive(address(addrAZUKI), true);
     yieldSDai.setNftStakeParams(address(addrAZUKI), 50000, 9000);
     yieldSDai.setNftUnstakeParams(address(addrAZUKI), 100e18, 1.05e18);
+  }
+
+  function initYieldSUSDS() internal {
+    configurator.setManagerYieldCap(commonPoolId, address(addrYieldSUSDS), address(addrUSDS), 2000);
+
+    YieldSavingsDai yieldSUSDS = YieldSavingsDai(payable(addrYieldSUSDS));
+
+    yieldSUSDS.setNftActive(address(addrWPUNK), true);
+    yieldSUSDS.setNftStakeParams(address(addrWPUNK), 50000, 9000);
+    yieldSUSDS.setNftUnstakeParams(address(addrWPUNK), 100e18, 1.05e18);
+
+    yieldSUSDS.setNftActive(address(addrBAYC), true);
+    yieldSUSDS.setNftStakeParams(address(addrBAYC), 50000, 9000);
+    yieldSUSDS.setNftUnstakeParams(address(addrBAYC), 100e18, 1.05e18);
+
+    yieldSUSDS.setNftActive(address(addrStBAYC), true);
+    yieldSUSDS.setNftStakeParams(address(addrStBAYC), 50000, 9000);
+    yieldSUSDS.setNftUnstakeParams(address(addrStBAYC), 100e18, 1.05e18);
+
+    yieldSUSDS.setNftActive(address(addrMAYC), true);
+    yieldSUSDS.setNftStakeParams(address(addrMAYC), 50000, 9000);
+    yieldSUSDS.setNftUnstakeParams(address(addrMAYC), 100e18, 1.05e18);
+
+    yieldSUSDS.setNftActive(address(addrStMAYC), true);
+    yieldSUSDS.setNftStakeParams(address(addrStMAYC), 50000, 9000);
+    yieldSUSDS.setNftUnstakeParams(address(addrStMAYC), 100e18, 1.05e18);
+
+    yieldSUSDS.setNftActive(address(addrPPG), true);
+    yieldSUSDS.setNftStakeParams(address(addrPPG), 50000, 9000);
+    yieldSUSDS.setNftUnstakeParams(address(addrPPG), 100e18, 1.05e18);
+
+    yieldSUSDS.setNftActive(address(addrAZUKI), true);
+    yieldSUSDS.setNftStakeParams(address(addrAZUKI), 50000, 9000);
+    yieldSUSDS.setNftUnstakeParams(address(addrAZUKI), 100e18, 1.05e18);
   }
 }

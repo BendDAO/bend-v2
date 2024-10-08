@@ -26,10 +26,10 @@ contract DeployYieldMock is DeployBase {
   using ConfigLib for Config;
 
   function _deploy() internal virtual override {
-    //_deployMockLido();
-    //_deployMockEtherfi();
-    //_deployMockSDai();
-    _deployMockSUSDS();
+    // _deployMockLido();
+    // _deployMockEtherfi();
+    // _deployMockSDai();
+    // _deployMockSUSDS();
   }
 
   function _deployMockLido() internal {

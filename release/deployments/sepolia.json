@@ -6,7 +6,7 @@
   "Oracles" : {
     "SDAIPriceAdapter": "0x955018DdE44C05409096399BbB9dc39aF432646d",
     "EETHPriceAdapter": "0x1Ba0AaEC85481a08878e8Ca30ae117532e45dc06",
-    "SUSDSPriceAdapter": ""
+    "SUSDSPriceAdapter": "0x4b953a2FDf836643718E34F8BB62f67a4AdA5F88"
   },
   "PoolManager": "0xE16d9FB95eed698ee2384050a2C15BF1DdBA3E6C",
   "Modules": {
@@ -28,5 +28,5 @@
   "YieldEthStakingEtherfi": "0x3234F1047E71421Ec67A576D87eaEe1B86E8A1Ea",
   "YieldSavingsDai": "0x7464a51fA6338A34b694b4bF4A152781fb2C4B70",
   "BendV1Migration": "0x989c290B431DA780C3Fce9640488E7967C1bAB84",
-  "YieldSavingsUSDS": ""
+  "YieldSavingsUSDS": "0x63d56158751A75493B4b5fEdc46A29ba6a68cc15"
 }
