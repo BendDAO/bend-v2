@@ -180,8 +180,6 @@ contract InitConfigPool is DeployBase {
 
     configurator.setAssetBorrowing(poolId, addrUSDS, true);
     configurator.setAssetFlashLoan(poolId, addrUSDS, true);
-
-    setAssetInterestRateModels(poolId, addrUSDS);
   }
 
   function initOralces() internal {
@@ -503,8 +501,8 @@ contract InitConfigPool is DeployBase {
 
     configurator.addAssetERC20(poolId, address(token));
 
-    configurator.setAssetCollateralParams(poolId, address(token), 6300, 7700, 500);
-    configurator.setAssetProtocolFee(poolId, address(token), 2500);
+    configurator.setAssetCollateralParams(poolId, address(token), 7500, 7800, 750);
+    configurator.setAssetProtocolFee(poolId, address(token), 1000);
     configurator.setAssetClassGroup(poolId, address(token), lowRateGroupId);
     configurator.setAssetActive(poolId, address(token), true);
     configurator.setAssetSupplyCap(poolId, address(token), 100_000_000 * (10 ** decimals));

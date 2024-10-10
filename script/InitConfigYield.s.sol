@@ -233,7 +233,7 @@ contract InitConfigYield is DeployBase {
   function initYieldSUSDS() internal {
     configurator.setManagerYieldCap(commonPoolId, address(addrYieldSUSDS), address(addrUSDS), 2000);
 
-    YieldSavingsDai yieldSUSDS = YieldSavingsDai(payable(addrYieldSUSDS));
+    YieldSavingsUSDS yieldSUSDS = YieldSavingsUSDS(payable(addrYieldSUSDS));
 
     yieldSUSDS.setNftActive(address(addrWPUNK), true);
     yieldSUSDS.setNftStakeParams(address(addrWPUNK), 50000, 9000);
