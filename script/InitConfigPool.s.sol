@@ -136,7 +136,9 @@ contract InitConfigPool is DeployBase {
     configuratorPool = ConfiguratorPool(addressProvider.getPoolModuleProxy(Constants.MODULEID__CONFIGURATOR_POOL));
     configurator = Configurator(addressProvider.getPoolModuleProxy(Constants.MODULEID__CONFIGURATOR));
 
-    initCommonPools();
+    // initCommonPools();
+    initInterestRateModels(1);
+    setPoolInterestRateModels(1);
   }
 
   function initOralces() internal {
@@ -156,9 +158,6 @@ contract InitConfigPool is DeployBase {
   }
 
   function initInterestRateModels(uint32 poolId) internal {
-    // Interest Rate Model
-    irmDefault = new DefaultInterestRateModel(address(addressProvider));
-
     // WETH
     irmDefault.setInterestRateParams(
       poolId,

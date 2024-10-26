@@ -363,7 +363,15 @@ abstract contract TestWithSetup is TestWithUtils {
     tsLowRateGroupId = 1;
     tsMiddleRateGroupId = 2;
     tsHighRateGroupId = 3;
-    tsDefaultIRM = new DefaultInterestRateModel(address(tsAddressProvider));
+
+    DefaultInterestRateModel defaultIrmImpl = new DefaultInterestRateModel();
+    TransparentUpgradeableProxy defaultIrmProxy = new TransparentUpgradeableProxy(
+      address(defaultIrmImpl),
+      address(tsProxyAdmin),
+      abi.encodeWithSelector(defaultIrmImpl.initialize.selector, address(tsAddressProvider))
+    );
+    tsDefaultIRM = DefaultInterestRateModel(address(defaultIrmProxy));
+
     tsYieldRateIRM = tsDefaultIRM;
     tsLowRateIRM = tsDefaultIRM;
     tsMiddleRateIRM = tsDefaultIRM;

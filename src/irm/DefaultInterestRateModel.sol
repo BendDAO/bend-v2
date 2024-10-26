@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.0;
 
+import {Initializable} from '@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol';
+
 import {WadRayMath} from '../libraries/math/WadRayMath.sol';
 import {PercentageMath} from '../libraries/math/PercentageMath.sol';
 import {InputTypes} from '../libraries/types/InputTypes.sol';
@@ -17,7 +19,7 @@ import {IDefaultInterestRateModel} from '../interfaces/IDefaultInterestRateModel
  * @dev The model of interest rate is based on 2 slopes, one before the `OPTIMAL_USAGE_RATIO`
  * point of usage and another from that one to 100%.
  */
-contract DefaultInterestRateModel is IDefaultInterestRateModel {
+contract DefaultInterestRateModel is IDefaultInterestRateModel, Initializable {
   using WadRayMath for uint256;
   using PercentageMath for uint256;
 
@@ -63,7 +65,11 @@ contract DefaultInterestRateModel is IDefaultInterestRateModel {
   /**
    * @dev Constructor.
    */
-  constructor(address provider) {
+  constructor() {
+    _disableInitializers();
+  }
+
+  function initialize(address provider) public initializer {
     addressProvider = IAddressProvider(provider);
   }
 
