@@ -347,7 +347,7 @@ contract InitConfigPool is DeployBase {
     configurator.setAssetLendingRate(poolId, asset, lowRateGroupId, address(irmDefault));
     configurator.setAssetLendingRate(poolId, asset, middleRateGroupId, address(irmDefault));
     configurator.setAssetLendingRate(poolId, asset, highRateGroupId, address(irmDefault));
-    if (poolId == 1) {
+    if ((poolId == 1) && (asset == addrWETH || asset == addrDAI)) {
       configurator.setAssetYieldRate(poolId, asset, address(irmDefault));
     }
   }
