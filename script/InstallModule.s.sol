@@ -33,8 +33,8 @@ contract InstallModule is DeployBase {
 
     Installer installer = Installer(poolManager.moduleIdToProxy(Constants.MODULEID__INSTALLER));
 
-    //address[] memory modules = _allModules();
-    address[] memory modules = _someModules();
+    address[] memory modules = _allModules();
+    // address[] memory modules = _someModules();
 
     installer.installModules(modules);
   }
