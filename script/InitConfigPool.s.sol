@@ -88,7 +88,7 @@ contract InitConfigPool is DeployBase {
 
       commonPoolId = 1;
 
-      irmDefault = DefaultInterestRateModel(0x8f6E743f1CDF1dC49dF342da221D3D966B658D00);
+      irmDefault = DefaultInterestRateModel(0x209759aBCB4d2eA1B0Fc285042C2BCdbfd124123);
       irmYield = irmDefault;
       irmLow = irmDefault;
       irmMiddle = irmDefault;
