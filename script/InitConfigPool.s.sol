@@ -25,6 +25,7 @@ contract InitConfigPool is DeployBase {
   address internal addrUSDT;
   address internal addrUSDC;
   address internal addrDAI;
+  address internal addrUSDS;
 
   address internal addrWPUNK;
   address internal addrBAYC;
@@ -67,6 +68,7 @@ contract InitConfigPool is DeployBase {
       addrUSDT = 0xdAC17F958D2ee523a2206206994597C13D831ec7;
       addrUSDC = 0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48;
       addrDAI = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+      addrUSDS = 0xdC035D45d973E3EC169d2276DDab16f1e407384F;
 
       addrWPUNK = 0xb7F7F6C52F2e2fdb1963Eab30438024864c313F6;
       addrBAYC = 0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D;
@@ -99,6 +101,7 @@ contract InitConfigPool is DeployBase {
       addrUSDT = 0x53cEd787Ba91B4f872b961914faE013ccF8b0236;
       addrUSDC = 0xC188f878304F37e7199dFBd114e2Af68D043d98c;
       addrDAI = 0xf9a88B0cc31f248c89F063C2928fA10e5A029B88;
+      addrUSDS = 0x99f5A9506504BB96d0019538608090015BA9EBDd;
 
       addrWPUNK = 0x647dc527Bd7dFEE4DD468cE6fC62FC50fa42BD8b;
       addrBAYC = 0xE15A78992dd4a9d6833eA7C9643650d3b0a2eD2B;
@@ -138,6 +141,8 @@ contract InitConfigPool is DeployBase {
 
     // initCommonPools();
 
+    // listingUSDS(commonPoolId);
+
     // initInterestRateModels(1);
     // initInterestRateModels(2);
     // initInterestRateModels(3);
@@ -145,6 +150,50 @@ contract InitConfigPool is DeployBase {
     setPoolInterestRateModels(1);
     setPoolInterestRateModels(2);
     setPoolInterestRateModels(3);
+  }
+
+  function listingUSDS(uint32 poolId) internal {
+    irmDefault.setInterestRateParams(
+      poolId,
+      addrUSDS,
+      yieldRateGroupId,
+      (75 * WadRayMath.RAY) / 100,
+      (2 * WadRayMath.RAY) / 100, // baseRate
+      (1 * WadRayMath.RAY) / 100,
+      (20 * WadRayMath.RAY) / 100
+    );
+    irmDefault.setInterestRateParams(
+      poolId,
+      addrUSDS,
+      lowRateGroupId,
+      (75 * WadRayMath.RAY) / 100,
+      (6 * WadRayMath.RAY) / 100, // baseRate
+      (4 * WadRayMath.RAY) / 100,
+      (80 * WadRayMath.RAY) / 100
+    );
+    irmDefault.setInterestRateParams(
+      poolId,
+      addrUSDS,
+      middleRateGroupId,
+      (75 * WadRayMath.RAY) / 100,
+      (8 * WadRayMath.RAY) / 100, // baseRate
+      (4 * WadRayMath.RAY) / 100,
+      (80 * WadRayMath.RAY) / 100
+    );
+    irmDefault.setInterestRateParams(
+      poolId,
+      addrUSDS,
+      highRateGroupId,
+      (75 * WadRayMath.RAY) / 100,
+      (10 * WadRayMath.RAY) / 100, // baseRate
+      (4 * WadRayMath.RAY) / 100,
+      (80 * WadRayMath.RAY) / 100
+    );
+
+    addUSDS(poolId);
+
+    configurator.setAssetBorrowing(poolId, addrUSDS, true);
+    configurator.setAssetFlashLoan(poolId, addrUSDS, true);
   }
 
   function initOralces() internal {
@@ -323,6 +372,46 @@ contract InitConfigPool is DeployBase {
         (80 * WadRayMath.RAY) / 100
       );
     }
+
+    // USDS
+    if (poolId == 1) {
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrUSDS,
+        yieldRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (2 * WadRayMath.RAY) / 100, // baseRate
+        (1 * WadRayMath.RAY) / 100,
+        (20 * WadRayMath.RAY) / 100
+      );
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrUSDS,
+        lowRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (6 * WadRayMath.RAY) / 100, // baseRate
+        (4 * WadRayMath.RAY) / 100,
+        (80 * WadRayMath.RAY) / 100
+      );
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrUSDS,
+        middleRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (8 * WadRayMath.RAY) / 100, // baseRate
+        (4 * WadRayMath.RAY) / 100,
+        (80 * WadRayMath.RAY) / 100
+      );
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrUSDS,
+        highRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (10 * WadRayMath.RAY) / 100, // baseRate
+        (4 * WadRayMath.RAY) / 100,
+        (80 * WadRayMath.RAY) / 100
+      );
+    }
   }
 
   function setPoolInterestRateModels(uint32 poolId) internal {
@@ -341,13 +430,17 @@ contract InitConfigPool is DeployBase {
     if (poolId == 1 || poolId == 3) {
       setAssetInterestRateModels(poolId, addrDAI);
     }
+
+    if (poolId == 1) {
+      setAssetInterestRateModels(poolId, addrUSDS);
+    }
   }
 
   function setAssetInterestRateModels(uint32 poolId, address asset) internal {
     configurator.setAssetLendingRate(poolId, asset, lowRateGroupId, address(irmDefault));
     configurator.setAssetLendingRate(poolId, asset, middleRateGroupId, address(irmDefault));
     configurator.setAssetLendingRate(poolId, asset, highRateGroupId, address(irmDefault));
-    if ((poolId == 1) && (asset == addrWETH || asset == addrDAI)) {
+    if ((poolId == 1) && (asset == addrWETH || asset == addrDAI || asset == addrUSDS)) {
       configurator.setAssetYieldRate(poolId, asset, address(irmDefault));
     }
   }
@@ -360,6 +453,7 @@ contract InitConfigPool is DeployBase {
     addUSDT(commonPoolId);
     addUSDC(commonPoolId);
     addDAI(commonPoolId);
+    addUSDS(commonPoolId);
 
     // erc721 assets
     addWPUNK(commonPoolId);
@@ -478,11 +572,30 @@ contract InitConfigPool is DeployBase {
     configurator.addAssetGroup(poolId, address(token), highRateGroupId, address(irmHigh));
   }
 
+  function addUSDS(uint32 poolId) internal {
+    IERC20Metadata token = IERC20Metadata(addrUSDS);
+    uint8 decimals = token.decimals();
+
+    configurator.addAssetERC20(poolId, address(token));
+
+    configurator.setAssetCollateralParams(poolId, address(token), 7500, 7800, 750);
+    configurator.setAssetProtocolFee(poolId, address(token), 1000);
+    configurator.setAssetClassGroup(poolId, address(token), lowRateGroupId);
+    configurator.setAssetActive(poolId, address(token), true);
+    configurator.setAssetSupplyCap(poolId, address(token), 100_000_000 * (10 ** decimals));
+    configurator.setAssetBorrowCap(poolId, address(token), 100_000_000 * (10 ** decimals));
+
+    configurator.addAssetGroup(poolId, address(token), lowRateGroupId, address(irmLow));
+    configurator.addAssetGroup(poolId, address(token), middleRateGroupId, address(irmMiddle));
+    configurator.addAssetGroup(poolId, address(token), highRateGroupId, address(irmHigh));
+  }
+
   function setAssetBorrowing(uint32 poolId) internal {
     configurator.setAssetBorrowing(poolId, addrWETH, true);
     configurator.setAssetBorrowing(poolId, addrUSDT, true);
     configurator.setAssetBorrowing(poolId, addrUSDC, true);
     configurator.setAssetBorrowing(poolId, addrDAI, true);
+    configurator.setAssetBorrowing(poolId, addrUSDS, true);
   }
 
   function setAssetFlashLoan(uint32 poolId) internal {
@@ -490,6 +603,7 @@ contract InitConfigPool is DeployBase {
     configurator.setAssetFlashLoan(poolId, addrUSDT, true);
     configurator.setAssetFlashLoan(poolId, addrUSDC, true);
     configurator.setAssetFlashLoan(poolId, addrDAI, true);
+    configurator.setAssetFlashLoan(poolId, addrUSDS, true);
   }
 
   function addWPUNK(uint32 poolId) internal {

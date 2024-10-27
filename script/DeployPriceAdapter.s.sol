@@ -10,6 +10,7 @@ import {Constants} from 'src/libraries/helpers/Constants.sol';
 
 import {SDAIPriceAdapter} from 'src/oracles/SDAIPriceAdapter.sol';
 import {EETHPriceAdapter} from 'src/oracles/EETHPriceAdapter.sol';
+import {SUSDSPriceAdapter} from 'src/oracles/SUSDSPriceAdapter.sol';
 
 import {Configured, ConfigLib, Config} from 'config/Configured.sol';
 import {DeployBase} from './DeployBase.s.sol';
@@ -26,9 +27,11 @@ contract DeployPriceAdapter is DeployBase {
     address addrProviderInCfg = config.getAddressProvider();
     require(addrProviderInCfg != address(0), 'AddressProvider not exist in config');
 
-    //_deploySDAIPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
+    // _deploySDAIPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
 
-    //_deployEETHPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
+    // _deployEETHPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
+
+    // _deployUSDSPriceAdapter(proxyAdminInCfg, addrProviderInCfg);
   }
 
   function _deploySDAIPriceAdapter(address /*proxyAdmin_*/, address /*addressProvider_*/) internal returns (address) {
@@ -83,5 +86,28 @@ contract DeployPriceAdapter is DeployBase {
     console.log('EETHPriceAdapter:', address(eEthAdapter));
 
     return address(eEthAdapter);
+  }
+
+  function _deployUSDSPriceAdapter(address /*proxyAdmin_*/, address /*addressProvider_*/) internal returns (address) {
+    address usdsAgg = address(0);
+    address rateProvider = address(0);
+
+    uint256 chainId = config.getChainId();
+    if (chainId == 1) {
+      // mainnet
+      usdsAgg = 0xfF30586cD0F29eD462364C7e81375FC0C71219b1;
+      rateProvider = 0xa3931d71877C0E7a3148CB7Eb4463524FEc27fbD;
+    } else if (chainId == 11155111) {
+      // sepolia
+      usdsAgg = 0x7354784A7A705963b484Fed3a903FF8c9b6Ec617;
+      rateProvider = 0xf8B05Dab36ea0492E4e358FeF83a608e4297b3D4;
+    } else {
+      revert('not support');
+    }
+
+    SUSDSPriceAdapter susdsAdapter = new SUSDSPriceAdapter(usdsAgg, rateProvider, 'sUSDS / USD');
+    console.log('SUSDSPriceAdapter:', address(susdsAdapter));
+
+    return address(susdsAdapter);
   }
 }
