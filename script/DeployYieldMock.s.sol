@@ -15,6 +15,7 @@ import {MockWeETH} from 'test/mocks/MockWeETH.sol';
 
 import {MockSDAI} from 'test/mocks/MockSDAI.sol';
 import {MockDAIPot} from 'test/mocks/MockDAIPot.sol';
+import {MockSUSDS} from 'test/mocks/MockSUSDS.sol';
 
 import {Configured, ConfigLib, Config} from 'config/Configured.sol';
 import {DeployBase} from './DeployBase.s.sol';
@@ -25,9 +26,10 @@ contract DeployYieldMock is DeployBase {
   using ConfigLib for Config;
 
   function _deploy() internal virtual override {
-    //_deployMockLido();
-    //_deployMockEtherfi();
-    //_deployMockSDai();
+    // _deployMockLido();
+    // _deployMockEtherfi();
+    // _deployMockSDai();
+    // _deployMockSUSDS();
   }
 
   function _deployMockLido() internal {
@@ -58,5 +60,13 @@ contract DeployYieldMock is DeployBase {
     MockERC20 dai = MockERC20(0xf9a88B0cc31f248c89F063C2928fA10e5A029B88);
 
     new MockSDAI(address(dai));
+  }
+
+  function _deployMockSUSDS() internal {
+    // USDS should be same with pool lending
+    // MockERC20 usds = new MockERC20('USDS Stablecoin', 'USDS', 18);
+    MockERC20 usds = MockERC20(0x99f5A9506504BB96d0019538608090015BA9EBDd);
+
+    new MockSUSDS(address(usds));
   }
 }
