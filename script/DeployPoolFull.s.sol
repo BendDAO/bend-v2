@@ -24,6 +24,8 @@ import {FlashLoan} from 'src/modules/FlashLoan.sol';
 import {PoolLens} from 'src/modules/PoolLens.sol';
 import {UIPoolLens} from 'src/modules/UIPoolLens.sol';
 
+import {DefaultInterestRateModel} from 'src/irm/DefaultInterestRateModel.sol';
+
 import {Configured, ConfigLib, Config} from 'config/Configured.sol';
 import {DeployBase} from './DeployBase.s.sol';
 
@@ -33,10 +35,25 @@ contract DeployPoolFull is DeployBase {
   using ConfigLib for Config;
 
   function _deploy() internal virtual override {
-    // address proxyAdmin_ = _deployProxyAdmin();
-    // console.log('ProxyAdmin:', proxyAdmin_);
+    // _deployPoolFull();
+
+    _deployPoolPart();
+  }
+
+  function _deployPoolPart() internal {
     address proxyAdmin_ = config.getProxyAdmin();
     require(proxyAdmin_ != address(0), 'ProxyAdmin not exist in config');
+
+    address addressProvider_ = config.getAddressProvider();
+    require(addressProvider_ != address(0), 'AddressProvider not exist in config');
+
+    address defaultIrm_ = _deployDefaultIRM(proxyAdmin_, addressProvider_);
+    console.log('DefaultIrm:', defaultIrm_);
+  }
+
+  function _deployPoolFull() internal {
+    address proxyAdmin_ = _deployProxyAdmin();
+    console.log('ProxyAdmin:', proxyAdmin_);
 
     address addressProvider_ = _deployAddressProvider(proxyAdmin_);
     console.log('AddressProvider:', addressProvider_);
@@ -49,6 +66,9 @@ contract DeployPoolFull is DeployBase {
 
     address poolManager_ = _deployPoolManager(addressProvider_);
     console.log('PoolManager:', poolManager_);
+
+    address defaultIrm_ = _deployDefaultIRM(proxyAdmin_, addressProvider_);
+    console.log('DefaultIrm:', defaultIrm_);
   }
 
   function _deployProxyAdmin() internal returns (address) {
@@ -131,6 +151,18 @@ contract DeployPoolFull is DeployBase {
     AddressProvider(addressProvider_).setPriceOracle(address(priceOracle));
 
     return address(priceOracle);
+  }
+
+  function _deployDefaultIRM(address proxyAdmin_, address addressProvider_) internal returns (address) {
+    DefaultInterestRateModel defaultIrmImpl = new DefaultInterestRateModel();
+    TransparentUpgradeableProxy defaultIrmProxy = new TransparentUpgradeableProxy(
+      address(defaultIrmImpl),
+      address(proxyAdmin_),
+      abi.encodeWithSelector(defaultIrmImpl.initialize.selector, address(addressProvider_))
+    );
+    DefaultInterestRateModel defaultIrm = DefaultInterestRateModel(address(defaultIrmProxy));
+
+    return address(defaultIrm);
   }
 
   struct DeployLocalVars {

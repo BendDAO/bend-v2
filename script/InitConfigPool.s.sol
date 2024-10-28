@@ -90,7 +90,7 @@ contract InitConfigPool is DeployBase {
 
       commonPoolId = 1;
 
-      irmDefault = DefaultInterestRateModel(0x8f6E743f1CDF1dC49dF342da221D3D966B658D00);
+      irmDefault = DefaultInterestRateModel(0x209759aBCB4d2eA1B0Fc285042C2BCdbfd124123);
       irmYield = irmDefault;
       irmLow = irmDefault;
       irmMiddle = irmDefault;
@@ -123,7 +123,7 @@ contract InitConfigPool is DeployBase {
 
       commonPoolId = 1;
 
-      irmDefault = DefaultInterestRateModel(0x10988B9c7e7048B83D590b14F0167FDe56728Ae9);
+      irmDefault = DefaultInterestRateModel(0x3a6a42c547B264AB3717aD127e5f07960Fe21306);
       irmYield = irmDefault;
       irmLow = irmDefault;
       irmMiddle = irmDefault;
@@ -139,11 +139,22 @@ contract InitConfigPool is DeployBase {
     configuratorPool = ConfiguratorPool(addressProvider.getPoolModuleProxy(Constants.MODULEID__CONFIGURATOR_POOL));
     configurator = Configurator(addressProvider.getPoolModuleProxy(Constants.MODULEID__CONFIGURATOR));
 
-    listingUSDS(commonPoolId);
+    // initCommonPools();
+
+    // listingUSDS(commonPoolId);
+
+    // initInterestRateModels(1);
+    // initInterestRateModels(2);
+    // initInterestRateModels(3);
+
+    setPoolInterestRateModels(1);
+    setPoolInterestRateModels(2);
+    setPoolInterestRateModels(3);
   }
 
   function listingUSDS(uint32 poolId) internal {
     irmDefault.setInterestRateParams(
+      poolId,
       addrUSDS,
       yieldRateGroupId,
       (75 * WadRayMath.RAY) / 100,
@@ -152,6 +163,7 @@ contract InitConfigPool is DeployBase {
       (20 * WadRayMath.RAY) / 100
     );
     irmDefault.setInterestRateParams(
+      poolId,
       addrUSDS,
       lowRateGroupId,
       (75 * WadRayMath.RAY) / 100,
@@ -160,6 +172,7 @@ contract InitConfigPool is DeployBase {
       (80 * WadRayMath.RAY) / 100
     );
     irmDefault.setInterestRateParams(
+      poolId,
       addrUSDS,
       middleRateGroupId,
       (75 * WadRayMath.RAY) / 100,
@@ -168,6 +181,7 @@ contract InitConfigPool is DeployBase {
       (80 * WadRayMath.RAY) / 100
     );
     irmDefault.setInterestRateParams(
+      poolId,
       addrUSDS,
       highRateGroupId,
       (75 * WadRayMath.RAY) / 100,
@@ -198,145 +212,206 @@ contract InitConfigPool is DeployBase {
     priceOracle.setAssetChainlinkAggregators(assets, aggs);
   }
 
-  function initInterestRateModels() internal {
-    // Interest Rate Model
-    irmDefault = new DefaultInterestRateModel(address(addressProvider));
-
+  function initInterestRateModels(uint32 poolId) internal {
     // WETH
-    irmDefault.setInterestRateParams(
-      addrWETH,
-      yieldRateGroupId,
-      (75 * WadRayMath.RAY) / 100,
-      (1 * WadRayMath.RAY) / 100, // baseRate
-      (1 * WadRayMath.RAY) / 100,
-      (20 * WadRayMath.RAY) / 100
-    );
-    irmDefault.setInterestRateParams(
-      addrWETH,
-      lowRateGroupId,
-      (75 * WadRayMath.RAY) / 100,
-      (5 * WadRayMath.RAY) / 100, // baseRate
-      (4 * WadRayMath.RAY) / 100,
-      (80 * WadRayMath.RAY) / 100
-    );
-    irmDefault.setInterestRateParams(
-      addrWETH,
-      middleRateGroupId,
-      (75 * WadRayMath.RAY) / 100,
-      (7 * WadRayMath.RAY) / 100, // baseRate
-      (4 * WadRayMath.RAY) / 100,
-      (80 * WadRayMath.RAY) / 100
-    );
-    irmDefault.setInterestRateParams(
-      addrWETH,
-      highRateGroupId,
-      (75 * WadRayMath.RAY) / 100,
-      (9 * WadRayMath.RAY) / 100, // baseRate
-      (4 * WadRayMath.RAY) / 100,
-      (80 * WadRayMath.RAY) / 100
-    );
+    if (poolId == 1 || poolId == 2) {
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrWETH,
+        yieldRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (1 * WadRayMath.RAY) / 100, // baseRate
+        (1 * WadRayMath.RAY) / 100,
+        (20 * WadRayMath.RAY) / 100
+      );
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrWETH,
+        lowRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (5 * WadRayMath.RAY) / 100, // baseRate
+        (4 * WadRayMath.RAY) / 100,
+        (80 * WadRayMath.RAY) / 100
+      );
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrWETH,
+        middleRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (7 * WadRayMath.RAY) / 100, // baseRate
+        (4 * WadRayMath.RAY) / 100,
+        (80 * WadRayMath.RAY) / 100
+      );
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrWETH,
+        highRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (9 * WadRayMath.RAY) / 100, // baseRate
+        (4 * WadRayMath.RAY) / 100,
+        (80 * WadRayMath.RAY) / 100
+      );
+    }
 
     // USDT
-    irmDefault.setInterestRateParams(
-      addrUSDT,
-      yieldRateGroupId,
-      (75 * WadRayMath.RAY) / 100,
-      (2 * WadRayMath.RAY) / 100, // baseRate
-      (1 * WadRayMath.RAY) / 100,
-      (20 * WadRayMath.RAY) / 100
-    );
-    irmDefault.setInterestRateParams(
-      addrUSDT,
-      lowRateGroupId,
-      (75 * WadRayMath.RAY) / 100,
-      (5 * WadRayMath.RAY) / 100, // baseRate
-      (4 * WadRayMath.RAY) / 100,
-      (80 * WadRayMath.RAY) / 100
-    );
-    irmDefault.setInterestRateParams(
-      addrUSDT,
-      middleRateGroupId,
-      (75 * WadRayMath.RAY) / 100,
-      (7 * WadRayMath.RAY) / 100, // baseRate
-      (4 * WadRayMath.RAY) / 100,
-      (80 * WadRayMath.RAY) / 100
-    );
-    irmDefault.setInterestRateParams(
-      addrUSDT,
-      highRateGroupId,
-      (75 * WadRayMath.RAY) / 100,
-      (9 * WadRayMath.RAY) / 100, // baseRate
-      (4 * WadRayMath.RAY) / 100,
-      (80 * WadRayMath.RAY) / 100
-    );
+    if (poolId == 1 || poolId == 2 || poolId == 3) {
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrUSDT,
+        yieldRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (2 * WadRayMath.RAY) / 100, // baseRate
+        (1 * WadRayMath.RAY) / 100,
+        (20 * WadRayMath.RAY) / 100
+      );
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrUSDT,
+        lowRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (5 * WadRayMath.RAY) / 100, // baseRate
+        (4 * WadRayMath.RAY) / 100,
+        (80 * WadRayMath.RAY) / 100
+      );
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrUSDT,
+        middleRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (7 * WadRayMath.RAY) / 100, // baseRate
+        (4 * WadRayMath.RAY) / 100,
+        (80 * WadRayMath.RAY) / 100
+      );
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrUSDT,
+        highRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (9 * WadRayMath.RAY) / 100, // baseRate
+        (4 * WadRayMath.RAY) / 100,
+        (80 * WadRayMath.RAY) / 100
+      );
+    }
 
     // USDC
-    irmDefault.setInterestRateParams(
-      addrUSDC,
-      yieldRateGroupId,
-      (75 * WadRayMath.RAY) / 100,
-      (2 * WadRayMath.RAY) / 100, // baseRate
-      (1 * WadRayMath.RAY) / 100,
-      (20 * WadRayMath.RAY) / 100
-    );
-    irmDefault.setInterestRateParams(
-      addrUSDC,
-      lowRateGroupId,
-      (75 * WadRayMath.RAY) / 100,
-      (5 * WadRayMath.RAY) / 100, // baseRate
-      (4 * WadRayMath.RAY) / 100,
-      (80 * WadRayMath.RAY) / 100
-    );
-    irmDefault.setInterestRateParams(
-      addrUSDC,
-      middleRateGroupId,
-      (75 * WadRayMath.RAY) / 100,
-      (7 * WadRayMath.RAY) / 100, // baseRate
-      (4 * WadRayMath.RAY) / 100,
-      (80 * WadRayMath.RAY) / 100
-    );
-    irmDefault.setInterestRateParams(
-      addrUSDC,
-      highRateGroupId,
-      (75 * WadRayMath.RAY) / 100,
-      (9 * WadRayMath.RAY) / 100, // baseRate
-      (4 * WadRayMath.RAY) / 100,
-      (80 * WadRayMath.RAY) / 100
-    );
+    if (poolId == 1) {
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrUSDC,
+        yieldRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (2 * WadRayMath.RAY) / 100, // baseRate
+        (1 * WadRayMath.RAY) / 100,
+        (20 * WadRayMath.RAY) / 100
+      );
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrUSDC,
+        lowRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (5 * WadRayMath.RAY) / 100, // baseRate
+        (4 * WadRayMath.RAY) / 100,
+        (80 * WadRayMath.RAY) / 100
+      );
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrUSDC,
+        middleRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (7 * WadRayMath.RAY) / 100, // baseRate
+        (4 * WadRayMath.RAY) / 100,
+        (80 * WadRayMath.RAY) / 100
+      );
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrUSDC,
+        highRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (9 * WadRayMath.RAY) / 100, // baseRate
+        (4 * WadRayMath.RAY) / 100,
+        (80 * WadRayMath.RAY) / 100
+      );
+    }
 
     // DAI
-    irmDefault.setInterestRateParams(
-      addrDAI,
-      yieldRateGroupId,
-      (75 * WadRayMath.RAY) / 100,
-      (2 * WadRayMath.RAY) / 100, // baseRate
-      (1 * WadRayMath.RAY) / 100,
-      (20 * WadRayMath.RAY) / 100
-    );
-    irmDefault.setInterestRateParams(
-      addrDAI,
-      lowRateGroupId,
-      (75 * WadRayMath.RAY) / 100,
-      (6 * WadRayMath.RAY) / 100, // baseRate
-      (4 * WadRayMath.RAY) / 100,
-      (80 * WadRayMath.RAY) / 100
-    );
-    irmDefault.setInterestRateParams(
-      addrDAI,
-      middleRateGroupId,
-      (75 * WadRayMath.RAY) / 100,
-      (8 * WadRayMath.RAY) / 100, // baseRate
-      (4 * WadRayMath.RAY) / 100,
-      (80 * WadRayMath.RAY) / 100
-    );
-    irmDefault.setInterestRateParams(
-      addrDAI,
-      highRateGroupId,
-      (75 * WadRayMath.RAY) / 100,
-      (10 * WadRayMath.RAY) / 100, // baseRate
-      (4 * WadRayMath.RAY) / 100,
-      (80 * WadRayMath.RAY) / 100
-    );
+    if (poolId == 1 || poolId == 3) {
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrDAI,
+        yieldRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (2 * WadRayMath.RAY) / 100, // baseRate
+        (1 * WadRayMath.RAY) / 100,
+        (20 * WadRayMath.RAY) / 100
+      );
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrDAI,
+        lowRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (6 * WadRayMath.RAY) / 100, // baseRate
+        (4 * WadRayMath.RAY) / 100,
+        (80 * WadRayMath.RAY) / 100
+      );
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrDAI,
+        middleRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (8 * WadRayMath.RAY) / 100, // baseRate
+        (4 * WadRayMath.RAY) / 100,
+        (80 * WadRayMath.RAY) / 100
+      );
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrDAI,
+        highRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (10 * WadRayMath.RAY) / 100, // baseRate
+        (4 * WadRayMath.RAY) / 100,
+        (80 * WadRayMath.RAY) / 100
+      );
+    }
+
+    // USDS
+    if (poolId == 1) {
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrUSDS,
+        yieldRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (2 * WadRayMath.RAY) / 100, // baseRate
+        (1 * WadRayMath.RAY) / 100,
+        (20 * WadRayMath.RAY) / 100
+      );
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrUSDS,
+        lowRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (6 * WadRayMath.RAY) / 100, // baseRate
+        (4 * WadRayMath.RAY) / 100,
+        (80 * WadRayMath.RAY) / 100
+      );
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrUSDS,
+        middleRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (8 * WadRayMath.RAY) / 100, // baseRate
+        (4 * WadRayMath.RAY) / 100,
+        (80 * WadRayMath.RAY) / 100
+      );
+      irmDefault.setInterestRateParams(
+        poolId,
+        addrUSDS,
+        highRateGroupId,
+        (75 * WadRayMath.RAY) / 100,
+        (10 * WadRayMath.RAY) / 100, // baseRate
+        (4 * WadRayMath.RAY) / 100,
+        (80 * WadRayMath.RAY) / 100
+      );
+    }
   }
 
   function setPoolInterestRateModels(uint32 poolId) internal {
@@ -365,7 +440,9 @@ contract InitConfigPool is DeployBase {
     configurator.setAssetLendingRate(poolId, asset, lowRateGroupId, address(irmDefault));
     configurator.setAssetLendingRate(poolId, asset, middleRateGroupId, address(irmDefault));
     configurator.setAssetLendingRate(poolId, asset, highRateGroupId, address(irmDefault));
-    configurator.setAssetYieldRate(poolId, asset, address(irmDefault));
+    if ((poolId == 1) && (asset == addrWETH || asset == addrDAI || asset == addrUSDS)) {
+      configurator.setAssetYieldRate(poolId, asset, address(irmDefault));
+    }
   }
 
   function initCommonPools() internal {
