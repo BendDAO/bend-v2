@@ -16,6 +16,7 @@ import {DefaultInterestRateModel} from 'src/irm/DefaultInterestRateModel.sol';
 import {YieldEthStakingLido} from 'src/yield/lido/YieldEthStakingLido.sol';
 import {YieldEthStakingEtherfi} from 'src/yield/etherfi/YieldEthStakingEtherfi.sol';
 import {YieldSavingsDai} from 'src/yield/sdai/YieldSavingsDai.sol';
+import {YieldSavingsUSDS} from 'src/yield/susds/YieldSavingsUSDS.sol';
 
 import {Configured, ConfigLib, Config} from 'config/Configured.sol';
 import {DeployBase} from './DeployBase.s.sol';
