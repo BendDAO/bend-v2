@@ -20,6 +20,8 @@ do
     jq '.abi' out/${fileWithExtension}/${filename}.json > release/abis/${filename}.json
 done
 
+jq '.abi' out/DefaultInterestRateModel.sol/DefaultInterestRateModel.json > release/abis/DefaultInterestRateModel.json
+
 jq '.abi' out/YieldRegistry.sol/YieldRegistry.json > release/abis/YieldRegistry.json
 jq '.abi' out/YieldAccount.sol/YieldAccount.json > release/abis/YieldAccount.json
 jq '.abi' out/YieldEthStakingLido.sol/YieldEthStakingLido.json > release/abis/YieldEthStakingLido.json
