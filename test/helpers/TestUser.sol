@@ -32,6 +32,21 @@ contract TestUser is ERC721Holder {
   uint256 internal _uid;
   uint256[] internal _tokenIds;
 
+  struct AttckerData {
+    uint32 poolId;
+    address asset;
+    uint8[] groups;
+    uint256 amount;
+    uint256[] amounts;
+    address nftAsset;
+    uint256[] tokenIds;
+    uint8 supplyMode;
+    address onBehalf;
+    address receiver;
+  }
+  AttckerData internal _attackData;
+  uint256 internal _attackType;
+
   constructor(PoolManager poolManager_, uint256 uid_) {
     _poolManager = poolManager_;
     _BVault = BVault(_poolManager.moduleIdToProxy(Constants.MODULEID__BVAULT));
@@ -162,6 +177,72 @@ contract TestUser is ERC721Holder {
     } else {
       _crossLending.crossRepayERC20(poolId, asset, groups, amounts, onBehalf);
     }
+  }
+
+  function crossLiquidateERC20(
+    uint32 poolId,
+    address borrower,
+    address collateralAsset,
+    address debtAsset,
+    uint256 debtToCover,
+    bool supplyAsCollateral
+  ) public {
+    if (debtAsset == Constants.NATIVE_TOKEN_ADDRESS) {
+      _crossLiquidation.crossLiquidateERC20{value: debtToCover}(
+        poolId,
+        borrower,
+        collateralAsset,
+        debtAsset,
+        debtToCover,
+        supplyAsCollateral
+      );
+    } else {
+      _crossLiquidation.crossLiquidateERC20(
+        poolId,
+        borrower,
+        collateralAsset,
+        debtAsset,
+        debtToCover,
+        supplyAsCollateral
+      );
+    }
+  }
+
+  function crossLiquidateERC721(
+    uint32 poolId,
+    address borrower,
+    address collateralAsset,
+    uint256[] calldata collateralTokenIds,
+    address debtAsset,
+    bool supplyAsCollateral
+  ) public {
+    _crossLiquidation.crossLiquidateERC721(
+      poolId,
+      borrower,
+      collateralAsset,
+      collateralTokenIds,
+      debtAsset,
+      supplyAsCollateral
+    );
+  }
+
+  function crossLiquidateERC721ByNative(
+    uint32 poolId,
+    address borrower,
+    address collateralAsset,
+    uint256[] calldata collateralTokenIds,
+    bool supplyAsCollateral,
+    uint256 msgValue
+  ) public {
+    address debtAsset = Constants.NATIVE_TOKEN_ADDRESS;
+    _crossLiquidation.crossLiquidateERC721{value: msgValue}(
+      poolId,
+      borrower,
+      collateralAsset,
+      collateralTokenIds,
+      debtAsset,
+      supplyAsCollateral
+    );
   }
 
   function isolateBorrow(
@@ -297,5 +378,117 @@ contract TestUser is ERC721Holder {
 
   function setAuthorization(uint32 poolId, address asset, address operator, bool approved) public {
     _BVault.setAuthorization(poolId, asset, operator, approved);
+  }
+
+  function getReentrantAttackTypes() public pure returns (uint256[] memory attackTypes) {
+    attackTypes = new uint256[](9);
+    for (uint i = 0; i < 9; i++) {
+      attackTypes[i] = i + 1;
+    }
+  }
+
+  function setAttackType(uint256 attackType_) public {
+    _attackType = attackType_;
+  }
+
+  function setAttackData(AttckerData memory attackData_) public {
+    _attackData = attackData_;
+  }
+
+  function onERC721Received(address, address, uint256, bytes memory) public virtual override returns (bytes4) {
+    if (_attackType == 0) {
+      return this.onERC721Received.selector;
+    }
+
+    if (_attackType == 1) {
+      _BVault.depositERC20(_attackData.poolId, _attackData.asset, _attackData.amount, _attackData.onBehalf);
+    }
+
+    if (_attackType == 2) {
+      _BVault.withdrawERC20(
+        _attackData.poolId,
+        _attackData.asset,
+        _attackData.amount,
+        _attackData.onBehalf,
+        _attackData.receiver
+      );
+    }
+
+    if (_attackType == 3) {
+      _BVault.depositERC721(
+        _attackData.poolId,
+        _attackData.asset,
+        _attackData.tokenIds,
+        _attackData.supplyMode,
+        _attackData.onBehalf
+      );
+    }
+
+    if (_attackType == 4) {
+      _BVault.withdrawERC721(
+        _attackData.poolId,
+        _attackData.asset,
+        _attackData.tokenIds,
+        _attackData.supplyMode,
+        _attackData.onBehalf,
+        _attackData.receiver
+      );
+    }
+
+    if (_attackType == 5) {
+      _BVault.setERC721SupplyMode(
+        _attackData.poolId,
+        _attackData.asset,
+        _attackData.tokenIds,
+        _attackData.supplyMode,
+        _attackData.onBehalf
+      );
+    }
+
+    if (_attackType == 6) {
+      _crossLending.crossBorrowERC20(
+        _attackData.poolId,
+        _attackData.asset,
+        _attackData.groups,
+        _attackData.amounts,
+        _attackData.onBehalf,
+        _attackData.receiver
+      );
+    }
+
+    if (_attackType == 7) {
+      _crossLending.crossRepayERC20(
+        _attackData.poolId,
+        _attackData.asset,
+        _attackData.groups,
+        _attackData.amounts,
+        _attackData.onBehalf
+      );
+    }
+
+    if (_attackType == 8) {
+      _isolateLending.isolateBorrow(
+        _attackData.poolId,
+        _attackData.nftAsset,
+        _attackData.tokenIds,
+        _attackData.asset,
+        _attackData.amounts,
+        _attackData.onBehalf,
+        _attackData.receiver
+      );
+    }
+
+    if (_attackType == 9) {
+      _isolateLending.isolateRepay(
+        _attackData.poolId,
+        _attackData.nftAsset,
+        _attackData.tokenIds,
+        _attackData.asset,
+        _attackData.amounts,
+        _attackData.onBehalf
+      );
+    }
+
+    return this.onERC721Received.selector;
   }
 }
