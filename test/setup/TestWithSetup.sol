@@ -95,6 +95,7 @@ abstract contract TestWithSetup is TestWithUtils {
   MockDelegateRegistryV2 public tsDelegateRegistryV2;
 
   MockBendNFTOracle public tsBendNFTOracle;
+  MockBendNFTOracle public tsBendTokenOracle;
   MockChainlinkAggregator tsCLAggregatorWETH;
   MockChainlinkAggregator tsCLAggregatorDAI;
   MockChainlinkAggregator tsCLAggregatorUSDS;
@@ -405,6 +406,7 @@ abstract contract TestWithSetup is TestWithUtils {
     // set price oracle
     tsHEVM.startPrank(tsOracleAdmin);
     tsPriceOracle.setBendNFTOracle(address(tsBendNFTOracle));
+    tsPriceOracle.setBendTokenOracle(address(tsBendTokenOracle));
 
     address[] memory oracleAssets = new address[](8);
     oracleAssets[0] = address(tsWETH);
@@ -425,6 +427,17 @@ abstract contract TestWithSetup is TestWithUtils {
     oracleAggs[6] = address(tsCLAggregatorUSDS);
     oracleAggs[7] = address(tsCLAggregatorSUSDS);
     tsPriceOracle.setAssetChainlinkAggregators(oracleAssets, oracleAggs);
+
+    address[] memory sourceAssets = new address[](3);
+    sourceAssets[0] = address(tsWPUNK);
+    sourceAssets[1] = address(tsBAYC);
+    sourceAssets[2] = address(tsMAYC);
+    uint8[] memory sourceTypes = new uint8[](3);
+    sourceTypes[0] = Constants.ORACLE_TYPE_BEND_NFT;
+    sourceTypes[1] = Constants.ORACLE_TYPE_BEND_NFT;
+    sourceTypes[2] = Constants.ORACLE_TYPE_BEND_NFT;
+    tsPriceOracle.setAssetOracleSourceTypes(sourceAssets, sourceTypes);
+
     tsHEVM.stopPrank();
   }
 
@@ -571,11 +584,15 @@ abstract contract TestWithSetup is TestWithUtils {
     tsCLAggregatorSUSDS = new SUSDSPriceAdapter(address(tsCLAggregatorDAI), address(tsDAIPot), 'sUSDS / USD');
     tsHEVM.label(address(tsCLAggregatorSUSDS), 'SUSDSPriceAdapter(sUSDS/USD)');
 
-    tsBendNFTOracle = new MockBendNFTOracle();
+    tsBendNFTOracle = new MockBendNFTOracle(18);
     tsHEVM.label(address(tsBendNFTOracle), 'MockBendNFTOracle');
     tsBendNFTOracle.setAssetPrice(address(tsWPUNK), 58155486904761904761);
     tsBendNFTOracle.setAssetPrice(address(tsBAYC), 30919141261229331011);
     tsBendNFTOracle.setAssetPrice(address(tsMAYC), 5950381013403414953);
+
+    tsBendTokenOracle = new MockBendNFTOracle(8);
+    tsHEVM.label(address(tsBendTokenOracle), 'MockBendTokenOracle');
+    tsBendNFTOracle.setAssetPrice(address(tsUSDT), 100053000);
   }
 
   function setContractsLabels() internal {

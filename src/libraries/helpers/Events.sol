@@ -11,6 +11,8 @@ library Events {
   /* Oracle Events */
   event AssetAggregatorUpdated(address indexed asset, address aggregator);
   event BendNFTOracleUpdated(address bendNFTOracle);
+  event BendTokenOracleUpdated(address bendTokenOracle);
+  event AssetOracleSourceTypeUpdated(address indexed asset, uint8 sourceType);
 
   /* Pool Events */
   event CreatePool(uint32 indexed poolId, string name);
