@@ -108,7 +108,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
 
     underlyingAsset = IERC20Metadata(underlyingAsset_);
 
-    underlyingAsset.approve(address(poolManager), type(uint256).max);
+    underlyingAsset.safeApprove(address(poolManager), type(uint256).max);
   }
 
   /****************************************************************************/

@@ -117,7 +117,7 @@ contract YieldWUSDStaking is Initializable, PausableUpgradeable, ReentrancyGuard
     underlyingAsset = IERC20Metadata(wusd_);
     wusdStaking = IWUSDStaking(wusdStaking_);
 
-    underlyingAsset.approve(address(poolManager), type(uint256).max);
+    underlyingAsset.safeApprove(address(poolManager), type(uint256).max);
   }
 
   /****************************************************************************/

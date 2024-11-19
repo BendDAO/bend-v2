@@ -147,9 +147,9 @@ contract InitConfigPool is DeployBase {
     // initInterestRateModels(2);
     // initInterestRateModels(3);
 
-    setPoolInterestRateModels(1);
-    setPoolInterestRateModels(2);
-    setPoolInterestRateModels(3);
+    // setPoolInterestRateModels(1);
+    // setPoolInterestRateModels(2);
+    // setPoolInterestRateModels(3);
   }
 
   function listingUSDS(uint32 poolId) internal {

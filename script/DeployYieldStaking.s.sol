@@ -12,6 +12,7 @@ import {YieldEthStakingLido} from 'src/yield/lido/YieldEthStakingLido.sol';
 import {YieldEthStakingEtherfi} from 'src/yield/etherfi/YieldEthStakingEtherfi.sol';
 import {YieldSavingsDai} from 'src/yield/sdai/YieldSavingsDai.sol';
 import {YieldSavingsUSDS} from 'src/yield/susds/YieldSavingsUSDS.sol';
+import {YieldWUSDStaking} from 'src/yield/wusd/YieldWUSDStaking.sol';
 
 import {YieldRegistry} from 'src/yield/YieldRegistry.sol';
 import {YieldAccount} from 'src/yield/YieldAccount.sol';
@@ -40,6 +41,8 @@ contract DeployYieldStaking is DeployBase {
     // _deployYieldSavingsDai(proxyAdminInCfg, addrProviderInCfg);
 
     // _deployYieldSavingsUSDS(proxyAdminInCfg, addrProviderInCfg);
+
+    _deployYieldWUSDStaking(proxyAdminInCfg, addrProviderInCfg);
   }
 
   function _deployYieldRegistry(address proxyAdmin_, address addressProvider_) internal returns (address) {
@@ -183,5 +186,35 @@ contract DeployYieldStaking is DeployBase {
     console.log('YieldSavingsUSDS:', address(yieldSUSDS));
 
     return address(yieldSUSDS);
+  }
+
+  function _deployYieldWUSDStaking(address proxyAdmin_, address addressProvider_) internal returns (address) {
+    address wusd = address(0);
+    address wusdStaking = address(0);
+
+    uint256 chainId = config.getChainId();
+    if (chainId == 1) {
+      // mainnet
+      wusd = 0xb6667b04Cb61Aa16B59617f90FFA068722Cf21dA;
+      wusdStaking = 0x338b1646956854A27dbA6dF6B8a3D38949EEBc7f;
+    } else if (chainId == 11155111) {
+      // sepolia
+      wusd = 0xdf98BFe3CDF4CA3C0a9F1dE2e34e6D9E049E2952;
+      wusdStaking = 0x5d8a096A6E0983DD64157bBbB5ce721002D5861A;
+    } else {
+      revert('not support');
+    }
+
+    YieldWUSDStaking yieldImpl = new YieldWUSDStaking();
+
+    TransparentUpgradeableProxy yieldProxy = new TransparentUpgradeableProxy(
+      address(yieldImpl),
+      address(proxyAdmin_),
+      abi.encodeWithSelector(yieldImpl.initialize.selector, address(addressProvider_), wusd, wusdStaking)
+    );
+    YieldWUSDStaking yield = YieldWUSDStaking(payable(yieldProxy));
+    console.log('YieldWUSDStaking:', address(yield));
+
+    return address(yield);
   }
 }
