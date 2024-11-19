@@ -215,13 +215,13 @@ contract YieldWUSDStaking is Initializable, PausableUpgradeable, ReentrancyGuard
     address[] calldata nfts,
     uint256[] calldata tokenIds,
     uint256[] calldata borrowAmounts,
-    uint256[] calldata wusdStakingPoolIds
+    uint256 wusdStakingPoolId
   ) public virtual whenNotPaused nonReentrant {
     require(nfts.length == tokenIds.length, Errors.INCONSISTENT_PARAMS_LENGTH);
     require(nfts.length == borrowAmounts.length, Errors.INCONSISTENT_PARAMS_LENGTH);
 
     for (uint i = 0; i < nfts.length; i++) {
-      _stake(poolId, nfts[i], tokenIds[i], borrowAmounts[i], wusdStakingPoolIds[i]);
+      _stake(poolId, nfts[i], tokenIds[i], borrowAmounts[i], wusdStakingPoolId);
     }
   }
 
@@ -478,7 +478,9 @@ contract YieldWUSDStaking is Initializable, PausableUpgradeable, ReentrancyGuard
     }
 
     // repay debt to lending pool
-    poolYield.yieldRepayERC20(poolId, address(underlyingAsset), vars.repaidNftDebt);
+    if (vars.repaidNftDebt > 0) {
+      poolYield.yieldRepayERC20(poolId, address(underlyingAsset), vars.repaidNftDebt);
+    }
 
     // update shares
     sd.debtShare -= vars.repaidDebtShare;
@@ -681,6 +683,31 @@ contract YieldWUSDStaking is Initializable, PausableUpgradeable, ReentrancyGuard
     return stakeDatas[nft][tokenId];
   }
 
+  function getWUSDStakingPools()
+    public
+    view
+    virtual
+    returns (
+      uint256[] memory stakingPoolIds,
+      uint48[] memory stakingPeriods,
+      uint256[] memory apys,
+      uint256[] memory minStakingAmounts
+    )
+  {
+    IWUSDStaking.StakingPoolDetail[] memory stakingPoolsDetails = wusdStaking.getGeneralStaking();
+
+    stakingPoolIds = new uint256[](stakingPoolsDetails.length);
+    stakingPeriods = new uint48[](stakingPoolsDetails.length);
+    apys = new uint256[](stakingPoolsDetails.length);
+    minStakingAmounts = new uint256[](stakingPoolsDetails.length);
+    for (uint i = 0; i < stakingPoolsDetails.length; i++) {
+      stakingPoolIds[i] = stakingPoolsDetails[i].stakingPoolId;
+      stakingPeriods[i] = stakingPoolsDetails[i].stakingPool.stakingPeriod;
+      apys[i] = stakingPoolsDetails[i].stakingPool.apy;
+      minStakingAmounts[i] = stakingPoolsDetails[i].stakingPool.minStakingAmount;
+    }
+  }
+
   /****************************************************************************/
   /* Internal Methods */
   /****************************************************************************/
@@ -714,11 +741,11 @@ contract YieldWUSDStaking is Initializable, PausableUpgradeable, ReentrancyGuard
   function protocolClaimWithdraw(YieldStakeData storage sd) internal virtual returns (uint256) {
     IYieldAccount yieldAccount = IYieldAccount(sd.yieldAccount);
 
-    uint256 claimedAmount = address(yieldAccount).balance;
+    uint256 claimedAmount = underlyingAsset.balanceOf(address(yieldAccount));
     uint256[] memory stakingPlanIds = new uint256[](1);
     stakingPlanIds[0] = sd.stakingPlanId;
     yieldAccount.execute(address(wusdStaking), abi.encodeWithSelector(IWUSDStaking.claim.selector, stakingPlanIds));
-    claimedAmount = address(yieldAccount).balance - claimedAmount;
+    claimedAmount = underlyingAsset.balanceOf(address(yieldAccount)) - claimedAmount;
     require(claimedAmount > 0, Errors.YIELD_ETH_CLAIM_FAILED);
 
     yieldAccount.safeTransfer(address(underlyingAsset), address(this), claimedAmount);
@@ -781,6 +808,8 @@ contract YieldWUSDStaking is Initializable, PausableUpgradeable, ReentrancyGuard
       calcEndTime = uint48(block.timestamp);
       if (isUnstake) {
         calcAPY = wusdStaking.getBasicAPY();
+      } else {
+        calcAPY = stakingPlan.apy;
       }
     }
     yieldAmount += _calculateYield(stakingPlan.stakedAmount, calcAPY, calcEndTime - stakingPlan.startTime);

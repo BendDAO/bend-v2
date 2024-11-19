@@ -43,6 +43,11 @@ interface IWUSDStaking {
     ClaimType claimType;
   }
 
+  struct StakingPlanDetail {
+    uint256 stakingPlanId;
+    StakingPlan stakingPlan;
+  }
+
   function stake(uint256 stakingPoolId, uint256 stakingAmount) external returns (uint256 stakingPlanId);
 
   function terminate(uint256 stakingPlanId) external;
@@ -52,4 +57,6 @@ interface IWUSDStaking {
   function getUserStakingPlan(address staker, uint256 stakingPlanId) external view returns (StakingPlan memory);
 
   function getBasicAPY() external view returns (uint256);
+
+  function getGeneralStaking() external view returns (StakingPoolDetail[] memory stakingPoolsDetail);
 }

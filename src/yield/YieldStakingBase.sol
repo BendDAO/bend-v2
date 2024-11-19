@@ -473,7 +473,9 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     }
 
     // repay debt to lending pool
-    poolYield.yieldRepayERC20(poolId, address(underlyingAsset), vars.repaidNftDebt);
+    if (vars.repaidNftDebt > 0) {
+      poolYield.yieldRepayERC20(poolId, address(underlyingAsset), vars.repaidNftDebt);
+    }
 
     // update shares
     sd.debtShare -= vars.repaidDebtShare;
