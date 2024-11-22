@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {Constants} from 'src/libraries/helpers/Constants.sol';
+import {Errors} from 'src/libraries/helpers/Errors.sol';
 import {IWUSDStaking} from 'src/yield/wusd/IWUSDStaking.sol';
 
 import 'test/setup/TestWithPrepare.sol';
@@ -29,6 +30,38 @@ contract TestYieldWUSDStaking is TestWithPrepare {
     initYieldWUSDStaking(tsCommonPoolId);
 
     wusdStakingPoolId = 2;
+  }
+
+  function test_RevertIf_stake_invalid_caller() public {
+    prepareWUSD(tsDepositor1);
+
+    uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
+
+    uint256 stakeAmount = tsYieldWUSDStaking.getNftValueInUnderlyingAsset(address(tsBAYC));
+    stakeAmount = (stakeAmount * 80) / 100;
+
+    tsHEVM.prank(address(tsBorrower2));
+    tsYieldWUSDStaking.createYieldAccount(address(tsBorrower2));
+
+    tsHEVM.prank(address(tsBorrower2));
+    tsHEVM.expectRevert(bytes(Errors.INVALID_CALLER));
+    tsYieldWUSDStaking.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount, wusdStakingPoolId);
+  }
+
+  function test_RevertIf_stake_invalid_mode() public {
+    prepareWUSD(tsDepositor1);
+
+    uint256[] memory tokenIds = prepareCrossBAYC(tsBorrower1);
+
+    uint256 stakeAmount = tsYieldWUSDStaking.getNftValueInUnderlyingAsset(address(tsBAYC));
+    stakeAmount = (stakeAmount * 80) / 100;
+
+    tsHEVM.prank(address(tsBorrower1));
+    tsYieldWUSDStaking.createYieldAccount(address(tsBorrower1));
+
+    tsHEVM.prank(address(tsBorrower1));
+    tsHEVM.expectRevert(bytes(Errors.INVALID_SUPPLY_MODE));
+    tsYieldWUSDStaking.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount, wusdStakingPoolId);
   }
 
   function test_Should_stake() public {
@@ -61,6 +94,25 @@ contract TestYieldWUSDStaking is TestWithPrepare {
 
     (uint256 yieldAmount, ) = tsYieldWUSDStaking.getNftYieldInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
     testEquality(yieldAmount, stakeAmount, 'yieldAmount not eq');
+  }
+
+  function test_RevertIf_stake_again() public {
+    prepareWUSD(tsDepositor1);
+
+    uint256[] memory tokenIds = prepareIsolateBAYC(tsBorrower1);
+
+    uint256 stakeAmount = tsYieldWUSDStaking.getNftValueInUnderlyingAsset(address(tsBAYC));
+    stakeAmount = (stakeAmount * 80) / 100;
+
+    tsHEVM.prank(address(tsBorrower1));
+    tsYieldWUSDStaking.createYieldAccount(address(tsBorrower1));
+
+    tsHEVM.prank(address(tsBorrower1));
+    tsYieldWUSDStaking.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount, wusdStakingPoolId);
+
+    tsHEVM.prank(address(tsBorrower1));
+    tsHEVM.expectRevert(bytes(Errors.YIELD_ETH_NFT_ALREADY_USED));
+    tsYieldWUSDStaking.stake(tsCommonPoolId, address(tsBAYC), tokenIds[0], stakeAmount, wusdStakingPoolId);
   }
 
   function test_Should_unstake_before_mature() public {
