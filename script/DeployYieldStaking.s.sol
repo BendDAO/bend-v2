@@ -42,7 +42,7 @@ contract DeployYieldStaking is DeployBase {
 
     // _deployYieldSavingsUSDS(proxyAdminInCfg, addrProviderInCfg);
 
-    _deployYieldWUSDStaking(proxyAdminInCfg, addrProviderInCfg);
+    // _deployYieldWUSDStaking(proxyAdminInCfg, addrProviderInCfg);
   }
 
   function _deployYieldRegistry(address proxyAdmin_, address addressProvider_) internal returns (address) {
