@@ -673,6 +673,22 @@ library ValidateLogic {
     require(tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.ASSET_NOT_ISOLATE_MODE);
   }
 
+  function validateYieldSetERC20TokenData(
+    InputTypes.ExecuteYieldSetERC20TokenDataParams memory inputParams,
+    DataTypes.PoolData storage poolData,
+    DataTypes.AssetData storage assetData
+  ) internal view {
+    validatePoolBasic(poolData);
+    require(poolData.isYieldEnabled, Errors.POOL_YIELD_NOT_ENABLE);
+    require(!poolData.isYieldPaused, Errors.POOL_YIELD_IS_PAUSED);
+
+    validateAssetBasic(assetData);
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+    require(!assetData.isYieldPaused, Errors.ASSET_YIELD_IS_PAUSED);
+
+    require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
+  }
+
   function validateFlashLoanERC20Basic(
     InputTypes.ExecuteFlashLoanERC20Params memory inputParams,
     DataTypes.PoolData storage poolData

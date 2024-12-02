@@ -846,13 +846,26 @@ library QueryLogic {
     uint32 poolId,
     address asset,
     uint256 tokenId
-  ) internal view returns (address, uint8, address) {
+  ) internal view returns (address owner, uint8 mode, address locker) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
     DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(assetData, tokenId);
     return (tokenData.owner, tokenData.supplyMode, tokenData.lockerAddr);
+  }
+
+  function getERC20TokenData(
+    uint32 poolId,
+    address asset,
+    address user,
+    address manager
+  ) public view returns (uint256 userAmount, uint256 managerAmount) {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+
+    return (assetData.yieldUserTotalLocked[user], assetData.yieldManagerUserLocked[manager][user]);
   }
 
   function getERC721Delegations(

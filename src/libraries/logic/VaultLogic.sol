@@ -514,6 +514,22 @@ library VaultLogic {
     }
   }
 
+  function erc20SetTokenLockerAddr(
+    DataTypes.AssetData storage assetData,
+    uint256 amount,
+    address user,
+    address lockerAddr,
+    bool isLock
+  ) internal {
+    if (isLock) {
+      assetData.yieldUserTotalLocked[user] += amount;
+      assetData.yieldManagerUserLocked[lockerAddr][user] += amount;
+    } else {
+      assetData.yieldUserTotalLocked[user] -= amount;
+      assetData.yieldManagerUserLocked[lockerAddr][user] -= amount;
+    }
+  }
+
   //////////////////////////////////////////////////////////////////////////////
   // ERC721 methods
   //////////////////////////////////////////////////////////////////////////////

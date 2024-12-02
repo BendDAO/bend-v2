@@ -7,6 +7,7 @@ library InputTypes {
     uint32 poolId;
     address asset;
     uint256 amount;
+    uint8 supplyMode;
     address onBehalf;
   }
 
@@ -15,6 +16,7 @@ library InputTypes {
     uint32 poolId;
     address asset;
     uint256 amount;
+    uint8 supplyMode;
     address onBehalf;
     address receiver;
   }
@@ -169,6 +171,17 @@ library InputTypes {
     uint32 poolId;
     address nftAsset;
     uint256 tokenId;
+    bool isLock;
+    address debtAsset;
+    bool isExternalCaller;
+  }
+
+  struct ExecuteYieldSetERC20TokenDataParams {
+    address msgSender;
+    uint32 poolId;
+    address asset;
+    uint256 amount;
+    address user;
     bool isLock;
     address debtAsset;
     bool isExternalCaller;

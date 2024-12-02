@@ -148,4 +148,41 @@ library YieldLogic {
       VaultLogic.erc721SetTokenLockerAddr(nftAssetData, params.tokenId, address(0));
     }
   }
+
+  function executeYieldSetERC20TokenData(InputTypes.ExecuteYieldSetERC20TokenDataParams memory params) internal {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
+    DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
+
+    ValidateLogic.validateYieldSetERC20TokenData(params, poolData, assetData);
+
+    DataTypes.AssetData storage debtAssetData = poolData.assetLookup[params.debtAsset];
+    require(debtAssetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+
+    address managerAddr;
+    if (params.isExternalCaller) {
+      managerAddr = params.msgSender;
+    } else {
+      managerAddr = address(this);
+    }
+
+    DataTypes.YieldManagerData storage ymData = debtAssetData.yieldManagerLookup[managerAddr];
+
+    if (params.isLock) {
+      require(ymData.yieldCap > 0, Errors.YIELD_EXCEED_STAKER_CAP_LIMIT);
+
+      require(
+        (assetData.yieldUserTotalLocked[params.user] + params.amount) <= assetData.userScaledIsolateSupply[params.user],
+        Errors.YIELD_EXCEED_USER_SUPPLY
+      );
+    } else {
+      require(assetData.yieldUserTotalLocked[params.user] >= params.amount, Errors.YIELD_EXCEED_USER_LOCKED);
+      require(
+        assetData.yieldManagerUserLocked[managerAddr][params.user] >= params.amount,
+        Errors.YIELD_EXCEED_MANAGER_LOCKED
+      );
+    }
+
+    VaultLogic.erc20SetTokenLockerAddr(assetData, params.amount, params.user, managerAddr, params.isLock);
+  }
 }

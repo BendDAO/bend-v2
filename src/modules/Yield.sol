@@ -66,6 +66,29 @@ contract Yield is BaseModule, IYield {
     );
   }
 
+  function yieldSetERC20TokenData(
+    uint32 poolId,
+    address asset,
+    uint256 amount,
+    address user,
+    bool isLock,
+    address debtAsset
+  ) public override whenNotPaused nonReentrant {
+    address msgSender = unpackTrailingParamMsgSender();
+    YieldLogic.executeYieldSetERC20TokenData(
+      InputTypes.ExecuteYieldSetERC20TokenDataParams({
+        msgSender: msgSender,
+        poolId: poolId,
+        asset: asset,
+        amount: amount,
+        user: user,
+        isLock: isLock,
+        debtAsset: debtAsset,
+        isExternalCaller: true
+      })
+    );
+  }
+
   function getYieldERC20BorrowBalance(
     uint32 poolId,
     address asset,
@@ -86,7 +109,16 @@ contract Yield is BaseModule, IYield {
     uint32 poolId,
     address asset,
     uint256 tokenId
-  ) public view override returns (address, uint8, address) {
+  ) public view override returns (address owner, uint8 mode, address locker) {
     return QueryLogic.getERC721TokenData(poolId, asset, tokenId);
+  }
+
+  function getERC20TokenData(
+    uint32 poolId,
+    address asset,
+    address user,
+    address manager
+  ) public view override returns (uint256 userAmount, uint256 managerAmount) {
+    return QueryLogic.getERC20TokenData(poolId, asset, user, manager);
   }
 }

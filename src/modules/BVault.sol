@@ -39,6 +39,7 @@ contract BVault is BaseModule {
         poolId: poolId,
         asset: asset,
         amount: amount,
+        supplyMode: Constants.SUPPLY_MODE_CROSS,
         onBehalf: onBehalf
       })
     );
@@ -65,6 +66,7 @@ contract BVault is BaseModule {
         poolId: poolId,
         asset: asset,
         amount: amount,
+        supplyMode: Constants.SUPPLY_MODE_CROSS,
         onBehalf: onBehalf,
         receiver: receiver
       })

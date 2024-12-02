@@ -109,6 +109,12 @@ library DataTypes {
 
     // yield state
     mapping(address => YieldManagerData) yieldManagerLookup;
+
+    // yield erc20 data
+    // user - > amount
+    mapping(address => uint256) yieldUserTotalLocked;
+    // manager -> user - > amount
+    mapping(address => mapping(address => uint256)) yieldManagerUserLocked;
   }
 
   struct IsolateLoanData {

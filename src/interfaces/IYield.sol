@@ -14,6 +14,15 @@ interface IYield {
     address debtAsset
   ) external;
 
+  function yieldSetERC20TokenData(
+    uint32 poolId,
+    address asset,
+    uint256 amount,
+    address user,
+    bool isLock,
+    address debtAsset
+  ) external;
+
   function getYieldERC20BorrowBalance(uint32 poolId, address asset, address staker) external view returns (uint256);
 
   function getERC721TokenData(
@@ -21,4 +30,11 @@ interface IYield {
     address asset,
     uint256 tokenId
   ) external view returns (address, uint8, address);
+
+  function getERC20TokenData(
+    uint32 poolId,
+    address asset,
+    address user,
+    address manager
+  ) external view returns (uint256 userAmount, uint256 managerAmount);
 }

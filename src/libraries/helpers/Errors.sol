@@ -133,6 +133,9 @@ library Errors {
   string public constant YIELD_MANAGER_IS_NOT_AUTH = '506';
   string public constant YIELD_ACCOUNT_IMPL_ZERO = '507';
   string public constant YIELD_TOKEN_LOCKED_BY_OTHER = '508';
+  string public constant YIELD_EXCEED_USER_SUPPLY = '509';
+  string public constant YIELD_EXCEED_USER_LOCKED = '510';
+  string public constant YIELD_EXCEED_MANAGER_LOCKED = '511';
 
   string public constant ISOLATE_LOAN_ASSET_NOT_MATCH = '600';
   string public constant ISOLATE_LOAN_GROUP_NOT_MATCH = '601';
