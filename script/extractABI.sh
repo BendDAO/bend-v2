@@ -28,5 +28,6 @@ jq '.abi' out/YieldEthStakingLido.sol/YieldEthStakingLido.json > release/abis/Yi
 jq '.abi' out/YieldEthStakingEtherfi.sol/YieldEthStakingEtherfi.json > release/abis/YieldEthStakingEtherfi.json
 jq '.abi' out/YieldSavingsDai.sol/YieldSavingsDai.json > release/abis/YieldSavingsDai.json
 jq '.abi' out/YieldSavingsUSDS.sol/YieldSavingsUSDS.json > release/abis/YieldSavingsUSDS.json
+jq '.abi' out/YieldWUSDStaking.sol/YieldWUSDStaking.json > release/abis/YieldWUSDStaking.json
 
 jq '.abi' out/BendV1Migration.sol/BendV1Migration.json > release/abis/BendV1Migration.json

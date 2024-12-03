@@ -25,7 +25,9 @@ import {WadRayMath} from 'src/libraries/math/WadRayMath.sol';
 import {MathUtils} from 'src/libraries/math/MathUtils.sol';
 import {ShareUtils} from 'src/libraries/math/ShareUtils.sol';
 
-abstract contract YieldStakingBase is Initializable, PausableUpgradeable, ReentrancyGuardUpgradeable {
+import {IWUSDStaking} from './IWUSDStaking.sol';
+
+contract YieldWUSDStaking is Initializable, PausableUpgradeable, ReentrancyGuardUpgradeable {
   using SafeERC20 for IERC20Metadata;
   using PercentageMath for uint256;
   using ShareUtils for uint256;
@@ -58,26 +60,28 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     uint32 poolId;
     uint8 state;
     uint256 debtShare;
-    uint256 yieldShare;
+    uint256 wusdStakingPoolId;
+    uint256 stakingPlanId;
     uint256 unstakeFine;
     uint256 withdrawAmount;
-    uint256 withdrawReqId;
     uint256 remainYieldAmount;
   }
+
+  uint48 public constant SECONDS_OF_YEAR = 31536000;
+  uint256 constant DENOMINATOR = 1e6;
 
   IAddressProvider public addressProvider;
   IPoolManager public poolManager;
   IYield public poolYield;
   IYieldRegistry public yieldRegistry;
   IERC20Metadata public underlyingAsset;
+  IWUSDStaking public wusdStaking;
   address public botAdmin;
   uint256 public totalDebtShare;
   uint256 public totalUnstakeFine;
   mapping(address => address) public yieldAccounts;
-  mapping(address => uint256) public accountYieldShares;
   mapping(address => YieldNftConfig) public nftConfigs;
   mapping(address => mapping(uint256 => YieldStakeData)) public stakeDatas;
-  mapping(address => uint256) public accountYieldInWithdraws;
   uint256 public claimedUnstakeFine;
 
   /**
@@ -85,7 +89,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
    * variables without shifting down storage in the inheritance chain.
    * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
    */
-  uint256[18] private __gap;
+  uint256[20] private __gap;
 
   modifier onlyPoolAdmin() {
     __onlyPoolAdmin();
@@ -96,7 +100,11 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     require(IACLManager(addressProvider.getACLManager()).isPoolAdmin(msg.sender), Errors.CALLER_NOT_POOL_ADMIN);
   }
 
-  function __YieldStakingBase_init(address addressProvider_, address underlyingAsset_) internal onlyInitializing {
+  constructor() {
+    _disableInitializers();
+  }
+
+  function initialize(address addressProvider_, address wusd_, address wusdStaking_) public initializer {
     __Pausable_init();
     __ReentrancyGuard_init();
 
@@ -106,7 +114,8 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     poolYield = IYield(addressProvider.getPoolModuleProxy(Constants.MODULEID__YIELD));
     yieldRegistry = IYieldRegistry(addressProvider.getYieldRegistry());
 
-    underlyingAsset = IERC20Metadata(underlyingAsset_);
+    underlyingAsset = IERC20Metadata(wusd_);
+    wusdStaking = IWUSDStaking(wusdStaking_);
 
     underlyingAsset.safeApprove(address(poolManager), type(uint256).max);
   }
@@ -183,6 +192,10 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
 
     address account = yieldRegistry.createYieldAccount(address(this));
     yieldAccounts[user] = account;
+
+    IYieldAccount yieldAccount = IYieldAccount(account);
+    yieldAccount.safeApprove(address(underlyingAsset), address(wusdStaking), type(uint256).max);
+
     return account;
   }
 
@@ -195,22 +208,20 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     uint256 nftPriceInUnderlyingAsset;
     uint256 maxBorrowAmount;
     uint256 debtShare;
-    uint256 yieldShare;
-    uint256 yieldAmount;
-    uint256 totalYieldBeforeDeposit;
   }
 
   function batchStake(
     uint32 poolId,
     address[] calldata nfts,
     uint256[] calldata tokenIds,
-    uint256[] calldata borrowAmounts
+    uint256[] calldata borrowAmounts,
+    uint256 wusdStakingPoolId
   ) public virtual whenNotPaused nonReentrant {
     require(nfts.length == tokenIds.length, Errors.INCONSISTENT_PARAMS_LENGTH);
     require(nfts.length == borrowAmounts.length, Errors.INCONSISTENT_PARAMS_LENGTH);
 
     for (uint i = 0; i < nfts.length; i++) {
-      _stake(poolId, nfts[i], tokenIds[i], borrowAmounts[i]);
+      _stake(poolId, nfts[i], tokenIds[i], borrowAmounts[i], wusdStakingPoolId);
     }
   }
 
@@ -218,12 +229,19 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     uint32 poolId,
     address nft,
     uint256 tokenId,
-    uint256 borrowAmount
+    uint256 borrowAmount,
+    uint256 wusdStakingPoolId
   ) public virtual whenNotPaused nonReentrant {
-    _stake(poolId, nft, tokenId, borrowAmount);
+    _stake(poolId, nft, tokenId, borrowAmount, wusdStakingPoolId);
   }
 
-  function _stake(uint32 poolId, address nft, uint256 tokenId, uint256 borrowAmount) internal virtual {
+  function _stake(
+    uint32 poolId,
+    address nft,
+    uint256 tokenId,
+    uint256 borrowAmount,
+    uint256 wusdStakingPoolId
+  ) internal virtual {
     StakeLocalVars memory vars;
 
     require(borrowAmount > 0, Errors.INVALID_AMOUNT);
@@ -240,22 +258,18 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     require(vars.nftOwner == msg.sender, Errors.INVALID_CALLER);
     require(vars.nftSupplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.INVALID_SUPPLY_MODE);
 
+    // only one staking plan for each nft
+    require(vars.nftLockerAddr == address(0), Errors.YIELD_ETH_NFT_ALREADY_USED);
+
     YieldStakeData storage sd = stakeDatas[nft][tokenId];
-    if (sd.yieldAccount == address(0)) {
-      require(vars.nftLockerAddr == address(0), Errors.YIELD_ETH_NFT_ALREADY_USED);
+    require(sd.yieldAccount == address(0), Errors.YIELD_ETH_NFT_ALREADY_USED);
 
-      vars.totalDebtAmount = borrowAmount;
+    sd.yieldAccount = address(vars.yieldAccout);
+    sd.poolId = poolId;
+    sd.state = Constants.YIELD_STATUS_ACTIVE;
+    sd.wusdStakingPoolId = wusdStakingPoolId;
 
-      sd.yieldAccount = address(vars.yieldAccout);
-      sd.poolId = poolId;
-      sd.state = Constants.YIELD_STATUS_ACTIVE;
-    } else {
-      require(vars.nftLockerAddr == address(this), Errors.YIELD_ETH_NFT_NOT_USED_BY_ME);
-      require(sd.state == Constants.YIELD_STATUS_ACTIVE, Errors.YIELD_ETH_STATUS_NOT_ACTIVE);
-      require(sd.poolId == poolId, Errors.YIELD_ETH_POOL_NOT_SAME);
-
-      vars.totalDebtAmount = convertToDebtAssets(poolId, sd.debtShare) + borrowAmount;
-    }
+    vars.totalDebtAmount = borrowAmount;
 
     vars.nftPriceInUnderlyingAsset = getNftPriceInUnderlyingAsset(nft);
     vars.maxBorrowAmount = vars.nftPriceInUnderlyingAsset.percentMul(nc.leverageFactor);
@@ -268,21 +282,13 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     poolYield.yieldBorrowERC20(poolId, address(underlyingAsset), borrowAmount);
 
     // stake in protocol and got the yield
-    vars.totalYieldBeforeDeposit = getAccountTotalUnstakedYield(address(vars.yieldAccout));
-    vars.yieldAmount = protocolDeposit(sd, borrowAmount);
-    vars.yieldShare = _convertToYieldSharesWithTotalYield(
-      address(vars.yieldAccout),
-      vars.yieldAmount,
-      vars.totalYieldBeforeDeposit
-    );
+    protocolDeposit(sd, borrowAmount);
 
     // update nft shares
     sd.debtShare += vars.debtShare;
-    sd.yieldShare += vars.yieldShare;
 
     // update global shares
     totalDebtShare += vars.debtShare;
-    accountYieldShares[address(vars.yieldAccout)] += vars.yieldShare;
 
     poolYield.yieldSetERC721TokenData(poolId, nft, tokenId, true, address(underlyingAsset));
 
@@ -298,7 +304,6 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     address nftOwner;
     uint8 nftSupplyMode;
     address nftLockerAddr;
-    uint256[] requestAmounts;
   }
 
   function batchUnstake(
@@ -354,14 +359,9 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     }
 
     sd.state = Constants.YIELD_STATUS_UNSTAKE;
-    sd.withdrawAmount = convertToYieldAssets(address(vars.yieldAccout), sd.yieldShare);
-    accountYieldInWithdraws[address(vars.yieldAccout)] += sd.withdrawAmount;
+    (sd.withdrawAmount, ) = _getNftYieldInUnderlyingAsset(sd, true);
 
     protocolRequestWithdrawal(sd);
-
-    // update shares
-    accountYieldShares[address(vars.yieldAccout)] -= sd.yieldShare;
-    sd.yieldShare = 0;
 
     emit Unstake(vars.nftOwner, nft, tokenId, sd.withdrawAmount);
   }
@@ -423,7 +423,6 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
       sd.remainYieldAmount = protocolClaimWithdraw(sd);
 
       sd.state = Constants.YIELD_STATUS_CLAIM;
-      accountYieldInWithdraws[address(vars.yieldAccout)] -= sd.withdrawAmount;
     }
 
     vars.nftDebt = _getNftDebtInUnderlyingAsset(sd);
@@ -533,16 +532,6 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     return poolYield.getYieldERC20BorrowBalance(poolId, address(underlyingAsset), address(this));
   }
 
-  function getAccountTotalYield(address account) public view virtual returns (uint256) {
-    return getAccountYieldBalance(account);
-  }
-
-  function getAccountTotalUnstakedYield(address account) public view virtual returns (uint256) {
-    return getAccountYieldBalance(account);
-  }
-
-  function getAccountYieldBalance(address account) public view virtual returns (uint256) {}
-
   function getNftValueInUnderlyingAsset(address nft) public view virtual returns (uint256) {
     YieldNftConfig storage nc = nftConfigs[nft];
 
@@ -561,7 +550,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     uint256 tokenId
   ) public view virtual returns (uint256 yieldAmount, uint256 yieldValue) {
     YieldStakeData storage sd = stakeDatas[nft][tokenId];
-    return _getNftYieldInUnderlyingAsset(sd);
+    return _getNftYieldInUnderlyingAsset(sd, false);
   }
 
   function getNftCollateralData(
@@ -619,7 +608,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     debtAmount = _getNftDebtInUnderlyingAsset(sd);
 
     if (sd.state == Constants.YIELD_STATUS_ACTIVE) {
-      (yieldAmount, ) = _getNftYieldInUnderlyingAsset(sd);
+      (yieldAmount, ) = _getNftYieldInUnderlyingAsset(sd, false);
     } else {
       yieldAmount = sd.withdrawAmount;
     }
@@ -656,7 +645,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     uint256 tokenId
   ) public view virtual returns (uint256 unstakeFine, uint256 withdrawAmount, uint256 withdrawReqId) {
     YieldStakeData storage sd = stakeDatas[nft][tokenId];
-    return (sd.unstakeFine, sd.withdrawAmount, sd.withdrawReqId);
+    return (sd.unstakeFine, sd.withdrawAmount, sd.stakingPlanId);
   }
 
   function getNftUnstakeDataList(
@@ -688,18 +677,102 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     return stakeDatas[nft][tokenId];
   }
 
+  function getWUSDStakingPools()
+    public
+    view
+    virtual
+    returns (
+      uint256[] memory stakingPoolIds,
+      uint48[] memory stakingPeriods,
+      uint256[] memory apys,
+      uint256[] memory minStakingAmounts
+    )
+  {
+    IWUSDStaking.StakingPoolDetail[] memory stakingPoolsDetails = wusdStaking.getGeneralStaking();
+
+    stakingPoolIds = new uint256[](stakingPoolsDetails.length);
+    stakingPeriods = new uint48[](stakingPoolsDetails.length);
+    apys = new uint256[](stakingPoolsDetails.length);
+    minStakingAmounts = new uint256[](stakingPoolsDetails.length);
+    for (uint i = 0; i < stakingPoolsDetails.length; i++) {
+      stakingPoolIds[i] = stakingPoolsDetails[i].stakingPoolId;
+      stakingPeriods[i] = stakingPoolsDetails[i].stakingPool.stakingPeriod;
+      apys[i] = stakingPoolsDetails[i].stakingPool.apy;
+      minStakingAmounts[i] = stakingPoolsDetails[i].stakingPool.minStakingAmount;
+    }
+  }
+
+  function getWUSDStakingPlan(
+    address nft,
+    uint256 tokenId
+  ) public view virtual returns (IWUSDStaking.StakingPlan memory) {
+    YieldStakeData storage sd = stakeDatas[nft][tokenId];
+    return wusdStaking.getUserStakingPlan(sd.yieldAccount, sd.stakingPlanId);
+  }
+
   /****************************************************************************/
   /* Internal Methods */
   /****************************************************************************/
-  function protocolDeposit(YieldStakeData storage sd, uint256 amount) internal virtual returns (uint256) {}
+  function protocolDeposit(YieldStakeData storage sd, uint256 amount) internal virtual returns (uint256) {
+    IYieldAccount yieldAccount = IYieldAccount(sd.yieldAccount);
 
-  function protocolRequestWithdrawal(YieldStakeData storage sd) internal virtual {}
+    underlyingAsset.safeTransfer(address(yieldAccount), amount);
 
-  function protocolClaimWithdraw(YieldStakeData storage sd) internal virtual returns (uint256) {}
+    bytes memory result = yieldAccount.execute(
+      address(wusdStaking),
+      abi.encodeWithSelector(IWUSDStaking.stake.selector, sd.wusdStakingPoolId, amount)
+    );
+    sd.stakingPlanId = abi.decode(result, (uint256));
+    require(sd.stakingPlanId > 0, Errors.YIELD_ETH_DEPOSIT_FAILED);
+
+    return amount;
+  }
+
+  function protocolRequestWithdrawal(YieldStakeData storage sd) internal virtual {
+    // check the end time of staking plan
+    IWUSDStaking.StakingPlan memory stakingPlan = wusdStaking.getUserStakingPlan(sd.yieldAccount, sd.stakingPlanId);
+    if (uint256(stakingPlan.endTime) >= block.timestamp) {
+      IYieldAccount yieldAccount = IYieldAccount(sd.yieldAccount);
+      yieldAccount.execute(
+        address(wusdStaking),
+        abi.encodeWithSelector(IWUSDStaking.terminate.selector, sd.stakingPlanId)
+      );
+    }
+  }
+
+  function protocolClaimWithdraw(YieldStakeData storage sd) internal virtual returns (uint256) {
+    IYieldAccount yieldAccount = IYieldAccount(sd.yieldAccount);
+
+    uint256 claimedAmount = underlyingAsset.balanceOf(address(yieldAccount));
+    uint256[] memory stakingPlanIds = new uint256[](1);
+    stakingPlanIds[0] = sd.stakingPlanId;
+    yieldAccount.execute(address(wusdStaking), abi.encodeWithSelector(IWUSDStaking.claim.selector, stakingPlanIds));
+    claimedAmount = underlyingAsset.balanceOf(address(yieldAccount)) - claimedAmount;
+    require(claimedAmount > 0, Errors.YIELD_ETH_CLAIM_FAILED);
+
+    yieldAccount.safeTransfer(address(underlyingAsset), address(this), claimedAmount);
+
+    return claimedAmount;
+  }
 
   function protocolIsClaimReady(YieldStakeData storage sd) internal view virtual returns (bool) {
     if (sd.state == Constants.YIELD_STATUS_CLAIM) {
       return true;
+    }
+
+    if (sd.state == Constants.YIELD_STATUS_UNSTAKE) {
+      IWUSDStaking.StakingPlan memory stakingPlan = wusdStaking.getUserStakingPlan(sd.yieldAccount, sd.stakingPlanId);
+      uint48 currentTime = uint48(block.timestamp);
+
+      if (stakingPlan.stakingStatus == IWUSDStaking.StakingStatus.CLAIMABLE) {
+        // mannually terminate the plan before end time of mature
+        if (currentTime >= stakingPlan.claimableTimestamp) {
+          return true;
+        }
+      } else if (stakingPlan.endTime <= currentTime) {
+        // directly claim after end time of mature
+        return true;
+      }
     }
 
     return false;
@@ -713,49 +786,49 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     return shares.convertToAssets(totalDebtShare, getTotalDebt(poolId), Math.Rounding.Down);
   }
 
-  function convertToYieldShares(address account, uint256 assets) public view virtual returns (uint256) {
-    return
-      assets.convertToShares(accountYieldShares[account], getAccountTotalUnstakedYield(account), Math.Rounding.Down);
-  }
-
-  function convertToYieldAssets(address account, uint256 shares) public view virtual returns (uint256) {
-    return
-      shares.convertToAssets(accountYieldShares[account], getAccountTotalUnstakedYield(account), Math.Rounding.Down);
-  }
-
-  function _convertToYieldSharesWithTotalYield(
-    address account,
-    uint256 assets,
-    uint256 totalYield
-  ) internal view virtual returns (uint256) {
-    return assets.convertToShares(accountYieldShares[account], totalYield, Math.Rounding.Down);
-  }
-
   function _getNftDebtInUnderlyingAsset(YieldStakeData storage sd) internal view virtual returns (uint256) {
     return convertToDebtAssets(sd.poolId, sd.debtShare);
   }
 
-  function _getNftYieldInUnderlyingAsset(YieldStakeData storage sd) internal view virtual returns (uint256, uint256) {
-    // here's yieldAmount are just the raw amount (shares) for the token in the protocol, not the actual underlying assets
-    uint256 yieldAmount = convertToYieldAssets(sd.yieldAccount, sd.yieldShare);
-    uint256 underAmount = getProtocolTokenAmountInUnderlyingAsset(yieldAmount);
+  function _getNftYieldInUnderlyingAsset(
+    YieldStakeData storage sd,
+    bool isUnstake
+  ) internal view virtual returns (uint256, uint256) {
+    IWUSDStaking.StakingPlan memory stakingPlan = wusdStaking.getUserStakingPlan(sd.yieldAccount, sd.stakingPlanId);
 
-    // yieldValue are calculated by the raw amount & protocol token price
-    uint256 yieldPrice = getProtocolTokenPriceInUnderlyingAsset();
-    return (underAmount, yieldAmount.mulDiv(yieldPrice, 10 ** getProtocolTokenDecimals()));
+    // there's no yield token for WUSD staking, just the same token
+    // the yield amount here should include the pricipal and rewards
+    // the under amount is same with yield amount
+    uint256 yieldAmount = stakingPlan.stakedAmount;
+
+    uint48 calcEndTime;
+    uint256 calcAPY;
+    if (block.timestamp >= stakingPlan.endTime) {
+      calcEndTime = stakingPlan.endTime;
+      calcAPY = stakingPlan.apy;
+    } else {
+      calcEndTime = uint48(block.timestamp);
+      if (isUnstake) {
+        calcAPY = wusdStaking.getBasicAPY();
+      } else {
+        calcAPY = stakingPlan.apy;
+      }
+    }
+    yieldAmount += _calculateYield(stakingPlan.stakedAmount, calcAPY, calcEndTime - stakingPlan.startTime);
+
+    return (yieldAmount, yieldAmount);
   }
 
   function getProtocolTokenDecimals() internal view virtual returns (uint8) {
-    return 0;
+    return 6;
   }
 
   function getProtocolTokenPriceInUnderlyingAsset() internal view virtual returns (uint256) {
-    return 0;
+    return 1e6;
   }
 
   function getProtocolTokenAmountInUnderlyingAsset(uint256 yieldAmount) internal view virtual returns (uint256) {
-    // stETH, eETH is rebase model & 1:1 to the underlying
-    // but sDAI is not rebase model, the share are fixed
+    // WUSD is not rebase model, the share are fixed
     return yieldAmount;
   }
 
@@ -774,9 +847,17 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     uint256 nftPrice = getNftPriceInUnderlyingAsset(nft);
     uint256 totalNftValue = nftPrice.percentMul(nc.collateralFactor);
 
-    (, uint256 totalYieldValue) = _getNftYieldInUnderlyingAsset(sd);
+    (, uint256 totalYieldValue) = _getNftYieldInUnderlyingAsset(sd, false);
     uint256 totalDebtValue = _getNftDebtInUnderlyingAsset(sd);
 
     return (totalNftValue + totalYieldValue).wadDiv(totalDebtValue);
+  }
+
+  function _calculateYield(
+    uint256 stakedAmount,
+    uint256 apy,
+    uint48 stakingDuration
+  ) internal pure virtual returns (uint256) {
+    return (stakedAmount * apy * stakingDuration) / SECONDS_OF_YEAR / DENOMINATOR;
   }
 }

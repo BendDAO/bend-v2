@@ -106,6 +106,10 @@ contract TestUser is ERC721Holder {
     ERC721(token).setApprovalForAll(spender, val);
   }
 
+  function transferERC20(address token, address to, uint256 amount) public {
+    ERC20(token).safeTransfer(to, amount);
+  }
+
   function depositERC20(uint32 poolId, address asset, uint256 amount, address onBehalf) public {
     if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
       uint256 sendVal = amount;
