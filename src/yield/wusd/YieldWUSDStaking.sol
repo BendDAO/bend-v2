@@ -702,6 +702,14 @@ contract YieldWUSDStaking is Initializable, PausableUpgradeable, ReentrancyGuard
     }
   }
 
+  function getWUSDStakingPlan(
+    address nft,
+    uint256 tokenId
+  ) public view virtual returns (IWUSDStaking.StakingPlan memory) {
+    YieldStakeData storage sd = stakeDatas[nft][tokenId];
+    return wusdStaking.getUserStakingPlan(sd.yieldAccount, sd.stakingPlanId);
+  }
+
   /****************************************************************************/
   /* Internal Methods */
   /****************************************************************************/

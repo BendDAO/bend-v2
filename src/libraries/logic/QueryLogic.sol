@@ -813,7 +813,9 @@ library QueryLogic {
     vars.totalBorrowAll = vars.totalBorrowAll.rayMul(vars.normDebtIndex);
 
     // asset available borrow for all stakers
-    vars.availableBorrowAll = vars.totalCapAll - vars.totalBorrowAll;
+    if (vars.totalCapAll > vars.totalBorrowAll) {
+      vars.availableBorrowAll = vars.totalCapAll - vars.totalBorrowAll;
+    }
 
     if (staker == address(0)) {
       stakerCap = vars.totalCapAll;
@@ -829,7 +831,9 @@ library QueryLogic {
       stakerBorrow = VaultLogic.erc20GetUserScaledCrossBorrowInGroup(groupData, staker);
       stakerBorrow = stakerBorrow.rayMul(vars.normDebtIndex);
 
-      availableBorrow = stakerCap - stakerBorrow;
+      if (stakerCap > stakerBorrow) {
+        availableBorrow = stakerCap - stakerBorrow;
+      }
 
       if (availableBorrow > vars.availableBorrowAll) {
         availableBorrow = vars.availableBorrowAll;

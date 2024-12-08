@@ -649,6 +649,77 @@
   },
   {
     "type": "function",
+    "name": "getWUSDStakingPlan",
+    "inputs": [
+      {
+        "name": "nft",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "tokenId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct IWUSDStaking.StakingPlan",
+        "components": [
+          {
+            "name": "stakingPoolId",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "stakedAmount",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "apy",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "startTime",
+            "type": "uint48",
+            "internalType": "uint48"
+          },
+          {
+            "name": "endTime",
+            "type": "uint48",
+            "internalType": "uint48"
+          },
+          {
+            "name": "claimableTimestamp",
+            "type": "uint48",
+            "internalType": "uint48"
+          },
+          {
+            "name": "yield",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "stakingStatus",
+            "type": "uint8",
+            "internalType": "enum IWUSDStaking.StakingStatus"
+          },
+          {
+            "name": "claimType",
+            "type": "uint8",
+            "internalType": "enum IWUSDStaking.ClaimType"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getWUSDStakingPools",
     "inputs": [],
     "outputs": [
