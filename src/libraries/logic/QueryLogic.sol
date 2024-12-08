@@ -759,6 +759,14 @@ library QueryLogic {
       loanData,
       IAddressProvider(ps.addressProvider).getPriceOracle()
     );
+
+    if (loanData.loanStatus == Constants.LOAN_STATUS_AUCTION) {
+      if (borrowAmount > loanData.bidAmount) {
+        liquidatePrice = borrowAmount;
+      } else {
+        liquidatePrice = loanData.bidAmount + borrowAmount.percentMul(PercentageMath.ONE_PERCENTAGE_FACTOR);
+      }
+    }
   }
 
   function getYieldERC20BorrowBalance(uint32 poolId, address asset, address staker) internal view returns (uint256) {
@@ -769,6 +777,73 @@ library QueryLogic {
 
     uint256 scaledBalance = VaultLogic.erc20GetUserScaledCrossBorrowInGroup(groupData, staker);
     return scaledBalance.rayMul(InterestLogic.getNormalizedBorrowDebt(assetData, groupData));
+  }
+
+  struct GetYieldStakerAssetDataLocalVars {
+    uint256 totalSupply;
+    uint256 totalCapAll;
+    uint256 normDebtIndex;
+    uint256 totalBorrowAll;
+    uint256 availableBorrowAll;
+  }
+
+  function getYieldStakerAssetData(
+    uint32 poolId,
+    address asset,
+    address staker
+  ) internal view returns (uint256 stakerCap, uint256 stakerBorrow, uint256 availableBorrow) {
+    GetYieldStakerAssetDataLocalVars memory vars;
+
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+    DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
+
+    // asset total suppy
+    vars.totalSupply = VaultLogic.erc20GetTotalScaledCrossSupply(assetData);
+    vars.totalSupply = vars.totalSupply.rayMul(InterestLogic.getNormalizedSupplyIncome(assetData));
+
+    vars.normDebtIndex = InterestLogic.getNormalizedBorrowDebt(assetData, groupData);
+
+    // asset total cap for all stakers
+    vars.totalCapAll = vars.totalSupply.percentMul(assetData.yieldCap);
+
+    // asset total borrow for all stakers
+    vars.totalBorrowAll = VaultLogic.erc20GetTotalScaledCrossBorrowInGroup(groupData);
+    vars.totalBorrowAll = vars.totalBorrowAll.rayMul(vars.normDebtIndex);
+
+    // asset available borrow for all stakers
+    if (vars.totalCapAll > vars.totalBorrowAll) {
+      vars.availableBorrowAll = vars.totalCapAll - vars.totalBorrowAll;
+    }
+
+    if (staker == address(0)) {
+      stakerCap = vars.totalCapAll;
+      stakerBorrow = vars.totalBorrowAll;
+      availableBorrow = vars.availableBorrowAll;
+    } else {
+      DataTypes.YieldManagerData storage ymData = assetData.yieldManagerLookup[staker];
+
+      // staker cap limit
+      stakerCap = vars.totalSupply.percentMul(ymData.yieldCap);
+
+      // staker borrow
+      stakerBorrow = VaultLogic.erc20GetUserScaledCrossBorrowInGroup(groupData, staker);
+      stakerBorrow = stakerBorrow.rayMul(vars.normDebtIndex);
+
+      if (stakerCap > stakerBorrow) {
+        availableBorrow = stakerCap - stakerBorrow;
+      }
+
+      if (availableBorrow > vars.availableBorrowAll) {
+        availableBorrow = vars.availableBorrowAll;
+      }
+    }
+
+    // check liquidity
+    if (availableBorrow > assetData.availableLiquidity) {
+      availableBorrow = assetData.availableLiquidity;
+    }
   }
 
   function getERC721TokenData(

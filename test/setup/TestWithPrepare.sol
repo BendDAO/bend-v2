@@ -35,6 +35,16 @@ abstract contract TestWithPrepare is TestWithData {
     prepareERC20(user, address(tsDAI), depositAmount);
   }
 
+  function prepareUSDS(TestUser user) internal virtual {
+    uint256 depositAmount = 500_000 * (10 ** IERC20Metadata(tsUSDS).decimals());
+    prepareERC20(user, address(tsUSDS), depositAmount);
+  }
+
+  function prepareWUSD(TestUser user) internal virtual {
+    uint256 depositAmount = 500_000 * (10 ** IERC20Metadata(tsWUSD).decimals());
+    prepareERC20(user, address(tsWUSD), depositAmount);
+  }
+
   function prepareIsolateERC721(TestUser user, address asset, uint256[] memory tokenIds) internal virtual {
     user.setApprovalForAllERC721(asset, true);
     user.depositERC721(tsCommonPoolId, asset, tokenIds, Constants.SUPPLY_MODE_ISOLATE, address(user));

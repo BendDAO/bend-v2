@@ -41,6 +41,7 @@ abstract contract TestWithData is TestWithSetup {
   }
 
   struct TestAssetData {
+    uint32 poolId;
     address asset;
     uint8 assetType;
     TestAssetConfig config;
@@ -74,6 +75,7 @@ abstract contract TestWithData is TestWithSetup {
   }
 
   struct TestUserAssetData {
+    uint32 poolId;
     address user;
     // fields come from contract
     uint256 walletBalance;
@@ -101,6 +103,7 @@ abstract contract TestWithData is TestWithSetup {
   }
 
   struct TestLoanData {
+    uint32 poolId;
     address nftAsset;
     uint256 nftTokenId;
     // collateral fields from contract
@@ -126,6 +129,7 @@ abstract contract TestWithData is TestWithSetup {
   }
 
   struct TestContractData {
+    uint32 poolId;
     TestAssetData assetData;
     TestUserAssetData userAssetData;
     TestUserAccountData accountData;
@@ -151,6 +155,7 @@ abstract contract TestWithData is TestWithSetup {
     address asset,
     uint8 assetType
   ) public view returns (TestAssetData memory assetData) {
+    assetData.poolId = poolId;
     assetData.asset = asset;
     assetData.assetType = assetType;
 
@@ -209,6 +214,7 @@ abstract contract TestWithData is TestWithSetup {
   }
 
   function copyAssetData(TestAssetData memory assetDataOld) public pure returns (TestAssetData memory assetDataNew) {
+    assetDataNew.poolId = assetDataOld.poolId;
     assetDataNew.asset = assetDataOld.asset;
     assetDataNew.assetType = assetDataOld.assetType;
 
@@ -263,6 +269,7 @@ abstract contract TestWithData is TestWithSetup {
     address asset,
     uint8 assetType
   ) public view returns (TestUserAssetData memory userAssetData) {
+    userAssetData.poolId = poolId;
     userAssetData.user = user;
 
     if (assetType == Constants.ASSET_TYPE_ERC20) {
@@ -303,6 +310,7 @@ abstract contract TestWithData is TestWithSetup {
   function copyUserAssetData(
     TestUserAssetData memory userAssetDataOld
   ) public pure returns (TestUserAssetData memory userAssetDataNew) {
+    userAssetDataNew.poolId = userAssetDataOld.poolId;
     userAssetDataNew.user = userAssetDataOld.user;
 
     userAssetDataNew.walletBalance = userAssetDataOld.walletBalance;
@@ -340,6 +348,7 @@ abstract contract TestWithData is TestWithSetup {
     address nftAsset,
     uint256 nftTokenId
   ) internal view returns (TestLoanData memory data) {
+    data.poolId = poolId;
     data.nftAsset = nftAsset;
     data.nftTokenId = nftTokenId;
 
@@ -368,6 +377,7 @@ abstract contract TestWithData is TestWithSetup {
     uint256 nftTokenId,
     address debtAsset
   ) internal view returns (TestLoanData memory data) {
+    data.poolId = poolId;
     data.nftAsset = nftAsset;
     data.nftTokenId = nftTokenId;
 
@@ -376,6 +386,7 @@ abstract contract TestWithData is TestWithSetup {
   }
 
   function copyLoanData(TestLoanData memory loanDataOld) public pure returns (TestLoanData memory loanDataNew) {
+    loanDataNew.poolId = loanDataOld.poolId;
     loanDataNew.nftAsset = loanDataOld.nftAsset;
     loanDataNew.nftTokenId = loanDataOld.nftTokenId;
 

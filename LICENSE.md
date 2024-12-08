@@ -13,7 +13,7 @@ Licensed Work: BendDAO V2 Protocol. The Licensed Work is (c) 2023 BendDAO
 
 Additional Use Grant: Any uses listed and defined at this [LICENSE](./LICENSE.md)
 
-Change Date: The earlier of 1 Octor 2026 or a date specified at v2-license-date.benddao.eth
+Change Date: The earlier of 1 September 2027 or a date specified at v2-license-date.benddao.eth
 
 Change License: MIT
 

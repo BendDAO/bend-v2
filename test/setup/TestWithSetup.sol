@@ -22,6 +22,8 @@ import {YieldRegistry} from 'src/yield/YieldRegistry.sol';
 import {YieldEthStakingLido} from 'src/yield/lido/YieldEthStakingLido.sol';
 import {YieldEthStakingEtherfi} from 'src/yield/etherfi/YieldEthStakingEtherfi.sol';
 import {YieldSavingsDai} from 'src/yield/sdai/YieldSavingsDai.sol';
+import {YieldSavingsUSDS} from 'src/yield/susds/YieldSavingsUSDS.sol';
+import {YieldWUSDStaking} from 'src/yield/wusd/YieldWUSDStaking.sol';
 
 import {Installer} from 'src/modules/Installer.sol';
 import {ConfiguratorPool} from 'src/modules/ConfiguratorPool.sol';
@@ -51,9 +53,14 @@ import {MockChainlinkAggregator} from 'test/mocks/MockChainlinkAggregator.sol';
 
 import {MockDAIPot} from 'test/mocks/MockDAIPot.sol';
 import {MockSDAI} from 'test/mocks/MockSDAI.sol';
+import {MockSUSDS} from 'test/mocks/MockSUSDS.sol';
+
 import {SDAIPriceAdapter} from 'src/oracles/SDAIPriceAdapter.sol';
+import {SUSDSPriceAdapter} from 'src/oracles/SUSDSPriceAdapter.sol';
 
 import {MockDelegateRegistryV2} from 'test/mocks/MockDelegateRegistryV2.sol';
+
+import {MockWUSDStaking} from 'test/mocks/MockWUSDStaking.sol';
 
 import {TestUser} from '../helpers/TestUser.sol';
 import {TestWithUtils} from './TestWithUtils.sol';
@@ -76,6 +83,8 @@ abstract contract TestWithSetup is TestWithUtils {
   MockERC20 public tsWETH;
   MockERC20 public tsDAI;
   MockERC20 public tsUSDT;
+  MockERC20 public tsUSDS;
+  MockERC20 public tsWUSD;
   MockERC721 public tsWPUNK;
   MockERC721 public tsBAYC;
   MockERC721 public tsMAYC;
@@ -86,15 +95,21 @@ abstract contract TestWithSetup is TestWithUtils {
   MockEtherfiLiquidityPool public tsEtherfiLiquidityPool;
   MockDAIPot public tsDAIPot;
   MockSDAI public tsSDAI;
+  MockSUSDS public tsSUSDS;
   MockDelegateRegistryV2 public tsDelegateRegistryV2;
+  MockWUSDStaking public tsWUSDStaking;
 
   MockBendNFTOracle public tsBendNFTOracle;
+  MockBendNFTOracle public tsBendTokenOracle;
   MockChainlinkAggregator tsCLAggregatorWETH;
   MockChainlinkAggregator tsCLAggregatorDAI;
+  MockChainlinkAggregator tsCLAggregatorUSDS;
   MockChainlinkAggregator tsCLAggregatorUSDT;
   MockChainlinkAggregator tsCLAggregatorStETH;
   MockChainlinkAggregator tsCLAggregatorEETH;
   SDAIPriceAdapter tsCLAggregatorSDAI;
+  SUSDSPriceAdapter tsCLAggregatorSUSDS;
+  MockChainlinkAggregator tsCLAggregatorWUSD;
 
   ProxyAdmin public tsProxyAdmin;
   AddressProvider public tsAddressProvider;
@@ -106,6 +121,8 @@ abstract contract TestWithSetup is TestWithUtils {
   YieldEthStakingLido public tsYieldEthStakingLido;
   YieldEthStakingEtherfi public tsYieldEthStakingEtherfi;
   YieldSavingsDai public tsYieldSavingsDai;
+  YieldSavingsUSDS public tsYieldSavingsUSDS;
+  YieldWUSDStaking public tsYieldWUSDStaking;
 
   Installer public tsInstaller;
   ConfiguratorPool public tsConfiguratorPool;
@@ -359,11 +376,51 @@ abstract contract TestWithSetup is TestWithUtils {
     tsHEVM.prank(tsPoolAdmin);
     tsYieldRegistry.addYieldManager(address(tsYieldSavingsDai));
 
+    // YieldSavingsUSDS
+    YieldSavingsUSDS yieldSavingsUSDSImpl = new YieldSavingsUSDS();
+    TransparentUpgradeableProxy yieldSavingsUSDSProxy = new TransparentUpgradeableProxy(
+      address(yieldSavingsUSDSImpl),
+      address(tsProxyAdmin),
+      abi.encodeWithSelector(
+        yieldSavingsUSDSImpl.initialize.selector,
+        address(tsAddressProvider),
+        address(tsUSDS),
+        address(tsSUSDS)
+      )
+    );
+    tsYieldSavingsUSDS = YieldSavingsUSDS(payable(address(yieldSavingsUSDSProxy)));
+    tsHEVM.prank(tsPoolAdmin);
+    tsYieldRegistry.addYieldManager(address(tsYieldSavingsUSDS));
+
+    // YieldWUSDStaking
+    YieldWUSDStaking yieldWUSDStakingImpl = new YieldWUSDStaking();
+    TransparentUpgradeableProxy yieldWUSDStakingProxy = new TransparentUpgradeableProxy(
+      address(yieldWUSDStakingImpl),
+      address(tsProxyAdmin),
+      abi.encodeWithSelector(
+        yieldWUSDStakingImpl.initialize.selector,
+        address(tsAddressProvider),
+        address(tsWUSD),
+        address(tsWUSDStaking)
+      )
+    );
+    tsYieldWUSDStaking = YieldWUSDStaking(payable(address(yieldWUSDStakingProxy)));
+    tsHEVM.prank(tsPoolAdmin);
+    tsYieldRegistry.addYieldManager(address(tsYieldWUSDStaking));
+
     // Interest Rate Model
     tsLowRateGroupId = 1;
     tsMiddleRateGroupId = 2;
     tsHighRateGroupId = 3;
-    tsDefaultIRM = new DefaultInterestRateModel(address(tsAddressProvider));
+
+    DefaultInterestRateModel defaultIrmImpl = new DefaultInterestRateModel();
+    TransparentUpgradeableProxy defaultIrmProxy = new TransparentUpgradeableProxy(
+      address(defaultIrmImpl),
+      address(tsProxyAdmin),
+      abi.encodeWithSelector(defaultIrmImpl.initialize.selector, address(tsAddressProvider))
+    );
+    tsDefaultIRM = DefaultInterestRateModel(address(defaultIrmProxy));
+
     tsYieldRateIRM = tsDefaultIRM;
     tsLowRateIRM = tsDefaultIRM;
     tsMiddleRateIRM = tsDefaultIRM;
@@ -372,22 +429,40 @@ abstract contract TestWithSetup is TestWithUtils {
     // set price oracle
     tsHEVM.startPrank(tsOracleAdmin);
     tsPriceOracle.setBendNFTOracle(address(tsBendNFTOracle));
+    tsPriceOracle.setBendTokenOracle(address(tsBendTokenOracle));
 
-    address[] memory oracleAssets = new address[](6);
+    address[] memory oracleAssets = new address[](9);
     oracleAssets[0] = address(tsWETH);
     oracleAssets[1] = address(tsDAI);
     oracleAssets[2] = address(tsUSDT);
     oracleAssets[3] = address(tsStETH);
     oracleAssets[4] = address(tsEETH);
     oracleAssets[5] = address(tsSDAI);
-    address[] memory oracleAggs = new address[](6);
+    oracleAssets[6] = address(tsUSDS);
+    oracleAssets[7] = address(tsSUSDS);
+    oracleAssets[8] = address(tsWUSD);
+    address[] memory oracleAggs = new address[](9);
     oracleAggs[0] = address(tsCLAggregatorWETH);
     oracleAggs[1] = address(tsCLAggregatorDAI);
     oracleAggs[2] = address(tsCLAggregatorUSDT);
     oracleAggs[3] = address(tsCLAggregatorStETH);
     oracleAggs[4] = address(tsCLAggregatorEETH);
     oracleAggs[5] = address(tsCLAggregatorSDAI);
+    oracleAggs[6] = address(tsCLAggregatorUSDS);
+    oracleAggs[7] = address(tsCLAggregatorSUSDS);
+    oracleAggs[8] = address(tsCLAggregatorWUSD);
     tsPriceOracle.setAssetChainlinkAggregators(oracleAssets, oracleAggs);
+
+    address[] memory sourceAssets = new address[](3);
+    sourceAssets[0] = address(tsWPUNK);
+    sourceAssets[1] = address(tsBAYC);
+    sourceAssets[2] = address(tsMAYC);
+    uint8[] memory sourceTypes = new uint8[](3);
+    sourceTypes[0] = Constants.ORACLE_TYPE_BEND_NFT;
+    sourceTypes[1] = Constants.ORACLE_TYPE_BEND_NFT;
+    sourceTypes[2] = Constants.ORACLE_TYPE_BEND_NFT;
+    tsPriceOracle.setAssetOracleSourceTypes(sourceAssets, sourceTypes);
+
     tsHEVM.stopPrank();
   }
 
@@ -397,6 +472,8 @@ abstract contract TestWithSetup is TestWithUtils {
     tsWETH = MockERC20(tsFaucet.createMockERC20('MockWETH', 'WETH', 18));
     tsDAI = MockERC20(tsFaucet.createMockERC20('MockDAI', 'DAI', 18));
     tsUSDT = MockERC20(tsFaucet.createMockERC20('MockUSDT', 'USDT', 6));
+    tsUSDS = MockERC20(tsFaucet.createMockERC20('MockUSDS', 'USDS', 18));
+    tsWUSD = MockERC20(tsFaucet.createMockERC20('MockWUSD', 'WUSD', 6));
 
     tsWPUNK = MockERC721(tsFaucet.createMockERC721('MockWPUNK', 'WPUNK'));
     tsBAYC = MockERC721(tsFaucet.createMockERC721('MockBAYC', 'BAYC'));
@@ -418,7 +495,11 @@ abstract contract TestWithSetup is TestWithUtils {
     tsDAIPot = new MockDAIPot();
     tsSDAI = new MockSDAI(address(tsDAI));
 
+    tsSUSDS = new MockSUSDS(address(tsUSDS));
+
     tsDelegateRegistryV2 = new MockDelegateRegistryV2();
+
+    tsWUSDStaking = new MockWUSDStaking(address(tsWUSD));
   }
 
   function initMockUsers() internal {
@@ -492,6 +573,8 @@ abstract contract TestWithSetup is TestWithUtils {
 
     tsFaucet.privateMintERC20(address(tsDAI), address(user), TS_INITIAL_BALANCE * 1e18);
     tsFaucet.privateMintERC20(address(tsUSDT), address(user), TS_INITIAL_BALANCE * 1e6);
+    tsFaucet.privateMintERC20(address(tsUSDS), address(user), TS_INITIAL_BALANCE * 1e18);
+    tsFaucet.privateMintERC20(address(tsWUSD), address(user), TS_INITIAL_BALANCE * 1e6);
 
     uint256[] memory tokenIds = user.getTokenIds();
     tsFaucet.privateMintERC721(address(tsWPUNK), address(user), tokenIds);
@@ -508,9 +591,17 @@ abstract contract TestWithSetup is TestWithUtils {
     tsHEVM.label(address(tsCLAggregatorDAI), 'MockCLAggregator(DAI/USD)');
     tsCLAggregatorDAI.updateAnswer(99984627);
 
+    tsCLAggregatorUSDS = new MockChainlinkAggregator(8, 'USDS / USD');
+    tsHEVM.label(address(tsCLAggregatorUSDS), 'MockCLAggregator(USDS/USD)');
+    tsCLAggregatorUSDS.updateAnswer(99984627);
+
     tsCLAggregatorUSDT = new MockChainlinkAggregator(8, 'USDT / USD');
     tsHEVM.label(address(tsCLAggregatorUSDT), 'MockCLAggregator(USDT/USD)');
     tsCLAggregatorUSDT.updateAnswer(100053000);
+
+    tsCLAggregatorWUSD = new MockChainlinkAggregator(8, 'WUSD / USD');
+    tsHEVM.label(address(tsCLAggregatorWUSD), 'MockCLAggregator(WUSD/USD)');
+    tsCLAggregatorWUSD.updateAnswer(100063000);
 
     tsCLAggregatorStETH = new MockChainlinkAggregator(8, 'stETH / USD');
     tsHEVM.label(address(tsCLAggregatorStETH), 'MockCLAggregator(StETH/USD)');
@@ -523,11 +614,18 @@ abstract contract TestWithSetup is TestWithUtils {
     tsCLAggregatorSDAI = new SDAIPriceAdapter(address(tsCLAggregatorDAI), address(tsDAIPot), 'sDAI / USD');
     tsHEVM.label(address(tsCLAggregatorSDAI), 'SDAIPriceAdapter(sDAI/USD)');
 
-    tsBendNFTOracle = new MockBendNFTOracle();
+    tsCLAggregatorSUSDS = new SUSDSPriceAdapter(address(tsCLAggregatorDAI), address(tsDAIPot), 'sUSDS / USD');
+    tsHEVM.label(address(tsCLAggregatorSUSDS), 'SUSDSPriceAdapter(sUSDS/USD)');
+
+    tsBendNFTOracle = new MockBendNFTOracle(18);
     tsHEVM.label(address(tsBendNFTOracle), 'MockBendNFTOracle');
     tsBendNFTOracle.setAssetPrice(address(tsWPUNK), 58155486904761904761);
     tsBendNFTOracle.setAssetPrice(address(tsBAYC), 30919141261229331011);
     tsBendNFTOracle.setAssetPrice(address(tsMAYC), 5950381013403414953);
+
+    tsBendTokenOracle = new MockBendNFTOracle(8);
+    tsHEVM.label(address(tsBendTokenOracle), 'MockBendTokenOracle');
+    tsBendNFTOracle.setAssetPrice(address(tsUSDT), 100053000);
   }
 
   function setContractsLabels() internal {
@@ -548,8 +646,11 @@ abstract contract TestWithSetup is TestWithUtils {
   function initInterestRateParams() internal {
     tsHEVM.startPrank(tsPoolAdmin);
 
+    uint32 poolId = 1;
+
     // WETH
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsWETH),
       0,
       (65 * WadRayMath.RAY) / 100,
@@ -558,6 +659,7 @@ abstract contract TestWithSetup is TestWithUtils {
       (100 * WadRayMath.RAY) / 100
     );
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsWETH),
       tsLowRateGroupId,
       (65 * WadRayMath.RAY) / 100,
@@ -566,6 +668,7 @@ abstract contract TestWithSetup is TestWithUtils {
       (100 * WadRayMath.RAY) / 100
     );
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsWETH),
       tsMiddleRateGroupId,
       (65 * WadRayMath.RAY) / 100,
@@ -574,6 +677,7 @@ abstract contract TestWithSetup is TestWithUtils {
       (100 * WadRayMath.RAY) / 100
     );
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsWETH),
       tsHighRateGroupId,
       (65 * WadRayMath.RAY) / 100,
@@ -584,6 +688,7 @@ abstract contract TestWithSetup is TestWithUtils {
 
     // USDT
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsUSDT),
       0,
       (65 * WadRayMath.RAY) / 100,
@@ -592,6 +697,7 @@ abstract contract TestWithSetup is TestWithUtils {
       (80 * WadRayMath.RAY) / 100
     );
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsUSDT),
       tsLowRateGroupId,
       (65 * WadRayMath.RAY) / 100,
@@ -600,6 +706,7 @@ abstract contract TestWithSetup is TestWithUtils {
       (80 * WadRayMath.RAY) / 100
     );
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsUSDT),
       tsMiddleRateGroupId,
       (65 * WadRayMath.RAY) / 100,
@@ -608,6 +715,7 @@ abstract contract TestWithSetup is TestWithUtils {
       (80 * WadRayMath.RAY) / 100
     );
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsUSDT),
       tsHighRateGroupId,
       (65 * WadRayMath.RAY) / 100,
@@ -618,6 +726,7 @@ abstract contract TestWithSetup is TestWithUtils {
 
     // DAI
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsDAI),
       0,
       (65 * WadRayMath.RAY) / 100,
@@ -626,6 +735,7 @@ abstract contract TestWithSetup is TestWithUtils {
       (90 * WadRayMath.RAY) / 100
     );
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsDAI),
       tsLowRateGroupId,
       (65 * WadRayMath.RAY) / 100,
@@ -634,6 +744,7 @@ abstract contract TestWithSetup is TestWithUtils {
       (90 * WadRayMath.RAY) / 100
     );
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsDAI),
       tsMiddleRateGroupId,
       (65 * WadRayMath.RAY) / 100,
@@ -642,7 +753,46 @@ abstract contract TestWithSetup is TestWithUtils {
       (90 * WadRayMath.RAY) / 100
     );
     tsDefaultIRM.setInterestRateParams(
+      poolId,
       address(tsDAI),
+      tsHighRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (8 * WadRayMath.RAY) / 100, // baseRate
+      (5 * WadRayMath.RAY) / 100,
+      (90 * WadRayMath.RAY) / 100
+    );
+
+    // USDS
+    tsDefaultIRM.setInterestRateParams(
+      poolId,
+      address(tsUSDS),
+      0,
+      (65 * WadRayMath.RAY) / 100,
+      (2 * WadRayMath.RAY) / 100, // baseRate
+      (5 * WadRayMath.RAY) / 100,
+      (90 * WadRayMath.RAY) / 100
+    );
+    tsDefaultIRM.setInterestRateParams(
+      poolId,
+      address(tsUSDS),
+      tsLowRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (4 * WadRayMath.RAY) / 100, // baseRate
+      (5 * WadRayMath.RAY) / 100,
+      (90 * WadRayMath.RAY) / 100
+    );
+    tsDefaultIRM.setInterestRateParams(
+      poolId,
+      address(tsUSDS),
+      tsMiddleRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (6 * WadRayMath.RAY) / 100, // baseRate
+      (5 * WadRayMath.RAY) / 100,
+      (90 * WadRayMath.RAY) / 100
+    );
+    tsDefaultIRM.setInterestRateParams(
+      poolId,
+      address(tsUSDS),
       tsHighRateGroupId,
       (65 * WadRayMath.RAY) / 100,
       (8 * WadRayMath.RAY) / 100, // baseRate
@@ -690,12 +840,24 @@ abstract contract TestWithSetup is TestWithUtils {
     tsConfigurator.setAssetSupplyCap(tsCommonPoolId, address(tsUSDT), 100_000_000 * (10 ** tsWETH.decimals()));
     tsConfigurator.setAssetBorrowCap(tsCommonPoolId, address(tsUSDT), 100_000_000 * (10 ** tsWETH.decimals()));
 
+    tsConfigurator.addAssetERC20(tsCommonPoolId, address(tsUSDS));
+    tsConfigurator.setAssetCollateralParams(tsCommonPoolId, address(tsUSDS), 7700, 8000, 500);
+    tsConfigurator.setAssetProtocolFee(tsCommonPoolId, address(tsUSDS), 2000);
+    tsConfigurator.setAssetClassGroup(tsCommonPoolId, address(tsUSDS), tsLowRateGroupId);
+    tsConfigurator.setAssetActive(tsCommonPoolId, address(tsUSDS), true);
+    tsConfigurator.setAssetBorrowing(tsCommonPoolId, address(tsUSDS), true);
+    tsConfigurator.setAssetSupplyCap(tsCommonPoolId, address(tsUSDS), 100_000_000 * (10 ** tsWETH.decimals()));
+    tsConfigurator.setAssetBorrowCap(tsCommonPoolId, address(tsUSDS), 100_000_000 * (10 ** tsWETH.decimals()));
+
     // add interest group to assets
     tsConfigurator.addAssetGroup(tsCommonPoolId, address(tsWETH), tsLowRateGroupId, address(tsLowRateIRM));
     tsConfigurator.addAssetGroup(tsCommonPoolId, address(tsWETH), tsHighRateGroupId, address(tsHighRateIRM));
 
     tsConfigurator.addAssetGroup(tsCommonPoolId, address(tsDAI), tsLowRateGroupId, address(tsLowRateIRM));
     tsConfigurator.addAssetGroup(tsCommonPoolId, address(tsDAI), tsHighRateGroupId, address(tsHighRateIRM));
+
+    tsConfigurator.addAssetGroup(tsCommonPoolId, address(tsUSDS), tsLowRateGroupId, address(tsLowRateIRM));
+    tsConfigurator.addAssetGroup(tsCommonPoolId, address(tsUSDS), tsHighRateGroupId, address(tsHighRateIRM));
 
     tsConfigurator.addAssetGroup(tsCommonPoolId, address(tsUSDT), tsLowRateGroupId, address(tsLowRateIRM));
     tsConfigurator.addAssetGroup(tsCommonPoolId, address(tsUSDT), tsHighRateGroupId, address(tsHighRateIRM));
@@ -737,6 +899,12 @@ abstract contract TestWithSetup is TestWithUtils {
     tsConfigurator.setManagerYieldCap(tsCommonPoolId, address(tsPoolManager), address(tsDAI), 2000);
     tsConfigurator.setManagerYieldCap(tsCommonPoolId, address(tsStaker2), address(tsDAI), 2000);
 
+    tsConfigurator.setAssetYieldEnable(tsCommonPoolId, address(tsUSDS), true);
+    tsConfigurator.setAssetYieldCap(tsCommonPoolId, address(tsUSDS), 2000);
+    tsConfigurator.setAssetYieldRate(tsCommonPoolId, address(tsUSDS), address(tsYieldRateIRM));
+    tsConfigurator.setManagerYieldCap(tsCommonPoolId, address(tsPoolManager), address(tsUSDS), 2000);
+    tsConfigurator.setManagerYieldCap(tsCommonPoolId, address(tsStaker2), address(tsUSDS), 2000);
+
     tsHEVM.stopPrank();
   }
 
@@ -746,6 +914,7 @@ abstract contract TestWithSetup is TestWithUtils {
     tsConfigurator.setManagerYieldCap(tsCommonPoolId, address(tsYieldEthStakingLido), address(tsWETH), 2000);
     tsConfigurator.setManagerYieldCap(tsCommonPoolId, address(tsYieldEthStakingEtherfi), address(tsWETH), 2000);
     tsConfigurator.setManagerYieldCap(tsCommonPoolId, address(tsYieldSavingsDai), address(tsDAI), 2000);
+    tsConfigurator.setManagerYieldCap(tsCommonPoolId, address(tsYieldSavingsUSDS), address(tsUSDS), 2000);
 
     tsYieldEthStakingLido.setNftActive(address(tsBAYC), true);
     tsYieldEthStakingLido.setNftStakeParams(address(tsBAYC), 50000, 9000);
@@ -758,6 +927,93 @@ abstract contract TestWithSetup is TestWithUtils {
     tsYieldSavingsDai.setNftActive(address(tsBAYC), true);
     tsYieldSavingsDai.setNftStakeParams(address(tsBAYC), 50000, 9000);
     tsYieldSavingsDai.setNftUnstakeParams(address(tsBAYC), 100e18, 1.05e18);
+
+    tsYieldSavingsUSDS.setNftActive(address(tsBAYC), true);
+    tsYieldSavingsUSDS.setNftStakeParams(address(tsBAYC), 50000, 9000);
+    tsYieldSavingsUSDS.setNftUnstakeParams(address(tsBAYC), 100e18, 1.05e18);
+
+    tsHEVM.stopPrank();
+  }
+
+  function initPoolWUSD(uint32 poolId) internal {
+    tsHEVM.startPrank(tsPoolAdmin);
+
+    // IRM
+    tsDefaultIRM.setInterestRateParams(
+      poolId,
+      address(tsWUSD),
+      0,
+      (75 * WadRayMath.RAY) / 100,
+      (2 * WadRayMath.RAY) / 100, // baseRate
+      (1 * WadRayMath.RAY) / 100,
+      (2 * WadRayMath.RAY) / 100
+    );
+    tsDefaultIRM.setInterestRateParams(
+      poolId,
+      address(tsWUSD),
+      tsLowRateGroupId,
+      (75 * WadRayMath.RAY) / 100,
+      (4 * WadRayMath.RAY) / 100, // baseRate
+      (4 * WadRayMath.RAY) / 100,
+      (8 * WadRayMath.RAY) / 100
+    );
+    tsDefaultIRM.setInterestRateParams(
+      poolId,
+      address(tsWUSD),
+      tsMiddleRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (6 * WadRayMath.RAY) / 100, // baseRate
+      (4 * WadRayMath.RAY) / 100,
+      (8 * WadRayMath.RAY) / 100
+    );
+    tsDefaultIRM.setInterestRateParams(
+      poolId,
+      address(tsWUSD),
+      tsHighRateGroupId,
+      (65 * WadRayMath.RAY) / 100,
+      (8 * WadRayMath.RAY) / 100, // baseRate
+      (4 * WadRayMath.RAY) / 100,
+      (8 * WadRayMath.RAY) / 100
+    );
+
+    // Asset
+    tsConfigurator.addAssetERC20(poolId, address(tsWUSD));
+    tsConfigurator.setAssetCollateralParams(poolId, address(tsWUSD), 7700, 8000, 500);
+    tsConfigurator.setAssetProtocolFee(poolId, address(tsWUSD), 2000);
+    tsConfigurator.setAssetClassGroup(poolId, address(tsWUSD), tsLowRateGroupId);
+    tsConfigurator.setAssetActive(poolId, address(tsWUSD), true);
+    tsConfigurator.setAssetBorrowing(poolId, address(tsWUSD), true);
+    tsConfigurator.setAssetSupplyCap(poolId, address(tsWUSD), 100_000_000 * (10 ** tsWETH.decimals()));
+    tsConfigurator.setAssetBorrowCap(poolId, address(tsWUSD), 100_000_000 * (10 ** tsWETH.decimals()));
+
+    tsConfigurator.addAssetGroup(poolId, address(tsWUSD), tsLowRateGroupId, address(tsLowRateIRM));
+    tsConfigurator.addAssetGroup(poolId, address(tsWUSD), tsHighRateGroupId, address(tsHighRateIRM));
+
+    tsHEVM.stopPrank();
+  }
+
+  function initYieldWUSDStaking(uint32 poolId) internal {
+    tsHEVM.startPrank(tsPoolAdmin);
+
+    tsConfigurator.setAssetYieldEnable(poolId, address(tsWUSD), true);
+    tsConfigurator.setAssetYieldCap(poolId, address(tsWUSD), 5000);
+    tsConfigurator.setAssetYieldRate(poolId, address(tsWUSD), address(tsYieldRateIRM));
+
+    // Yield
+    tsConfigurator.setManagerYieldCap(poolId, address(tsYieldWUSDStaking), address(tsWUSD), 5000);
+
+    tsYieldWUSDStaking.setNftActive(address(tsBAYC), true);
+    tsYieldWUSDStaking.setNftStakeParams(address(tsBAYC), 50000, 9000);
+    tsYieldWUSDStaking.setNftUnstakeParams(address(tsBAYC), 100e18, 1.05e18);
+
+    tsHEVM.stopPrank();
+
+    tsHEVM.startPrank(tsWUSDStaking.owner());
+
+    tsWUSDStaking.createStakingPool(600, 1, 0);
+    tsWUSDStaking.createStakingPool(604800, 80000, 0);
+    tsWUSDStaking.createStakingPool(2592000, 90000, 0);
+    tsWUSDStaking.createStakingPool(5184000, 95000, 0);
 
     tsHEVM.stopPrank();
   }

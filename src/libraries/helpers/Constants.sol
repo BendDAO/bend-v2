@@ -111,4 +111,9 @@ library Constants {
   uint8 public constant YIELD_STATUS_UNSTAKE = 2;
   uint8 public constant YIELD_STATUS_CLAIM = 3;
   uint8 public constant YIELD_STATUS_REPAID = 4;
+
+  // Oracle Source type
+  uint8 public constant ORACLE_TYPE_CHAIN_LINK = 0;
+  uint8 public constant ORACLE_TYPE_BEND_NFT = 1;
+  uint8 public constant ORACLE_TYPE_BEND_TOKEN = 2;
 }

@@ -676,7 +676,8 @@ library VaultLogic {
     DataTypes.AssetData storage assetData,
     address from,
     address to,
-    uint256[] memory tokenIds
+    uint256[] memory tokenIds,
+    bool clearLockerAddr
   ) internal {
     for (uint256 i = 0; i < tokenIds.length; i++) {
       DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
@@ -684,6 +685,9 @@ library VaultLogic {
       require(tokenData.owner == from, Errors.INVALID_TOKEN_OWNER);
 
       tokenData.owner = to;
+      if (clearLockerAddr) {
+        tokenData.lockerAddr = address(0);
+      }
     }
 
     assetData.userScaledIsolateSupply[from] -= tokenIds.length;
@@ -693,7 +697,8 @@ library VaultLogic {
   function erc721TransferIsolateSupplyOnLiquidate(
     DataTypes.AssetData storage assetData,
     address to,
-    uint256[] memory tokenIds
+    uint256[] memory tokenIds,
+    bool clearLockerAddr
   ) internal {
     for (uint256 i = 0; i < tokenIds.length; i++) {
       DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
@@ -703,6 +708,9 @@ library VaultLogic {
       assetData.userScaledIsolateSupply[to] += 1;
 
       tokenData.owner = to;
+      if (clearLockerAddr) {
+        tokenData.lockerAddr = address(0);
+      }
     }
   }
 

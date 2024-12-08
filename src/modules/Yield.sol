@@ -74,6 +74,14 @@ contract Yield is BaseModule, IYield {
     return QueryLogic.getYieldERC20BorrowBalance(poolId, asset, staker);
   }
 
+  function getYieldStakerAssetData(
+    uint32 poolId,
+    address asset,
+    address staker
+  ) public view returns (uint256 stakerCap, uint256 stakerBorrow, uint256 availableBorrow) {
+    return QueryLogic.getYieldStakerAssetData(poolId, asset, staker);
+  }
+
   function getERC721TokenData(
     uint32 poolId,
     address asset,
