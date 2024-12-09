@@ -406,6 +406,18 @@ library QueryLogic {
     );
   }
 
+  function getUserAssetList(
+    address user,
+    uint32 poolId
+  ) internal view returns (address[] memory suppliedAssets, address[] memory borrowedAssets) {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    DataTypes.AccountData storage accountData = poolData.accountLookup[user];
+
+    suppliedAssets = VaultLogic.accountGetSuppliedAssets(accountData);
+    borrowedAssets = VaultLogic.accountGetBorrowedAssets(accountData);
+  }
+
   struct GetUserAssetDataLocalVars {
     uint256 aidx;
     uint256 gidx;
@@ -594,6 +606,63 @@ library QueryLogic {
     healthFactor = nftLoanResult.healthFactor;
   }
 
+  function getIsolateCollateralDataForCalculation(
+    uint32 poolId,
+    address nftAsset,
+    uint256 tokenId,
+    uint8 calcType,
+    address debtAsset,
+    uint256 amount
+  ) internal view returns (ResultTypes.IsolateCollateralDataResult memory dataResult) {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+
+    DataTypes.AssetData storage nftAssetData = poolData.assetLookup[nftAsset];
+    DataTypes.AssetData storage debtAssetData = poolData.assetLookup[debtAsset];
+    DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[nftAssetData.classGroup];
+    DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[nftAsset][tokenId];
+
+    ResultTypes.NftLoanResult memory nftLoanResult = GenericLogic.calculateNftLoanData(
+      debtAssetData,
+      debtGroupData,
+      nftAssetData,
+      loanData,
+      IAddressProvider(ps.addressProvider).getPriceOracle()
+    );
+
+    dataResult.totalCollateral =
+      (nftLoanResult.totalCollateralInBaseCurrency * (10 ** debtAssetData.underlyingDecimals)) /
+      nftLoanResult.debtAssetPriceInBaseCurrency;
+
+    dataResult.totalBorrow =
+      (nftLoanResult.totalDebtInBaseCurrency * (10 ** debtAssetData.underlyingDecimals)) /
+      nftLoanResult.debtAssetPriceInBaseCurrency;
+
+    if (calcType == 3) {
+      // borrow some debt
+      dataResult.totalBorrow += amount;
+    } else if (calcType == 4) {
+      // repay some debt
+      if (dataResult.totalBorrow > amount) {
+        dataResult.totalBorrow -= amount;
+      } else {
+        dataResult.totalBorrow = 0;
+      }
+    }
+
+    dataResult.availableBorrow = GenericLogic.calculateAvailableBorrows(
+      dataResult.totalCollateral,
+      dataResult.totalBorrow,
+      nftAssetData.collateralFactor
+    );
+
+    dataResult.healthFactor = GenericLogic.calculateHealthFactorFromBalances(
+      dataResult.totalCollateral,
+      dataResult.totalBorrow,
+      nftAssetData.liquidationThreshold
+    );
+  }
+
   function getIsolateLoanData(
     uint32 poolId,
     address nftAsset,
@@ -669,6 +738,37 @@ library QueryLogic {
     redeemAmount = borrowAmount.percentMul(nftAssetData.redeemThreshold);
   }
 
+  function getIsolateLiquidateData(
+    uint32 poolId,
+    address nftAsset,
+    uint256 tokenId
+  ) internal view returns (uint256 borrowAmount, uint256 thresholdPrice, uint256 liquidatePrice) {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+
+    DataTypes.IsolateLoanData storage loanData = poolData.loanLookup[nftAsset][tokenId];
+
+    DataTypes.AssetData storage nftAssetData = poolData.assetLookup[nftAsset];
+    DataTypes.AssetData storage debtAssetData = poolData.assetLookup[loanData.reserveAsset];
+    DataTypes.GroupData storage debtGroupData = debtAssetData.groupLookup[loanData.reserveGroup];
+
+    (borrowAmount, thresholdPrice, liquidatePrice) = GenericLogic.calculateNftLoanLiquidatePrice(
+      debtAssetData,
+      debtGroupData,
+      nftAssetData,
+      loanData,
+      IAddressProvider(ps.addressProvider).getPriceOracle()
+    );
+
+    if (loanData.loanStatus == Constants.LOAN_STATUS_AUCTION) {
+      if (borrowAmount > loanData.bidAmount) {
+        liquidatePrice = borrowAmount;
+      } else {
+        liquidatePrice = loanData.bidAmount + borrowAmount.percentMul(PercentageMath.ONE_PERCENTAGE_FACTOR);
+      }
+    }
+  }
+
   function getYieldERC20BorrowBalance(uint32 poolId, address asset, address staker) internal view returns (uint256) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
@@ -677,6 +777,73 @@ library QueryLogic {
 
     uint256 scaledBalance = VaultLogic.erc20GetUserScaledCrossBorrowInGroup(groupData, staker);
     return scaledBalance.rayMul(InterestLogic.getNormalizedBorrowDebt(assetData, groupData));
+  }
+
+  struct GetYieldStakerAssetDataLocalVars {
+    uint256 totalSupply;
+    uint256 totalCapAll;
+    uint256 normDebtIndex;
+    uint256 totalBorrowAll;
+    uint256 availableBorrowAll;
+  }
+
+  function getYieldStakerAssetData(
+    uint32 poolId,
+    address asset,
+    address staker
+  ) internal view returns (uint256 stakerCap, uint256 stakerBorrow, uint256 availableBorrow) {
+    GetYieldStakerAssetDataLocalVars memory vars;
+
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+    DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
+    DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
+    DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
+
+    // asset total suppy
+    vars.totalSupply = VaultLogic.erc20GetTotalScaledCrossSupply(assetData);
+    vars.totalSupply = vars.totalSupply.rayMul(InterestLogic.getNormalizedSupplyIncome(assetData));
+
+    vars.normDebtIndex = InterestLogic.getNormalizedBorrowDebt(assetData, groupData);
+
+    // asset total cap for all stakers
+    vars.totalCapAll = vars.totalSupply.percentMul(assetData.yieldCap);
+
+    // asset total borrow for all stakers
+    vars.totalBorrowAll = VaultLogic.erc20GetTotalScaledCrossBorrowInGroup(groupData);
+    vars.totalBorrowAll = vars.totalBorrowAll.rayMul(vars.normDebtIndex);
+
+    // asset available borrow for all stakers
+    if (vars.totalCapAll > vars.totalBorrowAll) {
+      vars.availableBorrowAll = vars.totalCapAll - vars.totalBorrowAll;
+    }
+
+    if (staker == address(0)) {
+      stakerCap = vars.totalCapAll;
+      stakerBorrow = vars.totalBorrowAll;
+      availableBorrow = vars.availableBorrowAll;
+    } else {
+      DataTypes.YieldManagerData storage ymData = assetData.yieldManagerLookup[staker];
+
+      // staker cap limit
+      stakerCap = vars.totalSupply.percentMul(ymData.yieldCap);
+
+      // staker borrow
+      stakerBorrow = VaultLogic.erc20GetUserScaledCrossBorrowInGroup(groupData, staker);
+      stakerBorrow = stakerBorrow.rayMul(vars.normDebtIndex);
+
+      if (stakerCap > stakerBorrow) {
+        availableBorrow = stakerCap - stakerBorrow;
+      }
+
+      if (availableBorrow > vars.availableBorrowAll) {
+        availableBorrow = vars.availableBorrowAll;
+      }
+    }
+
+    // check liquidity
+    if (availableBorrow > assetData.availableLiquidity) {
+      availableBorrow = assetData.availableLiquidity;
+    }
   }
 
   function getERC721TokenData(
@@ -732,7 +899,7 @@ library QueryLogic {
     return delegateAddrs;
   }
 
-  function isApprovedForAll(
+  function isOperatorAuthorized(
     uint32 poolId,
     address account,
     address asset,
@@ -740,6 +907,6 @@ library QueryLogic {
   ) internal view returns (bool) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
-    return VaultLogic.accountIsApprovedForAll(poolData, account, asset, operator);
+    return VaultLogic.accountIsOperatorAuthorized(poolData, account, asset, operator);
   }
 }

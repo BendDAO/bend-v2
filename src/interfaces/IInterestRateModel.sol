@@ -10,8 +10,14 @@ import {InputTypes} from '../libraries/types/InputTypes.sol';
 interface IInterestRateModel {
   /**
    * @notice Calculates the interest rate depending on the group's state and configurations
+   * @param asset The asset address
    * @param utilizationRate The asset liquidity utilization rate
    * @return borrowRate The group borrow rate expressed in rays
    */
-  function calculateGroupBorrowRate(uint256 groupId, uint256 utilizationRate) external view returns (uint256);
+  function calculateGroupBorrowRate(
+    uint32 pool,
+    address asset,
+    uint256 groupId,
+    uint256 utilizationRate
+  ) external view returns (uint256);
 }

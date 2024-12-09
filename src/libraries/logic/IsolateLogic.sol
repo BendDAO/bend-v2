@@ -343,7 +343,7 @@ library IsolateLogic {
         VaultLogic.erc20TransferOutBidAmount(debtAssetData, loanData.lastBidder, loanData.bidAmount);
       }
 
-      if (loanData.firstBidder != address(0)) {
+      if (loanData.firstBidder != address(0) && vars.bidFines[vars.nidx] > 0) {
         // transfer bid fine from borrower to the first bidder
         VaultLogic.erc20TransferBetweenWallets(
           params.asset,
@@ -388,6 +388,8 @@ library IsolateLogic {
     uint256[] extraBorrowAmounts;
     uint256 totalExtraAmount;
     uint256[] remainBidAmounts;
+    address winningBidder;
+    uint256 totalRemainAmount;
   }
 
   /**
@@ -420,13 +422,19 @@ library IsolateLogic {
 
       ValidateLogic.validateIsolateLiquidateLoan(params, debtGroupData, loanData);
 
+      // all loan's bidder must same to for the batch operations
+      if (vars.winningBidder == address(0)) {
+        vars.winningBidder = loanData.lastBidder;
+      }
+      require(loanData.lastBidder == vars.winningBidder, Errors.ISOLATE_LOAN_BIDDER_NOT_SAME);
+
       vars.auctionEndTimestamp = loanData.bidStartTimestamp + nftAssetData.auctionDuration;
       require(block.timestamp > vars.auctionEndTimestamp, Errors.ISOLATE_BID_AUCTION_DURATION_NOT_END);
 
       vars.normalizedIndex = InterestLogic.getNormalizedBorrowDebt(debtAssetData, debtGroupData);
       vars.borrowAmount = loanData.scaledAmount.rayMul(vars.normalizedIndex);
 
-      // Last bid can not cover borrow amount and liquidator need pay the extra amount
+      // Last bid can not cover borrow amount and caller need pay the extra amount
       if (loanData.bidAmount < vars.borrowAmount) {
         vars.extraBorrowAmounts[vars.nidx] = vars.borrowAmount - loanData.bidAmount;
       }
@@ -447,6 +455,7 @@ library IsolateLogic {
       vars.totalBorrowAmount += vars.borrowAmount;
       vars.totalBidAmount += loanData.bidAmount;
       vars.totalExtraAmount += vars.extraBorrowAmounts[vars.nidx];
+      vars.totalRemainAmount += vars.remainBidAmounts[vars.nidx];
 
       // delete the loan data at final
       delete poolData.loanLookup[params.nftAsset][params.nftTokenIds[vars.nidx]];
@@ -457,24 +466,29 @@ library IsolateLogic {
       Errors.ISOLATE_LOAN_BORROW_AMOUNT_NOT_COVER
     );
 
+    require(
+      (vars.totalBorrowAmount + vars.totalRemainAmount) <= vars.totalBidAmount,
+      Errors.ISOLATE_LOAN_BORROW_AMOUNT_NOT_COVER
+    );
+
     // update interest rate according latest borrow amount (utilizaton)
-    InterestLogic.updateInterestRates(poolData, debtAssetData, (vars.totalBorrowAmount + vars.totalExtraAmount), 0);
+    InterestLogic.updateInterestRates(poolData, debtAssetData, vars.totalBorrowAmount, 0);
+
+    if (vars.totalExtraAmount > 0) {
+      // transfer underlying asset from caller to pool
+      VaultLogic.erc20TransferInLiquidity(debtAssetData, params.msgSender, vars.totalExtraAmount);
+    }
 
     // bid already in pool and now repay the borrow but need to increase liquidity
     VaultLogic.erc20TransferOutBidAmountToLiqudity(debtAssetData, vars.totalBorrowAmount);
 
-    if (vars.totalExtraAmount > 0) {
-      // transfer underlying asset from liquidator to pool
-      VaultLogic.erc20TransferInLiquidity(debtAssetData, params.msgSender, vars.totalExtraAmount);
-    }
-
-    // transfer erc721 to bidder
+    // transfer erc721 to winning bidder
     if (params.supplyAsCollateral) {
-      VaultLogic.erc721TransferIsolateSupplyOnLiquidate(nftAssetData, params.msgSender, params.nftTokenIds);
+      VaultLogic.erc721TransferIsolateSupplyOnLiquidate(nftAssetData, vars.winningBidder, params.nftTokenIds, true);
     } else {
       VaultLogic.erc721DecreaseIsolateSupplyOnLiquidate(nftAssetData, params.nftTokenIds);
 
-      VaultLogic.erc721TransferOutLiquidity(nftAssetData, params.msgSender, params.nftTokenIds);
+      VaultLogic.erc721TransferOutLiquidity(nftAssetData, vars.winningBidder, params.nftTokenIds);
     }
 
     emit Events.IsolateLiquidate(

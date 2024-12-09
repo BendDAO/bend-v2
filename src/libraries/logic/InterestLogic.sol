@@ -173,8 +173,11 @@ library InterestLogic {
     for (vars.i = 0; vars.i < vars.assetGroupIds.length; vars.i++) {
       vars.loopGroupId = uint8(vars.assetGroupIds[vars.i]);
       DataTypes.GroupData storage loopGroupData = assetData.groupLookup[vars.loopGroupId];
+      require(loopGroupData.rateModel != address(0), Errors.INVALID_RATE_MODEL);
 
       vars.nextGroupBorrowRate = IInterestRateModel(loopGroupData.rateModel).calculateGroupBorrowRate(
+        poolData.poolId,
+        assetData.underlyingAsset,
         vars.loopGroupId,
         vars.assetUtilizationRate
       );

@@ -75,8 +75,8 @@ contract YieldSavingsDai is YieldStakingBase {
     _repay(poolId, nft, tokenId);
   }
 
-  function protocolDeposit(YieldStakeData storage /*sd*/, uint256 amount) internal virtual override returns (uint256) {
-    IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[msg.sender]);
+  function protocolDeposit(YieldStakeData storage sd, uint256 amount) internal virtual override returns (uint256) {
+    IYieldAccount yieldAccount = IYieldAccount(sd.yieldAccount);
 
     dai.safeTransfer(address(yieldAccount), amount);
 
@@ -84,10 +84,11 @@ contract YieldSavingsDai is YieldStakingBase {
       address(sdai),
       abi.encodeWithSelector(ISavingsDai.deposit.selector, amount, address(yieldAccount))
     );
-    uint256 yieldAmount = abi.decode(result, (uint256));
-    require(yieldAmount > 0, Errors.YIELD_ETH_DEPOSIT_FAILED);
+    uint256 yieldShare = abi.decode(result, (uint256));
+    require(yieldShare > 0, Errors.YIELD_ETH_DEPOSIT_FAILED);
 
-    return yieldAmount;
+    // We no need to convert to assets, cos it based on the balanceOf
+    return yieldShare;
   }
 
   /* @dev SavingsDAI no need 2 steps so keep it empty */
@@ -96,7 +97,7 @@ contract YieldSavingsDai is YieldStakingBase {
   }
 
   function protocolClaimWithdraw(YieldStakeData storage sd) internal virtual override returns (uint256) {
-    IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[msg.sender]);
+    IYieldAccount yieldAccount = IYieldAccount(sd.yieldAccount);
 
     uint256 claimedDai = dai.balanceOf(address(this));
 
@@ -114,6 +115,9 @@ contract YieldSavingsDai is YieldStakingBase {
   }
 
   function protocolIsClaimReady(YieldStakeData storage sd) internal view virtual override returns (bool) {
+    if (super.protocolIsClaimReady(sd)) {
+      return true;
+    }
     if (sd.state == Constants.YIELD_STATUS_UNSTAKE) {
       return true;
     }

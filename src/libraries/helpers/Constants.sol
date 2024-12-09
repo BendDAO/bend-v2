@@ -19,10 +19,12 @@ library Constants {
   uint internal constant MODULEID__POOL_LENS = 4;
   uint internal constant MODULEID__FLASHLOAN = 5;
   uint internal constant MODULEID__YIELD = 6;
+  uint internal constant MODULEID__CONFIGURATOR_POOL = 7;
   uint internal constant MODULEID__CROSS_LENDING = 11;
   uint internal constant MODULEID__CROSS_LIQUIDATION = 12;
   uint internal constant MODULEID__ISOLATE_LENDING = 21;
   uint internal constant MODULEID__ISOLATE_LIQUIDATION = 22;
+  uint internal constant MODULEID__UI_POOL_LENS = 31;
 
   uint internal constant MAX_EXTERNAL_SINGLE_PROXY_MODULEID = 499_999;
 
@@ -109,4 +111,9 @@ library Constants {
   uint8 public constant YIELD_STATUS_UNSTAKE = 2;
   uint8 public constant YIELD_STATUS_CLAIM = 3;
   uint8 public constant YIELD_STATUS_REPAID = 4;
+
+  // Oracle Source type
+  uint8 public constant ORACLE_TYPE_CHAIN_LINK = 0;
+  uint8 public constant ORACLE_TYPE_BEND_NFT = 1;
+  uint8 public constant ORACLE_TYPE_BEND_TOKEN = 2;
 }

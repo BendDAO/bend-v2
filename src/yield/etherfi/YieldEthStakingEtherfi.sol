@@ -65,23 +65,33 @@ contract YieldEthStakingEtherfi is YieldStakingBase {
     super.repay(poolId, nft, tokenId);
   }
 
-  function protocolDeposit(YieldStakeData storage /*sd*/, uint256 amount) internal virtual override returns (uint256) {
+  function batchRepayETH(uint32 poolId, address[] calldata nfts, uint256[] calldata tokenIds) public payable {
+    if (msg.value > 0) {
+      IWETH(address(underlyingAsset)).deposit{value: msg.value}();
+      IWETH(address(underlyingAsset)).transfer(msg.sender, msg.value);
+    }
+
+    super.batchRepay(poolId, nfts, tokenIds);
+  }
+
+  function protocolDeposit(YieldStakeData storage sd, uint256 amount) internal virtual override returns (uint256) {
     IWETH(address(underlyingAsset)).withdraw(amount);
 
-    IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[msg.sender]);
+    IYieldAccount yieldAccount = IYieldAccount(sd.yieldAccount);
 
+    // CAUTION: deposit return share not amount, but eETH.balanceOf return amount
     bytes memory result = yieldAccount.executeWithValue{value: amount}(
       address(liquidityPool),
       abi.encodeWithSelector(ILiquidityPool.deposit.selector),
       amount
     );
-    uint256 yieldAmount = abi.decode(result, (uint256));
-    require(yieldAmount > 0, Errors.YIELD_ETH_DEPOSIT_FAILED);
-    return yieldAmount;
+    uint256 yieldShare = abi.decode(result, (uint256));
+    require(yieldShare > 0, Errors.YIELD_ETH_DEPOSIT_FAILED);
+    return liquidityPool.amountForShare(yieldShare); // convert to amount
   }
 
   function protocolRequestWithdrawal(YieldStakeData storage sd) internal virtual override {
-    IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[msg.sender]);
+    IYieldAccount yieldAccount = IYieldAccount(sd.yieldAccount);
     bytes memory result = yieldAccount.execute(
       address(liquidityPool),
       abi.encodeWithSelector(ILiquidityPool.requestWithdraw.selector, address(yieldAccount), sd.withdrawAmount)
@@ -92,7 +102,7 @@ contract YieldEthStakingEtherfi is YieldStakingBase {
   }
 
   function protocolClaimWithdraw(YieldStakeData storage sd) internal virtual override returns (uint256) {
-    IYieldAccount yieldAccount = IYieldAccount(yieldAccounts[msg.sender]);
+    IYieldAccount yieldAccount = IYieldAccount(sd.yieldAccount);
 
     uint256 claimedEth = address(yieldAccount).balance;
     yieldAccount.execute(
@@ -110,6 +120,10 @@ contract YieldEthStakingEtherfi is YieldStakingBase {
   }
 
   function protocolIsClaimReady(YieldStakeData storage sd) internal view virtual override returns (bool) {
+    if (super.protocolIsClaimReady(sd)) {
+      return true;
+    }
+
     if (sd.state == Constants.YIELD_STATUS_UNSTAKE) {
       return withdrawRequestNFT.isFinalized(sd.withdrawReqId);
     }

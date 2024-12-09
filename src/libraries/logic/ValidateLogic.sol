@@ -70,7 +70,7 @@ library ValidateLogic {
     address onBehalf
   ) internal view {
     require(
-      msgSender == onBehalf || VaultLogic.accountIsApprovedForAll(poolData, onBehalf, asset, msgSender),
+      msgSender == onBehalf || VaultLogic.accountIsOperatorAuthorized(poolData, onBehalf, asset, msgSender),
       Errors.SENDER_NOT_APPROVED
     );
   }
@@ -392,7 +392,7 @@ library ValidateLogic {
     require(nftAssetData.assetType == Constants.ASSET_TYPE_ERC721, Errors.ASSET_TYPE_NOT_ERC721);
     require(!nftAssetData.isFrozen, Errors.ASSET_IS_FROZEN);
 
-    validateSenderApproved(poolData, inputParams.msgSender, inputParams.nftAsset, inputParams.onBehalf);
+    validateSenderApproved(poolData, inputParams.msgSender, inputParams.asset, inputParams.onBehalf);
     require(inputParams.receiver != address(0), Errors.INVALID_TO_ADDRESS);
 
     require(inputParams.nftTokenIds.length > 0, Errors.INVALID_ID_LIST);
@@ -497,6 +497,12 @@ library ValidateLogic {
 
     for (uint256 i = 0; i < inputParams.amounts.length; i++) {
       require(inputParams.amounts[i] > 0, Errors.INVALID_AMOUNT);
+
+      DataTypes.ERC721TokenData storage tokenData = VaultLogic.erc721GetTokenData(
+        nftAssetData,
+        inputParams.nftTokenIds[i]
+      );
+      require(tokenData.owner == inputParams.onBehalf, Errors.ISOLATE_LOAN_OWNER_NOT_MATCH);
     }
   }
 
@@ -624,6 +630,7 @@ library ValidateLogic {
     require(assetData.isYieldEnabled, Errors.ASSET_YIELD_NOT_ENABLE);
     require(!assetData.isYieldPaused, Errors.ASSET_YIELD_IS_PAUSED);
     require(!assetData.isFrozen, Errors.ASSET_IS_FROZEN);
+    require(assetData.isBorrowingEnabled, Errors.ASSET_IS_BORROW_DISABLED);
 
     validateGroupBasic(groupData);
 
@@ -650,7 +657,7 @@ library ValidateLogic {
   }
 
   function validateYieldSetERC721TokenData(
-    InputTypes.ExecuteYieldSetERC721TokenDataParams memory inputParams,
+    InputTypes.ExecuteYieldSetERC721TokenDataParams memory /*inputParams*/,
     DataTypes.PoolData storage poolData,
     DataTypes.AssetData storage assetData,
     DataTypes.ERC721TokenData storage tokenData
@@ -664,11 +671,6 @@ library ValidateLogic {
     require(!assetData.isYieldPaused, Errors.ASSET_YIELD_IS_PAUSED);
 
     require(tokenData.supplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.ASSET_NOT_ISOLATE_MODE);
-
-    require(
-      tokenData.lockerAddr == inputParams.msgSender || tokenData.lockerAddr == address(0),
-      Errors.ASSET_ALREADY_LOCKED_IN_USE
-    );
   }
 
   function validateFlashLoanERC20Basic(

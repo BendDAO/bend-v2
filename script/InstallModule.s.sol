@@ -5,6 +5,7 @@ import {Constants} from 'src/libraries/helpers/Constants.sol';
 
 import {PoolManager} from 'src/PoolManager.sol';
 import {Installer} from 'src/modules/Installer.sol';
+import {ConfiguratorPool} from 'src/modules/ConfiguratorPool.sol';
 import {Configurator} from 'src/modules/Configurator.sol';
 import {BVault} from 'src/modules/BVault.sol';
 import {CrossLending} from 'src/modules/CrossLending.sol';
@@ -14,6 +15,7 @@ import {IsolateLiquidation} from 'src/modules/IsolateLiquidation.sol';
 import {Yield} from 'src/modules/Yield.sol';
 import {FlashLoan} from 'src/modules/FlashLoan.sol';
 import {PoolLens} from 'src/modules/PoolLens.sol';
+import {UIPoolLens} from 'src/modules/UIPoolLens.sol';
 
 import {Configured, ConfigLib, Config} from 'config/Configured.sol';
 import {DeployBase} from './DeployBase.s.sol';
@@ -31,25 +33,33 @@ contract InstallModule is DeployBase {
 
     Installer installer = Installer(poolManager.moduleIdToProxy(Constants.MODULEID__INSTALLER));
 
-    //address[] memory modules = _allModules();
+    // address[] memory modules = _allModules();
     address[] memory modules = _someModules();
 
-    installer.installModules(modules);
+    if (block.chainid != 1) {
+      installer.installModules(modules);
+    }
   }
 
   function _someModules() internal returns (address[] memory) {
-    address[] memory modules = new address[](1);
+    address[] memory modules = new address[](2);
     uint modIdx = 0;
 
     PoolLens tsPoolLensImpl = new PoolLens(gitCommitHash);
     modules[modIdx++] = address(tsPoolLensImpl);
 
+    Yield tsYieldImpl = new Yield(gitCommitHash);
+    modules[modIdx++] = address(tsYieldImpl);
+
     return modules;
   }
 
   function _allModules() internal returns (address[] memory) {
-    address[] memory modules = new address[](9);
+    address[] memory modules = new address[](11);
     uint modIdx = 0;
+
+    ConfiguratorPool tsConfiguratorPoolImpl = new ConfiguratorPool(gitCommitHash);
+    modules[modIdx++] = address(tsConfiguratorPoolImpl);
 
     Configurator tsConfiguratorImpl = new Configurator(gitCommitHash);
     modules[modIdx++] = address(tsConfiguratorImpl);
@@ -77,6 +87,9 @@ contract InstallModule is DeployBase {
 
     PoolLens tsPoolLensImpl = new PoolLens(gitCommitHash);
     modules[modIdx++] = address(tsPoolLensImpl);
+
+    UIPoolLens tsUIPoolLensImpl = new UIPoolLens(gitCommitHash);
+    modules[modIdx++] = address(tsUIPoolLensImpl);
 
     return modules;
   }

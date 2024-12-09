@@ -48,7 +48,8 @@ contract IsolateLending is BaseModule {
     );
 
     if (isNative) {
-      VaultLogic.unwrapNativeTokenInWallet(asset, msgSender, totalBorrowAmount);
+      require(msgSender == receiver, Errors.SENDER_RECEIVER_NOT_SAME);
+      VaultLogic.unwrapNativeTokenInWallet(asset, receiver, totalBorrowAmount);
     }
   }
 

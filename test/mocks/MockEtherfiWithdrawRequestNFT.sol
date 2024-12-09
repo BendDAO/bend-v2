@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {Ownable2Step} from '@openzeppelin/contracts/access/Ownable2Step.sol';
 import {ERC721} from '@openzeppelin/contracts/token/ERC721/ERC721.sol';
 import {ERC721Enumerable} from '@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 import {IeETH} from 'src/yield/etherfi/IeETH.sol';
 import {ILiquidityPool} from 'src/yield/etherfi/ILiquidityPool.sol';
@@ -37,7 +38,7 @@ contract MockEtherfiWithdrawRequestNFT is IWithdrawRequestNFT, ERC721Enumerable,
     _withdrawRequests[reqId].isValid = true;
     _withdrawRequests[reqId].feeGwei = uint32(fee / 1 gwei);
 
-    _mint(requester, reqId);
+    _safeMint(requester, reqId);
 
     return reqId;
   }
@@ -63,6 +64,7 @@ contract MockEtherfiWithdrawRequestNFT is IWithdrawRequestNFT, ERC721Enumerable,
   }
 
   function setWithdrawalStatus(uint256 requestId, bool isFinalized_, bool isClaimed_) public {
+    require(_withdrawRequests[requestId].amountOfEEth != 0, 'invalid requestId');
     _isFinalizeds[requestId] = isFinalized_;
     _isClaimeds[requestId] = isClaimed_;
   }
@@ -70,5 +72,10 @@ contract MockEtherfiWithdrawRequestNFT is IWithdrawRequestNFT, ERC721Enumerable,
   function setLiquidityPool(address pool, address eETH_) public onlyOwner {
     _liquidityPool = ILiquidityPool(pool);
     _eETH = IeETH(eETH_);
+  }
+
+  function transferEETH(address receiver) public onlyOwner {
+    uint256 amount = IERC20(_eETH).balanceOf(address(this));
+    IERC20(_eETH).transfer(receiver, amount);
   }
 }

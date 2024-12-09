@@ -12,6 +12,7 @@ import {PriceOracle} from 'src/PriceOracle.sol';
 
 import {PoolManager} from 'src/PoolManager.sol';
 import {Installer} from 'src/modules/Installer.sol';
+import {ConfiguratorPool} from 'src/modules/ConfiguratorPool.sol';
 import {Configurator} from 'src/modules/Configurator.sol';
 import {BVault} from 'src/modules/BVault.sol';
 import {CrossLending} from 'src/modules/CrossLending.sol';
@@ -21,6 +22,9 @@ import {IsolateLiquidation} from 'src/modules/IsolateLiquidation.sol';
 import {Yield} from 'src/modules/Yield.sol';
 import {FlashLoan} from 'src/modules/FlashLoan.sol';
 import {PoolLens} from 'src/modules/PoolLens.sol';
+import {UIPoolLens} from 'src/modules/UIPoolLens.sol';
+
+import {DefaultInterestRateModel} from 'src/irm/DefaultInterestRateModel.sol';
 
 import {Configured, ConfigLib, Config} from 'config/Configured.sol';
 import {DeployBase} from './DeployBase.s.sol';
@@ -31,6 +35,23 @@ contract DeployPoolFull is DeployBase {
   using ConfigLib for Config;
 
   function _deploy() internal virtual override {
+    // _deployPoolFull();
+
+    _deployPoolPart();
+  }
+
+  function _deployPoolPart() internal {
+    address proxyAdmin_ = config.getProxyAdmin();
+    require(proxyAdmin_ != address(0), 'ProxyAdmin not exist in config');
+
+    address addressProvider_ = config.getAddressProvider();
+    require(addressProvider_ != address(0), 'AddressProvider not exist in config');
+
+    address defaultIrm_ = _deployDefaultIRM(proxyAdmin_, addressProvider_);
+    console.log('DefaultIrm:', defaultIrm_);
+  }
+
+  function _deployPoolFull() internal {
     address proxyAdmin_ = _deployProxyAdmin();
     console.log('ProxyAdmin:', proxyAdmin_);
 
@@ -45,6 +66,9 @@ contract DeployPoolFull is DeployBase {
 
     address poolManager_ = _deployPoolManager(addressProvider_);
     console.log('PoolManager:', poolManager_);
+
+    address defaultIrm_ = _deployDefaultIRM(proxyAdmin_, addressProvider_);
+    console.log('DefaultIrm:', defaultIrm_);
   }
 
   function _deployProxyAdmin() internal returns (address) {
@@ -129,51 +153,91 @@ contract DeployPoolFull is DeployBase {
     return address(priceOracle);
   }
 
+  function _deployDefaultIRM(address proxyAdmin_, address addressProvider_) internal returns (address) {
+    DefaultInterestRateModel defaultIrmImpl = new DefaultInterestRateModel();
+    TransparentUpgradeableProxy defaultIrmProxy = new TransparentUpgradeableProxy(
+      address(defaultIrmImpl),
+      address(proxyAdmin_),
+      abi.encodeWithSelector(defaultIrmImpl.initialize.selector, address(addressProvider_))
+    );
+    DefaultInterestRateModel defaultIrm = DefaultInterestRateModel(address(defaultIrmProxy));
+
+    return address(defaultIrm);
+  }
+
+  struct DeployLocalVars {
+    address addressInCfg;
+    address[] modules;
+    uint modIdx;
+    PoolManager poolManager;
+    Installer tsModInstallerImpl;
+    Installer installer;
+    ConfiguratorPool tsConfiguratorPoolImpl;
+    Configurator tsConfiguratorImpl;
+    BVault tsVaultImpl;
+    CrossLending tsCrossLendingImpl;
+    CrossLiquidation tsCrossLiquidationImpl;
+    IsolateLending tsIsolateLendingImpl;
+    IsolateLiquidation tsIsolateLiquidationImpl;
+    Yield tsYieldImpl;
+    FlashLoan tsFlashLoanImpl;
+    PoolLens tsPoolLensImpl;
+    UIPoolLens tsUIPoolLensImpl;
+  }
+
   function _deployPoolManager(address addressProvider_) internal returns (address) {
-    address addressInCfg = config.getPoolManager();
-    require(addressInCfg == address(0), 'PoolManager exist in config');
+    DeployLocalVars memory vars;
+
+    vars.addressInCfg = config.getPoolManager();
+    require(vars.addressInCfg == address(0), 'PoolManager exist in config');
 
     // Installer & PoolManager
-    Installer tsModInstallerImpl = new Installer(gitCommitHash);
-    PoolManager poolManager = new PoolManager(address(addressProvider_), address(tsModInstallerImpl));
+    vars.tsModInstallerImpl = new Installer(gitCommitHash);
+    vars.poolManager = new PoolManager(address(addressProvider_), address(vars.tsModInstallerImpl));
 
-    AddressProvider(addressProvider_).setPoolManager(address(poolManager));
+    AddressProvider(addressProvider_).setPoolManager(address(vars.poolManager));
 
-    Installer installer = Installer(poolManager.moduleIdToProxy(Constants.MODULEID__INSTALLER));
+    vars.installer = Installer(vars.poolManager.moduleIdToProxy(Constants.MODULEID__INSTALLER));
 
     // Modules
-    address[] memory modules = new address[](9);
-    uint modIdx = 0;
+    vars.modules = new address[](11);
+    vars.modIdx = 0;
 
-    Configurator tsConfiguratorImpl = new Configurator(gitCommitHash);
-    modules[modIdx++] = address(tsConfiguratorImpl);
+    vars.tsConfiguratorPoolImpl = new ConfiguratorPool(gitCommitHash);
+    vars.modules[vars.modIdx++] = address(vars.tsConfiguratorPoolImpl);
 
-    BVault tsVaultImpl = new BVault(gitCommitHash);
-    modules[modIdx++] = address(tsVaultImpl);
+    vars.tsConfiguratorImpl = new Configurator(gitCommitHash);
+    vars.modules[vars.modIdx++] = address(vars.tsConfiguratorImpl);
 
-    CrossLending tsCrossLendingImpl = new CrossLending(gitCommitHash);
-    modules[modIdx++] = address(tsCrossLendingImpl);
+    vars.tsVaultImpl = new BVault(gitCommitHash);
+    vars.modules[vars.modIdx++] = address(vars.tsVaultImpl);
 
-    CrossLiquidation tsCrossLiquidationImpl = new CrossLiquidation(gitCommitHash);
-    modules[modIdx++] = address(tsCrossLiquidationImpl);
+    vars.tsCrossLendingImpl = new CrossLending(gitCommitHash);
+    vars.modules[vars.modIdx++] = address(vars.tsCrossLendingImpl);
 
-    IsolateLending tsIsolateLendingImpl = new IsolateLending(gitCommitHash);
-    modules[modIdx++] = address(tsIsolateLendingImpl);
+    vars.tsCrossLiquidationImpl = new CrossLiquidation(gitCommitHash);
+    vars.modules[vars.modIdx++] = address(vars.tsCrossLiquidationImpl);
 
-    IsolateLiquidation tsIsolateLiquidationImpl = new IsolateLiquidation(gitCommitHash);
-    modules[modIdx++] = address(tsIsolateLiquidationImpl);
+    vars.tsIsolateLendingImpl = new IsolateLending(gitCommitHash);
+    vars.modules[vars.modIdx++] = address(vars.tsIsolateLendingImpl);
 
-    Yield tsYieldImpl = new Yield(gitCommitHash);
-    modules[modIdx++] = address(tsYieldImpl);
+    vars.tsIsolateLiquidationImpl = new IsolateLiquidation(gitCommitHash);
+    vars.modules[vars.modIdx++] = address(vars.tsIsolateLiquidationImpl);
 
-    FlashLoan tsFlashLoanImpl = new FlashLoan(gitCommitHash);
-    modules[modIdx++] = address(tsFlashLoanImpl);
+    vars.tsYieldImpl = new Yield(gitCommitHash);
+    vars.modules[vars.modIdx++] = address(vars.tsYieldImpl);
 
-    PoolLens tsPoolLensImpl = new PoolLens(gitCommitHash);
-    modules[modIdx++] = address(tsPoolLensImpl);
+    vars.tsFlashLoanImpl = new FlashLoan(gitCommitHash);
+    vars.modules[vars.modIdx++] = address(vars.tsFlashLoanImpl);
 
-    installer.installModules(modules);
+    vars.tsPoolLensImpl = new PoolLens(gitCommitHash);
+    vars.modules[vars.modIdx++] = address(vars.tsPoolLensImpl);
 
-    return address(poolManager);
+    vars.tsUIPoolLensImpl = new UIPoolLens(gitCommitHash);
+    vars.modules[vars.modIdx++] = address(vars.tsUIPoolLensImpl);
+
+    vars.installer.installModules(vars.modules);
+
+    return address(vars.poolManager);
   }
 }

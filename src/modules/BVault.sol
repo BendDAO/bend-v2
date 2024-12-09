@@ -28,7 +28,7 @@ contract BVault is BaseModule {
     if (asset == Constants.NATIVE_TOKEN_ADDRESS) {
       asset = ps.wrappedNativeToken;
       amount = msg.value;
-      VaultLogic.wrapNativeTokenInWallet(asset, msgSender, amount);
+      VaultLogic.wrapNativeTokenInWallet(asset, msgSender, msg.value);
     } else {
       require(msg.value == 0, Errors.MSG_VALUE_NOT_ZERO);
     }
@@ -71,7 +71,8 @@ contract BVault is BaseModule {
     );
 
     if (isNative) {
-      VaultLogic.unwrapNativeTokenInWallet(asset, msgSender, amount);
+      require(msgSender == receiver, Errors.SENDER_RECEIVER_NOT_SAME);
+      VaultLogic.unwrapNativeTokenInWallet(asset, receiver, amount);
     }
   }
 
@@ -162,13 +163,13 @@ contract BVault is BaseModule {
     );
   }
 
-  function setApprovalForAll(
+  function setAuthorization(
     uint32 poolId,
     address asset,
     address operator,
     bool approved
   ) public whenNotPaused nonReentrant {
     address msgSender = unpackTrailingParamMsgSender();
-    PoolLogic.executeSetApprovalForAll(msgSender, poolId, asset, operator, approved);
+    PoolLogic.executeSetAuthorization(msgSender, poolId, asset, operator, approved);
   }
 }

@@ -52,6 +52,13 @@ contract TestIntIsolateLiquidate is TestWithIsolateAction {
       TestLoanData memory loanDataBeforeAuction = getIsolateLoanData(tsCommonPoolId, nftAsset, tokenIds[i]);
       assertLt(loanDataBeforeAuction.healthFactor, 1e18, 'healthFactor not lt 1');
       bidAmounts[i] = (loanDataBeforeAuction.borrowAmount * 1011) / 1000;
+
+      (uint256 borrowAmount /*uint256 thresholdPrice*/, , uint256 liquidatePrice) = tsPoolLens.getIsolateLiquidateData(
+        tsCommonPoolId,
+        address(tsBAYC),
+        tokenIds[i]
+      );
+      assertLe(borrowAmount, liquidatePrice, 'borrowAmount not le liquidatePrice');
     }
 
     user.isolateAuction(tsCommonPoolId, nftAsset, tokenIds, debtAsset, bidAmounts);

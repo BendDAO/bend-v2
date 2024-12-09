@@ -114,7 +114,7 @@ library VaultLogic {
     }
   }
 
-  function accountSetApprovalForAll(
+  function accountSetAuthorization(
     DataTypes.PoolData storage poolData,
     address account,
     address asset,
@@ -122,17 +122,17 @@ library VaultLogic {
     bool approved
   ) internal {
     DataTypes.AccountData storage accountData = poolData.accountLookup[account];
-    accountData.operatorApprovals[asset][operator] = approved;
+    accountData.operatorAuthorizations[asset][operator] = approved;
   }
 
-  function accountIsApprovedForAll(
+  function accountIsOperatorAuthorized(
     DataTypes.PoolData storage poolData,
     address account,
     address asset,
     address operator
   ) internal view returns (bool) {
     DataTypes.AccountData storage accountData = poolData.accountLookup[account];
-    return accountData.operatorApprovals[asset][operator];
+    return accountData.operatorAuthorizations[asset][operator];
   }
 
   //////////////////////////////////////////////////////////////////////////////
@@ -494,7 +494,9 @@ library VaultLogic {
   }
 
   function erc20TransferOutBidAmountToLiqudity(DataTypes.AssetData storage assetData, uint amount) internal {
+    require(assetData.totalBidAmout >= amount, Errors.ASSET_INSUFFICIENT_BIDAMOUNT);
     assetData.totalBidAmout -= amount;
+
     assetData.availableLiquidity += amount;
   }
 
@@ -601,6 +603,9 @@ library VaultLogic {
 
       tokenData.owner = address(0);
       tokenData.supplyMode = 0;
+      tokenData.lockerAddr = address(0);
+
+      delete assetData.erc721TokenData[tokenIds[i]];
     }
 
     assetData.totalScaledCrossSupply -= tokenIds.length;
@@ -618,6 +623,9 @@ library VaultLogic {
 
       tokenData.owner = address(0);
       tokenData.supplyMode = 0;
+      tokenData.lockerAddr = address(0);
+
+      delete assetData.erc721TokenData[tokenIds[i]];
     }
 
     assetData.totalScaledIsolateSupply -= tokenIds.length;
@@ -636,6 +644,9 @@ library VaultLogic {
 
       tokenData.owner = address(0);
       tokenData.supplyMode = 0;
+      tokenData.lockerAddr = address(0);
+
+      delete assetData.erc721TokenData[tokenIds[i]];
     }
 
     assetData.totalScaledIsolateSupply -= tokenIds.length;
@@ -665,7 +676,8 @@ library VaultLogic {
     DataTypes.AssetData storage assetData,
     address from,
     address to,
-    uint256[] memory tokenIds
+    uint256[] memory tokenIds,
+    bool clearLockerAddr
   ) internal {
     for (uint256 i = 0; i < tokenIds.length; i++) {
       DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
@@ -673,6 +685,9 @@ library VaultLogic {
       require(tokenData.owner == from, Errors.INVALID_TOKEN_OWNER);
 
       tokenData.owner = to;
+      if (clearLockerAddr) {
+        tokenData.lockerAddr = address(0);
+      }
     }
 
     assetData.userScaledIsolateSupply[from] -= tokenIds.length;
@@ -682,7 +697,8 @@ library VaultLogic {
   function erc721TransferIsolateSupplyOnLiquidate(
     DataTypes.AssetData storage assetData,
     address to,
-    uint256[] memory tokenIds
+    uint256[] memory tokenIds,
+    bool clearLockerAddr
   ) internal {
     for (uint256 i = 0; i < tokenIds.length; i++) {
       DataTypes.ERC721TokenData storage tokenData = assetData.erc721TokenData[tokenIds[i]];
@@ -692,6 +708,9 @@ library VaultLogic {
       assetData.userScaledIsolateSupply[to] += 1;
 
       tokenData.owner = to;
+      if (clearLockerAddr) {
+        tokenData.lockerAddr = address(0);
+      }
     }
   }
 
@@ -786,12 +805,15 @@ library VaultLogic {
 
     IWETH(wrappedNativeToken).deposit{value: amount}();
 
-    bool success = IWETH(wrappedNativeToken).transferFrom(address(this), user, amount);
+    bool success = IWETH(wrappedNativeToken).transfer(user, amount);
     require(success, Errors.TOKEN_TRANSFER_FAILED);
   }
 
   function unwrapNativeTokenInWallet(address wrappedNativeToken, address user, uint256 amount) internal {
     require(amount > 0, Errors.INVALID_AMOUNT);
+
+    require(IWETH(wrappedNativeToken).balanceOf(user) >= amount, Errors.TOKEN_BALANCE_INSUFFICIENT);
+    require(IWETH(wrappedNativeToken).allowance(user, address(this)) >= amount, Errors.TOKEN_ALLOWANCE_INSUFFICIENT);
 
     bool success = IWETH(wrappedNativeToken).transferFrom(user, address(this), amount);
     require(success, Errors.TOKEN_TRANSFER_FAILED);

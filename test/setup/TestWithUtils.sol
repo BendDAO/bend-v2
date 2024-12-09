@@ -32,6 +32,10 @@ abstract contract TestWithUtils is Test {
     assertApproxEqAbs(_firstValue, _secondValue, 1, err);
   }
 
+  function testEquality(uint256 _firstValue, uint256 _secondValue, uint256 maxDelta, string memory err) internal {
+    assertApproxEqAbs(_firstValue, _secondValue, maxDelta, err);
+  }
+
   function approxMinus(uint256 a, uint256 b, uint256 maxDelta) internal pure returns (uint256) {
     if (a < b) {
       require((b - a) <= maxDelta, 'delta exceed maxDelta');

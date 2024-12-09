@@ -109,6 +109,19 @@
   },
   {
     "type": "function",
+    "name": "removeYieldManager",
+    "inputs": [
+      {
+        "name": "_manager",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "rescue",
     "inputs": [
       {
@@ -209,6 +222,19 @@
         "name": "account",
         "type": "address",
         "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "RemoveYieldManager",
+    "inputs": [
+      {
+        "name": "manager",
+        "type": "address",
+        "indexed": true,
         "internalType": "address"
       }
     ],

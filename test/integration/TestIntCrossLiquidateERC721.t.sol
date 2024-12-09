@@ -13,7 +13,7 @@ contract TestIntCrossLiquidateERC721 is TestWithCrossAction {
     initCommonPools();
   }
 
-  function test_Should_RepayUSDT_HasBAYC() public {
+  function test_Should_LiquidateUSDT_HasBAYC() public {
     prepareUSDT(tsDepositor1);
 
     uint256[] memory depTokenIds = prepareCrossBAYC(tsBorrower1);
@@ -43,7 +43,7 @@ contract TestIntCrossLiquidateERC721 is TestWithCrossAction {
 
     // drop down price and lower heath factor
     uint256 baycCurPrice = tsBendNFTOracle.getAssetPrice(address(tsBAYC));
-    uint256 baycNewPrice = (baycCurPrice * 80) / 100;
+    uint256 baycNewPrice = (baycCurPrice * 75) / 100;
     tsBendNFTOracle.setAssetPrice(address(tsBAYC), baycNewPrice);
 
     TestUserAccountData memory accountDataAfterBorrow = getUserAccountData(address(tsBorrower1), tsCommonPoolId);
@@ -78,7 +78,7 @@ contract TestIntCrossLiquidateERC721 is TestWithCrossAction {
     );
   }
 
-  function test_Should_RepayUSDT_HasBAYC_SupplyAsCollateral() public {
+  function test_Should_LiquidateUSDT_HasBAYC_SupplyAsCollateral() public {
     prepareUSDT(tsDepositor1);
 
     uint256[] memory depTokenIds = prepareCrossBAYC(tsBorrower1);
@@ -108,7 +108,7 @@ contract TestIntCrossLiquidateERC721 is TestWithCrossAction {
 
     // drop down price and lower heath factor
     uint256 baycCurPrice = tsBendNFTOracle.getAssetPrice(address(tsBAYC));
-    uint256 baycNewPrice = (baycCurPrice * 80) / 100;
+    uint256 baycNewPrice = (baycCurPrice * 75) / 100;
     tsBendNFTOracle.setAssetPrice(address(tsBAYC), baycNewPrice);
 
     TestUserAccountData memory accountDataAfterBorrow = getUserAccountData(address(tsBorrower1), tsCommonPoolId);

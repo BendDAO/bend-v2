@@ -28,12 +28,18 @@ contract PriceOracle is IPriceOracle, Initializable {
   // Chainlink Aggregators for ERC20 tokens
   mapping(address => AggregatorV2V3Interface) public assetChainlinkAggregators;
 
+  // BendDAO Protocol ERC20 Token Oracle which used v2
+  IBendNFTOracle public bendTokenOracle;
+
+  // Asset Oracle Source Type
+  mapping(address => uint8) public assetOracleSourceTypes;
+
   /**
    * @dev This empty reserved space is put in place to allow future versions to add new
    * variables without shifting down storage in the inheritance chain.
    * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
    */
-  uint256[43] private __gap;
+  uint256[41] private __gap;
 
   modifier onlyOracleAdmin() {
     _onlyOracleAdmin();
@@ -69,6 +75,22 @@ contract PriceOracle is IPriceOracle, Initializable {
     NFT_BASE_CURRENCY_UNIT = nftBaseCurrencyUnit_;
   }
 
+  function setAssetOracleSourceTypes(address[] calldata assets, uint8[] calldata sourceTypes) public onlyOracleAdmin {
+    require(assets.length == sourceTypes.length, Errors.INCONSISTENT_PARAMS_LENGTH);
+    for (uint256 i = 0; i < assets.length; i++) {
+      require(assets[i] != address(0), Errors.INVALID_ADDRESS);
+      assetOracleSourceTypes[assets[i]] = sourceTypes[i];
+      emit Events.AssetOracleSourceTypeUpdated(assets[i], sourceTypes[i]);
+    }
+  }
+
+  function getAssetOracleSourceTypes(address[] calldata assets) public view returns (uint8[] memory sourceTypes) {
+    sourceTypes = new uint8[](assets.length);
+    for (uint256 i = 0; i < assets.length; i++) {
+      sourceTypes[i] = uint8(assetOracleSourceTypes[assets[i]]);
+    }
+  }
+
   /// @notice Set Chainlink aggregators for sssets
   function setAssetChainlinkAggregators(
     address[] calldata assets,
@@ -78,8 +100,18 @@ contract PriceOracle is IPriceOracle, Initializable {
     for (uint256 i = 0; i < assets.length; i++) {
       require(assets[i] != address(0), Errors.INVALID_ADDRESS);
       require(aggregators[i] != address(0), Errors.INVALID_ADDRESS);
+      uint256 decimalsUnit = 10 ** AggregatorV2V3Interface(aggregators[i]).decimals();
+      require(BASE_CURRENCY_UNIT == decimalsUnit, Errors.INVALID_ASSET_DECIMALS);
       assetChainlinkAggregators[assets[i]] = AggregatorV2V3Interface(aggregators[i]);
       emit Events.AssetAggregatorUpdated(assets[i], aggregators[i]);
+    }
+  }
+
+  function removeAssetChainlinkAggregators(address[] calldata assets) public onlyOracleAdmin {
+    for (uint256 i = 0; i < assets.length; i++) {
+      require(assets[i] != address(0), Errors.INVALID_ADDRESS);
+      assetChainlinkAggregators[assets[i]] = AggregatorV2V3Interface(address(0));
+      emit Events.AssetAggregatorUpdated(assets[i], address(0));
     }
   }
 
@@ -101,6 +133,19 @@ contract PriceOracle is IPriceOracle, Initializable {
     return address(bendNFTOracle);
   }
 
+  /// @notice Set the global BendDAO ERC20 Oracle
+  function setBendTokenOracle(address bendTokenOracle_) public onlyOracleAdmin {
+    require(bendTokenOracle_ != address(0), Errors.INVALID_ADDRESS);
+    uint256 decimalsUnit = 10 ** IBendNFTOracle(bendTokenOracle_).getDecimals();
+    require(BASE_CURRENCY_UNIT == decimalsUnit, Errors.INVALID_ASSET_DECIMALS);
+    bendTokenOracle = IBendNFTOracle(bendTokenOracle_);
+    emit Events.BendTokenOracleUpdated(bendTokenOracle_);
+  }
+
+  function getBendTokenOracle() public view returns (address) {
+    return address(bendTokenOracle);
+  }
+
   /// @notice Query the price of asset
   function getAssetPrice(address asset) external view returns (uint256) {
     if (asset == BASE_CURRENCY) {
@@ -111,7 +156,17 @@ contract PriceOracle is IPriceOracle, Initializable {
       return getAssetPriceFromChainlink(asset);
     }
 
-    return getAssetPriceFromBendNFTOracle(asset);
+    uint8 sourceType = assetOracleSourceTypes[asset];
+
+    if (sourceType == Constants.ORACLE_TYPE_BEND_NFT) {
+      return getAssetPriceFromBendNFTOracle(asset);
+    }
+
+    if (sourceType == Constants.ORACLE_TYPE_BEND_TOKEN) {
+      return getAssetPriceFromBendTokenOracle(asset);
+    }
+
+    revert(Errors.ASSET_ORACLE_NOT_EXIST);
   }
 
   /// @notice Query the price of asset from chainlink oracle
@@ -129,6 +184,9 @@ contract PriceOracle is IPriceOracle, Initializable {
 
   /// @notice Query the price of asset from benddao nft oracle
   function getAssetPriceFromBendNFTOracle(address asset) public view returns (uint256) {
+    uint256 updatedAt = bendNFTOracle.getLatestTimestamp(asset);
+    require(updatedAt != 0, Errors.ORACLE_PRICE_IS_STALE);
+
     uint256 nftPriceInNftBase = bendNFTOracle.getAssetPrice(asset);
     require(nftPriceInNftBase > 0, Errors.ASSET_PRICE_IS_ZERO);
 
@@ -141,5 +199,16 @@ contract PriceOracle is IPriceOracle, Initializable {
     uint256 nftBaseCurrencyPriceInBase = getAssetPriceFromChainlink(NFT_BASE_CURRENCY);
     uint256 nftPriceInBase = (nftPriceInNftBase * nftBaseCurrencyPriceInBase) / NFT_BASE_CURRENCY_UNIT;
     return nftPriceInBase;
+  }
+
+  /// @notice Query the price of asset from benddao token oracle
+  function getAssetPriceFromBendTokenOracle(address asset) public view returns (uint256) {
+    uint256 updatedAt = bendTokenOracle.getLatestTimestamp(asset);
+    require(updatedAt != 0, Errors.ORACLE_PRICE_IS_STALE);
+
+    uint256 tokenPrice = bendTokenOracle.getAssetPrice(asset);
+    require(tokenPrice > 0, Errors.ASSET_PRICE_IS_ZERO);
+
+    return tokenPrice;
   }
 }

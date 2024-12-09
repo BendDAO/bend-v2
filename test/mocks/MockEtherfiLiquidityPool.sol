@@ -11,34 +11,50 @@ import {IWithdrawRequestNFT} from 'src/yield/etherfi/IWithdrawRequestNFT.sol';
 import {MockeETH} from './MockeETH.sol';
 
 contract MockEtherfiLiquidityPool is ILiquidityPool, Ownable2Step {
+  uint256 private constant RAY = 10 ** 27;
+
   address public override eETH;
   address public override withdrawRequestNFT;
+  uint256 public shareRatio;
 
   constructor(address _eETH, address _withdrawRequestNFT) {
     eETH = _eETH;
     withdrawRequestNFT = _withdrawRequestNFT;
+    shareRatio = (RAY * 1000) / 965; // 3.5% APR
+  }
+
+  function setShareRatio(uint256 shareRatio_) public onlyOwner {
+    shareRatio = shareRatio_;
+  }
+
+  function getShareRatio() public view returns (uint256) {
+    return shareRatio;
   }
 
   function deposit() external payable override returns (uint256) {
     require(msg.value > 0, 'msg value is 0');
 
-    MockeETH(payable(eETH)).mint(msg.sender, msg.value);
-    return msg.value;
+    uint256 share = sharesForAmount(msg.value);
+    MockeETH(payable(eETH)).mintShare(msg.sender, share);
+    return share;
   }
 
   function rebase(address to) public payable returns (uint256) {
     require(msg.value > 0, 'msg value is 0');
 
-    MockeETH(payable(eETH)).mint(to, msg.value);
-    return msg.value;
+    uint256 share = sharesForAmount(msg.value);
+    MockeETH(payable(eETH)).mintShare(to, share);
+    return share;
   }
 
   function requestWithdraw(address recipient, uint256 amount) external override returns (uint256) {
-    IeETH(payable(eETH)).transferFrom(msg.sender, address(withdrawRequestNFT), amount);
+    uint256 share = sharesForAmount(amount);
+
+    IeETH(payable(eETH)).transferFrom(msg.sender, address(withdrawRequestNFT), share);
 
     uint256 requestId = IWithdrawRequestNFT(withdrawRequestNFT).requestWithdraw(
       uint96(amount),
-      uint96(amount),
+      uint96(share),
       recipient,
       0
     );
@@ -48,11 +64,20 @@ contract MockEtherfiLiquidityPool is ILiquidityPool, Ownable2Step {
   function withdraw(address _recipient, uint256 _amount) external override returns (uint256) {
     require(msg.sender == address(withdrawRequestNFT), 'Incorrect Caller');
 
-    MockeETH(payable(eETH)).burn(msg.sender, _amount);
+    uint256 share = sharesForAmount(_amount);
+    MockeETH(payable(eETH)).burnShare(msg.sender, share);
 
     _sendFund(_recipient, _amount);
 
     return _amount;
+  }
+
+  function amountForShare(uint256 _share) public view returns (uint256) {
+    return (_share * shareRatio) / RAY;
+  }
+
+  function sharesForAmount(uint256 _amount) public view returns (uint256) {
+    return (_amount * RAY) / shareRatio;
   }
 
   function transferETH(address to) public onlyOwner {

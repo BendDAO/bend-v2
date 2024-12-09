@@ -67,6 +67,8 @@ library PoolLogic {
     }
   }
 
+  /// @notice We don't automatically reset or clear the delegation when NFTs withdraw (leave) from the pool,
+  /// NFT owner has the responsibility to check & clear the delegation settings.
   function executeDelegateERC721(InputTypes.ExecuteDelegateERC721Params memory params) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
@@ -90,7 +92,7 @@ library PoolLogic {
     }
   }
 
-  function executeSetApprovalForAll(
+  function executeSetAuthorization(
     address msgSender,
     uint32 poolId,
     address asset,
@@ -103,8 +105,8 @@ library PoolLogic {
 
     require(msgSender != operator, Errors.SAME_ONBEHALF_ADDRESS);
 
-    VaultLogic.accountSetApprovalForAll(poolData, msgSender, asset, operator, approved);
+    VaultLogic.accountSetAuthorization(poolData, msgSender, asset, operator, approved);
 
-    emit Events.SetApprovalForAll(msgSender, poolId, asset, operator, approved);
+    emit Events.SetAuthorization(msgSender, poolId, asset, operator, approved);
   }
 }
