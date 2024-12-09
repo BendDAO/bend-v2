@@ -18,6 +18,7 @@ import {YieldRegistry} from 'src/yield/YieldRegistry.sol';
 import {YieldEthStakingLido} from 'src/yield/lido/YieldEthStakingLido.sol';
 import {YieldEthStakingEtherfi} from 'src/yield/etherfi/YieldEthStakingEtherfi.sol';
 import {YieldSavingsDai} from 'src/yield/sdai/YieldSavingsDai.sol';
+import {YieldWUSDStaking} from 'src/yield/wusd/YieldWUSDStaking.sol';
 
 import {BendV1Migration} from 'src/migrations/BendV1Migration.sol';
 
@@ -29,13 +30,21 @@ contract UpgradeContract is DeployBase {
   address internal addrYieldLido;
   address internal addrYieldEtherfi;
   address internal addrYieldSDai;
+  address internal addrYieldWUSD;
   address internal addrBendV1Migration;
 
   function _deploy() internal virtual override {
-    if (block.chainid == 11155111) {
+    if (block.chainid == 1) {
+      addrYieldLido = 0x61Ae6DCE4C7Cb1b8165aE244c734f20DF56efd73;
+      addrYieldEtherfi = 0x529a8822416c3c4ED1B77dE570118fDf1d474639;
+      addrYieldSDai = 0x6FA43C1a296db746937Ac4D97Ff61409E8c530cC;
+      addrYieldWUSD = 0x8C119f5D51209E6b5C508F90d23E8F3069a2DDBD;
+      addrBendV1Migration = 0xf6EE27bb3F17E456078711D8c4b257377375D654;
+    } else if (block.chainid == 11155111) {
       addrYieldLido = 0x59303f797B8Dd80fc3743047df63C76E44Ca7CBd;
       addrYieldEtherfi = 0x3234F1047E71421Ec67A576D87eaEe1B86E8A1Ea;
       addrYieldSDai = 0x7464a51fA6338A34b694b4bF4A152781fb2C4B70;
+      addrYieldWUSD = 0x86FF757587515bbD5C708170a15b4235EaCa284C;
       addrBendV1Migration = 0x989c290B431DA780C3Fce9640488E7967C1bAB84;
     } else {
       revert('chainid not support');
@@ -55,6 +64,8 @@ contract UpgradeContract is DeployBase {
     //_upgradeYieldEthStakingLido(proxyAdminInCfg, addrProviderInCfg);
     //_upgradeYieldEthStakingEtherfi(proxyAdminInCfg, addrProviderInCfg);
     //_upgradeYieldSavingsDai(proxyAdminInCfg, addrProviderInCfg);
+    //_upgradeYieldWUSDStaking(proxyAdminInCfg, addrProviderInCfg);
+
     //_upgradeBendV1Migration(proxyAdminInCfg, addrProviderInCfg);
   }
 
@@ -100,6 +111,13 @@ contract UpgradeContract is DeployBase {
 
     ProxyAdmin proxyAdmin = ProxyAdmin(proxyAdmin_);
     proxyAdmin.upgrade(ITransparentUpgradeableProxy(addrYieldSDai), address(newImpl));
+  }
+
+  function _upgradeYieldWUSDStaking(address proxyAdmin_, address /*addressProvider_*/) internal {
+    YieldWUSDStaking newImpl = new YieldWUSDStaking();
+
+    ProxyAdmin proxyAdmin = ProxyAdmin(proxyAdmin_);
+    proxyAdmin.upgrade(ITransparentUpgradeableProxy(addrYieldWUSD), address(newImpl));
   }
 
   function _upgradeBendV1Migration(address proxyAdmin_, address /*addressProvider_*/) internal {

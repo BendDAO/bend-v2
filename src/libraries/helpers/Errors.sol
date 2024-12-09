@@ -9,6 +9,7 @@ library Errors {
   string public constant MSG_VALUE_NOT_ZERO = '4';
   string public constant TOKEN_ALLOWANCE_INSUFFICIENT = '5';
   string public constant TOKEN_BALANCE_INSUFFICIENT = '6';
+  string public constant UNSUPPORTED = '7';
 
   string public constant REENTRANCY_ALREADY_LOCKED = '10';
 
@@ -103,6 +104,7 @@ library Errors {
   string public constant ASSET_SUPPLY_MODE_IS_SAME = '363';
   string public constant ASSET_TOKEN_ALREADY_EXISTS = '364';
   string public constant ASSET_LIQUIDITY_NOT_ZERO = '365';
+  string public constant ASSET_ORACLE_NOT_EXIST = '366';
 
   string public constant HEALTH_FACTOR_BELOW_LIQUIDATION_THRESHOLD = '400';
   string public constant HEALTH_FACTOR_NOT_BELOW_LIQUIDATION_THRESHOLD = '401';

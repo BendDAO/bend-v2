@@ -11,6 +11,8 @@ import {Constants} from 'src/libraries/helpers/Constants.sol';
 import {YieldEthStakingLido} from 'src/yield/lido/YieldEthStakingLido.sol';
 import {YieldEthStakingEtherfi} from 'src/yield/etherfi/YieldEthStakingEtherfi.sol';
 import {YieldSavingsDai} from 'src/yield/sdai/YieldSavingsDai.sol';
+import {YieldSavingsUSDS} from 'src/yield/susds/YieldSavingsUSDS.sol';
+import {YieldWUSDStaking} from 'src/yield/wusd/YieldWUSDStaking.sol';
 
 import {YieldRegistry} from 'src/yield/YieldRegistry.sol';
 import {YieldAccount} from 'src/yield/YieldAccount.sol';
@@ -30,13 +32,17 @@ contract DeployYieldStaking is DeployBase {
     address addrProviderInCfg = config.getAddressProvider();
     require(addrProviderInCfg != address(0), 'AddressProvider not exist in config');
 
-    //_deployYieldRegistry(proxyAdminInCfg, addrProviderInCfg);
+    // _deployYieldRegistry(proxyAdminInCfg, addrProviderInCfg);
 
-    _deployYieldEthStakingLido(proxyAdminInCfg, addrProviderInCfg);
+    // _deployYieldEthStakingLido(proxyAdminInCfg, addrProviderInCfg);
 
-    _deployYieldEthStakingEtherfi(proxyAdminInCfg, addrProviderInCfg);
+    // _deployYieldEthStakingEtherfi(proxyAdminInCfg, addrProviderInCfg);
 
-    _deployYieldSavingsDai(proxyAdminInCfg, addrProviderInCfg);
+    // _deployYieldSavingsDai(proxyAdminInCfg, addrProviderInCfg);
+
+    // _deployYieldSavingsUSDS(proxyAdminInCfg, addrProviderInCfg);
+
+    // _deployYieldWUSDStaking(proxyAdminInCfg, addrProviderInCfg);
   }
 
   function _deployYieldRegistry(address proxyAdmin_, address addressProvider_) internal returns (address) {
@@ -48,6 +54,7 @@ contract DeployYieldStaking is DeployBase {
       abi.encodeWithSelector(yieldRegistryImpl.initialize.selector, address(addressProvider_))
     );
     YieldRegistry yieldRegistry = YieldRegistry(address(yieldRegistryProxy));
+    console.log('yieldRegistry:', address(yieldRegistry));
 
     IAddressProvider(addressProvider_).setYieldRegistry(address(yieldRegistry));
 
@@ -66,7 +73,9 @@ contract DeployYieldStaking is DeployBase {
     uint256 chainId = config.getChainId();
     if (chainId == 1) {
       // mainnet
-      revert('not support');
+      weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+      stETH = 0xae7ab96520DE3A18E5e111B5EaAb095312D7fE84;
+      unstETH = 0x889edC2eDab5f40e902b864aD4d7AdE8E412F9B1;
     } else if (chainId == 11155111) {
       // sepolia
       weth = 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14;
@@ -84,6 +93,7 @@ contract DeployYieldStaking is DeployBase {
       abi.encodeWithSelector(yieldLidoImpl.initialize.selector, address(addressProvider_), weth, stETH, unstETH)
     );
     YieldEthStakingLido yieldLido = YieldEthStakingLido(payable(yieldLidoProxy));
+    console.log('YieldEthStakingLido:', address(yieldLido));
 
     return address(yieldLido);
   }
@@ -95,7 +105,8 @@ contract DeployYieldStaking is DeployBase {
     uint256 chainId = config.getChainId();
     if (chainId == 1) {
       // mainnet
-      revert('not support');
+      weth = 0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2;
+      etherfiPool = 0x308861A430be4cce5502d0A12724771Fc6DaF216;
     } else if (chainId == 11155111) {
       // sepolia
       weth = 0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14;
@@ -112,6 +123,7 @@ contract DeployYieldStaking is DeployBase {
       abi.encodeWithSelector(yieldEtherfiImpl.initialize.selector, address(addressProvider_), weth, etherfiPool)
     );
     YieldEthStakingEtherfi yieldEtherfi = YieldEthStakingEtherfi(payable(yieldEtherfiProxy));
+    console.log('YieldEthStakingEtherfi:', address(yieldEtherfi));
 
     return address(yieldEtherfi);
   }
@@ -123,7 +135,8 @@ contract DeployYieldStaking is DeployBase {
     uint256 chainId = config.getChainId();
     if (chainId == 1) {
       // mainnet
-      revert('not support');
+      dai = 0x6B175474E89094C44Da98b954EedeAC495271d0F;
+      sdai = 0x83F20F44975D03b1b09e64809B757c47f942BEeA;
     } else if (chainId == 11155111) {
       // sepolia
       dai = 0xf9a88B0cc31f248c89F063C2928fA10e5A029B88;
@@ -140,7 +153,68 @@ contract DeployYieldStaking is DeployBase {
       abi.encodeWithSelector(yieldSDaiImpl.initialize.selector, address(addressProvider_), dai, sdai)
     );
     YieldSavingsDai yieldSDai = YieldSavingsDai(payable(yieldSDaiProxy));
+    console.log('YieldSavingsDai:', address(yieldSDai));
 
     return address(yieldSDai);
+  }
+
+  function _deployYieldSavingsUSDS(address proxyAdmin_, address addressProvider_) internal returns (address) {
+    address usds = address(0);
+    address susds = address(0);
+
+    uint256 chainId = config.getChainId();
+    if (chainId == 1) {
+      // mainnet
+      usds = 0xdC035D45d973E3EC169d2276DDab16f1e407384F;
+      susds = 0xa3931d71877C0E7a3148CB7Eb4463524FEc27fbD;
+    } else if (chainId == 11155111) {
+      // sepolia
+      usds = 0x99f5A9506504BB96d0019538608090015BA9EBDd;
+      susds = 0xf8B05Dab36ea0492E4e358FeF83a608e4297b3D4;
+    } else {
+      revert('not support');
+    }
+
+    YieldSavingsUSDS yieldSUSDSImpl = new YieldSavingsUSDS();
+
+    TransparentUpgradeableProxy yieldSUSDSProxy = new TransparentUpgradeableProxy(
+      address(yieldSUSDSImpl),
+      address(proxyAdmin_),
+      abi.encodeWithSelector(yieldSUSDSImpl.initialize.selector, address(addressProvider_), usds, susds)
+    );
+    YieldSavingsUSDS yieldSUSDS = YieldSavingsUSDS(payable(yieldSUSDSProxy));
+    console.log('YieldSavingsUSDS:', address(yieldSUSDS));
+
+    return address(yieldSUSDS);
+  }
+
+  function _deployYieldWUSDStaking(address proxyAdmin_, address addressProvider_) internal returns (address) {
+    address wusd = address(0);
+    address wusdStaking = address(0);
+
+    uint256 chainId = config.getChainId();
+    if (chainId == 1) {
+      // mainnet
+      wusd = 0xb6667b04Cb61Aa16B59617f90FFA068722Cf21dA;
+      wusdStaking = 0x338b1646956854A27dbA6dF6B8a3D38949EEBc7f;
+    } else if (chainId == 11155111) {
+      // sepolia
+      wusd = 0xdf98BFe3CDF4CA3C0a9F1dE2e34e6D9E049E2952;
+      wusdStaking = 0x5d8a096A6E0983DD64157bBbB5ce721002D5861A;
+    } else {
+      revert('not support');
+    }
+
+    YieldWUSDStaking yieldImpl = new YieldWUSDStaking();
+
+    TransparentUpgradeableProxy yieldProxy = new TransparentUpgradeableProxy(
+      address(yieldImpl),
+      address(proxyAdmin_),
+      abi.encodeWithSelector(yieldImpl.initialize.selector, address(addressProvider_), wusd, wusdStaking)
+    );
+    YieldWUSDStaking yield = YieldWUSDStaking(payable(yieldProxy));
+    console.log('YieldWUSDStaking:', address(yield));
+
+    return address(yield);
   }
 }

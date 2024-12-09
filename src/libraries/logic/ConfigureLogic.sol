@@ -573,7 +573,8 @@ library ConfigureLogic {
     DataTypes.GroupData storage groupData = assetData.groupLookup[groupId];
     groupData.rateModel = rateModel_;
 
-    InterestLogic.updateInterestRates(poolData, assetData, 0, 0);
+    // We intentionally commented this line of code cos upgrading the IRM contract may change the method signature
+    // InterestLogic.updateInterestRates(poolData, assetData, 0, 0);
 
     emit Events.SetAssetLendingRate(poolId, asset, groupId, rateModel_);
   }
@@ -661,6 +662,7 @@ library ConfigureLogic {
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
     require(assetData.underlyingAsset != address(0), Errors.ASSET_NOT_EXISTS);
     require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+    require(assetData.isYieldEnabled, Errors.ASSET_YIELD_NOT_ENABLE);
 
     // update index using old param before set new config
     InterestLogic.updateInterestIndexs(poolData, assetData);
@@ -668,7 +670,8 @@ library ConfigureLogic {
     DataTypes.GroupData storage groupData = assetData.groupLookup[poolData.yieldGroup];
     groupData.rateModel = rateModel_;
 
-    InterestLogic.updateInterestRates(poolData, assetData, 0, 0);
+    // We intentionally commented this line of code cos upgrading the IRM contract may change the method signature
+    // InterestLogic.updateInterestRates(poolData, assetData, 0, 0);
 
     emit Events.SetAssetYieldRate(poolId, asset, rateModel_);
   }

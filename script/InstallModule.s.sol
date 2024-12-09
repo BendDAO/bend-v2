@@ -33,18 +33,23 @@ contract InstallModule is DeployBase {
 
     Installer installer = Installer(poolManager.moduleIdToProxy(Constants.MODULEID__INSTALLER));
 
-    address[] memory modules = _allModules();
-    //address[] memory modules = _someModules();
+    // address[] memory modules = _allModules();
+    address[] memory modules = _someModules();
 
-    installer.installModules(modules);
+    if (block.chainid != 1) {
+      installer.installModules(modules);
+    }
   }
 
   function _someModules() internal returns (address[] memory) {
-    address[] memory modules = new address[](1);
+    address[] memory modules = new address[](2);
     uint modIdx = 0;
 
-    UIPoolLens tsUIPoolLensImpl = new UIPoolLens(gitCommitHash);
-    modules[modIdx++] = address(tsUIPoolLensImpl);
+    PoolLens tsPoolLensImpl = new PoolLens(gitCommitHash);
+    modules[modIdx++] = address(tsPoolLensImpl);
+
+    Yield tsYieldImpl = new Yield(gitCommitHash);
+    modules[modIdx++] = address(tsYieldImpl);
 
     return modules;
   }

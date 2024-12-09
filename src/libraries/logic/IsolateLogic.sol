@@ -484,7 +484,7 @@ library IsolateLogic {
 
     // transfer erc721 to winning bidder
     if (params.supplyAsCollateral) {
-      VaultLogic.erc721TransferIsolateSupplyOnLiquidate(nftAssetData, vars.winningBidder, params.nftTokenIds);
+      VaultLogic.erc721TransferIsolateSupplyOnLiquidate(nftAssetData, vars.winningBidder, params.nftTokenIds, true);
     } else {
       VaultLogic.erc721DecreaseIsolateSupplyOnLiquidate(nftAssetData, params.nftTokenIds);
 

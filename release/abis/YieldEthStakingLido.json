@@ -500,7 +500,7 @@
         "internalType": "uint16"
       },
       {
-        "name": "liquidationThreshold",
+        "name": "collateralFactor",
         "type": "uint16",
         "internalType": "uint16"
       },
@@ -912,7 +912,7 @@
         "internalType": "uint16"
       },
       {
-        "name": "liquidationThreshold",
+        "name": "collateralFactor",
         "type": "uint16",
         "internalType": "uint16"
       },
@@ -1060,7 +1060,7 @@
         "internalType": "uint16"
       },
       {
-        "name": "liquidationThreshold",
+        "name": "collateralFactor",
         "type": "uint16",
         "internalType": "uint16"
       }
@@ -1483,7 +1483,7 @@
         "internalType": "uint16"
       },
       {
-        "name": "liquidationThreshold",
+        "name": "collateralFactor",
         "type": "uint16",
         "indexed": false,
         "internalType": "uint16"

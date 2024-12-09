@@ -11,4 +11,8 @@ interface IBendNFTOracle {
   function getAssetPrice(address _nftContract) external view returns (uint256);
 
   function getLatestTimestamp(address _nftContract) external view returns (uint256);
+
+  function getPriceFeedLength(address _nftContract) external view returns (uint256 length);
+
+  function getDecimals() external view returns (uint8);
 }
