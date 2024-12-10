@@ -49,6 +49,15 @@ library InputTypes {
     address onBehalf;
   }
 
+  struct ExecuteSetERC20SupplyModeParams {
+    address msgSender;
+    uint32 poolId;
+    address asset;
+    uint256 amount;
+    uint8 supplyMode;
+    address onBehalf;
+  }
+
   // Cross Lending
 
   struct ExecuteCrossBorrowERC20Params {

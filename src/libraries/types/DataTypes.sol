@@ -115,6 +115,8 @@ library DataTypes {
     mapping(address => uint256) yieldUserTotalLocked;
     // manager -> user - > amount
     mapping(address => mapping(address => uint256)) yieldManagerUserLocked;
+    // isolate liquidity
+    uint256 availableIsolateLiquidity;
   }
 
   struct IsolateLoanData {

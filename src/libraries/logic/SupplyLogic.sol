@@ -79,6 +79,57 @@ library SupplyLogic {
     );
   }
 
+  function executeDepositIsolateERC20(InputTypes.ExecuteDepositERC20Params memory params) internal {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
+    DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
+
+    ValidateLogic.validateDepositIsolateERC20(params, poolData, assetData);
+
+    VaultLogic.erc20IncreaseIsolateSupply(assetData, params.onBehalf, params.amount);
+
+    VaultLogic.erc20TransferInIsolateLiquidity(assetData, params.msgSender, params.amount);
+
+    emit Events.DepositIsolateERC20(params.msgSender, params.poolId, params.asset, params.amount, params.onBehalf);
+  }
+
+  function executeWithdrawIsolateERC20(InputTypes.ExecuteWithdrawERC20Params memory params) internal {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
+    DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
+
+    ValidateLogic.validateWithdrawIsolateERC20(params, poolData, assetData);
+
+    // withdraw amount can not bigger than supply balance
+    uint256 userBalance = VaultLogic.erc20GetUserIsolateSupply(assetData, params.onBehalf, assetData.supplyIndex);
+    if (userBalance < params.amount) {
+      params.amount = userBalance;
+    }
+    require(params.amount <= assetData.availableIsolateLiquidity, Errors.ASSET_INSUFFICIENT_LIQUIDITY);
+
+    // check the locked isolate is enough
+    require(
+      (assetData.yieldUserTotalLocked[params.onBehalf] + params.amount) <=
+        assetData.userScaledIsolateSupply[params.onBehalf],
+      Errors.YIELD_EXCEED_USER_SUPPLY
+    );
+
+    VaultLogic.erc20DecreaseIsolateSupply(assetData, params.onBehalf, params.amount);
+
+    VaultLogic.erc20TransferOutIsolateLiquidity(assetData, params.receiver, params.amount);
+
+    emit Events.WithdrawIsolateERC20(
+      params.msgSender,
+      params.poolId,
+      params.asset,
+      params.amount,
+      params.onBehalf,
+      params.receiver
+    );
+  }
+
   function executeDepositERC721(InputTypes.ExecuteDepositERC721Params memory params) internal {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
 
@@ -200,6 +251,56 @@ library SupplyLogic {
       params.poolId,
       params.asset,
       params.tokenIds,
+      params.supplyMode,
+      params.onBehalf
+    );
+  }
+
+  function executeSetERC20SupplyMode(InputTypes.ExecuteSetERC20SupplyModeParams memory params) internal {
+    DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
+
+    DataTypes.PoolData storage poolData = ps.poolLookup[params.poolId];
+    DataTypes.AssetData storage assetData = poolData.assetLookup[params.asset];
+
+    ValidateLogic.validatePoolBasic(poolData);
+    ValidateLogic.validateAssetBasic(assetData);
+
+    ValidateLogic.validateSenderApproved(poolData, params.msgSender, params.asset, params.onBehalf);
+
+    require(params.amount > 0, Errors.INVALID_AMOUNT);
+
+    if (params.supplyMode == Constants.SUPPLY_MODE_CROSS) {
+      // check the locked isolate is enough
+      require(
+        (assetData.yieldUserTotalLocked[params.onBehalf] + params.amount) <=
+          assetData.userScaledIsolateSupply[params.onBehalf],
+        Errors.YIELD_EXCEED_USER_SUPPLY
+      );
+
+      VaultLogic.erc20DecreaseIsolateSupply(assetData, params.onBehalf, params.amount);
+
+      VaultLogic.erc20IncreaseCrossSupply(assetData, params.onBehalf, params.amount);
+    } else if (params.supplyMode == Constants.SUPPLY_MODE_ISOLATE) {
+      VaultLogic.erc20DecreaseCrossSupply(assetData, params.onBehalf, params.amount);
+
+      VaultLogic.erc20IncreaseIsolateSupply(assetData, params.onBehalf, params.amount);
+    } else {
+      revert(Errors.INVALID_SUPPLY_MODE);
+    }
+
+    VaultLogic.accountCheckAndSetSuppliedAsset(poolData, assetData, params.onBehalf);
+
+    ValidateLogic.validateHealthFactor(
+      poolData,
+      params.onBehalf,
+      IAddressProvider(ps.addressProvider).getPriceOracle()
+    );
+
+    emit Events.SetERC20SupplyMode(
+      params.msgSender,
+      params.poolId,
+      params.asset,
+      params.amount,
       params.supplyMode,
       params.onBehalf
     );

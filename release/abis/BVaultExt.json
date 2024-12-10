@@ -12,7 +12,7 @@
   },
   {
     "type": "function",
-    "name": "getERC20TokenData",
+    "name": "depositIsolateERC20",
     "inputs": [
       {
         "name": "poolId",
@@ -25,136 +25,18 @@
         "internalType": "address"
       },
       {
-        "name": "user",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "manager",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "userAmount",
+        "name": "amount",
         "type": "uint256",
         "internalType": "uint256"
       },
       {
-        "name": "managerAmount",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getERC721TokenData",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "internalType": "uint32"
-      },
-      {
-        "name": "asset",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "tokenId",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "owner",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "mode",
-        "type": "uint8",
-        "internalType": "uint8"
-      },
-      {
-        "name": "locker",
+        "name": "onBehalf",
         "type": "address",
         "internalType": "address"
       }
     ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getYieldERC20BorrowBalance",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "internalType": "uint32"
-      },
-      {
-        "name": "asset",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "staker",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "getYieldStakerAssetData",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "internalType": "uint32"
-      },
-      {
-        "name": "asset",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "staker",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "stakerCap",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "stakerBorrow",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "availableBorrow",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
+    "outputs": [],
+    "stateMutability": "payable"
   },
   {
     "type": "function",
@@ -231,53 +113,7 @@
   },
   {
     "type": "function",
-    "name": "yieldBorrowERC20",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "internalType": "uint32"
-      },
-      {
-        "name": "asset",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "yieldRepayERC20",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "internalType": "uint32"
-      },
-      {
-        "name": "asset",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "yieldSetERC20TokenData",
+    "name": "setERC20SupplyMode",
     "inputs": [
       {
         "name": "poolId",
@@ -295,17 +131,12 @@
         "internalType": "uint256"
       },
       {
-        "name": "user",
-        "type": "address",
-        "internalType": "address"
+        "name": "supplyMode",
+        "type": "uint8",
+        "internalType": "uint8"
       },
       {
-        "name": "isLock",
-        "type": "bool",
-        "internalType": "bool"
-      },
-      {
-        "name": "debtAsset",
+        "name": "onBehalf",
         "type": "address",
         "internalType": "address"
       }
@@ -315,7 +146,7 @@
   },
   {
     "type": "function",
-    "name": "yieldSetERC721TokenData",
+    "name": "withdrawIsolateERC20",
     "inputs": [
       {
         "name": "poolId",
@@ -323,22 +154,22 @@
         "internalType": "uint32"
       },
       {
-        "name": "nftAsset",
+        "name": "asset",
         "type": "address",
         "internalType": "address"
       },
       {
-        "name": "tokenId",
+        "name": "amount",
         "type": "uint256",
         "internalType": "uint256"
       },
       {
-        "name": "isLock",
-        "type": "bool",
-        "internalType": "bool"
+        "name": "onBehalf",
+        "type": "address",
+        "internalType": "address"
       },
       {
-        "name": "debtAsset",
+        "name": "receiver",
         "type": "address",
         "internalType": "address"
       }
@@ -348,13 +179,19 @@
   },
   {
     "type": "event",
-    "name": "AssetInterestBorrowDataUpdated",
+    "name": "DepositIsolateERC20",
     "inputs": [
       {
-        "name": "poolId",
-        "type": "uint32",
+        "name": "sender",
+        "type": "address",
         "indexed": true,
-        "internalType": "uint32"
+        "internalType": "address"
+      },
+      {
+        "name": "poolId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
       },
       {
         "name": "asset",
@@ -363,53 +200,16 @@
         "internalType": "address"
       },
       {
-        "name": "groupId",
+        "name": "amount",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
       },
       {
-        "name": "borrowRate",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "borrowIndex",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "AssetInterestSupplyDataUpdated",
-    "inputs": [
-      {
-        "name": "poolId",
-        "type": "uint32",
-        "indexed": true,
-        "internalType": "uint32"
-      },
-      {
-        "name": "asset",
+        "name": "onBehalf",
         "type": "address",
-        "indexed": true,
+        "indexed": false,
         "internalType": "address"
-      },
-      {
-        "name": "supplyRate",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
-      },
-      {
-        "name": "supplyIndex",
-        "type": "uint256",
-        "indexed": false,
-        "internalType": "uint256"
       }
     ],
     "anonymous": false
@@ -420,6 +220,49 @@
     "inputs": [
       {
         "name": "account",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SetERC20SupplyMode",
+    "inputs": [
+      {
+        "name": "sender",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "poolId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "asset",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "supplyMode",
+        "type": "uint8",
+        "indexed": false,
+        "internalType": "uint8"
+      },
+      {
+        "name": "onBehalf",
         "type": "address",
         "indexed": false,
         "internalType": "address"
@@ -442,7 +285,7 @@
   },
   {
     "type": "event",
-    "name": "YieldBorrowERC20",
+    "name": "WithdrawIsolateERC20",
     "inputs": [
       {
         "name": "sender",
@@ -467,37 +310,18 @@
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
-      }
-    ],
-    "anonymous": false
-  },
-  {
-    "type": "event",
-    "name": "YieldRepayERC20",
-    "inputs": [
+      },
       {
-        "name": "sender",
+        "name": "onBehalf",
         "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "poolId",
-        "type": "uint256",
-        "indexed": true,
-        "internalType": "uint256"
-      },
-      {
-        "name": "asset",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
-        "name": "amount",
-        "type": "uint256",
         "indexed": false,
-        "internalType": "uint256"
+        "internalType": "address"
+      },
+      {
+        "name": "receiver",
+        "type": "address",
+        "indexed": false,
+        "internalType": "address"
       }
     ],
     "anonymous": false

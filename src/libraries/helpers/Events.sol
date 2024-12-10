@@ -98,6 +98,31 @@ library Events {
     address receiver
   );
 
+  event DepositIsolateERC20(
+    address indexed sender,
+    uint256 indexed poolId,
+    address indexed asset,
+    uint256 amount,
+    address onBehalf
+  );
+  event WithdrawIsolateERC20(
+    address indexed sender,
+    uint256 indexed poolId,
+    address indexed asset,
+    uint256 amount,
+    address onBehalf,
+    address receiver
+  );
+
+  event SetERC20SupplyMode(
+    address indexed sender,
+    uint256 indexed poolId,
+    address indexed asset,
+    uint256 amount,
+    uint8 supplyMode,
+    address onBehalf
+  );
+
   event DepositERC721(
     address indexed sender,
     uint256 indexed poolId,

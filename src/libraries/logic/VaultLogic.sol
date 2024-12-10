@@ -244,6 +244,22 @@ library VaultLogic {
   }
 
   /**
+   * @dev Increase user supply balance, no need the index.
+   */
+  function erc20IncreaseIsolateSupply(DataTypes.AssetData storage assetData, address account, uint256 amount) internal {
+    assetData.totalScaledIsolateSupply += amount;
+    assetData.userScaledIsolateSupply[account] += amount;
+  }
+
+  /**
+   * @dev Decrease user supply balance, no need the index.
+   */
+  function erc20DecreaseIsolateSupply(DataTypes.AssetData storage assetData, address account, uint256 amount) internal {
+    assetData.totalScaledCrossSupply -= amount;
+    assetData.userScaledCrossSupply[account] -= amount;
+  }
+
+  /**
    * @dev Get total borrow balance in the group, make sure the index already updated.
    */
   function erc20GetTotalCrossBorrowInGroup(
@@ -446,6 +462,38 @@ library VaultLogic {
 
     require(assetData.availableLiquidity >= amount, Errors.ASSET_INSUFFICIENT_LIQUIDITY);
     assetData.availableLiquidity -= amount;
+
+    IERC20Upgradeable(asset).safeTransfer(to, amount);
+
+    uint poolSizeAfter = IERC20Upgradeable(asset).balanceOf(address(this));
+    require(poolSizeBefore == (poolSizeAfter + amount), Errors.INVALID_TRANSFER_AMOUNT);
+  }
+
+  function erc20TransferInIsolateLiquidity(
+    DataTypes.AssetData storage assetData,
+    address from,
+    uint256 amount
+  ) internal {
+    address asset = assetData.underlyingAsset;
+    uint256 poolSizeBefore = IERC20Upgradeable(asset).balanceOf(address(this));
+
+    assetData.availableIsolateLiquidity += amount;
+
+    IERC20Upgradeable(asset).safeTransferFrom(from, address(this), amount);
+
+    uint256 poolSizeAfter = IERC20Upgradeable(asset).balanceOf(address(this));
+    require(poolSizeAfter == (poolSizeBefore + amount), Errors.INVALID_TRANSFER_AMOUNT);
+  }
+
+  function erc20TransferOutIsolateLiquidity(DataTypes.AssetData storage assetData, address to, uint amount) internal {
+    address asset = assetData.underlyingAsset;
+
+    require(to != address(0), Errors.INVALID_TO_ADDRESS);
+
+    uint256 poolSizeBefore = IERC20Upgradeable(asset).balanceOf(address(this));
+
+    require(assetData.availableIsolateLiquidity >= amount, Errors.ASSET_INSUFFICIENT_LIQUIDITY);
+    assetData.availableIsolateLiquidity -= amount;
 
     IERC20Upgradeable(asset).safeTransfer(to, amount);
 

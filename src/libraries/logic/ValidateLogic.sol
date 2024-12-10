@@ -111,6 +111,36 @@ library ValidateLogic {
     require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
   }
 
+  function validateDepositIsolateERC20(
+    InputTypes.ExecuteDepositERC20Params memory inputParams,
+    DataTypes.PoolData storage poolData,
+    DataTypes.AssetData storage assetData
+  ) internal view {
+    validatePoolBasic(poolData);
+    validateAssetBasic(assetData);
+
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+    require(!assetData.isFrozen, Errors.ASSET_IS_FROZEN);
+
+    require(inputParams.onBehalf != address(0), Errors.INVALID_ONBEHALF_ADDRESS);
+    require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
+  }
+
+  function validateWithdrawIsolateERC20(
+    InputTypes.ExecuteWithdrawERC20Params memory inputParams,
+    DataTypes.PoolData storage poolData,
+    DataTypes.AssetData storage assetData
+  ) internal view {
+    validatePoolBasic(poolData);
+    validateAssetBasic(assetData);
+
+    validateSenderApproved(poolData, inputParams.msgSender, inputParams.asset, inputParams.onBehalf);
+    require(inputParams.receiver != address(0), Errors.INVALID_TO_ADDRESS);
+
+    require(assetData.assetType == Constants.ASSET_TYPE_ERC20, Errors.ASSET_TYPE_NOT_ERC20);
+    require(inputParams.amount > 0, Errors.INVALID_AMOUNT);
+  }
+
   function validateDepositERC721(
     InputTypes.ExecuteDepositERC721Params memory inputParams,
     DataTypes.PoolData storage poolData,
