@@ -32,6 +32,7 @@ contract DeployYieldMock is DeployBase {
     // _deployMockSDai();
     // _deployMockSUSDS();
     // _deployMockWUSD();
+    // _deployMockUSDE();
   }
 
   function _deployMockLido() internal {
@@ -78,5 +79,13 @@ contract DeployYieldMock is DeployBase {
     MockERC20 wusd = MockERC20(0xdf98BFe3CDF4CA3C0a9F1dE2e34e6D9E049E2952);
 
     new MockWUSDStaking(address(wusd));
+  }
+
+  function _deployMockUSDE() internal {
+    // USDE should be same with pool lending
+    // MockERC20 usde = new MockERC20('USDe', 'USDe', 18);
+    // MockERC20 usde = MockERC20(0xB62A230b36F6588a18aa7bEF2599EED20246445B);
+
+    // new MockStakedUSDe(address(usde));
   }
 }
