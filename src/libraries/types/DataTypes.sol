@@ -98,7 +98,7 @@ library DataTypes {
     uint256 availableLiquidity;
     uint256 totalBidAmout;
     mapping(address => uint256) userScaledCrossSupply; // user supplied balance in cross margin mode
-    mapping(address => uint256) userScaledIsolateSupply; // user supplied balance in isolate mode, only for ERC721
+    mapping(address => uint256) userScaledIsolateSupply; // user supplied balance in isolate mode
     mapping(uint256 => ERC721TokenData) erc721TokenData; // token -> data, only for ERC721
 
     // asset interest state

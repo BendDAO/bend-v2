@@ -860,12 +860,16 @@ library QueryLogic {
     address asset,
     address user,
     address manager
-  ) public view returns (uint256 userAmount, uint256 managerAmount) {
+  ) public view returns (uint256 userSupply, uint256 userLocked, uint256 managerLocked) {
     DataTypes.PoolStorage storage ps = StorageSlot.getPoolStorage();
     DataTypes.PoolData storage poolData = ps.poolLookup[poolId];
     DataTypes.AssetData storage assetData = poolData.assetLookup[asset];
 
-    return (assetData.yieldUserTotalLocked[user], assetData.yieldManagerUserLocked[manager][user]);
+    return (
+      assetData.userScaledIsolateSupply[user],
+      assetData.yieldUserTotalLocked[user],
+      assetData.yieldManagerUserLocked[manager][user]
+    );
   }
 
   function getERC721Delegations(

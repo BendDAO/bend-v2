@@ -36,5 +36,5 @@ interface IYield {
     address asset,
     address user,
     address manager
-  ) external view returns (uint256 userAmount, uint256 managerAmount);
+  ) external view returns (uint256 userSupply, uint256 userLocked, uint256 managerLocked);
 }

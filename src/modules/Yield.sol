@@ -118,7 +118,7 @@ contract Yield is BaseModule, IYield {
     address asset,
     address user,
     address manager
-  ) public view override returns (uint256 userAmount, uint256 managerAmount) {
+  ) public view override returns (uint256 userSupply, uint256 userLocked, uint256 managerLocked) {
     return QueryLogic.getERC20TokenData(poolId, asset, user, manager);
   }
 }
