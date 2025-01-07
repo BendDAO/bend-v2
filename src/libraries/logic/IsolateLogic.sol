@@ -466,11 +466,6 @@ library IsolateLogic {
       Errors.ISOLATE_LOAN_BORROW_AMOUNT_NOT_COVER
     );
 
-    require(
-      (vars.totalBorrowAmount + vars.totalRemainAmount) <= vars.totalBidAmount,
-      Errors.ISOLATE_LOAN_BORROW_AMOUNT_NOT_COVER
-    );
-
     // update interest rate according latest borrow amount (utilizaton)
     InterestLogic.updateInterestRates(poolData, debtAssetData, vars.totalBorrowAmount, 0);
 
