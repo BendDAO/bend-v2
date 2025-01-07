@@ -463,6 +463,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
       vars.remainAmount = vars.remainAmount - sd.unstakeFine;
     } else {
       vars.extraAmount = vars.extraAmount + (sd.unstakeFine - vars.remainAmount);
+      vars.remainAmount = 0;
     }
 
     sd.remainYieldAmount = vars.remainAmount;

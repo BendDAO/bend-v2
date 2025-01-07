@@ -462,6 +462,7 @@ contract YieldWUSDStaking is Initializable, PausableUpgradeable, ReentrancyGuard
       vars.remainAmount = vars.remainAmount - sd.unstakeFine;
     } else {
       vars.extraAmount = vars.extraAmount + (sd.unstakeFine - vars.remainAmount);
+      vars.remainAmount = 0;
     }
 
     sd.remainYieldAmount = vars.remainAmount;
