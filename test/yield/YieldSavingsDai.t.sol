@@ -97,14 +97,14 @@ contract TestYieldSavingsDai is TestWithPrepare {
       tokenIds[0]
     );
     assertEq(testVars.state, Constants.YIELD_STATUS_CLAIM, 'state not eq');
-    assertEq(testVars.yieldAmount, yieldAmount, 'testVars.yieldAmount not eq');
+    assertEq(testVars.yieldAmount, underAmount, 'testVars.yieldAmount not eq');
 
     (testVars.unstakeFine, testVars.withdrawAmount, testVars.withdrawReqId) = tsYieldSavingsDai.getNftUnstakeData(
       address(tsBAYC),
       tokenIds[0]
     );
     assertEq(testVars.unstakeFine, 0, 'unstakeFine not eq');
-    assertEq(testVars.withdrawAmount, testVars.yieldAmount, 'withdrawAmount not eq');
+    assertLe(testVars.withdrawAmount, testVars.yieldAmount, 'withdrawAmount not eq');
     assertEq(testVars.withdrawReqId, 0, 'withdrawReqId not eq');
   }
 

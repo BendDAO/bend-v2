@@ -614,7 +614,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     if (sd.state == Constants.YIELD_STATUS_ACTIVE) {
       (yieldAmount, ) = _getNftYieldInUnderlyingAsset(sd);
     } else {
-      yieldAmount = sd.withdrawAmount;
+      yieldAmount = getProtocolTokenWithdrawAmount(sd.withdrawAmount);
     }
 
     return (sd.poolId, state, debtAmount, yieldAmount);
@@ -750,6 +750,10 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     // stETH, eETH is rebase model & 1:1 to the underlying
     // but sDAI is not rebase model, the share are fixed
     return yieldAmount;
+  }
+
+  function getProtocolTokenWithdrawAmount(uint256 withdrawAmount) internal view virtual returns (uint256) {
+    return withdrawAmount;
   }
 
   function getNftPriceInUnderlyingAsset(address nft) internal view virtual returns (uint256) {

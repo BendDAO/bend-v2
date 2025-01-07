@@ -85,7 +85,6 @@ contract DeployYieldMock is DeployBase {
     // USDE should be same with pool lending
     // MockERC20 usde = new MockERC20('USDe', 'USDe', 18);
     // MockERC20 usde = MockERC20(0xB62A230b36F6588a18aa7bEF2599EED20246445B);
-
     // new MockStakedUSDe(address(usde));
   }
 }
