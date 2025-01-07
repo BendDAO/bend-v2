@@ -480,7 +480,7 @@ library IsolateLogic {
     }
 
     // bid already in pool and now repay the borrow but need to increase liquidity
-    VaultLogic.erc20TransferOutBidAmountToLiqudity(debtAssetData, vars.totalBorrowAmount);
+    VaultLogic.erc20TransferOutBidAmountToLiqudity(debtAssetData, vars.totalBorrowAmount - vars.totalExtraAmount);
 
     // transfer erc721 to winning bidder
     if (params.supplyAsCollateral) {
