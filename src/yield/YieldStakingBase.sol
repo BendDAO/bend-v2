@@ -239,24 +239,16 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     (vars.nftOwner, vars.nftSupplyMode, vars.nftLockerAddr) = poolYield.getERC721TokenData(poolId, nft, tokenId);
     require(vars.nftOwner == msg.sender, Errors.INVALID_CALLER);
     require(vars.nftSupplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.INVALID_SUPPLY_MODE);
+    require(vars.nftLockerAddr == address(0), Errors.YIELD_ETH_NFT_ALREADY_USED);
 
     YieldStakeData storage sd = stakeDatas[nft][tokenId];
-    if (sd.yieldAccount == address(0)) {
-      require(vars.nftLockerAddr == address(0), Errors.YIELD_ETH_NFT_ALREADY_USED);
+    require(sd.yieldAccount == address(0), Errors.YIELD_ETH_NFT_ALREADY_USED);
 
-      vars.totalDebtAmount = borrowAmount;
+    sd.yieldAccount = address(vars.yieldAccout);
+    sd.poolId = poolId;
+    sd.state = Constants.YIELD_STATUS_ACTIVE;
 
-      sd.yieldAccount = address(vars.yieldAccout);
-      sd.poolId = poolId;
-      sd.state = Constants.YIELD_STATUS_ACTIVE;
-    } else {
-      require(vars.nftLockerAddr == address(this), Errors.YIELD_ETH_NFT_NOT_USED_BY_ME);
-      require(sd.state == Constants.YIELD_STATUS_ACTIVE, Errors.YIELD_ETH_STATUS_NOT_ACTIVE);
-      require(sd.poolId == poolId, Errors.YIELD_ETH_POOL_NOT_SAME);
-
-      vars.totalDebtAmount = convertToDebtAssets(poolId, sd.debtShare) + borrowAmount;
-    }
-
+    vars.totalDebtAmount = borrowAmount;
     vars.nftPriceInUnderlyingAsset = getNftPriceInUnderlyingAsset(nft);
     vars.maxBorrowAmount = vars.nftPriceInUnderlyingAsset.percentMul(nc.leverageFactor);
     require(vars.totalDebtAmount <= vars.maxBorrowAmount, Errors.YIELD_ETH_EXCEED_MAX_BORROWABLE);
