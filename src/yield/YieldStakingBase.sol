@@ -159,12 +159,15 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     }
   }
 
-  function collectFeeToTreasury() public virtual onlyPoolAdmin {
+  function collectFeeToTreasury(uint256 amount) public virtual onlyPoolAdmin {
     address to = addressProvider.getTreasury();
     require(to != address(0), Errors.TREASURY_CANNOT_BE_ZERO);
 
     if (totalUnstakeFine > claimedUnstakeFine) {
       uint256 amountToCollect = totalUnstakeFine - claimedUnstakeFine;
+      if (amountToCollect > amount) {
+        amountToCollect = amount;
+      }
       claimedUnstakeFine += amountToCollect;
 
       underlyingAsset.safeTransfer(to, amountToCollect);

@@ -83,10 +83,7 @@ contract TestYieldSavingsUSDS is TestWithPrepare {
     tsHEVM.prank(address(tsDepositor1));
     tsSUSDS.rebase(yieldAccount, deltaAmount);
 
-    (uint256 underAmount, uint256 yieldAmount) = tsYieldSavingsUSDS.getNftYieldInUnderlyingAsset(
-      address(tsBAYC),
-      tokenIds[0]
-    );
+    (uint256 underAmount, ) = tsYieldSavingsUSDS.getNftYieldInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
     testEquality(underAmount, (stakeAmount + deltaAmount), 3, 'yieldAmount not eq');
 
     tsHEVM.prank(address(tsBorrower1));
@@ -270,7 +267,7 @@ contract TestYieldSavingsUSDS is TestWithPrepare {
     assertEq(testVars.claimedFine, 0, 'claimedFine not eq');
 
     tsHEVM.prank(address(tsPoolAdmin));
-    tsYieldSavingsUSDS.collectFeeToTreasury();
+    tsYieldSavingsUSDS.collectFeeToTreasury(type(uint256).max);
 
     (testVars.totalFineAfter, testVars.claimedFine) = tsYieldSavingsUSDS.getTotalUnstakeFine();
     assertEq(testVars.totalFineAfter, testVars.totalFineBefore, 'totalFineAfter not eq');

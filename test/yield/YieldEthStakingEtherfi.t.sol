@@ -181,7 +181,7 @@ contract TestYieldEthStakingEtherfi is TestWithPrepare {
     assertEq(testVars.claimedFine, 0, 'claimedFine not eq');
 
     tsHEVM.prank(address(tsPoolAdmin));
-    tsYieldEthStakingEtherfi.collectFeeToTreasury();
+    tsYieldEthStakingEtherfi.collectFeeToTreasury(type(uint256).max);
 
     (testVars.totalFineAfter, testVars.claimedFine) = tsYieldEthStakingEtherfi.getTotalUnstakeFine();
     assertEq(testVars.totalFineAfter, testVars.totalFineBefore, 'totalFineAfter not eq');
