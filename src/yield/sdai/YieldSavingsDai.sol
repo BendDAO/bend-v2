@@ -153,4 +153,8 @@ contract YieldSavingsDai is YieldStakingBase {
   function getProtocolTokenDecimals() internal view virtual override returns (uint8) {
     return sdai.decimals();
   }
+
+  function getProtocolTokenWithdrawAmount(uint256 withdrawAmount) internal view virtual override returns (uint256) {
+    return getProtocolTokenAmountInUnderlyingAsset(withdrawAmount);
+  }
 }

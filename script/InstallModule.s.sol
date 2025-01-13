@@ -42,14 +42,11 @@ contract InstallModule is DeployBase {
   }
 
   function _someModules() internal returns (address[] memory) {
-    address[] memory modules = new address[](2);
+    address[] memory modules = new address[](1);
     uint modIdx = 0;
 
-    PoolLens tsPoolLensImpl = new PoolLens(gitCommitHash);
-    modules[modIdx++] = address(tsPoolLensImpl);
-
-    Yield tsYieldImpl = new Yield(gitCommitHash);
-    modules[modIdx++] = address(tsYieldImpl);
+    IsolateLiquidation tsIsolateLiquidationImpl = new IsolateLiquidation(gitCommitHash);
+    modules[modIdx++] = address(tsIsolateLiquidationImpl);
 
     return modules;
   }

@@ -466,11 +466,6 @@ library IsolateLogic {
       Errors.ISOLATE_LOAN_BORROW_AMOUNT_NOT_COVER
     );
 
-    require(
-      (vars.totalBorrowAmount + vars.totalRemainAmount) <= vars.totalBidAmount,
-      Errors.ISOLATE_LOAN_BORROW_AMOUNT_NOT_COVER
-    );
-
     // update interest rate according latest borrow amount (utilizaton)
     InterestLogic.updateInterestRates(poolData, debtAssetData, vars.totalBorrowAmount, 0);
 
@@ -480,7 +475,7 @@ library IsolateLogic {
     }
 
     // bid already in pool and now repay the borrow but need to increase liquidity
-    VaultLogic.erc20TransferOutBidAmountToLiqudity(debtAssetData, vars.totalBorrowAmount);
+    VaultLogic.erc20TransferOutBidAmountToLiqudity(debtAssetData, vars.totalBorrowAmount - vars.totalExtraAmount);
 
     // transfer erc721 to winning bidder
     if (params.supplyAsCollateral) {

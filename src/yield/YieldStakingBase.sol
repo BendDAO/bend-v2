@@ -159,12 +159,15 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     }
   }
 
-  function collectFeeToTreasury() public virtual onlyPoolAdmin {
+  function collectFeeToTreasury(uint256 amount) public virtual onlyPoolAdmin {
     address to = addressProvider.getTreasury();
     require(to != address(0), Errors.TREASURY_CANNOT_BE_ZERO);
 
     if (totalUnstakeFine > claimedUnstakeFine) {
       uint256 amountToCollect = totalUnstakeFine - claimedUnstakeFine;
+      if (amountToCollect > amount) {
+        amountToCollect = amount;
+      }
       claimedUnstakeFine += amountToCollect;
 
       underlyingAsset.safeTransfer(to, amountToCollect);
@@ -239,24 +242,16 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     (vars.nftOwner, vars.nftSupplyMode, vars.nftLockerAddr) = poolYield.getERC721TokenData(poolId, nft, tokenId);
     require(vars.nftOwner == msg.sender, Errors.INVALID_CALLER);
     require(vars.nftSupplyMode == Constants.SUPPLY_MODE_ISOLATE, Errors.INVALID_SUPPLY_MODE);
+    require(vars.nftLockerAddr == address(0), Errors.YIELD_ETH_NFT_ALREADY_USED);
 
     YieldStakeData storage sd = stakeDatas[nft][tokenId];
-    if (sd.yieldAccount == address(0)) {
-      require(vars.nftLockerAddr == address(0), Errors.YIELD_ETH_NFT_ALREADY_USED);
+    require(sd.yieldAccount == address(0), Errors.YIELD_ETH_NFT_ALREADY_USED);
 
-      vars.totalDebtAmount = borrowAmount;
+    sd.yieldAccount = address(vars.yieldAccout);
+    sd.poolId = poolId;
+    sd.state = Constants.YIELD_STATUS_ACTIVE;
 
-      sd.yieldAccount = address(vars.yieldAccout);
-      sd.poolId = poolId;
-      sd.state = Constants.YIELD_STATUS_ACTIVE;
-    } else {
-      require(vars.nftLockerAddr == address(this), Errors.YIELD_ETH_NFT_NOT_USED_BY_ME);
-      require(sd.state == Constants.YIELD_STATUS_ACTIVE, Errors.YIELD_ETH_STATUS_NOT_ACTIVE);
-      require(sd.poolId == poolId, Errors.YIELD_ETH_POOL_NOT_SAME);
-
-      vars.totalDebtAmount = convertToDebtAssets(poolId, sd.debtShare) + borrowAmount;
-    }
-
+    vars.totalDebtAmount = borrowAmount;
     vars.nftPriceInUnderlyingAsset = getNftPriceInUnderlyingAsset(nft);
     vars.maxBorrowAmount = vars.nftPriceInUnderlyingAsset.percentMul(nc.leverageFactor);
     require(vars.totalDebtAmount <= vars.maxBorrowAmount, Errors.YIELD_ETH_EXCEED_MAX_BORROWABLE);
@@ -463,6 +458,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
       vars.remainAmount = vars.remainAmount - sd.unstakeFine;
     } else {
       vars.extraAmount = vars.extraAmount + (sd.unstakeFine - vars.remainAmount);
+      vars.remainAmount = 0;
     }
 
     sd.remainYieldAmount = vars.remainAmount;
@@ -621,7 +617,7 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     if (sd.state == Constants.YIELD_STATUS_ACTIVE) {
       (yieldAmount, ) = _getNftYieldInUnderlyingAsset(sd);
     } else {
-      yieldAmount = sd.withdrawAmount;
+      yieldAmount = getProtocolTokenWithdrawAmount(sd.withdrawAmount);
     }
 
     return (sd.poolId, state, debtAmount, yieldAmount);
@@ -757,6 +753,10 @@ abstract contract YieldStakingBase is Initializable, PausableUpgradeable, Reentr
     // stETH, eETH is rebase model & 1:1 to the underlying
     // but sDAI is not rebase model, the share are fixed
     return yieldAmount;
+  }
+
+  function getProtocolTokenWithdrawAmount(uint256 withdrawAmount) internal view virtual returns (uint256) {
+    return withdrawAmount;
   }
 
   function getNftPriceInUnderlyingAsset(address nft) internal view virtual returns (uint256) {

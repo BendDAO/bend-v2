@@ -83,10 +83,7 @@ contract TestYieldSavingsDai is TestWithPrepare {
     tsHEVM.prank(address(tsDepositor1));
     tsSDAI.rebase(yieldAccount, deltaAmount);
 
-    (uint256 underAmount, uint256 yieldAmount) = tsYieldSavingsDai.getNftYieldInUnderlyingAsset(
-      address(tsBAYC),
-      tokenIds[0]
-    );
+    (uint256 underAmount, ) = tsYieldSavingsDai.getNftYieldInUnderlyingAsset(address(tsBAYC), tokenIds[0]);
     testEquality(underAmount, (stakeAmount + deltaAmount), 3, 'yieldAmount not eq');
 
     tsHEVM.prank(address(tsBorrower1));
@@ -97,14 +94,14 @@ contract TestYieldSavingsDai is TestWithPrepare {
       tokenIds[0]
     );
     assertEq(testVars.state, Constants.YIELD_STATUS_CLAIM, 'state not eq');
-    assertEq(testVars.yieldAmount, yieldAmount, 'testVars.yieldAmount not eq');
+    assertEq(testVars.yieldAmount, underAmount, 'testVars.yieldAmount not eq');
 
     (testVars.unstakeFine, testVars.withdrawAmount, testVars.withdrawReqId) = tsYieldSavingsDai.getNftUnstakeData(
       address(tsBAYC),
       tokenIds[0]
     );
     assertEq(testVars.unstakeFine, 0, 'unstakeFine not eq');
-    assertEq(testVars.withdrawAmount, testVars.yieldAmount, 'withdrawAmount not eq');
+    assertLe(testVars.withdrawAmount, testVars.yieldAmount, 'withdrawAmount not eq');
     assertEq(testVars.withdrawReqId, 0, 'withdrawReqId not eq');
   }
 
@@ -270,7 +267,7 @@ contract TestYieldSavingsDai is TestWithPrepare {
     assertEq(testVars.claimedFine, 0, 'claimedFine not eq');
 
     tsHEVM.prank(address(tsPoolAdmin));
-    tsYieldSavingsDai.collectFeeToTreasury();
+    tsYieldSavingsDai.collectFeeToTreasury(type(uint256).max);
 
     (testVars.totalFineAfter, testVars.claimedFine) = tsYieldSavingsDai.getTotalUnstakeFine();
     assertEq(testVars.totalFineAfter, testVars.totalFineBefore, 'totalFineAfter not eq');
